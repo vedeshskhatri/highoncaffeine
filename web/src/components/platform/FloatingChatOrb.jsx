@@ -187,7 +187,99 @@ export default function FloatingChatOrb() {
   const orbRef = useRef(null);
   const isDraggingRef = useRef(false);
   const contentBodyRef = useRef(null);
+  const chatWindowRef = useRef(null);
   const recognitionRef = useRef(null);
+
+  // Isolate scroll: when scrolling inside the chat window, lock background website movement
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleWindowWheel = (e) => {
+      const windowEl = chatWindowRef.current;
+      if (!windowEl) return;
+
+      // Only intervene if user's cursor is over the floating AI chatbox
+      if (!windowEl.contains(e.target)) {
+        return; // Cursor is outside the AI chatbox -> let background page scroll normally
+      }
+
+      const scrollBody = contentBodyRef.current;
+      if (!scrollBody) {
+        e.preventDefault();
+        return;
+      }
+
+      const { deltaY, deltaX } = e;
+
+      // Block horizontal gestures over the chatbox from triggering browser back/forward or horizontal shift
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        e.preventDefault();
+        return;
+      }
+
+      if (deltaY === 0) return;
+
+      const maxScroll = scrollBody.scrollHeight - scrollBody.clientHeight;
+
+      // If chatbox content is not scrollable, lock background scroll completely
+      if (maxScroll <= 0) {
+        e.preventDefault();
+        return;
+      }
+
+      // If user is hovering over topbar, actions, or search form (outside scrollBody),
+      // smoothly scroll the body directly and prevent background window scroll
+      if (!scrollBody.contains(e.target)) {
+        e.preventDefault();
+        scrollBody.scrollTop = Math.max(0, Math.min(maxScroll, scrollBody.scrollTop + deltaY));
+        return;
+      }
+
+      // User is scrolling directly inside scrollBody:
+      // Lock background by preventing boundary overshoot / scroll chaining
+      if (deltaY > 0) {
+        // Scrolling down
+        if (scrollBody.scrollTop >= maxScroll) {
+          e.preventDefault();
+        } else if (scrollBody.scrollTop + deltaY >= maxScroll) {
+          e.preventDefault();
+          scrollBody.scrollTop = maxScroll;
+        }
+      } else if (deltaY < 0) {
+        // Scrolling up
+        if (scrollBody.scrollTop <= 0) {
+          e.preventDefault();
+        } else if (scrollBody.scrollTop + deltaY <= 0) {
+          e.preventDefault();
+          scrollBody.scrollTop = 0;
+        }
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      const windowEl = chatWindowRef.current;
+      if (!windowEl || !windowEl.contains(e.target)) return;
+
+      const scrollBody = contentBodyRef.current;
+      if (!scrollBody || !scrollBody.contains(e.target)) {
+        e.preventDefault();
+        return;
+      }
+
+      const maxScroll = scrollBody.scrollHeight - scrollBody.clientHeight;
+      if (maxScroll <= 0) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('wheel', handleWindowWheel, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWindowWheel);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isOpen]);
 
   // Update placement relative to screen edges so chat window never clips
   const updatePlacement = useCallback(() => {
@@ -245,11 +337,13 @@ export default function FloatingChatOrb() {
     const handleExternalOpen = (e) => {
       setIsOpen(true);
       updatePlacement();
-      const q = e.detail?.query || SUGGESTED_QUERIES[0];
+      const q = e.detail?.query || '';
       const s = e.detail?.site || 'all';
-      setQueryInput(q);
-      setSelectedSite(s);
-      handleAiSubmit(q, s);
+      if (q) {
+        setQueryInput(q);
+        setSelectedSite(s);
+        handleAiSubmit(q, s);
+      }
     };
 
     window.addEventListener('open-therma-orb', handleExternalOpen);
@@ -276,14 +370,7 @@ export default function FloatingChatOrb() {
   const handleOrbClick = () => {
     if (isDraggingRef.current) return;
     updatePlacement();
-    setIsOpen(prev => {
-      const next = !prev;
-      if (next && !aiResponse) {
-        handleAiSubmit(SUGGESTED_QUERIES[0]);
-        setQueryInput(SUGGESTED_QUERIES[0]);
-      }
-      return next;
-    });
+    setIsOpen(prev => !prev);
   };
 
   // Speech Recognition
@@ -368,6 +455,7 @@ export default function FloatingChatOrb() {
           <AnimatePresence>
             {isOpen && (
               <motion.div
+                ref={chatWindowRef}
                 initial={{ opacity: 0, scale: 0.9, y: placement.v === 'top' ? -15 : 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 15 }}
@@ -498,8 +586,37 @@ export default function FloatingChatOrb() {
                     </button>
                   </form>
 
+                  {/* Empty State when no question asked yet */}
+                  {!aiResponse && !aiLoading && (
+                    <div className="chatbox-empty-state">
+                      <div className="empty-state-icon">
+                        <Bot size={30} />
+                      </div>
+                      <h4 className="empty-state-title">Awaiting Thermal Performance Inquiry</h4>
+                      <p className="empty-state-desc">
+                        Enter any question regarding high-altitude shelter indoor temperature, envelope insulation materials, heat loss bottlenecks, or safety compliance. You can also click any sample inquiry chip above.
+                      </p>
+                      <div className="empty-state-badges">
+                        <span className="empty-badge mono">5 ML Surrogates (CatBoost, RF, MLP)</span>
+                        <span className="empty-badge mono">120,000 Hourly Timesteps</span>
+                        <span className="empty-badge mono">DRDO PS 26051 Grounded</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Loading State while evaluating models */}
+                  {aiLoading && (
+                    <div className="chatbox-loading-state">
+                      <RefreshCw size={28} className="spin" style={{ color: '#0284c7' }} />
+                      <h4 className="loading-state-title">Evaluating Thermodynamic Surrogate Models...</h4>
+                      <p className="loading-state-desc mono">
+                        Simulating building envelope conduction, radiation, air infiltration, and operative comfort.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Grounded Response Diagnostic Console */}
-                  {aiResponse && (
+                  {aiResponse && !aiLoading && (
                     <div className="ai-diagnostic-console" style={{ marginTop: '0' }}>
                       {/* Executive Header */}
                       <div className="diagnostic-header-bar">
