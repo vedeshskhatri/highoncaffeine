@@ -9,6 +9,7 @@ import ScenarioCards, { SCENARIO_PRESETS } from './components/ScenarioCards';
 import ShelterBuilder from './components/ShelterBuilder';
 import ReportSection from './components/ReportSection';
 import ValidationSection from './components/ValidationSection';
+import WatchView from './components/WatchView';
 import MethodModal from './components/MethodModal';
 
 export default function App() {
@@ -73,6 +74,11 @@ export default function App() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const scrollToWatch = () => {
+    const el = document.getElementById('forecast-watch');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   if (viewTokens) {
     return <TokensPage />;
   }
@@ -84,6 +90,7 @@ export default function App() {
         onOpenMethod={() => setMethodModalOpen(true)}
         onScrollToBuilder={scrollToBuilder}
         onScrollToValidation={scrollToValidation}
+        onScrollToWatch={scrollToWatch}
       />
 
       <main>
@@ -120,6 +127,11 @@ export default function App() {
 
         {/* 7. Empirical Validation Section (Full-bleed Midnight Espresso) */}
         <ValidationSection />
+
+        {/* 8. Multi-Post Forecast Early-Warning Watch (Feature 2) */}
+        <section id="forecast-watch" style={{ padding: 'var(--space-4) var(--space-3)', backgroundColor: 'var(--bg-base)' }}>
+          <WatchView design={activeScenario} />
+        </section>
       </main>
 
       {/* Footer */}
@@ -138,6 +150,9 @@ export default function App() {
             <a href="/?view=tokens" className="footer-link-btn">
               Design Tokens
             </a>
+            <button type="button" className="footer-link-btn" onClick={scrollToWatch}>
+              Forecast Watch
+            </button>
             <button type="button" className="footer-link-btn" onClick={scrollToValidation}>
               Empirical Validation
             </button>

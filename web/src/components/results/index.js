@@ -5,3 +5,4 @@ export { default as WeatherProvenanceBanner } from './WeatherProvenanceBanner';
 export { default as RefusalCard } from './RefusalCard';
 export { default as ResultsTestView } from './ResultsTestView';
 export { default as ThermalDiagnosisPanel } from './ThermalDiagnosisPanel';
+export { default as PhysiologicalRiskPanel } from './PhysiologicalRiskPanel';

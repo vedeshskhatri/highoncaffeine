@@ -25,6 +25,7 @@ import {
   WeatherProvenanceBanner,
   RefusalCard,
   ThermalDiagnosisPanel,
+  PhysiologicalRiskPanel,
 } from './results';
 
 // Realistic sample simulation result when testing offline or before first execution
@@ -137,6 +138,10 @@ export default function SimulateCanvas({ result, request }) {
         Simulation results — {dateStr}
       </div>
       <MetricCards summary={data.summary} />
+      <PhysiologicalRiskPanel
+        thermoregulation={data.occupant_thermoregulation}
+        summary={data.summary}
+      />
 
       {/* 3. Primary Diurnal Temperature Chart (VISUAL ANCHOR) */}
       <div

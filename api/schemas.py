@@ -130,6 +130,9 @@ class SimulateRequest(BaseModel):
     ground: GroundSchema = Field(default_factory=GroundSchema)
     comfort: ComfortSchema = Field(default_factory=ComfortSchema)
     simulation: SimulationConfigSchema = Field(default_factory=SimulationConfigSchema)
+    occupant_model: Optional[bool] = Field(default=False, description="Whether to simulate Gagge two-node occupant thermoregulation")
+    occupant_clothing_clo: Optional[float] = Field(default=1.5, ge=0.0, le=10.0, description="Clothing insulation in clo (ASHRAE HoF 2021 Ch.9 Tbl 5)")
+    occupant_metabolic_met: Optional[float] = Field(default=1.0, ge=0.5, le=10.0, description="Occupant metabolic rate in met (ISO 7730 / ASHRAE HoF Ch.9)")
 
 
 class FixedGeometrySchema(BaseModel):
@@ -248,6 +251,27 @@ class SurfaceSummarySchema(BaseModel):
     solar_absorbed_w: float
 
 
+class OccupantHourlyRecordSchema(BaseModel):
+    hour: int
+    t_air_c: float
+    t_core_c: float
+    t_skin_c: float
+    shivering_w: float
+    is_hypothermic: bool
+
+
+class OccupantThermoregulationSchema(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    model_confidence: str = Field(default="estimate")
+    clothing_clo: float
+    metabolic_met: float
+    t_core_min_c: float
+    t_core_min_hour: int
+    t_skin_min_c: float
+    hours_to_mild_hypothermia: Optional[float] = None
+    series: List[OccupantHourlyRecordSchema] = Field(default_factory=list)
+
+
 class SimulateSummarySchema(BaseModel):
     t_in_min_c: float
     t_in_min_hour: int
@@ -259,6 +283,7 @@ class SimulateSummarySchema(BaseModel):
     backup_heat: BackupHeatSchema
     impact: ImpactSchema
     freeze_risk: List[FreezeRiskSchema] = Field(default_factory=list)
+    hours_to_mild_hypothermia: Optional[float] = None
 
 
 class SimulateResponse(BaseModel):
@@ -271,6 +296,7 @@ class SimulateResponse(BaseModel):
     summary: Optional[SimulateSummarySchema] = None
     surfaces: List[SurfaceSummarySchema] = Field(default_factory=list)
     diagnosis: Optional[Dict[str, Any]] = None
+    occupant_thermoregulation: Optional[OccupantThermoregulationSchema] = None
 
 
 class BaselineScoreSchema(BaseModel):
@@ -416,3 +442,34 @@ class HealthResponse(BaseModel):
     db: bool
     weather_cache_rows: int
     offline_capable: bool
+
+
+# --- Forecast Watch Schemas (Feature 2) ---
+
+class WatchPostSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    post_id: str = Field(..., description="Unique post identifier")
+    name: Optional[str] = Field(default=None, description="Display name of post")
+    lat: float = Field(..., ge=-90.0, le=90.0, description="Latitude in decimal degrees")
+    lon: float = Field(..., ge=-180.0, le=180.0, description="Longitude in decimal degrees")
+    altitude_m: float = Field(default=3500.0, ge=0.0, le=9000.0, description="Altitude in meters")
+
+
+class ForecastWatchRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    posts: List[WatchPostSchema] = Field(..., min_length=1, description="List of border/observation posts")
+    design: Optional[Dict[str, Any]] = Field(default=None, description="Shared shelter design (defaults to standard envelope if null)")
+    forecast_days: int = Field(default=4, ge=1, le=7, description="Number of forecast days (3-5 recommended)")
+    comfort_threshold_c: float = Field(default=18.0, description="Minimum acceptable indoor temperature threshold in Celsius")
+
+
+class ForecastWatchItemSchema(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    post_id: str
+    date: str
+    predicted_t_in_min_c: float
+    breach: bool
+    breach_hour: Optional[int] = None
+    post_name: Optional[str] = None
+    status: Optional[str] = None
+    t_out_min_c: Optional[float] = None

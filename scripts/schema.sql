@@ -56,3 +56,14 @@ CREATE TABLE IF NOT EXISTS runs (
   request_json TEXT,
   result_json  TEXT
 );
+
+CREATE TABLE IF NOT EXISTS forecast_watch_cache (
+  lat           REAL,
+  lon           REAL,
+  forecast_date TEXT,               -- ISO yyyy-mm-dd
+  hour          INTEGER,            -- 0-23
+  t_air         REAL,               -- degC
+  ghi           REAL,               -- W/m2
+  fetched_at    TEXT,
+  PRIMARY KEY (lat, lon, forecast_date, hour)
+);

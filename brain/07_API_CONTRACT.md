@@ -51,6 +51,9 @@ Base: `http://localhost:8000`. All bodies JSON. All temperatures **Celsius** at 
 - `ventilation.heater_type` ∈ `none` | `unflued_combustion` | `flued_stove` | `electric`
 - `ground.albedo` null → derived from `snow_cover`
 - Envelope layers ordered **outside → inside**
+- `occupant_model` (optional, bool, default `false`): activates Gagge two-node occupant thermoregulation. When absent or false, response behavior is unchanged.
+- `occupant_clothing_clo` (optional, float, default `1.5` clo): winter military uniform insulation (ASHRAE HoF Ch.9 Tbl 5).
+- `occupant_metabolic_met` (optional, float, default `1.0` met): resting metabolic rate (ISO 7730).
 
 ### Response 200
 ```json
@@ -279,3 +282,56 @@ Returns the three pre-run committed scenarios. **Never computed live.**
 ```json
 { "ok": true, "db": true, "weather_cache_rows": 8760, "offline_capable": true }
 ```
+
+---
+
+## POST /forecast_watch
+
+Multi-post transient simulation against Open-Meteo forward weather forecasts (3–5 day outlook).
+Identifies impending comfort floor breaches (WHO 18 °C) and safety interlock hazards, sorted by nearest breach.
+
+### Request
+```json
+{
+  "posts": [
+    { "post_id": "siachen_base", "name": "Siachen Base Camp", "lat": 35.20, "lon": 77.20, "altitude_m": 3600.0 },
+    { "post_id": "dbo_sector", "name": "Daulat Beg Oldie", "lat": 35.30, "lon": 77.90, "altitude_m": 5065.0 }
+  ],
+  "design": null,
+  "forecast_days": 4,
+  "comfort_threshold_c": 18.0
+}
+```
+
+- `posts`: list of observation/border posts (`post_id`, `lat`, `lon`, `altitude_m`, optional `name`).
+- `design`: optional shared envelope/geometry design (defaults to standard high-altitude shelter design if null).
+- `forecast_days`: 1–7 days (default 4).
+- `comfort_threshold_c`: minimum indoor comfort floor (default 18.0 °C).
+
+### Response 200
+```json
+[
+  {
+    "post_id": "dbo_sector",
+    "post_name": "Daulat Beg Oldie",
+    "date": "2026-09-12",
+    "predicted_t_in_min_c": 4.82,
+    "breach": true,
+    "breach_hour": 4,
+    "status": "red",
+    "t_out_min_c": -18.6
+  },
+  {
+    "post_id": "siachen_base",
+    "post_name": "Siachen Base Camp",
+    "date": "2026-09-12",
+    "predicted_t_in_min_c": 14.15,
+    "breach": true,
+    "breach_hour": 6,
+    "status": "amber",
+    "t_out_min_c": -11.2
+  }
+]
+```
+`status` ∈ `red` (severe danger / safety refusal / T_in < 12 °C) | `amber` (moderate breach / 12 °C ≤ T_in < 18 °C) | `green` (compliant / T_in ≥ 18 °C).
+Results are sorted by **nearest impending breach first**.

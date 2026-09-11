@@ -1,7 +1,7 @@
 import React from 'react';
 import './Header.css';
 
-export default function Header({ onOpenMethod, onScrollToBuilder, onScrollToValidation }) {
+export default function Header({ onOpenMethod, onScrollToBuilder, onScrollToValidation, onScrollToWatch }) {
   return (
     <header className="site-header">
       <div className="header-inner">
@@ -11,6 +11,9 @@ export default function Header({ onOpenMethod, onScrollToBuilder, onScrollToVali
         </a>
 
         <nav className="header-nav">
+          <button type="button" className="nav-link" onClick={onScrollToWatch}>
+            Watch
+          </button>
           <button type="button" className="nav-link" onClick={onScrollToValidation}>
             Validation
           </button>

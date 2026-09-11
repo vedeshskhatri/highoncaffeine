@@ -28,6 +28,8 @@ Format:
 [2026-09-11 12:32] SWAPNIL S3 — live cross-section SVG with scaled wall/roof/floor layers, snow drift, and sun glyph (354fe18)
 [2026-09-11 12:37] SWAPNIL S4 — Recharts suite (TempChart, DeltaAmbient, DeltaDesign), LeversPanel, ValidationPanel, ParetoPlot, RetrofitList (d806ecf)
 [2026-09-11 13:00] VEDESH — ANSYS reference model track established (D16); setup guide, canonical case configs, comparison script, and phases V7-V9 created
+[2026-09-11 15:05] FEATURE 1 — Gagge two-node occupant thermoregulation model in engine/thermoregulation.py, wired into POST /simulate via occupant_model flag, PhysiologicalRiskPanel added to results UI
+[2026-09-11 15:06] FEATURE 2 — Multi-post forward forecast early warning in engine/forecast_watch.py, POST /forecast_watch endpoint added with forecast_watch_cache SQLite persistence and WatchView UI component
 ```
 
 ---
@@ -35,6 +37,10 @@ Format:
 ## Contract changes
 
 Any change to `07_API_CONTRACT.md` gets its own entry here with the reason and who approved it. Contract changes are the highest-risk edits in the project because three people build against it.
+
+```
+[2026-09-11 15:05] CONTRACT ADDITION — POST /simulate occupant_model optional fields and POST /forecast_watch endpoint added — approved for PS 26051 physiological risk & multi-post early warning
+```
 
 ## Validation history
 

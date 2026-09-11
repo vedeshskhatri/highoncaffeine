@@ -129,6 +129,16 @@ export default function ReportSection({ scenario, simulateResult }) {
                 </td>
                 <td>Based on ₹2,400/L remote air-dropped kerosene delivery to forward posts</td>
               </tr>
+              <tr>
+                <td>Occupant Physiological Risk</td>
+                <td className="mono">
+                  {summary.hours_to_mild_hypothermia != null
+                    ? `${summary.hours_to_mild_hypothermia.toFixed(1)} h to mild hypothermia`
+                    : 'Safe (> 24 h normothermia)'}{' '}
+                  <span className="estimate-chip">[estimate]</span>
+                </td>
+                <td>Gagge two-node physiological thermoregulation (ASHRAE HoF Ch.9 / ISO 7730)</td>
+              </tr>
             </tbody>
           </table>
         </div>

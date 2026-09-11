@@ -35,6 +35,9 @@ from api.schemas import (
     MaterialsResponse,
     ValidationResponse,
     HealthResponse,
+    ForecastWatchRequest,
+    ForecastWatchItemSchema,
+    WatchPostSchema,
 )
 from api.weather import get_weather
 from engine.diagnosis import diagnose
@@ -119,6 +122,35 @@ def _request_to_design(request: SimulateRequest) -> Any:
         length_m=request.geometry.length_m,
         width_m=request.geometry.width_m,
         height_m=request.geometry.height_m,
+    )
+
+
+def _build_design(design_input: Any = None) -> Any:
+    """Build or resolve a Design object from request, dict, or fallback canonical."""
+    from engine.types import Design, Layer, Opening
+    if isinstance(design_input, Design):
+        return design_input
+    if isinstance(design_input, SimulateRequest):
+        return _request_to_design(design_input)
+    if isinstance(design_input, dict) and "walls" in design_input.get("envelope", {}):
+        try:
+            req = SimulateRequest.model_validate(design_input)
+            return _request_to_design(req)
+        except Exception:
+            pass
+    # Canonical fallback Ladakh shelter design
+    return Design(
+        orientation_deg=180.0,
+        walls=(Layer("mud_brick", 0.30), Layer("eps", 0.05)),
+        roof=(Layer("concrete", 0.15),),
+        floor=(Layer("concrete", 0.10),),
+        openings=(Opening("south", 4.0, "double_pane", False),),
+        ach=0.6,
+        roof_emissivity=0.90,
+        night_shutter=False,
+        length_m=6.0,
+        width_m=4.0,
+        height_m=2.6,
     )
 
 
@@ -262,7 +294,16 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
             "payback_years": None,
         },
         "freeze_risk": [],
+        "hours_to_mild_hypothermia": None,
     }
+
+    occupant_thermo = None
+    if request.occupant_model:
+        from engine.thermoregulation import simulate_occupant_thermoregulation
+        clo = float(request.occupant_clothing_clo) if request.occupant_clothing_clo is not None else 1.5
+        met = float(request.occupant_metabolic_met) if request.occupant_metabolic_met is not None else 1.0
+        occupant_thermo = simulate_occupant_thermoregulation(t_in_arr, clothing_clo=clo, metabolic_met=met)
+        summary_out["hours_to_mild_hypothermia"] = occupant_thermo.get("hours_to_mild_hypothermia")
 
     diagnosis_out = diagnose(summary_out, request.model_dump())
 
@@ -274,6 +315,7 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
         "summary": summary_out,
         "surfaces": sol.get("surfaces", []),
         "diagnosis": diagnosis_out,
+        "occupant_thermoregulation": occupant_thermo,
     }
 
 
@@ -591,3 +633,32 @@ def health() -> Dict[str, Any]:
         "offline_capable": True,
         "_stub": False,
     }
+
+
+# ---------------------------------------------------------------------------
+# POST /forecast_watch — multi-post forward early warning (Feature 2)
+# ---------------------------------------------------------------------------
+
+@app.post(
+    "/forecast_watch",
+    response_model=List[ForecastWatchItemSchema],
+    summary="Multi-post forward weather forecast watch and breach detection",
+)
+def forecast_watch(request: ForecastWatchRequest) -> List[Dict[str, Any]]:
+    """
+    Simulate forward thermal performance across multiple observation/border posts
+    over the next 3-5 days of Open-Meteo forecast data.
+    Identifies comfort floor breaches and safety interlocks, sorted by nearest breach.
+    """
+    from engine.forecast_watch import run_forecast_watch
+
+    design_obj = _build_design(request.design)
+    posts_payload = [p.model_dump() for p in request.posts]
+
+    results = run_forecast_watch(
+        posts=posts_payload,
+        design=design_obj,
+        forecast_days=request.forecast_days,
+        comfort_threshold_c=request.comfort_threshold_c,
+    )
+    return results

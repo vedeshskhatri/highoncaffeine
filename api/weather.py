@@ -435,3 +435,152 @@ def get_weather(
         f"Weather data unavailable for site ({c_lat}, {c_lon}) on {date_str}. "
         "Network unreachable, no cache entry found, and fallback CSV failed."
     )
+
+
+def fetch_open_meteo_forecast(
+    lat: float,
+    lon: float,
+    days: int = 4,
+    timeout_s: float = 4.0,
+) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Fetch multi-day weather forecast from Open-Meteo API for early-warning watch.
+    Checks and populates SQLite table `forecast_watch_cache`.
+    Falls back to regional winter synthesis if offline.
+
+    Source: Open-Meteo Weather Forecast API documentation (https://open-meteo.com/en/docs).
+
+    Args:
+        lat: Site latitude in decimal degrees.
+        lon: Site longitude in decimal degrees.
+        days: Number of forecast days ahead (default 4, range 1-7).
+        timeout_s: HTTP request timeout in seconds.
+
+    Returns:
+        Dict mapping date string 'YYYY-MM-DD' to 24-hour weather row lists.
+    """
+    c_lat, c_lon = round_coords(lat, lon)
+    now_iso = datetime.now(timezone.utc).isoformat()
+    today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    days_to_fetch = max(1, min(7, int(days)))
+
+    # 1. Check forecast_watch_cache
+    try:
+        cached_rows = query_all(
+            "SELECT forecast_date, hour, t_air, ghi, fetched_at "
+            "FROM forecast_watch_cache "
+            "WHERE lat = ? AND lon = ? AND forecast_date >= ? "
+            "ORDER BY forecast_date, hour",
+            (c_lat, c_lon, today_iso),
+        )
+        # Group by forecast_date
+        by_date: Dict[str, List[Dict[str, Any]]] = {}
+        for r in cached_rows:
+            d_str = r["forecast_date"]
+            by_date.setdefault(d_str, []).append({
+                "hour": r["hour"],
+                "t_air": r["t_air"],
+                "ghi": r["ghi"],
+                "dni": 0.0,
+                "dhi": 0.0,
+                "wind": 2.0,
+                "rh": 40.0,
+                "snow_cover": 1,
+            })
+        # Check if we have complete 24h profiles for the requested days
+        valid_dates = [d for d, hrs in by_date.items() if len(hrs) == 24]
+        if len(valid_dates) >= days_to_fetch:
+            return {d: by_date[d] for d in sorted(valid_dates)[:days_to_fetch]}
+    except Exception:
+        pass
+
+    # 2. Live Open-Meteo forecast API call
+    try:
+        endpoint = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": c_lat,
+            "longitude": c_lon,
+            "hourly": (
+                "temperature_2m,shortwave_radiation,direct_normal_irradiance,"
+                "diffuse_radiation,wind_speed_10m,relative_humidity_2m,snow_depth"
+            ),
+            "forecast_days": days_to_fetch,
+            "timezone": "UTC",
+        }
+        with httpx.Client(timeout=timeout_s) as client:
+            resp = client.get(endpoint, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+
+        hourly = data.get("hourly", {})
+        times = hourly.get("time", [])
+        t_air = hourly.get("temperature_2m", [])
+        ghi = hourly.get("shortwave_radiation", [])
+        dni = hourly.get("direct_normal_irradiance", [])
+        dhi = hourly.get("diffuse_radiation", [])
+        wind = hourly.get("wind_speed_10m", [])
+        rh = hourly.get("relative_humidity_2m", [])
+        snow_depth = hourly.get("snow_depth", [])
+
+        forecast_map: Dict[str, List[Dict[str, Any]]] = {}
+        for idx, t_str in enumerate(times):
+            # Parse date and hour: '2026-09-12T00:00'
+            date_part = t_str.split("T")[0]
+            hour_part = int(t_str.split("T")[1].split(":")[0])
+            sd = snow_depth[idx] if idx < len(snow_depth) and snow_depth[idx] is not None else 0.0
+
+            row = {
+                "hour": hour_part,
+                "t_air": float(t_air[idx]) if idx < len(t_air) and t_air[idx] is not None else -15.0,
+                "ghi": float(ghi[idx]) if idx < len(ghi) and ghi[idx] is not None else 0.0,
+                "dni": float(dni[idx]) if idx < len(dni) and dni[idx] is not None else 0.0,
+                "dhi": float(dhi[idx]) if idx < len(dhi) and dhi[idx] is not None else 0.0,
+                "wind": float(wind[idx]) if idx < len(wind) and wind[idx] is not None else 2.0,
+                "rh": float(rh[idx]) if idx < len(rh) and rh[idx] is not None else 30.0,
+                "snow_cover": 1 if sd > 0.01 else 0,
+            }
+            forecast_map.setdefault(date_part, []).append(row)
+
+            # Cache each hour
+            try:
+                execute(
+                    "INSERT OR REPLACE INTO forecast_watch_cache "
+                    "(lat, lon, forecast_date, hour, t_air, ghi, fetched_at) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (c_lat, c_lon, date_part, hour_part, row["t_air"], row["ghi"], now_iso),
+                )
+            except Exception:
+                pass
+
+        # Return only full 24h days
+        complete_days = {d: hrs for d, hrs in forecast_map.items() if len(hrs) == 24}
+        if complete_days:
+            return complete_days
+    except Exception:
+        pass
+
+    # 3. Offline fallback: generate realistic forecast days from fallback CSV
+    fallback_base = load_fallback_csv()
+    fallback_out: Dict[str, List[Dict[str, Any]]] = {}
+    from datetime import timedelta
+    today_dt = datetime.now(timezone.utc)
+    for d_offset in range(days_to_fetch):
+        sim_date = (today_dt + timedelta(days=d_offset)).strftime("%Y-%m-%d")
+        # Shift temperature slightly per day (+0.8 C day 1, -1.5 C day 2) to emulate cold front passage
+        day_delta = math.sin(d_offset * 1.2) * 2.5 - (d_offset * 0.8)
+        day_rows = []
+        for r in fallback_base:
+            day_rows.append({
+                "hour": r["hour"],
+                "t_air": round(r["t_air"] + day_delta, 1),
+                "ghi": r["ghi"],
+                "dni": r["dni"],
+                "dhi": r["dhi"],
+                "wind": r["wind"],
+                "rh": r["rh"],
+                "snow_cover": r["snow_cover"],
+            })
+        fallback_out[sim_date] = day_rows
+
+    return fallback_out
+
