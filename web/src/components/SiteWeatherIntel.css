@@ -1,0 +1,237 @@
+/* SiteWeatherIntel.css — Microclimate & Weather Intelligence HUD */
+
+.site-weather-intel {
+  background: var(--surface-1, #1e293b);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-sm, 6px);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.site-weather-intel.loading-state {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+  padding: 12px;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.intel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.intel-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.intel-icon {
+  color: var(--solar, #f59e0b);
+}
+
+.intel-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  letter-spacing: 0.01em;
+}
+
+.intel-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.intel-badge.live {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.intel-elevation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+}
+
+.elev-source-tag {
+  font-size: 9px;
+  color: var(--text-muted, #64748b);
+  font-weight: 400;
+}
+
+/* ── Alerts ───────────────────────────────────────────────────────────────── */
+.intel-alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.intel-alert.extreme {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.intel-alert.freezing {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+}
+
+/* ── KPI Grid ─────────────────────────────────────────────────────────────── */
+.intel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.intel-card {
+  background: var(--surface-2, #0f172a);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  border-radius: 4px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-lbl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  color: var(--text-muted, #64748b);
+  font-weight: 600;
+}
+
+.card-main-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  margin-top: 1px;
+}
+
+.card-main-val .unit {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-muted, #64748b);
+}
+
+.t-min {
+  color: #38bdf8;
+}
+
+.t-sep {
+  color: var(--text-muted, #64748b);
+  margin: 0 2px;
+  font-weight: 300;
+}
+
+.t-mean {
+  color: var(--text-primary, #f8fafc);
+}
+
+.t-max {
+  color: #f59e0b;
+}
+
+.card-sub-val {
+  font-size: 8.5px;
+  color: var(--text-muted, #64748b);
+}
+
+/* ── Sparkline ────────────────────────────────────────────────────────────── */
+.sparkline-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface-2, #0f172a);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.sparkline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spark-lbl {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.spark-hover-val {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--solar, #f59e0b);
+}
+
+.spark-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 42px;
+  overflow: hidden;
+}
+
+.spark-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.spark-hover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.spark-col {
+  flex: 1;
+  height: 100%;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.spark-col:hover,
+.spark-col.active {
+  background: rgba(245, 158, 11, 0.15);
+  border-right: 1px dashed rgba(245, 158, 11, 0.4);
+}
+
+.spark-x-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8.5px;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-muted, #64748b);
+  padding: 0 2px;
+}

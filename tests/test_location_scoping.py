@@ -65,3 +65,24 @@ def test_search_places_endpoint():
     hit = data["results"][0]
     assert "lat" in hit and "lon" in hit
     assert "name" in hit
+
+
+def test_location_weather_endpoint_leh():
+    """Verify /location/weather preview endpoint returns complete metrics and 24-hour preview."""
+    resp = client.get("/location/weather?lat=34.1526&lon=77.5771")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["elevation_m"] == 3500.0
+    assert "metrics" in data
+    assert "t_air_min" in data["metrics"]
+    assert "solar_dni_peak_wm2" in data["metrics"]
+    assert len(data["hourly_preview"]) == 24
+
+
+def test_elevation_open_elevation_fallback():
+    """Verify resolve_elevation succeeds with Open-Elevation fallback for non-canonical site."""
+    elev, source = resolve_elevation(35.6762, 139.6503)
+    assert elev is not None
+    assert elev > 0
+    assert source in ("open-meteo", "open-elevation", "cache")
+
