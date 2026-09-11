@@ -475,9 +475,9 @@ def run_single(
             t_in_c = float(t_in - 273.15)
             hourly_results.append({
                 "hour": hour_of_day,
-                "t_out_c": round(t_out_c, 3),
-                "t_in_c": round(t_in_c, 3),
-                "delta_ambient": round(t_in_c - t_out_c, 3),
+                "t_out_c": t_out_c,
+                "t_in_c": t_in_c,
+                "delta_ambient": t_in_c - t_out_c,
             })
 
     j_to_kwh = 1.0 / 3.6e6
@@ -507,6 +507,266 @@ def run_single(
     }
 
 
-def run_batch(packed: NodeArray, weather: Any, opts: Optional[Dict[str, Any]] = None) -> Any:
-    """Simulate batch of N designs simultaneously as vectorized matrix columns."""
-    raise NotImplementedError("PHASE V5 — not yet implemented")
+def run_batch(
+    packed: Any,
+    weather: Any,
+    opts: Optional[Dict[str, Any]] = None,
+    physics_constants_db: Optional[Any] = None,
+) -> np.ndarray:
+    """Simulate batch of N designs simultaneously as vectorized matrix columns.
+
+    Executes 2D matrix time-stepping over all N candidate designs in lockstep.
+    NO Python loop over designs in the hot path. Padded nodes contribute strictly zero.
+
+    Args:
+        packed: PackedNodeArray instance containing arrays of shape (MAX_NODES, N)
+        weather: Hourly weather dataset
+        opts: Optional simulation controls (timestep_s, spinup_days, etc.)
+        physics_constants_db: Physics constants provider
+
+    Returns:
+        (24, N) float64 array of hourly indoor air temperatures in Celsius
+    """
+    if physics_constants_db is None:
+        try:
+            from engine import physics_constants as pconst
+            physics_constants_db = pconst
+        except ImportError as err:
+            raise ImportError("engine.physics_constants is not available") from err
+
+    opts = opts or {}
+    dt: float = float(opts.get("timestep_s", DT_INTERNAL_S))
+    spinup_days: int = int(opts.get("spinup_days", SPINUP_DAYS))
+    enable_sky: bool = bool(opts.get("enable_sky_radiation", True))
+    altitude_m: float = float(opts.get("altitude_m", 3500.0))
+    lat: float = float(opts.get("lat", 34.1526))
+    lon: float = float(opts.get("lon", 77.5771))
+    date_str: str = str(opts.get("date", "2026-01-15"))
+    tz: float = float(opts.get("timezone", 5.5))
+    snow_cover: bool = bool(opts.get("snow_cover", True))
+
+    rho_ground = physics_constants_db.ground_albedo(snow_cover)
+
+    # Weather parsing
+    w_data = _parse_weather_input(weather)
+    raw_t_out_k = w_data["t_out_k"]
+    raw_dni = w_data["dni"]
+    raw_dhi = w_data["dhi"]
+    raw_ghi = w_data["ghi"]
+    raw_cloud = w_data["cloud_fraction"]
+    n_driving_hours = len(raw_t_out_k)
+
+    # Spin-up setup
+    total_days = spinup_days + 1
+    t_out_sim_k = np.tile(raw_t_out_k, total_days)
+    dni_sim = np.tile(raw_dni, total_days)
+    dhi_sim = np.tile(raw_dhi, total_days)
+    ghi_sim = np.tile(raw_ghi, total_days)
+    cloud_sim = np.tile(raw_cloud, total_days)
+    total_hours = len(t_out_sim_k)
+    retain_start_hour = spinup_days * n_driving_hours
+
+    N = packed.N
+    col_idx = np.arange(N)
+
+    # Initialize state matrices
+    # Initialize all nodes at hour-0 ambient per 06_PHYSICS_SPEC.md Section 8
+    t_init = float(t_out_sim_k[0])
+    T = np.full((packed.max_nodes, N), t_init, dtype=np.float64)
+    T_in = np.full(N, t_init, dtype=np.float64)
+
+    # Pre-extract matrix references
+    C = packed.C
+    K_left = packed.K_left
+    K_right = packed.K_right
+    has_surface = packed.has_surface
+    outer_idx = packed.outer_indices
+    inner_idx = packed.inner_indices
+    K_ext = packed.K_ext
+    K_int = packed.K_int
+    A_surf = packed.A_surf
+    alpha_abs = packed.alpha_abs
+    emissivity = packed.emissivity
+    f_sky = packed.f_sky
+    tilt_beta = packed.tilt_beta
+    azimuth_gamma = packed.azimuth_gamma
+    volume_m3 = packed.volume_m3
+    ach = packed.ach
+    q_internal_w = packed.q_internal_w
+    k_glazing_day = packed.k_glazing_day
+    k_glazing_night = packed.k_glazing_night
+    openings_solar = packed.openings_solar
+    glazing_ag = getattr(packed, "glazing_ag", None)
+    if glazing_ag is None:
+        glazing_ag = np.zeros((5, N), dtype=np.float64)
+        for d in range(N):
+            for area_g, g_val, b_g, g_g in openings_solar[d]:
+                # match (beta, gamma)
+                if abs(b_g) < 1e-3:
+                    f_idx = 4  # roof
+                elif abs(g_g) < 1e-3:
+                    f_idx = 0  # north
+                elif abs(g_g - 90.0) < 1e-3:
+                    f_idx = 1  # east
+                elif abs(g_g - 180.0) < 1e-3:
+                    f_idx = 2  # south
+                else:
+                    f_idx = 3  # west
+                glazing_ag[f_idx, d] += area_g * g_val
+    n_surfaces = packed.has_surface.shape[0]
+
+    # Determine maximum active row index in packed array to avoid stepping inert padded tail
+    active_rows = np.where(packed.active)[0]
+    max_active_r = int(np.max(active_rows)) + 1 if len(active_rows) > 0 else 0
+
+    T_act = T[:max_active_r, :]
+    C_act = C[:max_active_r, :]
+    K_l_act = K_left[:max_active_r, :]
+    K_r_act = K_right[:max_active_r, :]
+    dT_nodes = np.zeros((max_active_r, N), dtype=np.float64)
+
+    # Check which surfaces have uniform row indices across all designs for fast 1D row slicing
+    uniform_out = [bool(np.all(outer_idx[s] == outer_idx[s, 0])) for s in range(n_surfaces)]
+    uniform_in = [bool(np.all(inner_idx[s] == inner_idx[s, 0])) for s in range(n_surfaces)]
+
+    # Pre-calculate trigonometric constants for surfaces
+    cos_tilt = np.cos(np.radians(tilt_beta))
+    sin_tilt = np.sin(np.radians(tilt_beta))
+
+    substeps_per_hour = int(round(3600.0 / dt))
+    hourly_t_in_c = []
+
+    # Time integration loop
+    for sim_hour in range(total_hours):
+        hour_of_day = sim_hour % n_driving_hours
+        t_out = t_out_sim_k[sim_hour]
+        dni = dni_sim[sim_hour]
+        dhi = dhi_sim[sim_hour]
+        ghi = ghi_sim[sim_hour]
+        cloud_frac = cloud_sim[sim_hour]
+        is_retained = (sim_hour >= retain_start_hour)
+
+        # Altitude air density and infiltration conductance
+        rho_air = physics_constants_db.air_density(altitude_m, t_out)
+        C_air = rho_air * CP_AIR * volume_m3
+        k_inf = (ach * volume_m3 * rho_air * CP_AIR) / 3600.0
+
+        # Sky temperature
+        if hasattr(physics_constants_db, "sky_temperature_k"):
+            t_sky_k = physics_constants_db.sky_temperature_k(t_out, cloud_frac)
+        else:
+            t_sky_k = calculate_sky_temperature_k(t_out, cloud_frac)
+
+        # Solar position
+        alpha_s, gamma_s = physics_constants_db.solar_position(lat, lon, date_str, hour_of_day, tz)
+        rad_alpha = math.radians(alpha_s)
+        sin_alpha = math.sin(rad_alpha)
+        cos_alpha = math.cos(rad_alpha)
+
+        # Solar irradiance on surfaces: shape (n_surfaces, N)
+        diff_gamma = np.radians(gamma_s - azimuth_gamma)
+        if alpha_s <= 0.0:
+            cos_theta = np.zeros_like(diff_gamma)
+        else:
+            cos_theta = np.maximum(0.0, sin_alpha * cos_tilt + cos_alpha * sin_tilt * np.cos(diff_gamma))
+
+        i_beam = dni * cos_theta
+        i_diff = dhi * (1.0 + cos_tilt) / 2.0
+        i_ground = ghi * rho_ground * (1.0 - cos_tilt) / 2.0
+        surface_i_total = np.maximum(0.0, i_beam + i_diff + i_ground) * has_surface
+        # Floor (index 5) receives zero incident solar radiation per physics spec
+        surface_i_total[5, :] = 0.0
+        q_solar_abs = surface_i_total * A_surf * alpha_abs  # (n_surfaces, N)
+
+        # Glazing conduction & direct solar gain
+        is_night = (hour_of_day < 6 or hour_of_day >= 18)
+        k_glazing = k_glazing_night if is_night else k_glazing_day
+
+        # Vectorized direct solar gain across all N designs (5 envelope orientations)
+        from engine.vectorise import OPENING_ORIENTATIONS
+        i_tot_openings = np.zeros(5, dtype=np.float64)
+        for k, (b_g, g_g) in enumerate(OPENING_ORIENTATIONS):
+            c_th = physics_constants_db.incidence_cosine(alpha_s, b_g, gamma_s, g_g)
+            ib_g = dni * c_th
+            id_g = dhi * (1.0 + math.cos(math.radians(b_g))) / 2.0
+            ig_g = ghi * rho_ground * (1.0 - math.cos(math.radians(b_g))) / 2.0
+            i_tot_openings[k] = max(0.0, ib_g + id_g + ig_g)
+        q_solar_glazing = np.dot(i_tot_openings, glazing_ag)
+
+        # Substep integration (NumPy vectorized over all N columns)
+        for _ in range(substeps_per_hour):
+            dT_nodes.fill(0.0)
+
+            # Left/Right inter-node conduction
+            if max_active_r > 1:
+                dT_nodes[1:, :] += K_l_act[1:, :] * (T_act[:-1, :] - T_act[1:, :])
+                dT_nodes[:-1, :] += K_r_act[:-1, :] * (T_act[1:, :] - T_act[:-1, :])
+
+            # Surface boundaries: loop over the 6 surface definitions
+            q_surfaces_to_air = np.zeros(N, dtype=np.float64)
+
+            for s in range(n_surfaces):
+                mask_s = has_surface[s]
+                if not np.any(mask_s):
+                    continue
+
+                out_r = outer_idx[s]
+                in_r = inner_idx[s]
+
+                if uniform_out[s]:
+                    T_out_surf = T_act[out_r[0], :]
+                else:
+                    T_out_surf = T_act[out_r, col_idx]
+
+                if uniform_in[s]:
+                    T_in_surf = T_act[in_r[0], :]
+                else:
+                    T_in_surf = T_act[in_r, col_idx]
+
+                # 1. External boundary at Node 0
+                q_ext = K_ext[s] * (t_out - T_out_surf)
+                q_sol = q_solar_abs[s]
+
+                # Sky radiation at Node 0
+                if enable_sky:
+                    f_s = f_sky[s]
+                    eps_s = emissivity[s]
+                    if hasattr(physics_constants_db, "radiative_coefficient"):
+                        h_r = physics_constants_db.radiative_coefficient(eps_s, T_out_surf, t_sky_k)
+                    else:
+                        h_r = calculate_hr_linearised(eps_s, T_out_surf, t_sky_k)
+                    q_sky = h_r * A_surf[s] * f_s * (T_out_surf - t_sky_k)
+                else:
+                    q_sky = 0.0
+
+                q_outer_net = np.where(mask_s, q_ext + q_sol - q_sky, 0.0)
+                if uniform_out[s]:
+                    dT_nodes[out_r[0], :] += q_outer_net
+                else:
+                    dT_nodes[out_r, col_idx] += q_outer_net
+
+                # 2. Internal boundary at Node N-1
+                q_air_to_in = np.where(mask_s, K_int[s] * (T_in - T_in_surf), 0.0)
+                if uniform_in[s]:
+                    dT_nodes[in_r[0], :] += q_air_to_in
+                else:
+                    dT_nodes[in_r, col_idx] += q_air_to_in
+                q_surfaces_to_air += -q_air_to_in
+
+            # Update surface node temperatures: dT = Q / C
+            # For padded nodes: C = inf, so dT_nodes / C = 0.0 exactly
+            T_act += dt * (dT_nodes / C_act)
+
+            # Update indoor air node (shape N)
+            q_glaz = k_glazing * (t_out - T_in)
+            q_inf = k_inf * (t_out - T_in)
+            q_total_air = q_surfaces_to_air + q_glaz + q_inf + q_solar_glazing + q_internal_w
+
+            T_in += dt * (q_total_air / C_air)
+
+        if is_retained:
+            hourly_t_in_c.append(np.copy(T_in) - 273.15)
+
+    # Return (24, N) matrix in Celsius
+    return np.array(hourly_t_in_c, dtype=np.float64)
+
