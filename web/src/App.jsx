@@ -2,9 +2,9 @@
  * App.jsx — THERMA High-Altitude Architectural Shelter Studio
  * Inspired by contemporary architectural 3D CAD design tools ("hut.").
  */
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, SlidersHorizontal } from 'lucide-react';
+import { Play, SlidersHorizontal, Sun, Moon } from 'lucide-react';
 import './App.css';
 import TokensPage from './TokensPage';
 import DesignCanvas from './components/DesignCanvas';
@@ -77,11 +77,31 @@ export default function App() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
 
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('therma_theme') || 'dark';
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem('therma_theme', theme);
+    }
+  }, [theme]);
+
   const accessibleSteps = useMemo(() => new Set(['design', 'simulate', 'optimize', 'watch']), []);
 
   const handleStepClick = useCallback((stepId) => {
     if (accessibleSteps.has(stepId)) {
       setCurrentStep(stepId);
+      setDemoMode(false); // Seamlessly exit demo mode so the chosen step view is shown
       setMobileDrawerOpen(false);
     }
   }, [accessibleSteps]);
@@ -229,8 +249,8 @@ export default function App() {
           {/* Step Pill Rail */}
           <nav className="step-rail" aria-label="Application steps">
             {STEPS.map((step) => {
-              const isActive = step.id === currentStep;
-              const isClickable = accessibleSteps.has(step.id) && !isActive;
+              const isActive = !demoMode && step.id === currentStep;
+              const isClickable = accessibleSteps.has(step.id);
               return (
                 <button
                   key={step.id}
@@ -254,6 +274,18 @@ export default function App() {
               );
             })}
           </nav>
+
+          {/* Theme Switcher Toggle */}
+          <button
+            className="topbar-theme-toggle-btn"
+            id="topbar-theme-toggle"
+            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Theme`}
+            aria-label="Toggle dark/light theme"
+          >
+            {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+            <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+          </button>
 
           {/* Demo Mode Toggle Button */}
           <button
@@ -302,6 +334,15 @@ export default function App() {
                 onExitDemo={() => setDemoMode(false)}
                 onApplyScenarioToBuilder={(cfg) => {
                   setSimulateRequest(cfg);
+                }}
+                onSimulationCompleted={(data) => {
+                  setSimulateResult(data);
+                  if (data?.weather_provenance?.grid_note) {
+                    setGridNote(data.weather_provenance.grid_note);
+                  }
+                }}
+                onOptimizationCompleted={(optData) => {
+                  setOptimizeResult(optData);
                 }}
               />
             </div>

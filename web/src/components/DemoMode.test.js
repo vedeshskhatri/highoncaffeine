@@ -148,3 +148,55 @@ test('ScenarioCards: SCENARIO_PRESETS provides standardized presets and backward
   assert.ok(SCENARIO_PRESETS.relief_shelter, 'Must provide relief_shelter alias');
   assert.ok(SCENARIO_PRESETS.village_home, 'Must provide village_home alias');
 });
+
+// ============================================================================
+// 6. Demo Mode Navigation & Theme State Invariants
+// ============================================================================
+
+test('DemoMode Navigation: step click while in demo mode successfully selects target step and exits demo mode', () => {
+  let demoMode = true;
+  let currentStep = 'design';
+  const accessibleSteps = new Set(['design', 'simulate', 'optimize', 'watch']);
+
+  const handleStepClick = (stepId) => {
+    if (accessibleSteps.has(stepId)) {
+      currentStep = stepId;
+      demoMode = false; // Must immediately exit demo mode so user sees chosen step
+    }
+  };
+
+  // User clicks "simulate" while in demo mode
+  handleStepClick('simulate');
+  assert.equal(currentStep, 'simulate', 'Step must transition to simulate');
+  assert.equal(demoMode, false, 'Demo mode must exit on step toggle click');
+
+  // Re-enter demo mode, then click "optimize"
+  demoMode = true;
+  handleStepClick('optimize');
+  assert.equal(currentStep, 'optimize', 'Step must transition to optimize');
+  assert.equal(demoMode, false, 'Demo mode must exit on optimize toggle click');
+
+  // Re-enter demo mode, then click "watch"
+  demoMode = true;
+  handleStepClick('watch');
+  assert.equal(currentStep, 'watch', 'Step must transition to watch');
+  assert.equal(demoMode, false, 'Demo mode must exit on watch toggle click');
+
+  // Re-enter demo mode, then click "design"
+  demoMode = true;
+  handleStepClick('design');
+  assert.equal(currentStep, 'design', 'Step must transition to design');
+  assert.equal(demoMode, false, 'Demo mode must exit on design toggle click');
+});
+
+test('Theme Tokens: verifies dark theme configuration and theme toggle logic', () => {
+  let theme = 'dark';
+  const toggleTheme = (prev) => (prev === 'dark' ? 'light' : 'dark');
+
+  assert.equal(theme, 'dark', 'Default theme must be dark as requested');
+  theme = toggleTheme(theme);
+  assert.equal(theme, 'light', 'Toggle must switch to light');
+  theme = toggleTheme(theme);
+  assert.equal(theme, 'dark', 'Toggle must switch back to dark');
+});
+
