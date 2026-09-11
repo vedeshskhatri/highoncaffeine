@@ -587,6 +587,21 @@ export const ASSEMBLY_RECOMMENDATIONS = {
   ],
 };
 
+// Aliases for supported regions and states
+ASSEMBLY_RECOMMENDATIONS['Ladakh'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Eastern Ladakh'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Western Ladakh'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Jammu & Kashmir'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Himachal Pradesh'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Uttarakhand'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Sikkim'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Arunachal Pradesh'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Rajasthan'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Hot-Humid Coastal'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Warm-Humid'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+ASSEMBLY_RECOMMENDATIONS['Composite'] = ASSEMBLY_RECOMMENDATIONS.high_altitude_cold;
+
+
 // ── Multi-Attribute Material Suitability Library ──────────────────────────────
 export const CANDIDATE_MATERIALS = [
   { id: 'puf', name: 'PUF Sandwich Panel', category: 'Insulation / Composite', k: 0.024, density: 40, cp: 1500, insulation: 98, mass: 25, durability: 88, moisture: 95, freeze_thaw: 92, fire: 80, constructability: 96, cost_relative: 78 },

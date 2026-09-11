@@ -308,7 +308,13 @@ export default function DashboardPage() {
 
   // Regional Recommendations
   const regionalRec = useMemo(() => {
-    return ASSEMBLY_RECOMMENDATIONS[currentStation.region] || ASSEMBLY_RECOMMENDATIONS['Ladakh'];
+    return (
+      ASSEMBLY_RECOMMENDATIONS[currentStation?.region] ||
+      ASSEMBLY_RECOMMENDATIONS[currentStation?.state] ||
+      ASSEMBLY_RECOMMENDATIONS['Ladakh'] ||
+      ASSEMBLY_RECOMMENDATIONS['high_altitude_cold'] ||
+      []
+    );
   }, [currentStation]);
 
   // Deficit hours
@@ -1290,7 +1296,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {regionalRec.map((r) => (
+              {(regionalRec || []).map((r) => (
                 <tr key={r.component}>
                   <td className="font-semibold">{r.component}</td>
                   <td className="rec-material-cell">{r.recommended}</td>
