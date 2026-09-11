@@ -1,0 +1,506 @@
+/* EnvelopeBuilder.css — Architectural Layered Assembly Builder */
+
+.envelope-builder-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Surface Overview Header */
+.envelope-header-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.envelope-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.envelope-surface-title {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.envelope-compliance-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.envelope-compliance-chip.compliant {
+  background: var(--sage-soft, #ECFDF5);
+  color: var(--comfort, #15803D);
+  border: 1px solid rgba(21, 128, 61, 0.25);
+}
+
+.envelope-compliance-chip.warning {
+  background: var(--orange-soft, #FFF7ED);
+  color: var(--solar, #C2410C);
+  border: 1px solid rgba(194, 65, 12, 0.25);
+}
+
+/* Header Telemetry Grid */
+.envelope-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.envelope-metric-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.envelope-metric-label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.envelope-metric-val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+/* Interactive Assembly Presets Pill Row */
+.envelope-preset-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.envelope-preset-row::-webkit-scrollbar {
+  display: none;
+}
+
+.envelope-preset-chip {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.envelope-preset-chip:hover {
+  background: var(--surface-2);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Dynamic Visual Layer Sandwich Preview */
+.envelope-sandwich-wrapper {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sandwich-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sandwich-track {
+  height: 22px;
+  width: 100%;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  border: 1px solid var(--border);
+}
+
+.sandwich-slice {
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  transition: width 0.2s ease, filter 0.15s ease;
+  cursor: pointer;
+}
+
+.sandwich-slice:hover {
+  filter: brightness(1.15);
+}
+
+.sandwich-slice:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Layer Cards List */
+.envelope-layers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.layer-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.layer-card:hover {
+  border-color: var(--border-strong);
+}
+
+.layer-card.highlighted {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.15);
+}
+
+/* Layer Card Header */
+.layer-card-header {
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.layer-card-index-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layer-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--text-primary);
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.layer-position-tag {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.layer-role-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-1);
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+
+.layer-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.layer-action-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.layer-action-btn:hover:not(:disabled) {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+.layer-action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.layer-action-btn.delete:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--danger, #DC2626);
+}
+
+/* Layer Card Body */
+.layer-card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.layer-select-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.layer-field-label {
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.layer-material-dropdown {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.layer-material-dropdown:focus {
+  border-color: var(--accent);
+}
+
+/* Thickness Controls */
+.layer-thickness-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.thickness-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 95px;
+  flex-shrink: 0;
+}
+
+.thickness-num-input {
+  width: 100%;
+  padding: 6px 28px 6px 10px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.thickness-num-input:focus {
+  border-color: var(--accent);
+}
+
+.thickness-unit {
+  position: absolute;
+  right: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.thickness-slider {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.thickness-quick-steps {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.thickness-step-btn {
+  padding: 3px 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.thickness-step-btn:hover {
+  background: var(--surface-1);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Physics & Thermal Resistance Specs Grid */
+.layer-specs-matrix {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+}
+
+.layer-spec-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.layer-spec-caption {
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.layer-spec-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 1px;
+}
+
+.layer-spec-value.highlight {
+  color: var(--accent);
+}
+
+/* Collapsible "Why this material?" Drawer */
+.layer-rationale-toggle {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.layer-rationale-toggle:hover {
+  color: var(--accent);
+}
+
+.layer-rationale-content {
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.layer-rationale-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+/* Add Layer Action */
+.add-layer-action-card {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  background: var(--surface-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  width: 100%;
+}
+
+.add-layer-action-card:hover {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
