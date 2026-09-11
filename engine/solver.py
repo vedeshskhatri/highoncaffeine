@@ -7,13 +7,17 @@ All internal computations in KELVIN. Conversion to Celsius occurs only at the AP
 Surface film resistances cited from ISO 6946:
 - R_si = 0.13 m^2*K/W (internal surface film resistance, horizontal heat flow)
 - R_se = 0.04 m^2*K/W (external surface film resistance)
+
+Radiation constants cited from 05_DATA_SOURCES.md Section 7:
+- Stefan-Boltzmann sigma = 5.670374419e-8 W/(m^2*K^4)
+- Swinbank clear-sky temperature: T_sky = 0.0552 * T_air^1.5 (both Kelvin)
 """
 
 import math
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 
-from engine.constants import DT_INTERNAL_S, FO_TARGET
+from engine.constants import DT_INTERNAL_S, FO_TARGET, SPINUP_DAYS
 from engine.discretise import build_nodes, DiscretisedSurface
 from engine.types import Design, Layer, NodeArray, Opening
 
@@ -33,8 +37,11 @@ class SolverDivergedError(ThermaError):
 # Specific heat of air [J/(kg*K)]
 CP_AIR: float = 1005.0
 
+# Stefan-Boltzmann constant [W/(m^2*K^4)] (CODATA 2018 / 05_DATA_SOURCES.md Section 7)
+SIGMA_SB: float = 5.670374419e-8
 
-def _parse_weather_input(weather: Any, n_expected_hours: Optional[int] = None) -> Dict[str, np.ndarray]:
+
+def _parse_weather_input(weather: Any) -> Dict[str, np.ndarray]:
     """Parse weather input into aligned hourly arrays.
 
     Returns dict with keys:
@@ -42,6 +49,7 @@ def _parse_weather_input(weather: Any, n_expected_hours: Optional[int] = None) -
         'dni': float64 array [W/m^2]
         'dhi': float64 array [W/m^2]
         'ghi': float64 array [W/m^2]
+        'cloud_fraction': float64 array [0.0 - 1.0]
     """
     if isinstance(weather, (list, tuple, np.ndarray)):
         if len(weather) > 0 and isinstance(weather[0], dict):
@@ -49,11 +57,13 @@ def _parse_weather_input(weather: Any, n_expected_hours: Optional[int] = None) -
             dni = [float(item.get("dni", 0.0)) for item in weather]
             dhi = [float(item.get("dhi", 0.0)) for item in weather]
             ghi = [float(item.get("ghi", 0.0)) for item in weather]
+            cloud = [float(item.get("cloud_cover", item.get("cloud_fraction", 0.0))) for item in weather]
         else:
             t_c = [float(x) for x in weather]
             dni = [0.0] * len(t_c)
             dhi = [0.0] * len(t_c)
             ghi = [0.0] * len(t_c)
+            cloud = [0.0] * len(t_c)
     elif isinstance(weather, dict):
         if "t_air" in weather:
             t_c = [float(x) for x in weather["t_air"]]
@@ -65,16 +75,54 @@ def _parse_weather_input(weather: Any, n_expected_hours: Optional[int] = None) -
         dni = [float(x) for x in weather.get("dni", [0.0] * n)]
         dhi = [float(x) for x in weather.get("dhi", [0.0] * n)]
         ghi = [float(x) for x in weather.get("ghi", [0.0] * n)]
+        cloud = [float(x) for x in weather.get("cloud_cover", weather.get("cloud_fraction", [0.0] * n))]
     else:
         raise TypeError(f"Unsupported weather format: {type(weather)}")
 
+    # CONVERSION AT BOUNDARY: Celsius to Kelvin
     t_k = np.array(t_c, dtype=np.float64) + 273.15
     return {
         "t_out_k": t_k,
         "dni": np.array(dni, dtype=np.float64),
         "dhi": np.array(dhi, dtype=np.float64),
         "ghi": np.array(ghi, dtype=np.float64),
+        "cloud_fraction": np.array(cloud, dtype=np.float64),
     }
+
+
+def calculate_sky_temperature_k(t_air_k: float, cloud_fraction: float = 0.0) -> float:
+    """Calculate effective longwave sky temperature in KELVIN per Swinbank formulation.
+
+    06_PHYSICS_SPEC.md Section 5.1:
+        T_sky = 0.0552 * T_air^1.5 (both in KELVIN)
+        T_sky_cloudy = T_sky * (1 - 0.84*c) + 0.84*c*T_air
+
+    Args:
+        t_air_k: Ambient dry-bulb air temperature [K] (must be strictly in Kelvin)
+        cloud_fraction: Fraction of cloud cover [0.0 - 1.0]
+
+    Returns:
+        Sky temperature in KELVIN [K]
+    """
+    if t_air_k <= 0.0:
+        raise ValueError("t_air_k must be strictly positive in Kelvin")
+    t_sky_clear = 0.0552 * (t_air_k ** 1.5)
+    c = max(0.0, min(1.0, float(cloud_fraction)))
+    t_sky = t_sky_clear * (1.0 - 0.84 * c) + 0.84 * c * t_air_k
+    return t_sky
+
+
+def calculate_hr_linearised(eps: float, t_surf_k: float, t_sky_k: float) -> float:
+    """Calculate linearised longwave radiative heat transfer coefficient h_r [W/(m^2*K)].
+
+    06_PHYSICS_SPEC.md Section 5.2:
+        h_r = eps * sigma * (T_s^2 + T_sky^2) * (T_s + T_sky)
+
+    CRITICAL RULE: All temperatures MUST be in KELVIN.
+    """
+    if t_surf_k <= 0.0 or t_sky_k <= 0.0:
+        raise ValueError("Temperatures in h_r must be strictly positive in Kelvin")
+    return eps * SIGMA_SB * (t_surf_k ** 2 + t_sky_k ** 2) * (t_surf_k + t_sky_k)
 
 
 def run_single(
@@ -86,15 +134,16 @@ def run_single(
 ) -> Dict[str, Any]:
     """Simulate thermal response for a single shelter design over weather time series.
 
-    Phase V3: Conduction, Solar Gains, Infiltration (altitude-corrected), Internal Gains,
-    and detailed Heat Loss breakdown by path.
+    Phase V4: Full dynamic RC solver with multi-layer discretisation, solar gains,
+    altitude-corrected infiltration, longwave sky radiative cooling, and multi-day spin-up.
 
     Args:
         design: Shelter design specification
         weather: Hourly weather dataset or temperature list [Celsius]
         opts: Optional simulation controls:
-            - timestep_s: float
-            - initial_temp_c: float
+            - timestep_s: float (default 60.0)
+            - spinup_days: int (default 3)
+            - enable_sky_radiation: bool (default True)
             - altitude_m: float (default 3500.0)
             - lat: float (default 34.1526)
             - lon: float (default 77.5771)
@@ -102,17 +151,11 @@ def run_single(
             - timezone: float (default 5.5 for IST)
             - snow_cover: bool (default True)
             - occupancy: dict with 'people' and 'watts_per_person'
-        materials_db: Materials lookup provider or dict. If None, imports
-            engine.materials and surfaces ImportError if missing (Rule R1).
-        physics_constants_db: Physics constants provider. If None, imports
-            engine.physics_constants and surfaces ImportError if missing (Rule R1).
+        materials_db: Materials lookup provider or dict.
+        physics_constants_db: Physics constants provider.
 
     Returns:
-        Dictionary containing:
-            - 'series': list of hourly records
-            - 't_in_c': hourly indoor temperatures [C]
-            - 't_out_c': hourly outdoor temperatures [C]
-            - 'summary': dictionary matching 07_API_CONTRACT.md including heat_loss_kwh
+        Dictionary containing hourly series and energy breakdown summary.
     """
     # Rule R1: Materials resolution
     if materials_db is None:
@@ -139,6 +182,8 @@ def run_single(
     opts = opts or {}
     dt: float = float(opts.get("timestep_s", DT_INTERNAL_S))
     fo_target: float = float(opts.get("fo_target", FO_TARGET))
+    spinup_days: int = int(opts.get("spinup_days", SPINUP_DAYS))
+    enable_sky: bool = bool(opts.get("enable_sky_radiation", True))
     altitude_m: float = float(opts.get("altitude_m", 3500.0))
     lat: float = float(opts.get("lat", 34.1526))
     lon: float = float(opts.get("lon", 77.5771))
@@ -156,13 +201,14 @@ def run_single(
 
     # Weather arrays
     w_data = _parse_weather_input(weather)
-    t_out_hourly_k = w_data["t_out_k"]
-    dni_hourly = w_data["dni"]
-    dhi_hourly = w_data["dhi"]
-    ghi_hourly = w_data["ghi"]
-    n_hours = len(t_out_hourly_k)
+    raw_t_out_k = w_data["t_out_k"]
+    raw_dni = w_data["dni"]
+    raw_dhi = w_data["dhi"]
+    raw_ghi = w_data["ghi"]
+    raw_cloud = w_data["cloud_fraction"]
+    n_driving_hours = len(raw_t_out_k)
 
-    # Geometry & Air Capacitance
+    # Geometry & Air volume
     volume_m3 = design.length_m * design.width_m * design.height_m
 
     # Discretise envelope surfaces
@@ -174,16 +220,16 @@ def run_single(
     )
     active_surfaces: List[DiscretisedSurface] = [s for s in surfaces_dict.values() if len(s.nodes) > 0]
 
-    # Surface orientations and tilts:
-    # beta: surface tilt (0 = horizontal roof, 90 = vertical wall) [deg]
-    # gamma: surface azimuth (0 = North, 90 = East, 180 = South, 270 = West) [deg]
-    surface_orientations: Dict[str, Tuple[float, float]] = {
-        "north_wall": (90.0, 0.0),
-        "east_wall": (90.0, 90.0),
-        "south_wall": (90.0, 180.0),
-        "west_wall": (90.0, 270.0),
-        "roof": (0.0, 0.0),
-        "floor": (180.0, 0.0),
+    # Surface orientations, tilts, and sky view factors F_sky
+    # 06_PHYSICS_SPEC.md Section 5.3: F_sky = 1.0 roof, 0.5 vertical wall
+    surface_meta: Dict[str, Tuple[float, float, float]] = {
+        # name: (tilt_beta, azimuth_gamma, F_sky)
+        "north_wall": (90.0, 0.0, 0.5),
+        "east_wall": (90.0, 90.0, 0.5),
+        "south_wall": (90.0, 180.0, 0.5),
+        "west_wall": (90.0, 270.0, 0.5),
+        "roof": (0.0, 0.0, 1.0),
+        "floor": (180.0, 0.0, 0.0),
     }
 
     # Openings / Glazing setup
@@ -202,7 +248,6 @@ def run_single(
         else:
             raise TypeError("Unsupported materials_db type")
 
-        # Determine tilt and azimuth for opening
         facing = op.facing.lower()
         if facing == "roof":
             beta_g, gamma_g = 0.0, 0.0
@@ -227,78 +272,100 @@ def run_single(
             "gamma": gamma_g,
         })
 
-    # Surface solar absorptivities (from outer layer material)
+    # Surface absorptivities and emissivities (from outer layer / design)
     surface_absorptivities: Dict[str, float] = {}
+    surface_emissivities: Dict[str, float] = {}
     for s in active_surfaces:
         outer_mat_id = s.nodes[0].material_id
         if hasattr(materials_db, "get"):
             m = materials_db.get(outer_mat_id)
             alpha_abs = getattr(m, "absorptivity", 0.70)
+            eps_val = getattr(m, "emissivity", 0.90)
         elif isinstance(materials_db, dict):
             m = materials_db[outer_mat_id]
             alpha_abs = m.absorptivity if hasattr(m, "absorptivity") else m.get("absorptivity", 0.70)
+            eps_val = m.emissivity if hasattr(m, "emissivity") else m.get("emissivity", 0.90)
         else:
             alpha_abs = 0.70
+            eps_val = 0.90
+
+        if s.name == "roof":
+            eps_val = design.roof_emissivity
+
         surface_absorptivities[s.name] = alpha_abs
+        surface_emissivities[s.name] = eps_val
 
-    # Initial indoor and surface temperatures
-    if "initial_temp_c" in opts:
-        t_in = float(opts["initial_temp_c"]) + 273.15
-    else:
-        t_in = t_out_hourly_k[0]
+    # Spin-up setup (06_PHYSICS_SPEC.md Section 8):
+    # Repeat driving weather for spinup_days, discard them, retain only final 24h
+    total_days = spinup_days + 1
+    t_out_sim_k = np.tile(raw_t_out_k, total_days)
+    dni_sim = np.tile(raw_dni, total_days)
+    dhi_sim = np.tile(raw_dhi, total_days)
+    ghi_sim = np.tile(raw_ghi, total_days)
+    cloud_sim = np.tile(raw_cloud, total_days)
+    total_hours = len(t_out_sim_k)
+    retain_start_hour = spinup_days * n_driving_hours
 
+    # Initialisation: all nodes initialized at hour-0 ambient per Section 8
+    t_in = float(t_out_sim_k[0])
     surface_node_temps: List[np.ndarray] = [
         np.full(len(s.nodes), t_in, dtype=np.float64) for s in active_surfaces
     ]
 
-    # Cumulative energy accounting (in Joules, converted to kWh at the end)
+    # Cumulative energy tracking for retained evaluation period
     loss_joules_walls = 0.0
     loss_joules_roof = 0.0
     loss_joules_glazing = 0.0
     loss_joules_inf = 0.0
+    loss_joules_sky = 0.0
     total_solar_gain_joules = 0.0
 
     hourly_results = []
     substeps_per_hour = int(round(3600.0 / dt))
     global_step = 0
 
-    # Main Simulation Loop
-    for hour_idx in range(n_hours):
-        t_out = t_out_hourly_k[hour_idx]
-        dni = dni_hourly[hour_idx]
-        dhi = dhi_hourly[hour_idx]
-        ghi = ghi_hourly[hour_idx]
+    # Simulation Execution
+    for sim_hour in range(total_hours):
+        hour_of_day = sim_hour % n_driving_hours
+        t_out = t_out_sim_k[sim_hour]
+        dni = dni_sim[sim_hour]
+        dhi = dhi_sim[sim_hour]
+        ghi = ghi_sim[sim_hour]
+        cloud_frac = cloud_sim[sim_hour]
 
-        # 1. Altitude-corrected air density & indoor air capacitance
+        is_retained_period = (sim_hour >= retain_start_hour)
+
+        # Infiltration conductance at current ambient temperature
         rho_air = physics_constants_db.air_density(altitude_m, t_out)
         c_air = rho_air * CP_AIR * volume_m3
+        k_inf = (design.ach * volume_m3 * rho_air * CP_AIR) / 3600.0
 
-        # Infiltration conductance: ACH * V * rho * Cp / 3600 [W/K]
-        ach = design.ach
-        k_inf = (ach * volume_m3 * rho_air * CP_AIR) / 3600.0
+        # Sky temperature in KELVIN per Swinbank / Aman function
+        if hasattr(physics_constants_db, "sky_temperature_k"):
+            t_sky_k = physics_constants_db.sky_temperature_k(t_out, cloud_frac)
+        else:
+            t_sky_k = calculate_sky_temperature_k(t_out, cloud_frac)
 
-        # 2. Solar position at current hour
-        alpha_s, gamma_s = physics_constants_db.solar_position(lat, lon, date_str, hour_idx, tz)
+        # Solar position
+        alpha_s, gamma_s = physics_constants_db.solar_position(lat, lon, date_str, hour_of_day, tz)
 
-        # 3. Solar incident radiation on each opaque surface
+        # Solar incident radiation on opaque surfaces
         surface_i_total: Dict[str, float] = {}
         for s in active_surfaces:
-            beta, gamma_surf = surface_orientations.get(s.name, (90.0, 180.0))
+            beta, gamma_surf, _ = surface_meta.get(s.name, (90.0, 180.0, 0.5))
             if s.name == "floor":
                 surface_i_total[s.name] = 0.0
                 continue
-
             cos_theta = physics_constants_db.incidence_cosine(alpha_s, beta, gamma_s, gamma_surf)
-            # Section 4.3 Total incident irradiance
             i_beam = dni * cos_theta
             i_diff = dhi * (1.0 + math.cos(math.radians(beta))) / 2.0
             i_ground = ghi * rho_ground * (1.0 - math.cos(math.radians(beta))) / 2.0
             surface_i_total[s.name] = max(0.0, i_beam + i_diff + i_ground)
 
-        # 4. Solar incident radiation and direct gains on glazed openings
-        q_solar_glazing_hour = 0.0
-        is_night = (hour_idx < 6 or hour_idx >= 18)
+        # Glazing heat flow and direct solar gain
+        is_night = (hour_of_day < 6 or hour_of_day >= 18)
         k_glazing_hour = 0.0
+        q_solar_glazing_hour = 0.0
 
         for g in glazing_info:
             cos_th_g = physics_constants_db.incidence_cosine(alpha_s, g["beta"], gamma_s, g["gamma"])
@@ -307,17 +374,15 @@ def run_single(
             i_ground_g = ghi * rho_ground * (1.0 - math.cos(math.radians(g["beta"]))) / 2.0
             i_tot_g = max(0.0, i_beam_g + i_diff_g + i_ground_g)
 
-            # Direct solar heat gain into indoor air node
             q_solar_glazing_hour += i_tot_g * g["area_m2"] * g["g_value"]
 
-            # Glazing conduction (effective U with night shutter)
             if g["has_shutter"] and is_night and g["r_shutter"] > 0.0:
                 u_eff = 1.0 / ((1.0 / g["u_value"]) + g["r_shutter"])
             else:
                 u_eff = g["u_value"]
             k_glazing_hour += u_eff * g["area_m2"]
 
-        # Substep Euler integration
+        # Substep integration
         for _ in range(substeps_per_hour):
             global_step += 1
 
@@ -328,26 +393,43 @@ def run_single(
 
             total_q_surfaces_to_air = 0.0
 
-            # Update multi-node surfaces
             for s_idx, surf in enumerate(active_surfaces):
                 t_nodes = surface_node_temps[s_idx]
                 n_nodes = len(t_nodes)
                 c_nodes = [node.C for node in surf.nodes]
                 dt_nodes = np.zeros(n_nodes, dtype=np.float64)
 
-                # Solar absorbed on outer node (Node 0)
+                # Solar absorbed on outer node
                 alpha_abs = surface_absorptivities.get(surf.name, 0.70)
                 q_solar_abs_outer = surface_i_total[surf.name] * surf.net_area_m2 * alpha_abs
 
-                # Node 0 (outer node):
+                # Sky radiation on outer node (Node 0)
+                # 06_PHYSICS_SPEC.md Section 5.2: Q_sky = h_r * A * F_sky * (T_s - T_sky)
+                q_sky_outer = 0.0
+                if enable_sky:
+                    _, _, f_sky = surface_meta.get(surf.name, (90.0, 180.0, 0.5))
+                    if f_sky > 0.0:
+                        eps_s = surface_emissivities.get(surf.name, 0.90)
+                        t_s_outer = t_nodes[0]  # KELVIN
+                        if hasattr(physics_constants_db, "radiative_coefficient"):
+                            h_r = physics_constants_db.radiative_coefficient(eps_s, t_s_outer, t_sky_k)
+                        else:
+                            h_r = calculate_hr_linearised(eps_s, t_s_outer, t_sky_k)
+                        q_sky_outer = h_r * surf.net_area_m2 * f_sky * (t_s_outer - t_sky_k)
+
+                        if is_retained_period:
+                            loss_joules_sky += max(0.0, q_sky_outer) * dt
+
+                # Conduction from outdoor air to Node 0
                 q_from_ext = surf.K_ext * (t_out - t_nodes[0])
+
                 if n_nodes == 1:
                     q_from_int = surf.K_int * (t_in - t_nodes[0])
-                    dt_nodes[0] = (q_from_ext + q_solar_abs_outer + q_from_int) / c_nodes[0]
+                    dt_nodes[0] = (q_from_ext + q_solar_abs_outer - q_sky_outer + q_from_int) / c_nodes[0]
                     total_q_surfaces_to_air += surf.K_int * (t_nodes[0] - t_in)
                 else:
                     q_to_next = surf.K_inter[0] * (t_nodes[1] - t_nodes[0])
-                    dt_nodes[0] = (q_from_ext + q_solar_abs_outer + q_to_next) / c_nodes[0]
+                    dt_nodes[0] = (q_from_ext + q_solar_abs_outer - q_sky_outer + q_to_next) / c_nodes[0]
 
                     for j in range(1, n_nodes - 1):
                         q_from_prev = surf.K_inter[j - 1] * (t_nodes[j - 1] - t_nodes[j])
@@ -362,24 +444,22 @@ def run_single(
 
                 t_nodes += dt * dt_nodes
 
-                # Track conduction losses through surfaces to exterior
-                q_loss_surface_w = surf.K_ext * max(0.0, t_nodes[0] - t_out)
-                if "wall" in surf.name:
-                    loss_joules_walls += q_loss_surface_w * dt
-                elif surf.name == "roof":
-                    loss_joules_roof += q_loss_surface_w * dt
+                if is_retained_period:
+                    q_loss_surface_w = surf.K_ext * max(0.0, t_nodes[0] - t_out)
+                    if "wall" in surf.name:
+                        loss_joules_walls += q_loss_surface_w * dt
+                    elif surf.name == "roof":
+                        loss_joules_roof += q_loss_surface_w * dt
 
-            # Glazing and Infiltration heat flows entering air
+            # Air node heat flow
             q_glazing_to_air = k_glazing_hour * (t_out - t_in)
             q_inf_to_air = k_inf * (t_out - t_in)
 
-            # Track glazing and infiltration losses (when indoor > outdoor)
-            loss_joules_glazing += max(0.0, k_glazing_hour * (t_in - t_out)) * dt
-            loss_joules_inf += max(0.0, k_inf * (t_in - t_out)) * dt
-            total_solar_gain_joules += q_solar_glazing_hour * dt
+            if is_retained_period:
+                loss_joules_glazing += max(0.0, k_glazing_hour * (t_in - t_out)) * dt
+                loss_joules_inf += max(0.0, k_inf * (t_in - t_out)) * dt
+                total_solar_gain_joules += q_solar_glazing_hour * dt
 
-            # Update indoor air node:
-            # C_air * dT/dt = Q_solar + Q_internal + Q_surfaces + Q_glazing + Q_inf
             q_total_air = (
                 total_q_surfaces_to_air
                 + q_glazing_to_air
@@ -389,23 +469,25 @@ def run_single(
             )
             t_in += dt * (q_total_air / c_air)
 
-        # Hourly recording
-        t_out_c = float(t_out - 273.15)
-        t_in_c = float(t_in - 273.15)
-        hourly_results.append({
-            "hour": hour_idx,
-            "t_out_c": round(t_out_c, 3),
-            "t_in_c": round(t_in_c, 3),
-            "delta_ambient": round(t_in_c - t_out_c, 3),
-        })
+        # Record only during retained period (final 24 hours)
+        if is_retained_period:
+            t_out_c = float(t_out - 273.15)
+            t_in_c = float(t_in - 273.15)
+            hourly_results.append({
+                "hour": hour_of_day,
+                "t_out_c": round(t_out_c, 3),
+                "t_in_c": round(t_in_c, 3),
+                "delta_ambient": round(t_in_c - t_out_c, 3),
+            })
 
-    # Summary calculations in kWh
     j_to_kwh = 1.0 / 3.6e6
     loss_kwh_walls = round(loss_joules_walls * j_to_kwh, 3)
     loss_kwh_roof = round(loss_joules_roof * j_to_kwh, 3)
     loss_kwh_glazing = round(loss_joules_glazing * j_to_kwh, 3)
     loss_kwh_inf = round(loss_joules_inf * j_to_kwh, 3)
+    loss_kwh_sky = round(loss_joules_sky * j_to_kwh, 3)
     solar_kwh = round(total_solar_gain_joules * j_to_kwh, 3)
+    total_loss = round(loss_kwh_walls + loss_kwh_roof + loss_kwh_glazing + loss_kwh_inf + loss_kwh_sky, 3)
 
     return {
         "series": hourly_results,
@@ -418,9 +500,9 @@ def run_single(
                 "roof": loss_kwh_roof,
                 "glazing": loss_kwh_glazing,
                 "infiltration": loss_kwh_inf,
-                "sky_radiation": 0.0,
+                "sky_radiation": loss_kwh_sky,
             },
-            "total_heat_loss_kwh": round(loss_kwh_walls + loss_kwh_roof + loss_kwh_glazing + loss_kwh_inf, 3),
+            "total_heat_loss_kwh": total_loss,
         },
     }
 
