@@ -53,7 +53,11 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
       <div className="sidebar-top-bar">
         <NavLink to="/" className="sidebar-brand-link">
           <div className="brand-shield-box">
-            <Shield size={16} />
+            <img 
+              src="/thermometer_sticker.png" 
+              alt="THERMA Logo" 
+              className="sidebar-thermometer-img" 
+            />
           </div>
           <div className="brand-titles">
             <span className="brand-name">THERMA</span>
