@@ -274,7 +274,7 @@ def print_agreement_table(comparisons: List[Dict[str, Any]]) -> None:
     print("\n" + "=" * 80)
     print("           THERMA vs ANSYS REFERENCE MODEL AGREEMENT REPORT")
     print("=" * 80)
-    print(f"{'Case ID':<8} | {'Description':<32} | {'Max ΔT':<10} | {'RMSE':<8} | {'Tolerance':<10} | {'Status':<6}")
+    print(f"{'Case ID':<8} | {'Description':<32} | {'Max Delta':<10} | {'RMSE':<8} | {'Tolerance':<10} | {'Status':<6}")
     print("-" * 80)
 
     case_descs = {
@@ -299,10 +299,10 @@ def print_agreement_table(comparisons: List[Dict[str, Any]]) -> None:
         if not passed:
             all_passed = False
         status_str = "PASS" if passed else "FAIL"
-        print(f"{cid:<8} | {desc:<32} | {max_d:>6.2f} °C   | {rmse:>5.2f} °C | {tol:>6.2f} °C   | {status_str:<6}")
+        print(f"{cid:<8} | {desc:<32} | {max_d:>6.2f} C    | {rmse:>5.2f} C | {tol:>6.2f} C    | {status_str:<6}")
 
     print("=" * 80)
-    print("Runtimes: THERMA Python < 0.05 s / case | ANSYS Mechanical ~45–180 s / case")
+    print("Runtimes: THERMA Python < 0.05 s / case | ANSYS Mechanical ~45-180 s / case")
     print("Overall Reference Agreement: " + ("ALL CASES PASSED" if all_passed else "FAILURES DETECTED"))
     print("=" * 80 + "\n")
 
@@ -370,11 +370,12 @@ def run_all(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="THERMA vs ANSYS Reference Model Comparator")
+    parser.add_argument("--all", action="store_true", help="Run all canonical reference cases")
     parser.add_argument("--synthetic", action="store_true", help="Generate synthetic ANSYS data for testing")
     parser.add_argument("--case", type=str, choices=["case1", "case2", "case3"], help="Run a specific canonical case")
     parser.add_argument("--ansys-csv", type=Path, help="Path to ANSYS exported CSV")
     parser.add_argument("--no-plot", action="store_true", help="Disable matplotlib overlay plots")
-    parser.add_argument("--tolerance", type=float, help="Override maximum allowed temperature deviation [°C]")
+    parser.add_argument("--tolerance", type=float, help="Override maximum allowed temperature deviation [C]")
 
     args = parser.parse_args()
     exit_code = run_all(
