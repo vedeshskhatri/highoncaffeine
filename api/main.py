@@ -1,14 +1,21 @@
 """
 THERMA FastAPI application.
 Frozen API contract implementation per brain/07_API_CONTRACT.md.
+
+WIRING NOTE: All live endpoints call the real engine. No fixture fallbacks on live paths.
+Fixture fallbacks were removed per audit finding A3-4 (root cause: silent masking).
 """
 
 from __future__ import annotations
 
 import json
+import math
+import subprocess
+import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
+import numpy as np
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -47,18 +54,76 @@ app.add_middleware(
 )
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / "data" / "fixtures"
+VALIDATION_RESULTS_DIR = Path(__file__).resolve().parent.parent / "validation" / "results"
 
 
-def _load_fixture(filename: str) -> Dict[str, Any]:
-    """Load a fixture JSON file and ensure _stub: true is present."""
-    file_path = FIXTURES_DIR / filename
-    if not file_path.exists():
-        raise FileNotFoundError(f"Fixture file missing: {file_path}")
-    with open(file_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    data["_stub"] = True
-    return data
+# ---------------------------------------------------------------------------
+# Helper: convert numpy scalars to Python natives (A3-4 fix)
+# ---------------------------------------------------------------------------
 
+def _to_python(obj: Any) -> Any:
+    """Recursively convert numpy scalars to Python native types for JSON safety."""
+    if isinstance(obj, dict):
+        return {k: _to_python(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_to_python(v) for v in obj]
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return [_to_python(v) for v in obj.tolist()]
+    return obj
+
+
+# ---------------------------------------------------------------------------
+# Helper: build Design from SimulateRequest (Tier 2 A1-1 wiring)
+# ---------------------------------------------------------------------------
+
+def _request_to_design(request: SimulateRequest) -> Any:
+    """Convert SimulateRequest to engine.types.Design."""
+    from engine.types import Design, Layer, Opening
+
+    walls = tuple(
+        Layer(material_id=lyr.material, thickness_m=lyr.thickness_m)
+        for lyr in request.envelope.walls
+    )
+    roof = tuple(
+        Layer(material_id=lyr.material, thickness_m=lyr.thickness_m)
+        for lyr in request.envelope.roof
+    )
+    floor = tuple(
+        Layer(material_id=lyr.material, thickness_m=lyr.thickness_m)
+        for lyr in request.envelope.floor
+    )
+    openings = tuple(
+        Opening(
+            facing=op.facing.value if hasattr(op.facing, "value") else str(op.facing),
+            area_m2=op.area_m2,
+            glazing_id=op.glazing,
+            night_shutter=op.night_shutter,
+        )
+        for op in request.openings
+    )
+
+    return Design(
+        orientation_deg=request.geometry.orientation_deg,
+        walls=walls,
+        roof=roof,
+        floor=floor,
+        openings=openings,
+        ach=request.ventilation.ach,
+        roof_emissivity=request.envelope.roof_emissivity,
+        night_shutter=any(op.night_shutter for op in openings),
+        length_m=request.geometry.length_m,
+        width_m=request.geometry.width_m,
+        height_m=request.geometry.height_m,
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /simulate — wired to engine.solver.run_single (A1-1)
+# ---------------------------------------------------------------------------
 
 @app.post(
     "/simulate",
@@ -68,8 +133,8 @@ def _load_fixture(filename: str) -> Dict[str, Any]:
 )
 def simulate(request: SimulateRequest) -> Dict[str, Any]:
     """
-    Simulate transient indoor temperature and heat flows.
-    Wires weather engine (typical_day, design_winter_night, user_csv).
+    Simulate transient indoor temperature and heat flows via engine.solver.run_single.
+    Weather chain: SQLite cache -> Open-Meteo live -> NASA POWER -> fallback CSV -> 503.
     """
     try:
         weather_rows, provenance = get_weather(
@@ -87,7 +152,6 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
     safety_outcome = check_safety({"ach": request.ventilation.ach}, heater_type=heater_t)
     if safety_outcome.refused:
         return {
-            "_stub": False,
             "refused": True,
             "refusal_reason": safety_outcome.reason,
             "weather_provenance": provenance,
@@ -95,20 +159,124 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
             "surfaces": [],
         }
 
-    result = _load_fixture("fixture_simulate_response.json")
-    result["weather_provenance"] = provenance
+    # Build Design and call the real solver (A1-1 wiring)
+    from engine.solver import run_single, SolverDivergedError
+    from engine.impact import backup_heat_sizing, kerosene_litres
+    from api.errors import UnknownMaterialError
 
-    # Update series with actual weather outdoor values and delta_ambient
-    series = result.get("series", [])
-    for h, item in enumerate(series):
-        if h < len(weather_rows):
-            w = weather_rows[h]
-            item["t_out"] = w["t_air"]
-            item["ghi"] = w["ghi"]
-            item["delta_ambient"] = round(item["t_in"] - item["t_out"], 1)
+    design = _request_to_design(request)
 
-    return result
+    opts = {
+        "timestep_s": request.simulation.timestep_s,
+        "spinup_days": request.simulation.spinup_days,
+        "altitude_m": request.location.altitude_m,
+        "lat": request.location.lat,
+        "lon": request.location.lon,
+        "date": request.weather.date,
+        "snow_cover": request.ground.snow_cover,
+        "occupancy": {
+            "people": request.occupancy.people,
+            "watts_per_person": request.occupancy.watts_per_person,
+        },
+    }
 
+    try:
+        sol = run_single(design, weather_rows, opts=opts)
+    except SolverDivergedError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except (UnknownMaterialError, Exception) as exc:
+        # Let unknown material surface as 400; everything else is 500
+        if "UnknownMaterial" in type(exc).__name__ or "Unsourced" in type(exc).__name__:
+            raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    series_raw = sol["series"]   # list of {hour, t_out_c, t_in_c, delta_ambient}
+    t_in_c_list = [r["t_in_c"] for r in series_raw]
+    t_out_c_list = [r["t_out_c"] for r in series_raw]
+    summary_eng = sol["summary"]
+
+    # Enrich series with weather GHI values and contract fields
+    series_out = []
+    for h, row in enumerate(series_raw):
+        t_in = float(row["t_in_c"])
+        t_out = float(row["t_out_c"])
+        ghi_h = float(weather_rows[h]["ghi"]) if h < len(weather_rows) else 0.0
+        # Operative temperature approximation: 0.5 * (t_in + mean_radiant)
+        # Mean radiant ~ t_in for well-insulated shelter
+        t_op = round(t_in, 1)
+        # IMAC comfort band (Aman's function)
+        from engine.physics_constants import imac_comfort_band
+        t_out_mean = float(sum(r["t_out_c"] for r in series_raw) / len(series_raw))
+        lo, hi = imac_comfort_band(t_out_mean, mode="nv", acceptability=0.90)
+        series_out.append({
+            "hour": row["hour"],
+            "t_out": round(t_out, 2),
+            "t_in": round(t_in, 2),
+            "t_operative": t_op,
+            "ghi": round(ghi_h, 1),
+            "delta_ambient": round(t_in - t_out, 2),
+            "t_in_lo": round(float(lo), 1),
+            "t_in_hi": round(float(hi), 1),
+        })
+
+    t_in_arr = [r["t_in"] for r in series_out]
+    t_in_min_c = round(min(t_in_arr), 2)
+    t_in_max_c = round(max(t_in_arr), 2)
+    t_in_min_hour = int(t_in_arr.index(min(t_in_arr)))
+
+    from engine.physics_constants import imac_comfort_band, HEALTH_THRESHOLD_C
+    t_out_mean = float(sum(t_out_c_list) / len(t_out_c_list))
+    lo, hi = imac_comfort_band(t_out_mean, mode="nv", acceptability=0.90)
+    comfort_hours_ratio = round(sum(1 for t in t_in_arr if lo <= t <= hi) / len(t_in_arr), 3)
+    hours_below_health = int(sum(1 for t in t_in_arr if t < HEALTH_THRESHOLD_C))
+
+    # Backup heat sizing
+    deficit_w = [max(0.0, (HEALTH_THRESHOLD_C - t) * 50.0) for t in t_in_arr]
+    backup = backup_heat_sizing(deficit_w)
+    backup_py = _to_python(backup)
+
+    annual_kerosene_l = float(backup_py["kerosene_litres_per_night"]) * 120.0
+    annual_fuel_cost_inr = annual_kerosene_l * 2400.0
+    annual_co2_kg = annual_kerosene_l * 2.5
+
+    summary_out = {
+        "t_in_min_c": t_in_min_c,
+        "t_in_min_hour": t_in_min_hour,
+        "t_in_max_c": t_in_max_c,
+        "comfort_hours_ratio": comfort_hours_ratio,
+        "hours_below_health_threshold": hours_below_health,
+        "solar_gain_kwh": float(summary_eng["solar_gain_kwh"]),
+        "heat_loss_kwh": {
+            "walls": float(summary_eng["heat_loss_kwh"]["walls"]),
+            "roof": float(summary_eng["heat_loss_kwh"]["roof"]),
+            "glazing": float(summary_eng["heat_loss_kwh"]["glazing"]),
+            "infiltration": float(summary_eng["heat_loss_kwh"]["infiltration"]),
+            "sky_radiation": float(summary_eng["heat_loss_kwh"]["sky_radiation"]),
+        },
+        "backup_heat": backup_py,
+        "impact": {
+            "kerosene_litres_per_year": round(annual_kerosene_l, 1),
+            "cost_inr_per_year": round(annual_fuel_cost_inr, 0),
+            "co2_kg_per_year": round(annual_co2_kg, 1),
+            "payback_years": None,
+        },
+        "freeze_risk": [],
+    }
+
+    return {
+        "refused": False,
+        "refusal_reason": None,
+        "weather_provenance": provenance,
+        "series": series_out,
+        "summary": summary_out,
+        "surfaces": [],
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /optimize — real engine, no fixture fallback (Tier 0)
+# A3-1: use fixed geometry; A2-1: baseline is required (schema enforces it)
+# ---------------------------------------------------------------------------
 
 @app.post(
     "/optimize",
@@ -117,17 +285,25 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
 )
 def optimize(request: OptimizeRequest) -> Dict[str, Any]:
     """Evaluate candidate designs and return Pareto frontier + top 3."""
-    try:
-        from engine.optimizer import optimize as run_optimize
-        req_dict = request.model_dump()
-        result = run_optimize(req_dict)
-        result["_stub"] = False
-        return result
-    except Exception as e:
-        fallback = _load_fixture("fixture_optimize_response.json")
-        fallback["_stub"] = True
-        return fallback
+    from engine.optimizer import optimize as run_optimize
+    req_dict = request.model_dump()
 
+    # A3-1: Inject fixed geometry into baseline so optimizer uses the correct shelter dimensions
+    fixed = req_dict.get("fixed", {})
+    if fixed and "baseline" in req_dict and isinstance(req_dict["baseline"], dict):
+        req_dict["baseline"].setdefault("length_m", fixed.get("length_m", 6.0))
+        req_dict["baseline"].setdefault("width_m", fixed.get("width_m", 4.0))
+        req_dict["baseline"].setdefault("height_m", fixed.get("height_m", 2.6))
+
+    result = run_optimize(req_dict)
+    result = _to_python(result)
+    result["_stub"] = False
+    return result
+
+
+# ---------------------------------------------------------------------------
+# POST /sensitivity — real engine, no fixture fallback (Tier 0)
+# ---------------------------------------------------------------------------
 
 @app.post(
     "/sensitivity",
@@ -136,22 +312,22 @@ def optimize(request: OptimizeRequest) -> Dict[str, Any]:
 )
 def sensitivity(request: SensitivityRequest) -> Dict[str, Any]:
     """Morris elementary effects screening of envelope parameters."""
-    try:
-        from engine.optimizer import dict_to_design
-        from engine.sensitivity import morris_screening
-        from api.weather import load_fallback_csv
-        weather = load_fallback_csv()
-        base_dict = request.baseline.model_dump() if hasattr(request.baseline, "model_dump") else request.baseline
-        base_des = dict_to_design(base_dict)
-        n_traj = request.trajectories if hasattr(request, "trajectories") and request.trajectories else 20
-        result = morris_screening(base_des, weather=weather, n_trajectories=n_traj)
-        result["_stub"] = False
-        return result
-    except Exception as e:
-        fallback = _load_fixture("fixture_sensitivity_response.json")
-        fallback["_stub"] = True
-        return fallback
+    from engine.optimizer import dict_to_design
+    from engine.sensitivity import morris_screening
+    from api.weather import load_fallback_csv
+    weather = load_fallback_csv()
+    base_dict = request.baseline.model_dump() if hasattr(request.baseline, "model_dump") else request.baseline
+    base_des = dict_to_design(base_dict)
+    n_traj = request.trajectories if hasattr(request, "trajectories") and request.trajectories else 20
+    result = morris_screening(base_des, weather=weather, n_trajectories=n_traj)
+    result = _to_python(result)
+    result["_stub"] = False
+    return result
 
+
+# ---------------------------------------------------------------------------
+# POST /retrofit — simulate existing shelter for real baseline (A3-3)
+# ---------------------------------------------------------------------------
 
 @app.post(
     "/retrofit",
@@ -160,28 +336,65 @@ def sensitivity(request: SensitivityRequest) -> Dict[str, Any]:
 )
 def retrofit(request: RetrofitRequest) -> Dict[str, Any]:
     """Rank retrofit interventions for an existing shelter."""
-    try:
-        from engine.impact import rank_retrofits
-        interventions = [
-            {"label": "Night shutters, south windows", "delta_t_min_c": 6.1, "cost_inr": 500, "cost_basis": "estimate"},
-            {"label": "Weather-stripping & door sweeps (-0.3 ACH)", "delta_t_min_c": 2.8, "cost_inr": 800, "cost_basis": "estimate"},
-            {"label": "South glazing expansion (+2.0 m²)", "delta_t_min_c": 4.3, "cost_inr": 6400, "cost_basis": "sourced"},
-            {"label": "Roof insulation (50 mm EPS)", "delta_t_min_c": 2.4, "cost_inr": 12000, "cost_basis": "sourced"},
-            {"label": "Wall insulation (50 mm EPS)", "delta_t_min_c": 1.9, "cost_inr": 18000, "cost_basis": "sourced"},
-        ]
-        result = rank_retrofits(
-            baseline_t_min_c=3.1,
-            baseline_hours_below_health=17,
-            interventions=interventions,
-            budget_inr=request.budget_inr,
-        )
-        result["_stub"] = False
-        return result
-    except Exception:
-        fallback = _load_fixture("fixture_retrofit_response.json")
-        fallback["_stub"] = True
-        return fallback
+    from engine.impact import rank_retrofits
+    from engine.optimizer import dict_to_design
+    from engine.solver import run_single, SolverDivergedError
+    from engine.physics_constants import HEALTH_THRESHOLD_C
 
+    # A3-3: Simulate the existing shelter to derive real baseline values
+    try:
+        weather_rows, _ = get_weather(
+            lat=request.location.lat,
+            lon=request.location.lon,
+            date_str=request.weather.date,
+            mode=request.weather.mode.value,
+            user_csv_id=request.weather.user_csv_id,
+        )
+    except WeatherUnavailableError:
+        from api.weather import load_fallback_csv
+        weather_rows = load_fallback_csv()
+
+    existing_design = dict_to_design(
+        request.existing if isinstance(request.existing, dict) else request.existing
+    )
+    try:
+        sol = run_single(existing_design, weather_rows, opts={
+            "altitude_m": request.location.altitude_m,
+            "lat": request.location.lat,
+            "lon": request.location.lon,
+            "date": request.weather.date,
+        })
+        t_in_list = [r["t_in_c"] for r in sol["series"]]
+        baseline_t_min_c = round(min(t_in_list), 2)
+        baseline_hours_below_health = int(sum(1 for t in t_in_list if t < HEALTH_THRESHOLD_C))
+    except Exception:
+        # Only acceptable fallback: if degenerate envelope given, propagate as 400
+        raise HTTPException(
+            status_code=400,
+            detail="Could not simulate existing shelter. Ensure walls, roof, and floor are non-empty.",
+        )
+
+    interventions = [
+        {"label": "Night shutters, south windows", "delta_t_min_c": 6.1, "cost_inr": 500, "cost_basis": "estimate"},
+        {"label": "Weather-stripping & door sweeps (-0.3 ACH)", "delta_t_min_c": 2.8, "cost_inr": 800, "cost_basis": "estimate"},
+        {"label": "South glazing expansion (+2.0 m²)", "delta_t_min_c": 4.3, "cost_inr": 6400, "cost_basis": "sourced"},
+        {"label": "Roof insulation (50 mm EPS)", "delta_t_min_c": 2.4, "cost_inr": 12000, "cost_basis": "sourced"},
+        {"label": "Wall insulation (50 mm EPS)", "delta_t_min_c": 1.9, "cost_inr": 18000, "cost_basis": "sourced"},
+    ]
+    result = rank_retrofits(
+        baseline_t_min_c=baseline_t_min_c,
+        baseline_hours_below_health=baseline_hours_below_health,
+        interventions=interventions,
+        budget_inr=request.budget_inr,
+    )
+    result = _to_python(result)
+    result["_stub"] = False
+    return result
+
+
+# ---------------------------------------------------------------------------
+# POST /weather/csv
+# ---------------------------------------------------------------------------
 
 @app.post(
     "/weather/csv",
@@ -197,7 +410,6 @@ async def weather_csv(request: Request) -> Dict[str, Any]:
     body_bytes = await request.body()
     body_text = body_bytes.decode("utf-8")
 
-    # If sent as JSON with csv_text or raw string
     if body_text.strip().startswith("{"):
         try:
             payload = json.loads(body_text)
@@ -220,6 +432,10 @@ async def weather_csv(request: Request) -> Dict[str, Any]:
         "_stub": False,
     }
 
+
+# ---------------------------------------------------------------------------
+# GET /materials
+# ---------------------------------------------------------------------------
 
 @app.get(
     "/materials",
@@ -247,15 +463,106 @@ def materials() -> Dict[str, Any]:
     return {"materials": items, "_stub": False}
 
 
+# ---------------------------------------------------------------------------
+# GET /validation — serves committed validation results (A4-1 fix)
+# Per API contract: "Returns the three pre-run committed scenarios. Never computed live."
+# Points at validation/results/validation_summary.json, NOT hand-crafted fixture.
+# ---------------------------------------------------------------------------
+
 @app.get(
     "/validation",
     response_model=ValidationResponse,
     summary="Get pre-run validation results vs published field measurements",
 )
 def validation() -> Dict[str, Any]:
-    """Return committed validation comparisons against DIHAR and Leh measurements."""
-    return _load_fixture("fixture_validation_response.json")
+    """Return committed validation comparisons against DIHAR and Leh measurements.
 
+    Reads from validation/results/validation_summary.json — the file produced by
+    `python -m validation.run`. Not hand-crafted. Numbers must match what the code computes.
+    """
+    summary_path = VALIDATION_RESULTS_DIR / "validation_summary.json"
+    if not summary_path.exists():
+        raise HTTPException(
+            status_code=503,
+            detail="Validation results not found. Run `python -m validation.run` first.",
+        )
+
+    with open(summary_path, "r", encoding="utf-8") as f:
+        summary = json.load(f)
+
+    # Map validation_summary.json schema to the API contract shape
+    v1 = summary.get("v1_dihar", {}).get("result", {})
+    v2 = summary.get("v2_trombe", {}).get("result", {})
+    v3 = summary.get("v3_direct_gain", {}).get("result", {})
+    v4 = summary.get("v4_adm_block", {}).get("result", {})
+
+    ordering = summary.get("ordering_check", {})
+
+    def _scenario_pass(v: dict, key: str) -> bool:
+        return bool(summary.get(key, {}).get("pass", False))
+
+    # V1: DIHAR Leh — measured 15–20 °C band
+    s1 = {
+        "id": "dihar_leh",
+        "label": "DIHAR Leh solar-heated shelter",
+        "measured_min_c": 15.0,
+        "measured_max_c": 20.0,
+        "ambient_c": -19.0,
+        "model_min_c": round(float(v1.get("t_min_c", 0.0)), 2),
+        "model_max_c": round(float(v1.get("t_max_c", 0.0)), 2),
+        "pass": _scenario_pass(v1, "v1_dihar"),
+        "source": str(v1.get("source", "DRDO DIHAR pilot reporting")),
+    }
+    # V2: Trombe Feb 2020 — measured mean 17.44 °C
+    s2 = {
+        "id": "leh_trombe_feb2020",
+        "label": "Leh Trombe-wall room (Feb 2020)",
+        "measured_min_c": 15.44,
+        "measured_max_c": 19.44,
+        "ambient_c": -2.0,
+        "model_min_c": round(float(v2.get("t_mean_c", 0.0)) - 1.0, 2),
+        "model_max_c": round(float(v2.get("t_mean_c", 0.0)) + 1.0, 2),
+        "pass": _scenario_pass(v2, "v2_trombe"),
+        "source": str(v2.get("source", "measured Leh passive solar housing study")),
+    }
+    # V3: Direct gain Feb 2020 — measured mean 14.81 °C
+    s3 = {
+        "id": "leh_direct_gain_feb2020",
+        "label": "Leh direct-gain room (Feb 2020)",
+        "measured_min_c": 12.81,
+        "measured_max_c": 16.81,
+        "ambient_c": -2.0,
+        "model_min_c": round(float(v3.get("t_mean_c", 0.0)) - 1.0, 2),
+        "model_max_c": round(float(v3.get("t_mean_c", 0.0)) + 1.0, 2),
+        "pass": _scenario_pass(v3, "v3_direct_gain"),
+        "source": str(v3.get("source", "measured Leh passive solar housing study")),
+    }
+    # V4: ADM Block Dec — measured +20 °C held
+    s4 = {
+        "id": "dihar_sun_stellar_adm",
+        "label": "DIHAR + Sun Stellar ADM Block (Dec 2024)",
+        "measured_min_c": 18.0,
+        "measured_max_c": 22.0,
+        "ambient_c": -10.0,
+        "model_min_c": round(float(v4.get("t_0600_c", 0.0)), 2),
+        "model_max_c": round(float(v4.get("t_max_c", 0.0)), 2),
+        "pass": _scenario_pass(v4, "v4_adm_block"),
+        "source": str(v4.get("source", "DRDO/vendor reporting")),
+    }
+
+    return {
+        "scenarios": [s1, s2, s3, s4],
+        "ordering_check": {
+            "trombe_above_direct_gain": bool(ordering.get("trombe_above_direct_gain", False)),
+            "pass": bool(ordering.get("pass", False)),
+        },
+        "_stub": False,
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /health
+# ---------------------------------------------------------------------------
 
 @app.get(
     "/health",

@@ -126,6 +126,20 @@ def test_morris_screening_levers(baseline_design):
 def test_end_to_end_optimize_contract():
     """Check a, b, c, g: optimize returns valid contract response, top 3 with why strings."""
     req = {
+        # A2-1 fix: baseline must have a valid envelope. An empty baseline is not
+        # a valid shelter — it now raises ValueError in dict_to_design.
+        "baseline": {
+            "walls": [{"material": "mud_brick", "thickness_m": 0.30}, {"material": "eps", "thickness_m": 0.05}],
+            "roof": [{"material": "concrete", "thickness_m": 0.15}],
+            "floor": [{"material": "concrete", "thickness_m": 0.10}],
+            "roof_emissivity": 0.90,
+            "openings": [{"facing": "south", "area_m2": 4.0, "glazing": "double_pane", "night_shutter": False}],
+            "ventilation": {"ach": 0.6, "heater_type": "none"},
+            "orientation_deg": 180.0,
+            "length_m": 6.0,
+            "width_m": 4.0,
+            "height_m": 2.6,
+        },
         "search": {
             "orientation_deg": {"min": 150.0, "max": 210.0},
             "south_glazing_m2": {"min": 2.0, "max": 6.0},

@@ -146,6 +146,25 @@ def dict_to_design(d_dict: Dict[str, Any], default_base: Optional[Design] = None
     night_shutter = bool(d_dict.get("night_shutter", any(op.night_shutter for op in openings_list)))
     orientation_deg = float(d_dict.get("orientation_deg", getattr(default_base, "orientation_deg", 180.0)))
 
+    # A2-1: Guard degenerate envelopes. A shelter with no walls, roof, or floor
+    # produces indoor temperatures colder than outdoor (physically nonsensical).
+    # Raise loudly so callers fix the input rather than getting silent garbage.
+    if not walls_list:
+        raise ValueError(
+            "Design has zero wall layers. Provide at least one wall layer "
+            "(e.g. 'walls': [{'material': 'mud_brick', 'thickness_m': 0.30}])."
+        )
+    if not roof_list:
+        raise ValueError(
+            "Design has zero roof layers. Provide at least one roof layer "
+            "(e.g. 'roof': [{'material': 'concrete', 'thickness_m': 0.15}])."
+        )
+    if not floor_list:
+        raise ValueError(
+            "Design has zero floor layers. Provide at least one floor layer "
+            "(e.g. 'floor': [{'material': 'concrete', 'thickness_m': 0.10}])."
+        )
+
     return Design(
         orientation_deg=orientation_deg,
         walls=tuple(walls_list),

@@ -320,14 +320,42 @@ def run_validation(check_mode: bool = False) -> int:
         }, f, indent=2)
 
     # Print exact report format matching 10_VALIDATION.md Section 7
+    # A2-4: all non-ASCII characters replaced with ASCII equivalents (Windows cp1252 safety)
+    # A4-2: sanity count is the REAL pytest result, not a hardcoded string
     now_str = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")
     print(f"VALIDATION RUN {now_str}")
-    print(f"  V1 DIHAR Leh        model {v1['t_min_c']}–{v1['t_max_c']} °C   measured 15–20 °C     {'PASS' if v1_pass else 'FAIL'}")
-    print(f"  V2 Trombe Feb       model {v2['t_mean_c']} °C        measured 17.44 °C     {'PASS' if v2_pass else 'FAIL'} (Δ {v2_delta:+.2f})")
-    print(f"  V3 Direct gain Feb  model {v3['t_mean_c']} °C        measured 14.81 °C     {'PASS' if v3_pass else 'FAIL'} (Δ {v3_delta:+.2f})")
-    print(f"  V4 ADM Block 06:00  model {v4['t_0600_c']} °C        measured 20 °C        {'PASS' if v4_pass else 'FAIL'} (Δ {v4_delta:+.2f})")
+    print(f"  V1 DIHAR Leh        model {v1['t_min_c']}-{v1['t_max_c']} C   measured 15-20 C     {'PASS' if v1_pass else 'FAIL'}")
+    print(f"  V2 Trombe Feb       model {v2['t_mean_c']} C        measured 17.44 C     {'PASS' if v2_pass else 'FAIL'} (delta {v2_delta:+.2f})")
+    print(f"  V3 Direct gain Feb  model {v3['t_mean_c']} C        measured 14.81 C     {'PASS' if v3_pass else 'FAIL'} (delta {v3_delta:+.2f})")
+    print(f"  V4 ADM Block 06:00  model {v4['t_0600_c']} C        measured 20 C        {'PASS' if v4_pass else 'FAIL'} (delta {v4_delta:+.2f})")
     print(f"  ORDERING            Trombe {v2['t_mean_c']} > DG {v3['t_mean_c']}                      {'PASS' if ordering_pass else 'FAIL'}")
-    print(f"  SANITY 1–10                                                    10/10")
+
+    # A4-2: Run physics sanity tests and report real count, not hardcoded string.
+    # This is the only valid option per brain/00_MASTER_RULES.md Rule R1/R8.
+    try:
+        sanity_test_path = Path(__file__).resolve().parent.parent / "tests" / "test_physics_sanity.py"
+        proc = __import__("subprocess").run(
+            [sys.executable, "-m", "pytest", str(sanity_test_path), "-v", "--tb=no", "-q"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        output = proc.stdout + proc.stderr
+        # Parse passed/failed counts from pytest output line "N passed" or "N failed"
+        import re
+        passed_m = re.search(r"(\d+) passed", output)
+        failed_m = re.search(r"(\d+) failed", output)
+        n_passed = int(passed_m.group(1)) if passed_m else 0
+        n_failed = int(failed_m.group(1)) if failed_m else 0
+        n_total = n_passed + n_failed
+        sanity_label = f"{n_passed}/{n_total}"
+        if n_failed > 0:
+            sanity_label += " (FAIL)"
+            all_passed = False
+    except Exception as exc:
+        sanity_label = f"ERROR running sanity tests: {exc}"
+
+    print(f"  SANITY physics      tests {sanity_label}")
 
     if check_mode and not all_passed:
         return 1

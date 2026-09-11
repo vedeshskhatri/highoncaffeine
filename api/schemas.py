@@ -143,7 +143,9 @@ class SearchRangeSchema(BaseModel):
     model_config = ConfigDict(extra="forbid")
     min: float
     max: float
-    step: float
+    # NOTE: step was removed — the optimizer uses Latin Hypercube Sampling and
+    # does not honour a discrete step. Accepting and discarding it was a contract
+    # lie (audit finding A3-2). Callers should omit step.
 
 
 class SearchSpaceSchema(BaseModel):
@@ -261,7 +263,7 @@ class SimulateSummarySchema(BaseModel):
 
 class SimulateResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    stub: Optional[bool] = Field(default=True, alias="_stub", serialization_alias="_stub")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     refused: bool = False
     refusal_reason: Optional[str] = None
     weather_provenance: Optional[WeatherProvenanceSchema] = None
@@ -301,7 +303,7 @@ class TopDesignSchema(BaseModel):
 
 class OptimizeResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    stub: Optional[bool] = Field(default=True, alias="_stub", serialization_alias="_stub")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     evaluated: int
     refused_unsafe: int
     elapsed_s: float
@@ -323,7 +325,7 @@ class SensitivityLeverSchema(BaseModel):
 
 class SensitivityResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    stub: Optional[bool] = Field(default=True, alias="_stub", serialization_alias="_stub")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     method: str
     runs: int
     levers: List[SensitivityLeverSchema]
@@ -347,7 +349,7 @@ class RetrofitBaselineSchema(BaseModel):
 
 class RetrofitResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    stub: Optional[bool] = Field(default=True, alias="_stub", serialization_alias="_stub")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     baseline: RetrofitBaselineSchema
     interventions: List[RetrofitInterventionSchema]
     within_budget_count: int
@@ -355,7 +357,7 @@ class RetrofitResponse(BaseModel):
 
 class WeatherCsvResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    stub: Optional[bool] = Field(default=True, alias="_stub", serialization_alias="_stub")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     user_csv_id: str
     hours: int
     warnings: List[str] = Field(default_factory=list)
@@ -376,7 +378,7 @@ class MaterialItemSchema(BaseModel):
 
 class MaterialsResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    stub: Optional[bool] = Field(default=True, alias="_stub", serialization_alias="_stub")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     materials: List[MaterialItemSchema]
 
 
@@ -401,14 +403,14 @@ class ValidationOrderingCheckSchema(BaseModel):
 
 class ValidationResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    stub: Optional[bool] = Field(default=True, alias="_stub", serialization_alias="_stub")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     scenarios: List[ValidationScenarioSchema]
     ordering_check: ValidationOrderingCheckSchema
 
 
 class HealthResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-    stub: Optional[bool] = Field(default=True, alias="_stub", serialization_alias="_stub")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     ok: bool
     db: bool
     weather_cache_rows: int
