@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AnimatedPanel from './AnimatedPanel';
 import Shelter3DCanvas from './Shelter3DCanvas';
 import CrossSectionSVG from './CrossSectionSVG';
 import CanvasToolbar from './CanvasToolbar';
@@ -66,22 +67,27 @@ export default function DesignCanvas({ request, onSimulate }) {
             className="design-2d-container"
           >
             <div className="design-2d-inner">
-              <div className="design-2d-header">
-                <h3 className="design-2d-title">Technical Cross-Section Elevation</h3>
-                <div className="design-2d-meta">
-                  <span>span={length_m}m × {width_m}m</span>
-                  <span style={{ margin: '0 6px', color: 'var(--border-strong)' }}>|</span>
-                  <span>wall {totalWall_mm}mm</span>
-                  <span style={{ margin: '0 6px', color: 'var(--border-strong)' }}>|</span>
-                  <span>orient {orientation_deg}°</span>
+              <AnimatedPanel delay={0}>
+                <div className="design-2d-header">
+                  <h3 className="design-2d-title">Technical Cross-Section Elevation</h3>
+                  <div className="design-2d-meta">
+                    <span>span={length_m}m × {width_m}m</span>
+                    <span style={{ margin: '0 6px', color: 'var(--border-strong)' }}>|</span>
+                    <span>wall {totalWall_mm}mm</span>
+                    <span style={{ margin: '0 6px', color: 'var(--border-strong)' }}>|</span>
+                    <span>orient {orientation_deg}°</span>
+                  </div>
                 </div>
-              </div>
+              </AnimatedPanel>
 
               {/* Technical 2D CrossSection */}
-              <CrossSectionSVG request={request} />
+              <AnimatedPanel delay={0.08}>
+                <CrossSectionSVG request={request} />
+              </AnimatedPanel>
 
               {/* Legend row */}
-              <div
+              <AnimatedPanel
+                delay={0.14}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -106,7 +112,7 @@ export default function DesignCanvas({ request, onSimulate }) {
                     <span style={{ textTransform: 'capitalize' }}>{cat.label}</span>
                   </div>
                 ))}
-              </div>
+              </AnimatedPanel>
             </div>
           </motion.div>
         )}

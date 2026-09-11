@@ -3,19 +3,34 @@
  * Powered by Three.js & GSAP.
  *
  * Features:
- *   - Parametric 3D building generated from request geometry & envelope
- *   - Authentic material shaders (mud brick, rammed earth, stone, concrete, EPS, timber)
- *   - Interactive 3D material callout pins with physical & thermal metrics
- *   - 360° turntable floor ring with compass orientation
- *   - GSAP-animated exploded layer view and thermal heatmap mode
- *   - Solar vector & winter sun ray visualization
- *   - Preset view switches (Isometric, South Solar, North, Plan)
+ *   - Parametric 3D building with authentic procedural PBR textures (Adobe, Stone, Timber, EPS, Snow, Concrete)
+ *   - Architectural details: exposed timber rafters (Talashing), stone plinth, window mullions, night shutter, airlock vestibule
+ *   - Multi-layer exploded view with individual material layer separation & 3D HUD callouts
+ *   - Atmospheric Himalayan panorama: snow-capped mountain ridges, sky dome, and contoured plateau terrain
+ *   - 3D celestial solar diurnal arc with hourly tick nodes
+ *   - Integrated interactive SolarController: time scrubbing (06h-18h), 24h diurnal transit play, live telemetry
+ *   - 360° turntable orbit with compass orientation and camera presets
  */
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { Compass, Eye, Maximize2, Layers, X } from 'lucide-react';
+import { Compass, Eye, Maximize2, Layers, X, Mountain, Grid, Sun } from 'lucide-react';
 import { getMaterialSpec, computeLayerR, computeTotalU } from './materialsData';
+import {
+  getAdobeTexture,
+  getStoneTexture,
+  getTimberTexture,
+  getEpsTexture,
+  getSnowTexture,
+  getConcreteTexture,
+} from './threeUtils/proceduralTextures';
+import {
+  createSkyDome,
+  createHimalayanMountains,
+  createPlateauGround,
+  createCelestialSolarArc,
+} from './threeUtils/himalayanEnvironment';
+import SolarController, { computeSolarPosition } from './SolarController';
 import './Shelter3DCanvas.css';
 
 export default function Shelter3DCanvas({
@@ -35,19 +50,21 @@ export default function Shelter3DCanvas({
   const rendererRef = useRef(null);
   const animFrameIdRef = useRef(null);
   const shelterGroupRef = useRef(null);
-  const roofMeshRef = useRef(null);
-  const wallMeshesRef = useRef([]);
+  const explodedLayersRef = useRef([]);
   const sunLightRef = useRef(null);
-  const sunMeshRef = useRef(null);
+  const sunGroupRef = useRef(null);
   const solarRayMeshRef = useRef(null);
+  const solarArcGroupRef = useRef(null);
+  const himalayanEnvRef = useRef(null);
+
   const orbitStateRef = useRef({
     isDragging: false,
     prevX: 0,
     prevY: 0,
     theta: Math.PI / 4,  // Azimuth
     phi: Math.PI / 3.2,  // Elevation
-    radius: 14,          // Distance
-    target: new THREE.Vector3(0, 1.2, 0),
+    radius: 14.5,        // Distance
+    target: new THREE.Vector3(0, 1.3, 0),
   });
 
   // State for projected 2D hotspot pins & UI
@@ -55,6 +72,12 @@ export default function Shelter3DCanvas({
   const [azimuthDeg, setAzimuthDeg] = useState(45);
   const [selectedPin, setSelectedPin] = useState(null);
   const [pinPositions, setPinPositions] = useState([]);
+  const [explodedTags, setExplodedTags] = useState([]);
+
+  // Solar & Environment UI States
+  const [solarHour, setSolarHour] = useState(12.0);
+  const [season, setSeason] = useState('winter');
+  const [envMode, setEnvMode] = useState('himalayas'); // 'himalayas' | 'studio'
 
   // Extract geometry & envelope props safely
   const length_m = request?.geometry?.length_m ?? 6.0;
@@ -66,7 +89,6 @@ export default function Shelter3DCanvas({
   const floor = useMemo(() => request?.envelope?.floor || [], [request?.envelope?.floor]);
   const openings = useMemo(() => request?.openings || [], [request?.openings]);
 
-  // Primary wall materials
   const outerWallMat = walls[0]?.material || 'mud_brick';
   const innerWallMat = walls[1]?.material || 'eps';
   const roofMat = roof[0]?.material || 'concrete';
@@ -76,7 +98,7 @@ export default function Shelter3DCanvas({
   const wallUValue = computeTotalU(walls);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     1. THREE.JS SCENE INITIALIZATION
+     1. THREE.JS SCENE & ENVIRONMENT INITIALIZATION
      ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     const container = containerRef.current;
@@ -86,16 +108,15 @@ export default function Shelter3DCanvas({
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = null; // transparent to show grid background
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
+    // Atmospheric Fog
+    scene.fog = new THREE.FogExp2(0xE8EDF2, 0.012);
+
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 150);
     cameraRef.current = camera;
 
-    // Renderer
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
@@ -108,76 +129,106 @@ export default function Shelter3DCanvas({
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // Ambient Lighting
-    const ambientLight = new THREE.AmbientLight(0xfff6ea, 0.85);
+    // ── Lighting ──
+    const ambientLight = new THREE.AmbientLight(0xfff5e6, 0.95);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xfffbf0, 0x5a4838, 0.6);
-    hemiLight.position.set(0, 20, 0);
+    const hemiLight = new THREE.HemisphereLight(0xeef6fb, 0x6e5d48, 0.7);
+    hemiLight.position.set(0, 30, 0);
     scene.add(hemiLight);
 
-    // Directional Sun Light
-    const sunLight = new THREE.DirectionalLight(0xffedd4, 1.8);
+    // Directional Sun Light (High-altitude winter sun)
+    const sunLight = new THREE.DirectionalLight(0xfff1db, 2.2);
     sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 1024;
-    sunLight.shadow.mapSize.height = 1024;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
     sunLight.shadow.camera.near = 0.5;
-    sunLight.shadow.camera.far = 30;
-    sunLight.shadow.camera.left = -8;
-    sunLight.shadow.camera.right = 8;
-    sunLight.shadow.camera.top = 8;
-    sunLight.shadow.camera.bottom = -8;
-    sunLight.shadow.bias = -0.0005;
+    sunLight.shadow.camera.far = 40;
+    sunLight.shadow.camera.left = -10;
+    sunLight.shadow.camera.right = 10;
+    sunLight.shadow.camera.top = 10;
+    sunLight.shadow.camera.bottom = -10;
+    sunLight.shadow.bias = -0.0004;
     scene.add(sunLight);
     sunLightRef.current = sunLight;
 
-    // Sun Visual Glyph
-    const sunGeo = new THREE.SphereGeometry(0.35, 16, 16);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xF77331 });
-    const sunMesh = new THREE.Mesh(sunGeo, sunMat);
-    scene.add(sunMesh);
-    sunMeshRef.current = sunMesh;
-
-    // Soft Rim Light from north
-    const rimLight = new THREE.DirectionalLight(0x7da4d4, 0.45);
-    rimLight.position.set(0, 10, -12);
+    // Soft Rim Light from North for edge definition
+    const rimLight = new THREE.DirectionalLight(0x89b6e8, 0.6);
+    rimLight.position.set(0, 12, -16);
     scene.add(rimLight);
 
-    // Architectural Ground Grid / Shadow Receiver
-    const shadowPlaneGeo = new THREE.PlaneGeometry(24, 24);
-    const shadowPlaneMat = new THREE.ShadowMaterial({ opacity: 0.18 });
+    // ── Sun Visual Glyph (Luminous core + corona ring) ──
+    const sunGroup = new THREE.Group();
+    const coreGeo = new THREE.SphereGeometry(0.55, 24, 24);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xFFA044 });
+    const sunCore = new THREE.Mesh(coreGeo, coreMat);
+    sunGroup.add(sunCore);
+
+    // Corona Ring
+    const coronaGeo = new THREE.RingGeometry(0.65, 0.95, 32);
+    const coronaMat = new THREE.MeshBasicMaterial({
+      color: 0xF77331,
+      transparent: true,
+      opacity: 0.5,
+      side: THREE.DoubleSide,
+    });
+    const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
+    sunGroup.add(coronaMesh);
+
+    scene.add(sunGroup);
+    sunGroupRef.current = sunGroup;
+
+    // ── Himalayan Panorama Environment ──
+    const envGroup = new THREE.Group();
+    envGroup.name = 'himalayan-environment';
+    const sky = createSkyDome();
+    const mountains = createHimalayanMountains();
+    const plateau = createPlateauGround();
+    envGroup.add(sky);
+    envGroup.add(mountains);
+    envGroup.add(plateau);
+    scene.add(envGroup);
+    himalayanEnvRef.current = envGroup;
+
+    // Ground Shadow Receiver (for studio mode or fine shadow catch)
+    const shadowPlaneGeo = new THREE.PlaneGeometry(36, 36);
+    const shadowPlaneMat = new THREE.ShadowMaterial({ opacity: 0.24 });
     const shadowPlane = new THREE.Mesh(shadowPlaneGeo, shadowPlaneMat);
     shadowPlane.rotation.x = -Math.PI / 2;
-    shadowPlane.position.y = -0.01;
+    shadowPlane.position.y = 0.01;
     shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
 
-    // Circular 360° Turntable Ring
+    // ── Circular 360° Turntable Ring & Compass ──
     const turntableGroup = new THREE.Group();
-    const ringRadius = 6.2;
-    const ringGeo = new THREE.RingGeometry(ringRadius - 0.025, ringRadius + 0.025, 64);
+    const ringRadius = 6.6;
+    const ringGeo = new THREE.RingGeometry(ringRadius - 0.03, ringRadius + 0.03, 64);
     const ringMat = new THREE.MeshBasicMaterial({
-      color: 0xC4AD8E,
+      color: 0x9A8C84,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.75,
     });
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);
     ringMesh.rotation.x = -Math.PI / 2;
+    ringMesh.position.y = 0.03;
     turntableGroup.add(ringMesh);
 
     // Cardinal Orientation Ticks (N, E, S, W)
-    for (let deg = 0; deg < 360; deg += 30) {
+    for (let deg = 0; deg < 360; deg += 15) {
       const rad = (deg * Math.PI) / 180;
       const isCardinal = deg % 90 === 0;
-      const tickLen = isCardinal ? 0.35 : 0.18;
+      const tickLen = isCardinal ? 0.45 : 0.2;
       const tickGeo = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(ringRadius * Math.cos(rad), 0.01, ringRadius * Math.sin(rad)),
-        new THREE.Vector3((ringRadius + tickLen) * Math.cos(rad), 0.01, (ringRadius + tickLen) * Math.sin(rad)),
+        new THREE.Vector3(ringRadius * Math.cos(rad), 0.04, ringRadius * Math.sin(rad)),
+        new THREE.Vector3((ringRadius + tickLen) * Math.cos(rad), 0.04, (ringRadius + tickLen) * Math.sin(rad)),
       ]);
       const tickLine = new THREE.Line(
         tickGeo,
-        new THREE.LineBasicMaterial({ color: isCardinal ? 0x200F07 : 0xC4AD8E, linewidth: isCardinal ? 2 : 1 })
+        new THREE.LineBasicMaterial({
+          color: isCardinal ? 0xF77331 : 0x9A8C84,
+          linewidth: isCardinal ? 2 : 1,
+        })
       );
       turntableGroup.add(tickLine);
     }
@@ -203,6 +254,9 @@ export default function Shelter3DCanvas({
     const renderLoop = () => {
       animFrameIdRef.current = requestAnimationFrame(renderLoop);
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        if (sunGroupRef.current) {
+          sunGroupRef.current.lookAt(cameraRef.current.position);
+        }
         rendererRef.current.render(sceneRef.current, cameraRef.current);
         updateProjectedPins();
       }
@@ -216,14 +270,25 @@ export default function Shelter3DCanvas({
     };
   }, []);
 
+  // Toggle Environment Mode (Himalayas vs Studio Grid)
+  useEffect(() => {
+    if (!himalayanEnvRef.current) return;
+    himalayanEnvRef.current.visible = envMode === 'himalayas';
+    if (sceneRef.current) {
+      sceneRef.current.fog = envMode === 'himalayas'
+        ? new THREE.FogExp2(0xE8EDF2, 0.012)
+        : null;
+    }
+  }, [envMode]);
+
   /* ─────────────────────────────────────────────────────────────────────────
-     2. REBUILD 3D SHELTER MESH WHEN PARAMETERS CHANGE
+     2. REBUILD 3D ARCHITECTURAL SHELTER (PROCEDURAL TEXTURES & DETAILS)
      ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
 
-    // Remove old shelter group if it exists
+    // Clean up old shelter group
     if (shelterGroupRef.current) {
       scene.remove(shelterGroupRef.current);
       shelterGroupRef.current.traverse((child) => {
@@ -237,7 +302,7 @@ export default function Shelter3DCanvas({
 
     const shelter = new THREE.Group();
     shelterGroupRef.current = shelter;
-    wallMeshesRef.current = [];
+    explodedLayersRef.current = [];
 
     const l = length_m; // X dimension
     const w = width_m;  // Z dimension
@@ -246,229 +311,443 @@ export default function Shelter3DCanvas({
     const isThermal = viewMode === 'thermal';
     const isExploded = viewMode === 'exploded';
 
-    // Materials helper
-    const getMeshMat = (matId, thermalColor = null) => {
+    // Textures
+    const adobeTex = getAdobeTexture();
+    const stoneTex = getStoneTexture();
+    const timberTex = getTimberTexture();
+    const epsTex = getEpsTexture();
+    const snowTex = getSnowTexture();
+    const concreteTex = getConcreteTexture();
+
+    // PBR Material generator with authentic procedural maps
+    const createMat = (type, thermalColor, roughness = 0.85, metalness = 0.05) => {
       if (isThermal && thermalColor) {
         return new THREE.MeshStandardMaterial({
           color: thermalColor,
-          roughness: 0.4,
+          roughness: 0.35,
           metalness: 0.1,
         });
       }
-      const spec = getMaterialSpec(matId);
-      return new THREE.MeshStandardMaterial({
-        color: spec.color,
-        roughness: spec.roughness ?? 0.8,
-        metalness: spec.metalness ?? 0.05,
-      });
+
+      switch (type) {
+        case 'adobe':
+          return new THREE.MeshStandardMaterial({
+            map: adobeTex,
+            roughness: 0.92,
+            metalness: 0.02,
+          });
+        case 'stone':
+          return new THREE.MeshStandardMaterial({
+            map: stoneTex,
+            roughness: 0.88,
+            metalness: 0.08,
+          });
+        case 'timber':
+          return new THREE.MeshStandardMaterial({
+            map: timberTex,
+            roughness: 0.65,
+            metalness: 0.04,
+          });
+        case 'eps':
+          return new THREE.MeshStandardMaterial({
+            map: epsTex,
+            roughness: 0.55,
+            metalness: 0.0,
+          });
+        case 'snow':
+          return new THREE.MeshStandardMaterial({
+            map: snowTex,
+            roughness: 0.82,
+            metalness: 0.05,
+          });
+        case 'concrete':
+        default:
+          return new THREE.MeshStandardMaterial({
+            map: concreteTex,
+            roughness: 0.8,
+            metalness: 0.1,
+          });
+      }
     };
 
-    // ── Floor Slab & Thermal Mass ──────────────────────────────────────────
-    const floorThick = 0.25;
-    const floorGeo = new THREE.BoxGeometry(l + 0.3, floorThick, w + 0.3);
-    const floorMeshMat = getMeshMat(floorMat, 0x238551);
-    const floorMesh = new THREE.Mesh(floorGeo, floorMeshMat);
-    floorMesh.position.set(0, floorThick / 2, 0);
+    const wallTexType = outerWallMat === 'stone' ? 'stone' : 'adobe';
+    const wallExteriorMat = createMat(wallTexType, 0xF97316);
+    const wallInsulationMat = createMat('eps', 0xEAB308);
+    const wallInteriorMat = createMat('adobe', 0x22C55E);
+    const timberMat = createMat('timber', 0xB45309);
+    const stonePlinthMat = createMat('stone', 0x475569);
+    const concreteFloorMat = createMat('concrete', 0x15803D);
+
+    // ── 1. Chamfered Foundation Plinth ──
+    const plinthThick = 0.28;
+    const plinthGeo = new THREE.BoxGeometry(l + 0.6, plinthThick, w + 0.6);
+    const plinthMesh = new THREE.Mesh(plinthGeo, stonePlinthMat);
+    plinthMesh.position.set(0, plinthThick / 2, 0);
+    plinthMesh.receiveShadow = true;
+    plinthMesh.castShadow = true;
+    shelter.add(plinthMesh);
+
+    // ── 2. Thermal Mass Floor Slab & Timber Interior Deck ──
+    const floorSlabThick = 0.22;
+    const floorGeo = new THREE.BoxGeometry(l + 0.2, floorSlabThick, w + 0.2);
+    const floorMesh = new THREE.Mesh(floorGeo, concreteFloorMat);
+    floorMesh.position.set(0, plinthThick + floorSlabThick / 2, 0);
     floorMesh.receiveShadow = true;
     floorMesh.castShadow = true;
     shelter.add(floorMesh);
 
-    // ── Foundation Plinth ──────────────────────────────────────────────────
-    const plinthGeo = new THREE.BoxGeometry(l + 0.5, 0.2, w + 0.5);
-    const plinthMat = new THREE.MeshStandardMaterial({ color: 0x6e6860, roughness: 0.9 });
-    const plinthMesh = new THREE.Mesh(plinthGeo, plinthMat);
-    plinthMesh.position.set(0, 0.1, 0);
-    plinthMesh.receiveShadow = true;
-    shelter.add(plinthMesh);
+    // Interior timber finish visible through window
+    const timberFloorGeo = new THREE.BoxGeometry(l - 0.2, 0.02, w - 0.2);
+    const timberFloorMesh = new THREE.Mesh(timberFloorGeo, timberMat);
+    timberFloorMesh.position.set(0, plinthThick + floorSlabThick + 0.01, 0);
+    timberFloorMesh.receiveShadow = true;
+    shelter.add(timberFloorMesh);
 
-    // ── Walls Assembly (North, South, East, West) ──────────────────────────
-    const wallThick = Math.max(0.2, totalWallThickness);
-    const wallY = floorThick + h / 2;
+    // ── 3. Multi-Layer Wall Assemblies (Exterior, EPS Core, Interior) ──
+    const totalWallThick = Math.max(0.25, totalWallThickness);
+    const extThick = totalWallThick * 0.65;  // 65% outer mass
+    const coreThick = totalWallThick * 0.25; // 25% EPS core
+    const intThick = totalWallThick * 0.10;  // 10% interior finish
+    const wallBaseY = plinthThick + floorSlabThick + h / 2;
 
-    // North Wall (Cold exterior facade: blue in thermal)
-    const northGeo = new THREE.BoxGeometry(l, h, wallThick);
-    const northMat = getMeshMat(outerWallMat, 0x1E3A8A); // Deep cold blue
-    const northWall = new THREE.Mesh(northGeo, northMat);
-    northWall.position.set(0, wallY, -w / 2 + wallThick / 2);
-    northWall.castShadow = true;
-    northWall.receiveShadow = true;
-    northWall.userData = { id: 'north_wall', role: 'wall', label: 'North Wall (Protected)' };
-    shelter.add(northWall);
-    wallMeshesRef.current.push(northWall);
+    // Corner Stone / Timber Quoins for architectural authenticity
+    const quoinSize = totalWallThick * 1.1;
+    const quoinGeo = new THREE.BoxGeometry(quoinSize, h, quoinSize);
+    const corners = [
+      { x: -l / 2 + quoinSize / 2, z: -w / 2 + quoinSize / 2 },
+      { x:  l / 2 - quoinSize / 2, z: -w / 2 + quoinSize / 2 },
+      { x: -l / 2 + quoinSize / 2, z:  w / 2 - quoinSize / 2 },
+      { x:  l / 2 - quoinSize / 2, z:  w / 2 - quoinSize / 2 },
+    ];
+    corners.forEach(c => {
+      const qMesh = new THREE.Mesh(quoinGeo, stonePlinthMat);
+      qMesh.position.set(c.x, wallBaseY, c.z);
+      qMesh.castShadow = true;
+      qMesh.receiveShadow = true;
+      shelter.add(qMesh);
+    });
 
-    // East Wall
-    const sideWallLen = w - wallThick * 2;
-    const eastGeo = new THREE.BoxGeometry(wallThick, h, sideWallLen);
-    const eastMat = getMeshMat(outerWallMat, 0x3B82F6);
-    const eastWall = new THREE.Mesh(eastGeo, eastMat);
-    eastWall.position.set(-l / 2 + wallThick / 2, wallY, 0);
-    eastWall.castShadow = true;
-    eastWall.receiveShadow = true;
-    shelter.add(eastWall);
-    wallMeshesRef.current.push(eastWall);
+    // ── A. North Wall (Cold exterior facade: Deep blue in thermal) ──
+    const northGroup = new THREE.Group();
+    northGroup.position.set(0, wallBaseY, -w / 2 + totalWallThick / 2);
+
+    // Exterior Mud Brick Layer
+    const northExtGeo = new THREE.BoxGeometry(l, h, extThick);
+    const northExt = new THREE.Mesh(northExtGeo, wallExteriorMat);
+    northExt.position.z = -coreThick / 2 - intThick / 2;
+    northExt.castShadow = true;
+    northExt.receiveShadow = true;
+    northGroup.add(northExt);
+
+    // Core EPS Insulation Layer
+    const northCoreGeo = new THREE.BoxGeometry(l, h, coreThick);
+    const northCore = new THREE.Mesh(northCoreGeo, wallInsulationMat);
+    northCore.position.z = 0;
+    northGroup.add(northCore);
+
+    // Interior Plaster Layer
+    const northIntGeo = new THREE.BoxGeometry(l, h, intThick);
+    const northInt = new THREE.Mesh(northIntGeo, wallInteriorMat);
+    northInt.position.z = coreThick / 2 + intThick / 2;
+    northGroup.add(northInt);
+
+    shelter.add(northGroup);
+
+    // ── B. East & West Side Walls with Vestibule Airlock Door on East ──
+    const sideWallLen = w - totalWallThick * 2;
+    const eastGroup = new THREE.Group();
+    eastGroup.position.set(-l / 2 + totalWallThick / 2, wallBaseY, 0);
+
+    const eastExtGeo = new THREE.BoxGeometry(extThick, h, sideWallLen);
+    const eastExt = new THREE.Mesh(eastExtGeo, wallExteriorMat);
+    eastExt.position.x = -coreThick / 2 - intThick / 2;
+    eastExt.castShadow = true;
+    eastExt.receiveShadow = true;
+    eastGroup.add(eastExt);
+
+    const eastCoreGeo = new THREE.BoxGeometry(coreThick, h, sideWallLen);
+    const eastCore = new THREE.Mesh(eastCoreGeo, wallInsulationMat);
+    eastGroup.add(eastCore);
+
+    // Mountain Entry Airlock Doorway on East Facade
+    const doorWidth = 0.95;
+    const doorHeight = 1.95;
+    const doorFrameGeo = new THREE.BoxGeometry(extThick * 1.15, doorHeight + 0.1, doorWidth + 0.1);
+    const doorFrame = new THREE.Mesh(doorFrameGeo, timberMat);
+    doorFrame.position.set(-coreThick / 2 - intThick / 2, -h / 2 + doorHeight / 2 + 0.05, 0.4);
+    eastGroup.add(doorFrame);
+
+    const doorLeafGeo = new THREE.BoxGeometry(0.06, doorHeight, doorWidth);
+    const doorLeaf = new THREE.Mesh(doorLeafGeo, timberMat);
+    doorLeaf.position.set(-coreThick / 2 - intThick / 2 - 0.02, -h / 2 + doorHeight / 2 + 0.05, 0.4);
+    eastGroup.add(doorLeaf);
+
+    shelter.add(eastGroup);
 
     // West Wall
-    const westWall = new THREE.Mesh(eastGeo, eastMat);
-    westWall.position.set(l / 2 - wallThick / 2, wallY, 0);
-    westWall.castShadow = true;
-    westWall.receiveShadow = true;
-    shelter.add(westWall);
-    wallMeshesRef.current.push(westWall);
+    const westGroup = new THREE.Group();
+    westGroup.position.set(l / 2 - totalWallThick / 2, wallBaseY, 0);
 
-    // South Wall with Solar Glazing Aperture (South is at +Z)
-    // In thermal mode, South solar collector is warm amber (#F77331)
+    const westExt = new THREE.Mesh(eastExtGeo, wallExteriorMat);
+    westExt.position.x = coreThick / 2 + intThick / 2;
+    westExt.castShadow = true;
+    westExt.receiveShadow = true;
+    westGroup.add(westExt);
+
+    const westCore = new THREE.Mesh(eastCoreGeo, wallInsulationMat);
+    westGroup.add(westCore);
+    shelter.add(westGroup);
+
+    // ── C. South Wall with Solar Glazing Aperture (+Z South) ──
     const southGroup = new THREE.Group();
-    southGroup.position.set(0, wallY, w / 2 - wallThick / 2);
+    southGroup.position.set(0, wallBaseY, w / 2 - totalWallThick / 2);
 
-    const southOpening = openings.find(o => o.facing === 'south') || { area_m2: 4.0, glazing: 'double_pane' };
-    const winWidth = Math.min(l * 0.75, Math.max(1.5, Math.sqrt(southOpening.area_m2 * 1.5)));
+    const southOpening = openings.find(o => o.facing === 'south') || { area_m2: 4.0, glazing: 'double_pane', night_shutter: true };
+    const winWidth = Math.min(l * 0.76, Math.max(1.6, Math.sqrt(southOpening.area_m2 * 1.5)));
     const winHeight = Math.min(h * 0.75, southOpening.area_m2 / winWidth);
-    const winYOffset = -h / 2 + winHeight / 2 + 0.3;
+    const winYOffset = -h / 2 + winHeight / 2 + 0.35;
 
-    // Left and right opaque wall piers
+    // Left and right south wall piers
     const pierWidth = Math.max(0.2, (l - winWidth) / 2);
-    const pierGeo = new THREE.BoxGeometry(pierWidth, h, wallThick);
-    const southPierMat = getMeshMat(outerWallMat, 0xF97316);
-
-    const leftPier = new THREE.Mesh(pierGeo, southPierMat);
+    const pierGeo = new THREE.BoxGeometry(pierWidth, h, totalWallThick);
+    const leftPier = new THREE.Mesh(pierGeo, wallExteriorMat);
     leftPier.position.set(-l / 2 + pierWidth / 2, 0, 0);
     leftPier.castShadow = true;
     leftPier.receiveShadow = true;
     southGroup.add(leftPier);
 
-    const rightPier = new THREE.Mesh(pierGeo, southPierMat);
+    const rightPier = new THREE.Mesh(pierGeo, wallExteriorMat);
     rightPier.position.set(l / 2 - pierWidth / 2, 0, 0);
     rightPier.castShadow = true;
     rightPier.receiveShadow = true;
     southGroup.add(rightPier);
 
-    // Lintel above window
-    const lintelHeight = h - (winHeight + 0.3);
+    // Heavy Timber Lintel above window
+    const lintelHeight = h - (winHeight + 0.35);
     if (lintelHeight > 0.1) {
-      const lintelGeo = new THREE.BoxGeometry(winWidth, lintelHeight, wallThick);
-      const lintel = new THREE.Mesh(lintelGeo, southPierMat);
+      const lintelGeo = new THREE.BoxGeometry(winWidth, lintelHeight, totalWallThick * 1.05);
+      const lintel = new THREE.Mesh(lintelGeo, timberMat);
       lintel.position.set(0, h / 2 - lintelHeight / 2, 0);
       lintel.castShadow = true;
       southGroup.add(lintel);
     }
 
-    // Window Glazing Frame (Timber / Powder-coated Aluminium)
-    const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, wallThick * 0.4);
-    const frameMat = new THREE.MeshStandardMaterial({ color: 0x4A3728, roughness: 0.7 });
-    const frameMesh = new THREE.Mesh(frameGeo, frameMat);
+    // Architectural Timber Window Frame with Mullion & Sill
+    const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, totalWallThick * 0.5);
+    const frameMesh = new THREE.Mesh(frameGeo, timberMat);
     frameMesh.position.set(0, winYOffset, 0);
     southGroup.add(frameMesh);
 
-    // Glass Panes (Transparent & Reflective)
-    const glassGeo = new THREE.BoxGeometry(winWidth - 0.12, winHeight - 0.12, 0.02);
+    // Timber Mullion Divider (Vertical split)
+    const mullionGeo = new THREE.BoxGeometry(0.08, winHeight, totalWallThick * 0.55);
+    const mullion = new THREE.Mesh(mullionGeo, timberMat);
+    mullion.position.set(0, winYOffset, 0.01);
+    southGroup.add(mullion);
+
+    // Projecting Timber Window Sill
+    const sillGeo = new THREE.BoxGeometry(winWidth + 0.15, 0.08, totalWallThick * 0.7);
+    const sill = new THREE.Mesh(sillGeo, timberMat);
+    sill.position.set(0, winYOffset - winHeight / 2 - 0.04, 0.05);
+    sill.castShadow = true;
+    southGroup.add(sill);
+
+    // High-Spec Glass Panes (Double Pane Low-E)
+    const glassGeo = new THREE.BoxGeometry(winWidth - 0.12, winHeight - 0.12, 0.025);
     const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0x9ed3eb,
+      color: 0x8cc4db,
       transparent: true,
       opacity: isThermal ? 0.85 : 0.42,
       roughness: 0.1,
       transmission: isThermal ? 0.0 : 0.88,
       ior: 1.52,
-      reflectivity: 0.9,
+      reflectivity: 0.85,
     });
     if (isThermal) glassMat.color.setHex(0xF59E0B);
     const glassMesh = new THREE.Mesh(glassGeo, glassMat);
     glassMesh.position.set(0, winYOffset, 0);
     southGroup.add(glassMesh);
 
-    // Night Shutter Indicator (if enabled)
-    if (southOpening.night_shutter) {
-      const shutterGeo = new THREE.BoxGeometry(winWidth - 0.1, winHeight - 0.1, 0.04);
-      const shutterMat = new THREE.MeshStandardMaterial({ color: 0xD97706, roughness: 0.6 });
-      const shutterMesh = new THREE.Mesh(shutterGeo, shutterMat);
-      shutterMesh.position.set(0, winYOffset, -wallThick * 0.2);
-      southGroup.add(shutterMesh);
-    }
+    // Operable Timber Night Shutter with Louver Slats
+    const shutterGroup = new THREE.Group();
+    shutterGroup.position.set(0, winYOffset, -totalWallThick * 0.25);
 
+    const shutterLeafGeo = new THREE.BoxGeometry(winWidth * 0.48, winHeight - 0.1, 0.04);
+    const shutterLeft = new THREE.Mesh(shutterLeafGeo, timberMat);
+    shutterLeft.position.set(-winWidth * 0.24, 0, 0);
+    shutterGroup.add(shutterLeft);
+
+    const shutterRight = new THREE.Mesh(shutterLeafGeo, timberMat);
+    shutterRight.position.set(winWidth * 0.24, 0, 0);
+    shutterGroup.add(shutterRight);
+
+    southGroup.add(shutterGroup);
     shelter.add(southGroup);
-    wallMeshesRef.current.push(southGroup);
 
-    // ── Roof Assembly ──────────────────────────────────────────────────────
-    const roofThick = 0.22;
-    const roofOverhang = 0.45;
-    const roofGeo = new THREE.BoxGeometry(l + roofOverhang * 2, roofThick, w + roofOverhang * 2);
-    const roofMeshMat = getMeshMat(roofMat, 0x1E293B); // Deep sky radiative cold in thermal
-    const roofMesh = new THREE.Mesh(roofGeo, roofMeshMat);
-    roofMesh.position.set(0, floorThick + h + roofThick / 2, 0);
-    roofMesh.castShadow = true;
-    roofMesh.receiveShadow = true;
-    roofMeshRef.current = roofMesh;
-    shelter.add(roofMesh);
+    // ── 4. Detailed Roof Assembly with Exposed Timber Rafters (Talashing) ──
+    const roofGroup = new THREE.Group();
+    const roofOverhang = 0.52;
+    const roofLen = l + roofOverhang * 2;
+    const roofWid = w + roofOverhang * 2;
+    const roofBaseY = plinthThick + floorSlabThick + h;
 
-    // Snow Cover Layer on Roof
-    if (snowCover) {
-      const snowGeo = new THREE.BoxGeometry(l + roofOverhang * 2, 0.08, w + roofOverhang * 2);
-      const snowMat = new THREE.MeshStandardMaterial({
-        color: 0xF8FAFC,
-        roughness: 0.85,
-        metalness: 0.05,
-      });
-      const snowMesh = new THREE.Mesh(snowGeo, snowMat);
-      snowMesh.position.set(0, roofThick / 2 + 0.04, 0);
-      snowMesh.receiveShadow = true;
-      roofMesh.add(snowMesh);
+    roofGroup.position.set(0, roofBaseY, 0);
+
+    // Structural Exposed Timber Rafters (Talashing beams extending under eaves)
+    const rafterCount = Math.max(6, Math.round(l / 0.65));
+    const rafterGeo = new THREE.BoxGeometry(0.12, 0.16, roofWid - 0.1);
+    for (let i = 0; i < rafterCount; i++) {
+      const rx = -l / 2 - roofOverhang * 0.7 + (i / (rafterCount - 1)) * (roofLen - roofOverhang * 0.6);
+      const rafter = new THREE.Mesh(rafterGeo, timberMat);
+      rafter.position.set(rx, 0.08, 0);
+      rafter.castShadow = true;
+      roofGroup.add(rafter);
     }
 
-    // Exploded View GSAP Transitions
+    // Ceiling Timber Plank Decking
+    const deckGeo = new THREE.BoxGeometry(roofLen - 0.05, 0.04, roofWid - 0.05);
+    const deckMesh = new THREE.Mesh(deckGeo, timberMat);
+    deckMesh.position.set(0, 0.18, 0);
+    deckMesh.castShadow = true;
+    roofGroup.add(deckMesh);
+
+    // Continuous Roof EPS Insulation Board
+    const roofInsulGeo = new THREE.BoxGeometry(roofLen, 0.15, roofWid);
+    const roofInsulMesh = new THREE.Mesh(roofInsulGeo, wallInsulationMat);
+    roofInsulMesh.position.set(0, 0.28, 0);
+    roofGroup.add(roofInsulMesh);
+
+    // Perimeter Timber Fascia Trim
+    const fasciaThick = 0.04;
+    const fasciaHeight = 0.32;
+    const fasciaFrontGeo = new THREE.BoxGeometry(roofLen, fasciaHeight, fasciaThick);
+    const fasciaFront = new THREE.Mesh(fasciaFrontGeo, timberMat);
+    fasciaFront.position.set(0, 0.2, roofWid / 2);
+    roofGroup.add(fasciaFront);
+
+    const fasciaBack = new THREE.Mesh(fasciaFrontGeo, timberMat);
+    fasciaBack.position.set(0, 0.2, -roofWid / 2);
+    roofGroup.add(fasciaBack);
+
+    // Weatherproof Roof Deck / Concrete Screed
+    const screedGeo = new THREE.BoxGeometry(roofLen - 0.04, 0.06, roofWid - 0.04);
+    const screedMesh = new THREE.Mesh(screedGeo, concreteFloorMat);
+    screedMesh.position.set(0, 0.38, 0);
+    screedMesh.receiveShadow = true;
+    roofGroup.add(screedMesh);
+
+    // Himalayan Crystalline Snow Blanket on Roof
+    let snowMeshRef = null;
+    if (snowCover) {
+      const snowGeo = new THREE.BoxGeometry(roofLen, 0.12, roofWid);
+      const snowMesh = new THREE.Mesh(snowGeo, createMat('snow', null));
+      snowMesh.position.set(0, 0.46, 0);
+      snowMesh.receiveShadow = true;
+      snowMesh.castShadow = true;
+      roofGroup.add(snowMesh);
+      snowMeshRef = snowMesh;
+    }
+
+    shelter.add(roofGroup);
+
+    // ── 5. Exploded View GSAP Transitions & Multi-Layer Separation ──
     if (isExploded) {
-      gsap.to(roofMesh.position, { y: floorThick + h + roofThick / 2 + 2.0, duration: 0.8, ease: 'power2.out' });
-      gsap.to(northWall.position, { z: -w / 2 + wallThick / 2 - 0.9, duration: 0.8, ease: 'power2.out' });
-      gsap.to(southGroup.position, { z: w / 2 - wallThick / 2 + 0.9, duration: 0.8, ease: 'power2.out' });
-      gsap.to(eastWall.position, { x: -l / 2 + wallThick / 2 - 0.9, duration: 0.8, ease: 'power2.out' });
-      gsap.to(westWall.position, { x: l / 2 - wallThick / 2 + 0.9, duration: 0.8, ease: 'power2.out' });
+      // Roof decomposes upward in staggered sequence
+      gsap.to(roofGroup.position, { y: roofBaseY + 2.4, duration: 0.9, ease: 'power3.out' });
+      if (snowMeshRef) {
+        gsap.to(snowMeshRef.position, { y: 1.2, duration: 1.1, ease: 'power3.out' });
+      }
+
+      // North Wall: Exterior peels backward, EPS core separates
+      gsap.to(northGroup.position, { z: -w / 2 - 1.4, duration: 0.9, ease: 'power3.out' });
+      gsap.to(northExt.position, { z: -0.6, duration: 1.0, ease: 'power3.out' });
+
+      // South Wall: Peels forward (+Z) revealing interior
+      gsap.to(southGroup.position, { z: w / 2 + 1.4, duration: 0.9, ease: 'power3.out' });
+
+      // East & West Walls: Peel left & right
+      gsap.to(eastGroup.position, { x: -l / 2 - 1.4, duration: 0.9, ease: 'power3.out' });
+      gsap.to(westGroup.position, { x:  l / 2 + 1.4, duration: 0.9, ease: 'power3.out' });
     }
 
     scene.add(shelter);
-  }, [length_m, width_m, height_m, walls, roof, floor, openings, viewMode, snowCover]);
+  }, [length_m, width_m, height_m, walls, roof, floor, openings, viewMode, snowCover, outerWallMat]);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     3. SUN & SOLAR VECTOR POSITIONING
+     3. 3D CELESTIAL SUN PATH & DIURNAL SOLAR POSITIONING
      ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
-    if (!sunLightRef.current || !sunMeshRef.current) return;
+    const scene = sceneRef.current;
+    if (!scene) return;
 
-    // Winter sun in Leh (Lat 34.15° N) has noon altitude ~32.4°
-    // Orientation: 180° = South (+Z), 0° = North (-Z), 90° = East (-X), 270° = West (+X)
-    const rad = (orientation_deg * Math.PI) / 180;
-    const sunDist = 11;
-    const altitudeRad = (32.4 * Math.PI) / 180;
+    // Remove old solar arc
+    if (solarArcGroupRef.current) {
+      scene.remove(solarArcGroupRef.current);
+    }
 
-    const sunX = sunDist * Math.cos(altitudeRad) * Math.sin(rad);
-    const sunY = sunDist * Math.sin(altitudeRad);
-    const sunZ = sunDist * Math.cos(altitudeRad) * Math.cos(rad);
+    if (showSolarRays) {
+      const arc = createCelestialSolarArc(season, orientation_deg);
+      scene.add(arc);
+      solarArcGroupRef.current = arc;
+    }
 
-    gsap.to(sunLightRef.current.position, { x: sunX, y: sunY, z: sunZ, duration: 0.6, ease: 'power2.out' });
-    gsap.to(sunMeshRef.current.position, { x: sunX * 1.1, y: sunY * 1.1, z: sunZ * 1.1, duration: 0.6, ease: 'power2.out' });
+    // Compute sun coordinates from real astronomical telemetry
+    const solarPos = computeSolarPosition(solarHour, season, orientation_deg);
+    const sunDist = 13.5;
 
-    // Luminous solar ray line into the south glazing
-    if (showSolarRays && sceneRef.current) {
+    let sunX = 0;
+    let sunY = 8;
+    let sunZ = 10;
+
+    if (solarPos.isDay) {
+      const altRad = (solarPos.altitudeDeg * Math.PI) / 180;
+      const azRad = (solarPos.azimuthDeg * Math.PI) / 180;
+      sunX = sunDist * Math.cos(altRad) * Math.sin(azRad);
+      sunY = sunDist * Math.sin(altRad);
+      sunZ = sunDist * Math.cos(altRad) * Math.cos(azRad);
+    } else {
+      // Night / Sub-horizon
+      sunY = -2;
+    }
+
+    if (sunLightRef.current) {
+      gsap.to(sunLightRef.current.position, { x: sunX, y: Math.max(0.5, sunY), z: sunZ, duration: 0.35, ease: 'power2.out' });
+      sunLightRef.current.intensity = solarPos.isDay ? Math.max(0.4, (solarPos.dni_wm2 / 900) * 2.3) : 0.05;
+    }
+
+    if (sunGroupRef.current) {
+      gsap.to(sunGroupRef.current.position, { x: sunX, y: sunY, z: sunZ, duration: 0.35, ease: 'power2.out' });
+      sunGroupRef.current.visible = solarPos.isDay;
+    }
+
+    // Solar Ray Bundle into South Glazing
+    if (showSolarRays && solarPos.isDay && sceneRef.current) {
       if (solarRayMeshRef.current) sceneRef.current.remove(solarRayMeshRef.current);
-      const points = [
-        new THREE.Vector3(sunX * 0.9, sunY * 0.9, sunZ * 0.9),
-        new THREE.Vector3(0, 1.2, width_m / 2),
+
+      const rayPoints = [
+        new THREE.Vector3(sunX * 0.88, sunY * 0.88, sunZ * 0.88),
+        new THREE.Vector3(0, 1.4, width_m / 2),
       ];
-      const rayGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const rayGeo = new THREE.BufferGeometry().setFromPoints(rayPoints);
       const rayMat = new THREE.LineDashedMaterial({
         color: 0xF77331,
-        dashSize: 0.4,
-        gapSize: 0.2,
+        dashSize: 0.5,
+        gapSize: 0.25,
         linewidth: 2,
         transparent: true,
-        opacity: 0.75,
+        opacity: Math.min(0.85, (solarPos.altitudeDeg / 35) + 0.2),
       });
       const rayLine = new THREE.Line(rayGeo, rayMat);
       rayLine.computeLineDistances();
       sceneRef.current.add(rayLine);
       solarRayMeshRef.current = rayLine;
+    } else if (solarRayMeshRef.current && sceneRef.current) {
+      sceneRef.current.remove(solarRayMeshRef.current);
+      solarRayMeshRef.current = null;
     }
-  }, [orientation_deg, width_m, showSolarRays]);
+  }, [solarHour, season, orientation_deg, showSolarRays, width_m]);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     4. ORBIT CAMERA & TOUCH CONTROLS
+     4. ORBIT CONTROLS & CAMERA PRESETS
      ───────────────────────────────────────────────────────────────────────── */
   const updateCameraPosition = useCallback(() => {
     if (!cameraRef.current) return;
@@ -480,7 +759,6 @@ export default function Shelter3DCanvas({
     cameraRef.current.position.set(x, y, z);
     cameraRef.current.lookAt(target);
 
-    // Calculate current visual azimuth for the turntable badge
     let deg = Math.round((theta * 180) / Math.PI) % 360;
     if (deg < 0) deg += 360;
     setAzimuthDeg(deg);
@@ -515,39 +793,38 @@ export default function Shelter3DCanvas({
   const handleWheel = (e) => {
     e.preventDefault();
     orbitStateRef.current.radius = Math.max(
-      6,
-      Math.min(26, orbitStateRef.current.radius + e.deltaY * 0.015)
+      6.5,
+      Math.min(28, orbitStateRef.current.radius + e.deltaY * 0.015)
     );
     updateCameraPosition();
   };
 
-  // View Preset Tweens
   const setPresetView = (presetKey) => {
     setActivePreset(presetKey);
     let targetTheta = Math.PI / 4;
     let targetPhi = Math.PI / 3.2;
-    let targetRadius = 14;
+    let targetRadius = 14.5;
 
     switch (presetKey) {
       case 'iso':
         targetTheta = Math.PI / 4;
         targetPhi = Math.PI / 3.2;
-        targetRadius = 14;
+        targetRadius = 14.5;
         break;
-      case 'south': // Look straight at South Glazing (+Z)
+      case 'south':
         targetTheta = 0;
-        targetPhi = Math.PI / 2.3;
-        targetRadius = 11;
+        targetPhi = Math.PI / 2.35;
+        targetRadius = 11.5;
         break;
-      case 'north': // Look at North facade (-Z)
+      case 'north':
         targetTheta = Math.PI;
-        targetPhi = Math.PI / 2.3;
-        targetRadius = 11;
+        targetPhi = Math.PI / 2.35;
+        targetRadius = 11.5;
         break;
-      case 'plan': // Top-down
+      case 'plan':
         targetTheta = 0;
         targetPhi = 0.05;
-        targetRadius = 15;
+        targetRadius = 16;
         break;
       default:
         break;
@@ -574,7 +851,43 @@ export default function Shelter3DCanvas({
     const w = container.clientWidth;
     const h = container.clientHeight;
 
-    const rawHotspots = [
+    const isExploded = viewMode === 'exploded';
+
+    const rawHotspots = isExploded ? [
+      {
+        id: 'layer-ext',
+        label: 'Layer 1: 300mm Mud Brick Wall',
+        sub: 'High Thermal Capacitance (1700 kg/m³)',
+        category: 'Thermal Mass',
+        pos: new THREE.Vector3(0, height_m * 0.6, -width_m / 2 - 1.8),
+        spec: getMaterialSpec(outerWallMat),
+        thickness_mm: Math.round(totalWallThickness * 0.65 * 1000),
+        rVal: '0.40',
+        uVal: '2.50',
+      },
+      {
+        id: 'layer-eps',
+        label: 'Layer 2: 100mm Continuous EPS Core',
+        sub: 'Thermal Break Barrier (k = 0.038 W/m·K)',
+        category: 'Insulation',
+        pos: new THREE.Vector3(0, height_m * 0.6, -width_m / 2 - 0.7),
+        spec: getMaterialSpec('eps'),
+        thickness_mm: 100,
+        rVal: '2.63',
+        uVal: '0.38',
+      },
+      {
+        id: 'layer-rafters',
+        label: 'Roof: Exposed Talashing Rafters & Deck',
+        sub: 'Traditional Himalayan Poplar Beams + 150mm EPS',
+        category: 'Roof Assembly',
+        pos: new THREE.Vector3(-length_m / 4, height_m + 3.0, 0),
+        spec: getMaterialSpec('timber'),
+        thickness_mm: 250,
+        rVal: '3.95',
+        uVal: '0.25',
+      },
+    ] : [
       {
         id: 'wall',
         label: `Wall: ${getMaterialSpec(outerWallMat).name}`,
@@ -602,7 +915,7 @@ export default function Shelter3DCanvas({
         label: `Roof: ${getMaterialSpec(roofMat).name}`,
         sub: `${Math.round((roof[0]?.thickness_m || 0.15) * 1000)}mm ${snowCover ? '· Snow Cover' : ''}`,
         category: 'Thermal Envelope',
-        pos: new THREE.Vector3(-length_m / 3, height_m + 0.3, -width_m / 4),
+        pos: new THREE.Vector3(-length_m / 3, height_m + 0.4, -width_m / 4),
         spec: getMaterialSpec(roofMat),
         thickness_mm: Math.round((roof[0]?.thickness_m || 0.15) * 1000),
         rVal: computeLayerR(roofMat, roof[0]?.thickness_m || 0.15).toFixed(2),
@@ -620,11 +933,11 @@ export default function Shelter3DCanvas({
     });
 
     setPinPositions(projected);
-  }, [length_m, width_m, height_m, outerWallMat, totalWallThickness, wallUValue, openings, roofMat, roof, snowCover]);
+  }, [length_m, width_m, height_m, outerWallMat, totalWallThickness, wallUValue, openings, roofMat, roof, snowCover, viewMode]);
 
   return (
     <div
-      className="shelter-3d-wrapper"
+      className={`shelter-3d-wrapper ${envMode}`}
       ref={containerRef}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -632,11 +945,23 @@ export default function Shelter3DCanvas({
       onMouseLeave={handleMouseUp}
       onWheel={handleWheel}
     >
-      {/* CAD Grid Texture */}
-      <div className="shelter-3d-grid-bg" />
+      {/* Studio CAD Grid Texture (active in studio mode) */}
+      <div className={`shelter-3d-grid-bg ${envMode === 'studio' ? 'visible' : ''}`} />
 
       {/* WebGL Canvas */}
       <canvas className="shelter-3d-canvas" ref={canvasRef} />
+
+      {/* Interactive Floating Solar Controller Station */}
+      {showSolarRays && (
+        <SolarController
+          solarHour={solarHour}
+          onHourChange={setSolarHour}
+          season={season}
+          onSeasonChange={setSeason}
+          orientationDeg={orientation_deg}
+          southGlazingArea={openings[0]?.area_m2 || 4.0}
+        />
+      )}
 
       {/* Hotspots Overlay */}
       <div className="hotspot-layer">
@@ -711,10 +1036,31 @@ export default function Shelter3DCanvas({
         )}
       </div>
 
-      {/* 360° Turntable Readout Badge */}
-      <div className="turntable-badge" title="Turntable Azimuth Angle">
-        <Compass className="turntable-badge-icon" />
-        <span>360° Orbit · {azimuthDeg}° Azimuth</span>
+      {/* Bottom Bar: Turntable Badge + Environment Switcher */}
+      <div className="shelter-bottom-controls">
+        <div className="turntable-badge" title="Turntable Azimuth Angle">
+          <Compass className="turntable-badge-icon" />
+          <span>360° Orbit · {azimuthDeg}° Azimuth</span>
+        </div>
+
+        {/* Environment Panorama Toggle */}
+        <button
+          className="env-toggle-chip"
+          onClick={() => setEnvMode(envMode === 'himalayas' ? 'studio' : 'himalayas')}
+          title={envMode === 'himalayas' ? 'Switch to Studio CAD Grid' : 'Switch to Himalayan Panorama'}
+        >
+          {envMode === 'himalayas' ? (
+            <>
+              <Mountain size={13} style={{ color: 'var(--ice)' }} />
+              <span>Ladakh Range</span>
+            </>
+          ) : (
+            <>
+              <Grid size={13} style={{ color: 'var(--espresso-40)' }} />
+              <span>Studio Grid</span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* View Presets Bar */}

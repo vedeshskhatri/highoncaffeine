@@ -15,6 +15,7 @@
  * Strictly token colors — zero hardcoded hex colors.
  */
 import { useMemo } from 'react';
+import AnimatedPanel from './AnimatedPanel';
 import TempChart from './TempChart';
 import DeltaAmbientChart from './DeltaAmbientChart';
 import ValidationPanel from './ValidationPanel';
@@ -128,26 +129,32 @@ export default function SimulateCanvas({ result, request }) {
       gap: 'var(--space-3)',
     }}>
       {/* 1. Weather Provenance Banner */}
-      <WeatherProvenanceBanner provenance={data.weather_provenance} />
+      <AnimatedPanel delay={0}>
+        <WeatherProvenanceBanner provenance={data.weather_provenance} />
+      </AnimatedPanel>
 
       {/* 2. MetricCards section with section label row above */}
-      <div style={{
-        fontFamily: 'var(--font-body)',
-        fontSize: 'var(--text-caption-size)',
-        lineHeight: 'var(--text-caption-lh)',
-        color: 'var(--text-muted)',
-      }}>
-        Simulation results — {dateStr}
-      </div>
-      <MetricCards summary={data.summary} />
-      <PhysiologicalRiskPanel
-        thermoregulation={data.occupant_thermoregulation}
-        summary={data.summary}
-      />
+      <AnimatedPanel delay={0.06}>
+        <div style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: 'var(--text-caption-size)',
+          lineHeight: 'var(--text-caption-lh)',
+          color: 'var(--text-muted)',
+          marginBottom: 'var(--space-2)',
+        }}>
+          Simulation results — {dateStr}
+        </div>
+        <MetricCards summary={data.summary} />
+        <PhysiologicalRiskPanel
+          thermoregulation={data.occupant_thermoregulation}
+          summary={data.summary}
+        />
+      </AnimatedPanel>
 
       {/* 3. Primary Diurnal Temperature Chart (VISUAL ANCHOR) */}
-      <div
+      <AnimatedPanel
         className="temp-chart-anchor"
+        delay={0.12}
         style={{
           borderLeft: '3px solid var(--accent)',
           borderRadius: 'var(--radius-md)',
@@ -161,13 +168,15 @@ export default function SimulateCanvas({ result, request }) {
           }
         `}</style>
         <TempChart series={data.series} />
-      </div>
+      </AnimatedPanel>
 
       {/* 4. Single horizontal rule between TempChart and DeltaAmbientChart */}
-      <hr style={{ border: 'none', borderTop: 'var(--border-width) solid var(--border)', margin: 0 }} />
+      <AnimatedPanel delay={0.16}>
+        <hr style={{ border: 'none', borderTop: 'var(--border-width) solid var(--border)', margin: 0 }} />
+      </AnimatedPanel>
 
       {/* 5. Delta Ambient Chart (PS Requirement 3) with prominent label */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+      <AnimatedPanel delay={0.20} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
         <div style={{
           fontFamily: 'var(--font-mono)',
           fontSize: 'var(--text-caption-size)',
@@ -179,17 +188,21 @@ export default function SimulateCanvas({ result, request }) {
           PS Requirement 3 — Heat flow across ΔT (indoor − ambient)
         </div>
         <DeltaAmbientChart series={data.series} />
-      </div>
+      </AnimatedPanel>
 
       {/* 6. Heat Loss Breakdown */}
-      <HeatLossBreakdown heat_loss_kwh={data.summary?.heat_loss_kwh} />
+      <AnimatedPanel delay={0.26}>
+        <HeatLossBreakdown heat_loss_kwh={data.summary?.heat_loss_kwh} />
+      </AnimatedPanel>
 
       {/* 6b. Thermal Diagnosis & Bottleneck Analysis */}
-      <ThermalDiagnosisPanel
-        diagnosis={data.diagnosis}
-        summary={data.summary}
-        request={request}
-      />
+      <AnimatedPanel delay={0.29}>
+        <ThermalDiagnosisPanel
+          diagnosis={data.diagnosis}
+          summary={data.summary}
+          request={request}
+        />
+      </AnimatedPanel>
 
       {/* 6c. What-If Single-Variable Analysis (Phase 3) */}
       <WhatIfPanel
@@ -205,7 +218,7 @@ export default function SimulateCanvas({ result, request }) {
       />
 
       {/* 7. Validation & Export (Wrapped Section) */}
-      <div style={{
+      <AnimatedPanel delay={0.32} style={{
         borderTop: 'var(--border-width) solid var(--border)',
         paddingTop: 'var(--space-3)',
         display: 'flex',
@@ -230,7 +243,7 @@ export default function SimulateCanvas({ result, request }) {
           summary={data.summary}
           provenance={data.weather_provenance}
         />
-      </div>
+      </AnimatedPanel>
     </div>
   );
 }
