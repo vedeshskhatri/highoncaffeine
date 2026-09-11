@@ -720,12 +720,19 @@ Samples $\ge 3,200$ parameter combinations uniformly across:
 ### 2. High-Speed Vectorized Simulation
 The solver packs all $N$ designs into contiguous NumPy arrays of shape $(N_{\text{nodes}}, N)$, evaluating the 3-day spinup and 24-hour diurnal cycle in **under 6 seconds** on standard CPU hardware.
 
-### 3. Pareto Non-Dominated Sorting
-A design $A$ dominates design $B$ ($A \succ B$) if and only if:
+### 3. Pareto Non-Dominated Sorting ($X = \text{Cost}$, $Y = \text{Discomfort}$)
+In multi-objective minimization space, both Capital Cost ($K$) and Thermal Discomfort ($D = 24 \times (1 - C)$) are to be minimized:
 
-$$C_A \ge C_B \quad \text{and} \quad K_A \le K_B \quad \text{and} \quad (C_A > C_B \lor K_A < K_B)$$
+A design $A$ strictly Pareto-dominates design $B$ ($A \succ B$) if and only if:
 
-The Pareto Frontier is the subset of designs that are not dominated by any other candidate.
+$$K_A \le K_B \quad \text{and} \quad D_A \le D_B \quad \text{and} \quad (K_A < K_B \lor D_A < D_B)$$
+
+- **Identical Designs:** If $K_A = K_B$ and $D_A = D_B$, neither dominates the other ($A \not\succ B \land B \not\succ A$).
+- **Mutual Trade-Offs:** If $K_A < K_B$ and $D_A > D_B$, neither dominates the other (both lie on the non-dominated frontier).
+- **Missing Cost:** Any design with missing or non-positive cost cannot dominate and is excluded from the cost-discomfort frontier.
+- **Unsafe Disqualification:** Designs failing safety interlocks (`REFUSED`) cannot dominate safe designs and are strictly barred from the Pareto frontier.
+- **Budget Interaction:** Users can filter candidates by budget ($\text{cost} \le \text{budget}$). If no design is affordable, the system explicitly reports **`0 feasible designs within budget.`** without inventing fictional points or silently adjusting the threshold.
+- **Deterministic Verification:** Covered by 8/8 automated tests in `tests/test_pareto_dominance.py`.
 
 ---
 

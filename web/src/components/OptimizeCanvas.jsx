@@ -66,26 +66,59 @@ export default function OptimizeCanvas({ result, request }) {
     ? [
         // baseline point
         ...(baselineSummary
-          ? [{ id: 'baseline', name: 'Baseline', cost_inr: baselineSummary.cost_inr, comfort_hours_ratio: baselineSummary.comfort_hours_ratio, is_pareto: false, rank: null }]
+          ? [{
+              id: 'baseline',
+              design_id: 'baseline',
+              name: 'Baseline',
+              cost_inr: baselineSummary.cost_inr,
+              comfort_hours_ratio: baselineSummary.comfort_hours_ratio,
+              discomfort_hours: 24 * (1 - (baselineSummary.comfort_hours_ratio ?? 0)),
+              t_in_min_c: baselineSummary.t_in_min_c,
+              safety_status: 'SAFE',
+              is_safe: true,
+              is_pareto: false,
+              rank: null,
+            }]
           : []),
         // top 3
-        ...(optimizerResult.top ?? []).map((d, i) => ({
-          id: d.design_id ?? `top_${i}`,
-          name: d.why ? d.why.slice(0, 40) : `Rank #${d.rank}`,
-          cost_inr: d.summary?.impact?.cost_inr_per_year ?? 0,
-          comfort_hours_ratio: d.summary?.comfort_hours_ratio ?? 0,
-          is_pareto: true,
-          rank: d.rank,
-        })),
+        ...(optimizerResult.top ?? []).map((d, i) => {
+          const comf = d.summary?.comfort_hours_ratio ?? 0;
+          const capCost = d.cost_inr != null
+            ? d.cost_inr
+            : (baselineSummary?.cost_inr && d.delta_vs_baseline?.cost_inr != null
+                ? baselineSummary.cost_inr + d.delta_vs_baseline.cost_inr
+                : (d.summary?.impact?.cost_inr_per_year ?? 0));
+          return {
+            id: d.design_id ?? `top_${i}`,
+            design_id: d.design_id ?? `top_${i}`,
+            name: d.why ? d.why.slice(0, 40) : `Rank #${d.rank}`,
+            cost_inr: capCost,
+            comfort_hours_ratio: comf,
+            discomfort_hours: d.summary?.hours_below_health_threshold ?? Math.round((24 * (1 - comf)) * 10) / 10,
+            t_in_min_c: d.summary?.t_in_min_c ?? 0,
+            safety_status: 'SAFE',
+            is_safe: true,
+            is_pareto: true,
+            rank: d.rank,
+          };
+        }),
         // full pareto front candidates
-        ...(optimizerResult.pareto ?? []).map((d, i) => ({
-          id: d.design_id ?? `p_${i}`,
-          name: `Candidate ${d.design_id ?? i}`,
-          cost_inr: d.cost_inr ?? 0,
-          comfort_hours_ratio: d.comfort_hours_ratio ?? 0,
-          is_pareto: true,
-          rank: null,
-        })),
+        ...(optimizerResult.pareto ?? []).map((d, i) => {
+          const comf = d.comfort_hours_ratio ?? 0;
+          return {
+            id: d.design_id ?? `p_${i}`,
+            design_id: d.design_id ?? `p_${i}`,
+            name: `Candidate ${d.design_id ?? i}`,
+            cost_inr: d.cost_inr ?? 0,
+            comfort_hours_ratio: comf,
+            discomfort_hours: Math.round((24 * (1 - comf)) * 10) / 10,
+            t_in_min_c: d.t_in_min_c ?? 0,
+            safety_status: 'SAFE',
+            is_safe: true,
+            is_pareto: true,
+            rank: null,
+          };
+        }),
       ]
     : undefined; // undefined → ParetoPlot uses its internal sample data
 
