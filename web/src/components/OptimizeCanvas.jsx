@@ -180,7 +180,7 @@ export default function OptimizeCanvas({ result, request }) {
 
   if (isRunning) {
     return (
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: 'var(--space-4)' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <OptimizeProgress onComplete={handleOptimizationComplete} totalDesigns={3200} />
       </div>
     );
@@ -194,7 +194,6 @@ export default function OptimizeCanvas({ result, request }) {
       display: 'flex',
       flexDirection: 'column',
       gap: 'var(--space-3)',
-      padding: 'var(--space-3)',
     }}>
       {/* Top Banner & Trigger Bar */}
       <div style={{

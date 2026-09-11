@@ -32,7 +32,6 @@ export default function DesignCanvas({ request }) {
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--space-3)',
-        padding: 'var(--space-2)',
       }}
     >
       <style>{`

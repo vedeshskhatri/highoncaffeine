@@ -108,7 +108,7 @@ export default function SimulateCanvas({ result, request }) {
 
   if (isRefused) {
     return (
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--space-3)' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <RefusalCard refusal_reason={data.refusal_reason} />
       </div>
     );
@@ -122,7 +122,6 @@ export default function SimulateCanvas({ result, request }) {
       display: 'flex',
       flexDirection: 'column',
       gap: 'var(--space-3)',
-      padding: 'var(--space-3)',
     }}>
       {/* 1. Weather Provenance Banner */}
       <WeatherProvenanceBanner provenance={data.weather_provenance} />
