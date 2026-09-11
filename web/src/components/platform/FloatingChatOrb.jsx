@@ -187,7 +187,99 @@ export default function FloatingChatOrb() {
   const orbRef = useRef(null);
   const isDraggingRef = useRef(false);
   const contentBodyRef = useRef(null);
+  const chatWindowRef = useRef(null);
   const recognitionRef = useRef(null);
+
+  // Isolate scroll: when scrolling inside the chat window, lock background website movement
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleWindowWheel = (e) => {
+      const windowEl = chatWindowRef.current;
+      if (!windowEl) return;
+
+      // Only intervene if user's cursor is over the floating AI chatbox
+      if (!windowEl.contains(e.target)) {
+        return; // Cursor is outside the AI chatbox -> let background page scroll normally
+      }
+
+      const scrollBody = contentBodyRef.current;
+      if (!scrollBody) {
+        e.preventDefault();
+        return;
+      }
+
+      const { deltaY, deltaX } = e;
+
+      // Block horizontal gestures over the chatbox from triggering browser back/forward or horizontal shift
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        e.preventDefault();
+        return;
+      }
+
+      if (deltaY === 0) return;
+
+      const maxScroll = scrollBody.scrollHeight - scrollBody.clientHeight;
+
+      // If chatbox content is not scrollable, lock background scroll completely
+      if (maxScroll <= 0) {
+        e.preventDefault();
+        return;
+      }
+
+      // If user is hovering over topbar, actions, or search form (outside scrollBody),
+      // smoothly scroll the body directly and prevent background window scroll
+      if (!scrollBody.contains(e.target)) {
+        e.preventDefault();
+        scrollBody.scrollTop = Math.max(0, Math.min(maxScroll, scrollBody.scrollTop + deltaY));
+        return;
+      }
+
+      // User is scrolling directly inside scrollBody:
+      // Lock background by preventing boundary overshoot / scroll chaining
+      if (deltaY > 0) {
+        // Scrolling down
+        if (scrollBody.scrollTop >= maxScroll) {
+          e.preventDefault();
+        } else if (scrollBody.scrollTop + deltaY >= maxScroll) {
+          e.preventDefault();
+          scrollBody.scrollTop = maxScroll;
+        }
+      } else if (deltaY < 0) {
+        // Scrolling up
+        if (scrollBody.scrollTop <= 0) {
+          e.preventDefault();
+        } else if (scrollBody.scrollTop + deltaY <= 0) {
+          e.preventDefault();
+          scrollBody.scrollTop = 0;
+        }
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      const windowEl = chatWindowRef.current;
+      if (!windowEl || !windowEl.contains(e.target)) return;
+
+      const scrollBody = contentBodyRef.current;
+      if (!scrollBody || !scrollBody.contains(e.target)) {
+        e.preventDefault();
+        return;
+      }
+
+      const maxScroll = scrollBody.scrollHeight - scrollBody.clientHeight;
+      if (maxScroll <= 0) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('wheel', handleWindowWheel, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWindowWheel);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isOpen]);
 
   // Update placement relative to screen edges so chat window never clips
   const updatePlacement = useCallback(() => {
@@ -368,6 +460,7 @@ export default function FloatingChatOrb() {
           <AnimatePresence>
             {isOpen && (
               <motion.div
+                ref={chatWindowRef}
                 initial={{ opacity: 0, scale: 0.9, y: placement.v === 'top' ? -15 : 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 15 }}
