@@ -37,6 +37,7 @@ from api.schemas import (
     HealthResponse,
 )
 from api.weather import get_weather
+from engine.diagnosis import diagnose
 
 app = FastAPI(
     title="THERMA API",
@@ -263,6 +264,8 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
         "freeze_risk": [],
     }
 
+    diagnosis_out = diagnose(summary_out, request.model_dump())
+
     return {
         "refused": False,
         "refusal_reason": None,
@@ -270,6 +273,7 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
         "series": series_out,
         "summary": summary_out,
         "surfaces": sol.get("surfaces", []),
+        "diagnosis": diagnosis_out,
     }
 
 

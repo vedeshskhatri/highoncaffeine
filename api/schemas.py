@@ -270,6 +270,7 @@ class SimulateResponse(BaseModel):
     series: List[SeriesItemSchema] = Field(default_factory=list)
     summary: Optional[SimulateSummarySchema] = None
     surfaces: List[SurfaceSummarySchema] = Field(default_factory=list)
+    diagnosis: Optional[Dict[str, Any]] = None
 
 
 class BaselineScoreSchema(BaseModel):
