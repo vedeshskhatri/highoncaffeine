@@ -26,6 +26,7 @@ import {
   RefusalCard,
   ThermalDiagnosisPanel,
   PhysiologicalRiskPanel,
+  WhatIfPanel,
 } from './results';
 
 // Realistic sample simulation result when testing offline or before first execution
@@ -187,6 +188,13 @@ export default function SimulateCanvas({ result, request }) {
         diagnosis={data.diagnosis}
         summary={data.summary}
         request={request}
+      />
+
+      {/* 6c. What-If Single-Variable Analysis (Phase 3) */}
+      <WhatIfPanel
+        request={request}
+        result={data}
+        baselineData={data}
       />
 
       {/* 7. Validation & Export (Wrapped Section) */}

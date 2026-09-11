@@ -13,7 +13,7 @@ import math
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, Request, Response, status
@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.csv_ingest import CsvValidationError, parse_and_validate_csv, store_user_csv
 from api.db import DB_PATH, query_all, query_one
-from api.errors import WeatherUnavailableError
+from api.errors import WeatherUnavailableError, UnknownMaterialError
 from api.schemas import (
     SimulateRequest,
     SimulateResponse,
@@ -39,8 +39,15 @@ from api.schemas import (
     ForecastWatchItemSchema,
     WatchPostSchema,
 )
+from pydantic import BaseModel
 from api.weather import get_weather
 from engine.diagnosis import diagnose
+from engine.what_if import (
+    SUPPORTED_VARIABLES,
+    get_baseline_parameter_value,
+    apply_parameter_change,
+    compare_simulations,
+)
 
 app = FastAPI(
     title="THERMA API",
@@ -164,10 +171,9 @@ def _build_design(design_input: Any = None) -> Any:
     response_model_exclude_none=False,
     summary="Simulate thermal performance for a shelter design",
 )
-def simulate(request: SimulateRequest) -> Dict[str, Any]:
+def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
     """
-    Simulate transient indoor temperature and heat flows via engine.solver.run_single.
-    Weather chain: SQLite cache -> Open-Meteo live -> NASA POWER -> fallback CSV -> 503.
+    Internal execution pipeline for simulate, shared by /simulate and /what-if.
     """
     try:
         weather_rows, provenance = get_weather(
@@ -316,6 +322,153 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
         "surfaces": sol.get("surfaces", []),
         "diagnosis": diagnosis_out,
         "occupant_thermoregulation": occupant_thermo,
+    }
+
+
+@app.post(
+    "/simulate",
+    response_model=SimulateResponse,
+    response_model_exclude_none=False,
+    summary="Simulate thermal performance for a shelter design",
+)
+def simulate(request: SimulateRequest) -> Dict[str, Any]:
+    """
+    Simulate transient indoor temperature and heat flows via engine.solver.run_single.
+    Weather chain: SQLite cache -> Open-Meteo live -> NASA POWER -> fallback CSV -> 503.
+    """
+    return _simulate_internal(request)
+
+
+# ---------------------------------------------------------------------------
+# WHAT-IF ANALYSIS ENDPOINTS (Phase 3)
+# ---------------------------------------------------------------------------
+
+class WhatIfExecutionRequest(BaseModel):
+    baseline: SimulateRequest
+    parameter: Optional[str] = None
+    value: Optional[Any] = None
+    variant: Optional[SimulateRequest] = None
+
+
+WhatIfExecutionRequest.model_rebuild()
+
+
+@app.get(
+    "/what-if/variables",
+    summary="List supported what-if variables, schema ranges, and units",
+)
+def get_what_if_variables() -> Dict[str, Any]:
+    """Returns authoritative supported variables, valid ranges, units, and descriptions."""
+    return {"variables": SUPPORTED_VARIABLES}
+
+
+@app.post(
+    "/what-if",
+    summary="Single-variable what-if comparison against baseline simulation",
+)
+def what_if_analysis(req: WhatIfExecutionRequest) -> Dict[str, Any]:
+    """
+    Authoritative server-side what-if simulation and metric comparison.
+    Simulates baseline and modified variant through engine.solver.run_single,
+    then evaluates exact metric deltas.
+    """
+    parameter = req.parameter
+    variant_req: Optional[SimulateRequest] = None
+    warning: Optional[str] = None
+
+    if parameter is not None:
+        if parameter not in SUPPORTED_VARIABLES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported what-if parameter: '{parameter}'. Supported variables: {list(SUPPORTED_VARIABLES.keys())}",
+            )
+        if req.value is None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing 'value' for what-if parameter '{parameter}'.",
+            )
+        try:
+            variant_dict, warning = apply_parameter_change(
+                req.baseline.model_dump(), parameter, req.value
+            )
+        except UnknownMaterialError as ue:
+            raise HTTPException(status_code=400, detail=str(ue))
+        except ValueError as ve:
+            raise HTTPException(status_code=400, detail=str(ve))
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid parameter value: {exc}")
+
+        try:
+            variant_req = SimulateRequest(**variant_dict)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Modified request violates schema: {exc}")
+
+    elif req.variant is not None:
+        variant_req = req.variant
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Either ('parameter' and 'value') or 'variant' must be provided.",
+        )
+
+    # Simulate baseline
+    base_res = _simulate_internal(req.baseline)
+    if base_res.get("refused"):
+        return {
+            "refused": True,
+            "refusal_reason": base_res.get("refusal_reason"),
+            "parameter": parameter,
+            "baseline_summary": None,
+            "variant_summary": None,
+            "delta": None,
+            "metrics": None,
+            "hourly_delta_t": [],
+        }
+
+    # Simulate variant
+    var_res = _simulate_internal(variant_req)
+    if var_res.get("refused"):
+        return {
+            "refused": True,
+            "refusal_reason": var_res.get("refusal_reason"),
+            "parameter": parameter,
+            "baseline_summary": base_res["summary"],
+            "variant_summary": None,
+            "delta": None,
+            "metrics": None,
+            "hourly_delta_t": [],
+        }
+
+    # Compare simulations
+    comp = compare_simulations(
+        baseline_summary=base_res["summary"],
+        variant_summary=var_res["summary"],
+        baseline_series=base_res.get("series", []),
+        variant_series=var_res.get("series", []),
+        baseline_request=req.baseline.model_dump(),
+        variant_request=variant_req.model_dump(),
+    )
+
+    base_val = get_baseline_parameter_value(req.baseline.model_dump(), parameter) if parameter else None
+    var_spec = SUPPORTED_VARIABLES.get(parameter, {}) if parameter else {}
+
+    return {
+        "refused": False,
+        "refusal_reason": None,
+        "parameter": parameter,
+        "parameter_label": var_spec.get("label"),
+        "unit": var_spec.get("unit"),
+        "baseline_value": base_val,
+        "variant_value": req.value if parameter else None,
+        "warning": warning,
+        "baseline_summary": base_res["summary"],
+        "variant_summary": var_res["summary"],
+        "delta": comp["delta"],
+        "metrics": comp["metrics"],
+        "hourly_delta_t": comp["hourly_delta_t"],
+        "baseline_series": base_res.get("series", []),
+        "variant_series": var_res.get("series", []),
+        "_stub": False,
     }
 
 
