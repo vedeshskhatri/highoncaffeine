@@ -5,7 +5,8 @@
  *        and purposeful thermal physics semantics (no rainbow AI gradients).
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Geomini:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.cdnfonts.com/css/google-sans-2');
 
 :root {
   /* ─────────────────────────────────────────────────────────────────────────
@@ -94,13 +95,19 @@
   --espresso-40:        var(--text-muted);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     5. TYPOGRAPHY
+     5. TYPOGRAPHY (STRICT 3-FONT ARCHITECTURE)
+     1. Primary / Headings: Montserrat
+     2. Secondary / Body: Google Sans
+     3. Tertiary / Metrics & Data: Geomini
      ───────────────────────────────────────────────────────────────────────── */
-  --font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
-  --font-sans:    'DM Sans', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
-  --font-serif:   'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading:   'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-primary:   'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body:      'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-secondary: 'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans:      'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-tertiary:  'Geomini', monospace, sans-serif;
+  --font-mono:      'Geomini', monospace, sans-serif;
+  --font-serif:     'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Type Scale */
   --text-hero-size:       clamp(32px, 4vw, 52px);
