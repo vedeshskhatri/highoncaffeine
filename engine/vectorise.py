@@ -321,3 +321,9 @@ def unpack(packed_results: np.ndarray) -> List[np.ndarray]:
     """
     N = packed_results.shape[1]
     return [packed_results[:, d] for d in range(N)]
+
+
+def run_batch(*args, **kwargs):
+    """Batch simulate packed designs across 24h weather driving profile."""
+    from engine.solver import run_batch as _run_batch
+    return _run_batch(*args, **kwargs)

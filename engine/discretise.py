@@ -88,10 +88,13 @@ def calculate_fourier_sizing(
 
     alpha = k / (rho * cp)  # Thermal diffusivity [m^2/s]
     dx_max = math.sqrt(alpha * dt_s / fo_target)
-    n_nodes = max(1, math.ceil(thickness_m / dx_max))
+    n_nodes = max(1, int(thickness_m / dx_max))
     dx_actual = thickness_m / n_nodes
 
     return n_nodes, dx_actual
+
+
+_DISCRETISE_CACHE: Dict[Tuple[Any, ...], DiscretisedSurface] = {}
 
 
 def discretise_surface(
@@ -106,18 +109,18 @@ def discretise_surface(
 
     Layers are ordered OUTSIDE -> INSIDE per 04_DATA_MODEL.md.
     Nodes are indexed 0 (outermost, facing outdoor air) to N-1 (innermost, facing indoor air).
-
-    Args:
-        name: Surface identifier
-        layers: Sequence of layers ordered outside -> inside
-        net_area_m2: Net surface area [m^2]
-        materials_db: Materials lookup provider or dict
-        dt_s: Internal simulation time step [s]
-        fo_target: Fourier number target [-]
-
-    Returns:
-        DiscretisedSurface with nodes, boundary conductances, and internal conductances
     """
+    cache_key = (name, tuple(layers), round(float(net_area_m2), 4), float(dt_s), float(fo_target))
+    if cache_key in _DISCRETISE_CACHE:
+        cached = _DISCRETISE_CACHE[cache_key]
+        return DiscretisedSurface(
+            name=cached.name,
+            net_area_m2=cached.net_area_m2,
+            nodes=list(cached.nodes),
+            K_ext=cached.K_ext,
+            K_int=cached.K_int,
+            K_inter=list(cached.K_inter),
+        )
     if net_area_m2 <= 0.0 or len(layers) == 0:
         return DiscretisedSurface(
             name=name,
@@ -200,7 +203,7 @@ def discretise_surface(
             K_inter.append(1.0 / r_interface)
             current_node += 1
 
-    return DiscretisedSurface(
+    res = DiscretisedSurface(
         name=name,
         net_area_m2=net_area_m2,
         nodes=all_nodes,
@@ -208,6 +211,8 @@ def discretise_surface(
         K_int=K_int,
         K_inter=K_inter,
     )
+    _DISCRETISE_CACHE[cache_key] = res
+    return res
 
 
 def build_nodes(

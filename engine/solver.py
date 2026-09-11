@@ -346,8 +346,13 @@ def run_single(
         else:
             t_sky_k = calculate_sky_temperature_k(t_out, cloud_frac)
 
-        # Solar position
-        alpha_s, gamma_s = physics_constants_db.solar_position(lat, lon, date_str, hour_of_day, tz)
+        # Solar position (Aman's function expects day_of_year: int)
+        try:
+            from datetime import datetime
+            day_of_year = datetime.strptime(date_str, "%Y-%m-%d").timetuple().tm_yday
+        except Exception:
+            day_of_year = 15
+        alpha_s, gamma_s = physics_constants_db.solar_position(lat, lon, day_of_year, hour_of_day, tz)
 
         # Solar incident radiation on opaque surfaces
         surface_i_total: Dict[str, float] = {}
@@ -657,8 +662,13 @@ def run_batch(
         else:
             t_sky_k = calculate_sky_temperature_k(t_out, cloud_frac)
 
-        # Solar position
-        alpha_s, gamma_s = physics_constants_db.solar_position(lat, lon, date_str, hour_of_day, tz)
+        # Solar position (Aman's function expects day_of_year: int)
+        try:
+            from datetime import datetime
+            day_of_year = datetime.strptime(date_str, "%Y-%m-%d").timetuple().tm_yday
+        except Exception:
+            day_of_year = 15
+        alpha_s, gamma_s = physics_constants_db.solar_position(lat, lon, day_of_year, hour_of_day, tz)
         rad_alpha = math.radians(alpha_s)
         sin_alpha = math.sin(rad_alpha)
         cos_alpha = math.cos(rad_alpha)
@@ -731,10 +741,8 @@ def run_batch(
                 if enable_sky:
                     f_s = f_sky[s]
                     eps_s = emissivity[s]
-                    if hasattr(physics_constants_db, "radiative_coefficient"):
-                        h_r = physics_constants_db.radiative_coefficient(eps_s, T_out_surf, t_sky_k)
-                    else:
-                        h_r = calculate_hr_linearised(eps_s, T_out_surf, t_sky_k)
+                    # 06_PHYSICS_SPEC.md Section 5.2 vectorized linearised h_r [W/(m^2*K)]
+                    h_r = eps_s * SIGMA_SB * (T_out_surf ** 2 + t_sky_k ** 2) * (T_out_surf + t_sky_k)
                     q_sky = h_r * A_surf[s] * f_s * (T_out_surf - t_sky_k)
                 else:
                     q_sky = 0.0
