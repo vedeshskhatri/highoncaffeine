@@ -75,14 +75,24 @@ export default function LandingPage() {
           </p>
 
           <div className="hero-cta-bar">
-            <Link to="/dashboard" className="btn-pill-primary" id="hero-enter-platform">
+            <Link
+              to="/dashboard"
+              className="btn-pill-primary"
+              id="hero-enter-platform"
+              onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
+            >
               <span>Explore Platform</span>
               <div className="play-circle">
                 <Play size={11} fill="currentColor" />
               </div>
             </Link>
 
-            <Link to="/sites/site_siachen_base/design" className="btn-pill-secondary" id="hero-launch-studio">
+            <Link
+              to="/sites/site_siachen_base/design"
+              className="btn-pill-secondary"
+              id="hero-launch-studio"
+              onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
+            >
               <span>3D Shelter Studio</span>
               <ArrowRight size={15} />
             </Link>
@@ -250,11 +260,19 @@ export default function LandingPage() {
               Access the live estate dashboard, outposts telemetry, and 3D architectural solver.
             </p>
             <div className="cta-strip-actions">
-              <Link to="/dashboard" className="btn-pill-primary">
+              <Link
+                to="/dashboard"
+                className="btn-pill-primary"
+                onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
+              >
                 <span>Open Estate Dashboard</span>
                 <ArrowRight size={15} />
               </Link>
-              <Link to="/sites/site_siachen_base/design" className="btn-pill-secondary">
+              <Link
+                to="/sites/site_siachen_base/design"
+                className="btn-pill-secondary"
+                onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
+              >
                 <span>Open 3D Studio</span>
               </Link>
             </div>

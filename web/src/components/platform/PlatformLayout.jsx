@@ -27,6 +27,17 @@ export default function PlatformLayout() {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [alertsCount, setAlertsCount] = useState(0);
 
+  // Scroll to top on every platform navigation
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const mainViewport = document.querySelector('.platform-main-viewport');
+    if (mainViewport) mainViewport.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const pageContent = document.querySelector('.platform-page-content');
+    if (pageContent) pageContent.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname]);
+
   // Global Cmd+K / Ctrl+K keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e) => {

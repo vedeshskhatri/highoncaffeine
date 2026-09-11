@@ -44,6 +44,15 @@ export default function DashboardPage() {
   const { estate } = useOutletContext() || { estate: 'Ladakh' };
   const navigate = useNavigate();
 
+  // Ensure page begins at the very top upon navigation
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const mainViewport = document.querySelector('.platform-main-viewport');
+    if (mainViewport) mainViewport.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   // ── Centralized Dashboard State ───────────────────────────────────────────
   const [selectedStationId, setSelectedStationId] = useState('leh_garrison');
   const [simulationHour, setSimulationHour] = useState(12); // 0 to 23

@@ -1,5 +1,5 @@
-import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { createBrowserRouter, Navigate, Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 
 import LandingPage from './components/platform/LandingPage';
 import PlatformLayout from './components/platform/PlatformLayout';
@@ -20,16 +20,38 @@ import VerifyPage from './components/platform/VerifyPage';
 import TokensPage from './TokensPage';
 import App from './App';
 
+function Root() {
+  const { pathname } = useLocation();
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const mainViewport = document.querySelector('.platform-main-viewport');
+    if (mainViewport) mainViewport.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const pageContent = document.querySelector('.platform-page-content');
+    if (pageContent) pageContent.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+
+  return (
+    <>
+      <ScrollRestoration />
+      <Outlet />
+    </>
+  );
+}
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <LandingPage />,
-  },
-  {
-    element: <PlatformLayout />,
+    element: <Root />,
     children: [
+      {
+        path: '/',
+        element: <LandingPage />,
+      },
+      {
+        element: <PlatformLayout />,
+        children: [
       {
         path: '/dashboard',
         element: <DashboardPage />,
@@ -93,8 +115,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
-
-
   {
     path: '/sites/:id/design',
     element: <App />,
@@ -110,5 +130,7 @@ export const router = createBrowserRouter([
   {
     path: '*',
     element: <Navigate to="/dashboard" replace />,
+  },
+    ],
   },
 ]);

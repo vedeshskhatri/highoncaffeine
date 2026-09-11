@@ -8,6 +8,7 @@ import {
   IndianRupee,
   Layers,
   ArrowUpRight,
+  FileText,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -19,6 +20,7 @@ import {
   ReferenceLine,
   CartesianGrid,
 } from 'recharts';
+import ProcurementDossierModal from './ProcurementDossierModal';
 import './ProgrammePage.css';
 
 export default function ProgrammePage() {
@@ -29,6 +31,7 @@ export default function ProgrammePage() {
   const [budget, setBudget] = useState(14000000);
   const [programme, setProgramme] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDossierModal, setShowDossierModal] = useState(false);
 
   // Preset quick budgets
   const PRESETS = [
@@ -110,9 +113,23 @@ export default function ProgrammePage() {
         </div>
 
         <div className="programme-header-actions">
-          <button type="button" className="btn-secondary" onClick={handleExportCsv}>
-            <Download size={14} />
+          <button
+            type="button"
+            className="btn-primary-pack"
+            onClick={() => setShowDossierModal(true)}
+            title="Generate and export official DRDO Procurement Pack (PDF)"
+          >
+            <FileText size={15} />
             <span>Export Procurement Pack</span>
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={handleExportCsv}
+            title="Export Raw CSV Schedule"
+          >
+            <Download size={14} />
+            <span>CSV</span>
           </button>
         </div>
       </div>
@@ -353,6 +370,15 @@ export default function ProgrammePage() {
           </table>
         </div>
       </div>
+
+      {/* 5. Official PDF Procurement Dossier Modal */}
+      <ProcurementDossierModal
+        isOpen={showDossierModal}
+        onClose={() => setShowDossierModal(false)}
+        programme={programme}
+        estate={estate}
+        budget={budget}
+      />
     </div>
   );
 }
