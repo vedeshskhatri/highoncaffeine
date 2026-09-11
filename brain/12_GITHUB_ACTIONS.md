@@ -19,7 +19,7 @@
 - Everyone pushes their OWN commits. Nobody commits on behalf of anyone else. The contribution graph is scored.
 - Ownership boundaries from 00_MASTER_RULES.md section 3 STILL APPLY. One branch does not mean shared ownership — editing another agent's files is still a rule violation, and it is now easier to do by accident, so be more careful, not less.
 
-### Branch hygiene
+### Branch hygiene & uncommitted work protection
 
 The repository must contain exactly one branch: `main`.
 If any agent finds another branch existing at any point, it is a mistake.
@@ -31,6 +31,9 @@ git branch -a
 git branch --no-merged main
 ```
 An agent may RUN these to check. An agent may never run `git branch -d`, `git branch -D`, or `git push origin --delete`.
+
+**CRITICAL: Never discard uncommitted work silently.**
+The agent must NEVER run `git restore`, `git checkout --`, `git clean`, or `git reset` without explicit human confirmation. Those commands discard uncommitted work silently (such as uncommitted database updates or scratch assets), and in a single-branch trunk workflow with no PR gate, there is no safety net to recover discarded work afterward.
 
 ## 2. Commit messages
 
