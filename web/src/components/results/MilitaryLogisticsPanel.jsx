@@ -49,7 +49,7 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
       style={{
-        background: 'linear-gradient(145deg, var(--surface-1) 0%, rgba(15, 23, 42, 0.95) 100%)',
+        background: 'linear-gradient(145deg, #0b1329 0%, #0f172a 50%, #1e293b 100%)',
         border: '1px solid rgba(56, 189, 248, 0.25)',
         borderRadius: 'var(--radius-lg, 12px)',
         padding: 'var(--space-4, 16px)',
@@ -70,7 +70,7 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <Shield size={18} color="var(--accent, #38bdf8)" />
+            <Shield size={18} color="#38bdf8" />
           </div>
           <div>
             <div style={{
@@ -97,7 +97,7 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
                 DRDO PS-26051 DEFENSE OPTIMIZED
               </span>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
               180-Day Winter Isolation Stocking Analysis · Post Elevation: {altitude_m}m ASL · Garrison: {occupants} Troops
             </div>
           </div>
@@ -108,7 +108,7 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          background: 'rgba(34, 197, 94, 0.12)',
+          background: 'rgba(34, 197, 94, 0.15)',
           border: '1px solid rgba(34, 197, 94, 0.35)',
           padding: '4px 10px',
           borderRadius: 8,
@@ -129,13 +129,13 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
       }}>
         {/* Metric 1: Defense Budget Saved */}
         <div style={{
-          background: 'rgba(15, 23, 42, 0.65)',
+          background: 'rgba(15, 23, 42, 0.75)',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           borderRadius: 8,
           padding: '10px 12px',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-heading)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'var(--font-heading)', textTransform: 'uppercase' }}>
               Delivered Fuel Savings
             </span>
             <IndianRupee size={13} color="#4ade80" />
@@ -143,20 +143,20 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: '#4ade80' }}>
             ₹{animSavings ? Math.round(animSavings).toLocaleString('en-IN') : '—'}
           </div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
             Based on ₹2,400/L delivered forward multiplier vs ₹80/L base
           </div>
         </div>
 
         {/* Metric 2: Heli Sorties Avoided */}
         <div style={{
-          background: 'rgba(15, 23, 42, 0.65)',
+          background: 'rgba(15, 23, 42, 0.75)',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           borderRadius: 8,
           padding: '10px 12px',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-heading)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'var(--font-heading)', textTransform: 'uppercase' }}>
               Helicopter Sorties Saved
             </span>
             <Plane size={13} color="#38bdf8" />
@@ -164,20 +164,20 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: '#38bdf8' }}>
             {animHeliSaved ?? heliSaved} sorties
           </div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
             Mi-17 / ALH heavy-lift hazardous missions eliminated
           </div>
         </div>
 
         {/* Metric 3: Convoy Trucks Saved */}
         <div style={{
-          background: 'rgba(15, 23, 42, 0.65)',
+          background: 'rgba(15, 23, 42, 0.75)',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           borderRadius: 8,
           padding: '10px 12px',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-heading)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'var(--font-heading)', textTransform: 'uppercase' }}>
               Convoy Trucks Avoided
             </span>
             <Truck size={13} color="#f59e0b" />
@@ -185,20 +185,20 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: '#f59e0b' }}>
             {animConvoySaved ?? convoySaved} trucks
           </div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
             4x4 ALS 2.5T mountain pass payload reduction
           </div>
         </div>
 
         {/* Metric 4: Winter Stocking Fuel Mass */}
         <div style={{
-          background: 'rgba(15, 23, 42, 0.65)',
+          background: 'rgba(15, 23, 42, 0.75)',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           borderRadius: 8,
           padding: '10px 12px',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-heading)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'var(--font-heading)', textTransform: 'uppercase' }}>
               180-Day Stocking Weight
             </span>
             <Snowflake size={13} color="#a855f7" />
@@ -206,7 +206,7 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: '#c084fc' }}>
             {animStockingMass ? Math.round(animStockingMass).toLocaleString() : '—'} kg
           </div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
             Total winter fuel payload requirement ({totalLitres.toLocaleString()} L)
           </div>
         </div>
@@ -214,15 +214,15 @@ export default function MilitaryLogisticsPanel({ summary, location, occupancy })
 
       {/* Tactical Logistics Breakdown Footer Bar */}
       <div style={{
-        background: 'rgba(2, 6, 23, 0.7)',
+        background: 'rgba(2, 6, 23, 0.85)',
         borderRadius: 6,
         padding: '8px 12px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         fontSize: 11,
-        color: 'var(--text-muted, #94a3b8)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
+        color: '#94a3b8',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
         flexWrap: 'wrap',
         gap: 8,
       }}>
