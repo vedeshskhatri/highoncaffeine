@@ -409,14 +409,19 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .status-pill {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 800;
   padding: 2px 6px;
   border-radius: 4px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .status-pill.acceptable,
