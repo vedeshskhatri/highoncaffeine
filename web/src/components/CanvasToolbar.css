@@ -15,6 +15,11 @@
   padding: 4px;
   box-shadow: var(--shadow-floating);
   z-index: 30;
+  transition: right 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.canvas-area.inspector-collapsed .mode-toggle-pill {
+  right: 54px;
 }
 
 .mode-toggle-btn {
