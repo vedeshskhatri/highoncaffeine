@@ -224,7 +224,8 @@ def test_11_thermal_capacitance(timeseries_data):
 
 # 12. Heat-loss components calculated independently
 def test_12_independent_heat_loss_components(timeseries_data):
-    sample = timeseries_data[12]
+    # Select night hour (02:00) when outdoor temperature is sub-zero and solar irradiance is zero
+    sample = timeseries_data[2]
     keys = ["wall_conduction_W", "roof_conduction_W", "floor_conduction_W", "glazing_conduction_W", "infiltration_heat_loss_W", "sky_longwave_loss_W"]
     for k in keys:
         assert k in sample and float(sample[k]) >= 0.0

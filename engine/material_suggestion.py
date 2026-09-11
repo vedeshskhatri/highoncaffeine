@@ -70,7 +70,9 @@ def generate_candidate_variants(
         ]
         roof_options = [
             (("concrete", 0.15), (None, 0.0), 0.90),
+            (("concrete", 0.15), ("rockwool", 0.05), 0.90),
             (("dense_concrete", 0.15), (None, 0.0), 0.90),
+            (("dense_concrete", 0.15), ("rockwool", 0.05), 0.90),
         ]
         floor_options = [
             (("stone_floor", 0.15), (None, 0.0)),
@@ -435,7 +437,12 @@ def suggest_materials(
     loc = request.get("location", {})
     lat = float(loc.get("lat", 34.1526))
     lon = float(loc.get("lon", 77.5771))
-    altitude_m = float(loc.get("altitude_m", 3500.0))
+    if "altitude_m" in loc and loc["altitude_m"] is not None:
+        altitude_m = float(loc["altitude_m"])
+    else:
+        from api.location import resolve_elevation
+        res_alt, _ = resolve_elevation(lat, lon)
+        altitude_m = float(res_alt) if res_alt is not None else 3500.0
 
     geom = request.get("geometry", {})
     length_m = float(geom.get("length_m", 6.0))
@@ -469,7 +476,7 @@ def suggest_materials(
         base_rows, meta = generate_or_get_worst_night_profile(lat, lon)
         site_outdoor_min = float(meta.get("p1_daily_min_c", -25.0))
     else:
-        base_rows, _ = get_weather(lat, lon, date_str, mode="typical_day")
+        base_rows, _ = get_weather(lat, lon, date_str, mode="typical_day", elevation_m=altitude_m)
         site_outdoor_min = float(min(r["t_air"] for r in base_rows))
 
     if design_outdoor_c is not None and not use_site_p1:
@@ -527,6 +534,8 @@ def suggest_materials(
         "altitude_m": altitude_m,
         "lat": lat,
         "lon": lon,
+        "date": date_str,
+        "timezone": 0.0,
         "occupancy": {"people": people, "watts_per_person": w_person},
     }
 
