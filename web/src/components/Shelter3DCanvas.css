@@ -307,3 +307,182 @@
   background: var(--text-primary);
   font-weight: 600;
 }
+
+/* ── Thermal Heatmap Gradient Scale HUD ───────────────────────────────── */
+.thermal-heatmap-hud {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 260px;
+  padding: 12px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 20;
+  pointer-events: auto;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.thermal-hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.thermal-hud-icon {
+  color: #F97316;
+  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.6));
+}
+
+.thermal-hud-title {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.thermal-hud-live {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: #22C55E;
+  background: rgba(34, 197, 94, 0.14);
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.thermal-scale-bar {
+  margin-bottom: 10px;
+}
+
+.thermal-scale-gradient {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #1E3A8A 0%, #0284C7 25%, #22C55E 50%, #EAB308 75%, #EF4444 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  margin-bottom: 4px;
+}
+
+.thermal-scale-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.thermal-surface-readouts {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.surface-readout-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-family: var(--font-body);
+}
+
+.surface-name {
+  color: var(--text-secondary);
+}
+
+.surface-temp {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.surface-readout-item.hot .surface-temp {
+  color: #F97316;
+}
+
+.surface-readout-item.comfort .surface-temp {
+  color: #22C55E;
+}
+
+.surface-readout-item.cold .surface-temp {
+  color: #38BDF8;
+}
+
+.surface-readout-item.extreme .surface-temp {
+  color: #818CF8;
+}
+
+/* ── Exploded View HUD Legend ─────────────────────────────────────────── */
+.exploded-view-hud {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 20;
+  pointer-events: auto;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.exploded-hud-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.exploded-hud-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exploded-hud-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.exploded-hud-chip .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.exploded-hud-chip .dot.mass {
+  background: #B45309;
+}
+
+.exploded-hud-chip .dot.eps {
+  background: #FBBF24;
+}
+
+.exploded-hud-chip .dot.timber {
+  background: #84CC16;
+}
+

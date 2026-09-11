@@ -37,6 +37,7 @@ export default function CanvasToolbar({
   onResetZoom,
   onSimulate,
   onOpenNotes,
+  onOpenMaterialSuggestion,
 }) {
   return (
     <>
@@ -158,6 +159,16 @@ export default function CanvasToolbar({
         >
           <FileText size={14} />
           <span>Design Notes</span>
+        </button>
+        <button
+          className="bottom-pill-btn secondary"
+          onClick={onOpenMaterialSuggestion}
+          id="btn-material-suggestion"
+          title="Suggest materials based on thermal requirement"
+          style={{ borderColor: 'var(--blue, #3B82F6)', color: 'var(--blue, #3B82F6)' }}
+        >
+          <Sparkles size={14} />
+          <span>Material Suggestion</span>
         </button>
         <button
           className="bottom-pill-btn primary"

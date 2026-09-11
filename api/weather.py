@@ -36,12 +36,6 @@ def is_in_ladakh(lat: float, lon: float) -> bool:
     return LADAKH_LAT_MIN <= lat <= LADAKH_LAT_MAX and LADAKH_LON_MIN <= lon <= LADAKH_LON_MAX
 
 
-def is_in_ladakh(lat: float, lon: float) -> bool:
-    """
-    Check if coordinates fall within the geographical boundary of Ladakh.
-    Ladakh bounding box: Latitude 32.0°N to 36.5°N, Longitude 75.5°E to 80.5°E.
-    """
-    return 32.0 <= float(lat) <= 36.5 and 75.5 <= float(lon) <= 80.5
 
 
 def load_fallback_csv(csv_path: Path = FALLBACK_CSV_PATH) -> List[Dict[str, Any]]:
@@ -840,7 +834,14 @@ def fetch_open_meteo_forecast(
     except Exception:
         pass
 
-    # 3. Offline fallback: generate realistic forecast days from fallback CSV
+    # 3. Offline fallback: strictly scoped to Ladakh (same guard as get_weather and fetch_nasa_power_year)
+    if not is_in_ladakh(c_lat, c_lon):
+        raise WeatherUnavailableError(
+            f"Forecast unavailable for site ({c_lat}, {c_lon}). "
+            "Network unreachable, no cache entry found, and offline fallback "
+            "is geographically restricted to Ladakh."
+        )
+
     fallback_base = load_fallback_csv()
     fallback_out: Dict[str, List[Dict[str, Any]]] = {}
     from datetime import timedelta

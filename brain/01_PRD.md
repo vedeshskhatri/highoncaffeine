@@ -82,6 +82,9 @@ Every result carries kerosene litres avoided, ₹ saved, payback years, CO₂ av
 ### FR-13 — Validation display
 On-screen panel comparing model output against the three published measured configurations.
 
+### FR-14 — Material Suggestion (Phase M1)
+Requirement-first thermal design inverter. Given user-stated minimum indoor temperature target and design outdoor condition (or site P1 winter night), evaluates candidate passive envelope variants using the ISO 52016-1 transient solver. Returns the top three compliant build-ups sorted by cost, with complete layer specifications, cited thermophysical properties, and cost estimates. If the target is physically unachievable passively, reports the exact thermal gap and calculates required backup heating capacity (kW), operating hours, and kerosene consumption (L/night).
+
 ## 6. Non-functional requirements
 
 | ID | Requirement |

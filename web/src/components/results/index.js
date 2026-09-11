@@ -11,4 +11,5 @@ export { default as DesignComparisonPanel } from './DesignComparisonPanel';
 export { default as AnnualComfortHeatmap } from './AnnualComfortHeatmap';
 export { default as DesignDoctorPanel } from './DesignDoctorPanel';
 export { default as EngineeringReportModal } from './EngineeringReportModal';
+export { default as MilitaryLogisticsPanel } from './MilitaryLogisticsPanel';
 

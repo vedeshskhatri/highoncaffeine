@@ -351,7 +351,20 @@ export default function App() {
           ) : (
             <>
               {currentStep === 'design' && (
-                <DesignCanvas request={simulateRequest} onSimulate={handleSimulate} />
+                <DesignCanvas
+                  request={simulateRequest}
+                  onSimulate={handleSimulate}
+                  onApplyBuildUp={(updates) => {
+                    setSimulateRequest((prev) => ({
+                      ...prev,
+                      envelope: {
+                        ...prev.envelope,
+                        ...updates.envelope,
+                      },
+                      openings: updates.openings || prev.openings,
+                    }));
+                  }}
+                />
               )}
 
               {currentStep === 'simulate' && (

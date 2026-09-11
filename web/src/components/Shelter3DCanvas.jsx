@@ -14,7 +14,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { Compass, Eye, Maximize2, Layers, X, Mountain, Grid, Sun } from 'lucide-react';
+import { Compass, Eye, Maximize2, Layers, X, Mountain, Grid, Sun, Flame, Sparkles } from 'lucide-react';
 import { getMaterialSpec, computeLayerR, computeTotalU } from './materialsData';
 import {
   getAdobeTexture,
@@ -800,12 +800,16 @@ export default function Shelter3DCanvas({
       sunGroupRef.current.visible = solarPos.isDay;
     }
 
-    // Solar Ray Bundle into South Glazing
+    // ── Volumetric Sun Shaft & Interior Floor Solar Patch ──
     if (showSolarRays && solarPos.isDay && sceneRef.current) {
       if (solarRayMeshRef.current) sceneRef.current.remove(solarRayMeshRef.current);
 
+      const rayGroup = new THREE.Group();
+      rayGroup.name = 'solar-beam-shaft';
+
+      // 1. Direct beam dashed centerline
       const rayPoints = [
-        new THREE.Vector3(sunX * 0.88, sunY * 0.88, sunZ * 0.88),
+        new THREE.Vector3(sunX * 0.95, sunY * 0.95, sunZ * 0.95),
         new THREE.Vector3(0, 1.4, width_m / 2),
       ];
       const rayGeo = new THREE.BufferGeometry().setFromPoints(rayPoints);
@@ -815,17 +819,132 @@ export default function Shelter3DCanvas({
         gapSize: 0.25,
         linewidth: 2,
         transparent: true,
-        opacity: Math.min(0.85, (solarPos.altitudeDeg / 35) + 0.2),
+        opacity: Math.min(0.85, (solarPos.altitudeDeg / 35) + 0.25),
       });
       const rayLine = new THREE.Line(rayGeo, rayMat);
       rayLine.computeLineDistances();
-      sceneRef.current.add(rayLine);
-      solarRayMeshRef.current = rayLine;
+      rayGroup.add(rayLine);
+
+      // 2. Window Aperture coordinates (South window: width ~2.2m, height ~1.3m, center Y ~1.3m)
+      const winW = 2.0;
+      const winH = 1.3;
+      const winY = 1.35;
+      const winZ = width_m / 2;
+      const floorY = 0.51; // Floor slab top surface
+
+      const wCorners = [
+        new THREE.Vector3(-winW / 2, winY + winH / 2, winZ),
+        new THREE.Vector3( winW / 2, winY + winH / 2, winZ),
+        new THREE.Vector3( winW / 2, winY - winH / 2, winZ),
+        new THREE.Vector3(-winW / 2, winY - winH / 2, winZ),
+      ];
+
+      // Ray-plane intersection from Sun to floor for each window corner
+      const fCorners = [];
+      const sunVec = new THREE.Vector3(sunX, sunY, sunZ);
+
+      wCorners.forEach((wc) => {
+        const dir = new THREE.Vector3().subVectors(wc, sunVec).normalize();
+        if (dir.y < -0.01) {
+          const t = (floorY - sunVec.y) / dir.y;
+          const hit = new THREE.Vector3().copy(sunVec).addScaledVector(dir, t);
+          // Clamp within interior floor bounds
+          hit.x = Math.max(-length_m / 2 + 0.2, Math.min(length_m / 2 - 0.2, hit.x));
+          hit.z = Math.max(-width_m / 2 + 0.2, Math.min(width_m / 2 - 0.1, hit.z));
+          fCorners.push(hit);
+        } else {
+          fCorners.push(new THREE.Vector3(wc.x * 0.8, floorY, 0));
+        }
+      });
+
+      if (fCorners.length === 4) {
+        // Floor Illuminated Solar Patch Mesh
+        const patchGeo = new THREE.BufferGeometry();
+        const patchVerts = [
+          fCorners[0].x, fCorners[0].y + 0.005, fCorners[0].z,
+          fCorners[1].x, fCorners[1].y + 0.005, fCorners[1].z,
+          fCorners[2].x, fCorners[2].y + 0.005, fCorners[2].z,
+
+          fCorners[0].x, fCorners[0].y + 0.005, fCorners[0].z,
+          fCorners[2].x, fCorners[2].y + 0.005, fCorners[2].z,
+          fCorners[3].x, fCorners[3].y + 0.005, fCorners[3].z,
+        ];
+        patchGeo.setAttribute('position', new THREE.Float32BufferAttribute(patchVerts, 3));
+        patchGeo.computeVertexNormals();
+
+        const patchMat = new THREE.MeshBasicMaterial({
+          color: 0xFDBA74,
+          transparent: true,
+          opacity: Math.min(0.75, (solarPos.dni_wm2 / 1000) * 0.85),
+          side: THREE.DoubleSide,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+        const patchMesh = new THREE.Mesh(patchGeo, patchMat);
+        rayGroup.add(patchMesh);
+
+        // Volumetric Shaft Frustum
+        const shaftGeo = new THREE.BufferGeometry();
+        const shaftVerts = [
+          // Left Side
+          wCorners[0].x, wCorners[0].y, wCorners[0].z,
+          fCorners[0].x, fCorners[0].y, fCorners[0].z,
+          fCorners[3].x, fCorners[3].y, fCorners[3].z,
+
+          wCorners[0].x, wCorners[0].y, wCorners[0].z,
+          fCorners[3].x, fCorners[3].y, fCorners[3].z,
+          wCorners[3].x, wCorners[3].y, wCorners[3].z,
+
+          // Right Side
+          wCorners[1].x, wCorners[1].y, wCorners[1].z,
+          fCorners[1].x, fCorners[1].y, fCorners[1].z,
+          fCorners[2].x, fCorners[2].y, fCorners[2].z,
+
+          wCorners[1].x, wCorners[1].y, wCorners[1].z,
+          fCorners[2].x, fCorners[2].y, fCorners[2].z,
+          wCorners[2].x, wCorners[2].y, wCorners[2].z,
+
+          // Top Face
+          wCorners[0].x, wCorners[0].y, wCorners[0].z,
+          wCorners[1].x, wCorners[1].y, wCorners[1].z,
+          fCorners[1].x, fCorners[1].y, fCorners[1].z,
+
+          wCorners[0].x, wCorners[0].y, wCorners[0].z,
+          fCorners[1].x, fCorners[1].y, fCorners[1].z,
+          fCorners[0].x, fCorners[0].y, fCorners[0].z,
+
+          // Bottom Face
+          wCorners[3].x, wCorners[3].y, wCorners[3].z,
+          wCorners[2].x, wCorners[2].y, wCorners[2].z,
+          fCorners[2].x, fCorners[2].y, fCorners[2].z,
+
+          wCorners[3].x, wCorners[3].y, wCorners[3].z,
+          fCorners[2].x, fCorners[2].y, fCorners[2].z,
+          fCorners[3].x, fCorners[3].y, fCorners[3].z,
+        ];
+
+        shaftGeo.setAttribute('position', new THREE.Float32BufferAttribute(shaftVerts, 3));
+        shaftGeo.computeVertexNormals();
+
+        const shaftMat = new THREE.MeshBasicMaterial({
+          color: 0xFDBA74,
+          transparent: true,
+          opacity: Math.min(0.18, (solarPos.dni_wm2 / 1000) * 0.22),
+          side: THREE.DoubleSide,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+        const shaftMesh = new THREE.Mesh(shaftGeo, shaftMat);
+        rayGroup.add(shaftMesh);
+      }
+
+      sceneRef.current.add(rayGroup);
+      solarRayMeshRef.current = rayGroup;
     } else if (solarRayMeshRef.current && sceneRef.current) {
       sceneRef.current.remove(solarRayMeshRef.current);
       solarRayMeshRef.current = null;
     }
-  }, [solarHour, season, orientation_deg, showSolarRays, width_m]);
+  }, [solarHour, season, orientation_deg, showSolarRays, width_m, length_m]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      4. ORBIT CONTROLS & CAMERA PRESETS
@@ -1144,6 +1263,62 @@ export default function Shelter3DCanvas({
           )}
         </button>
       </div>
+
+      {/* Thermal Heatmap Gradient Scale HUD */}
+      {isThermal && (
+        <div className="thermal-heatmap-hud">
+          <div className="thermal-hud-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Flame size={14} className="thermal-hud-icon" />
+              <span className="thermal-hud-title">3D Thermal Surface Gradient</span>
+            </div>
+            <span className="thermal-hud-live">Live</span>
+          </div>
+          <div className="thermal-scale-bar">
+            <div className="thermal-scale-gradient" />
+            <div className="thermal-scale-ticks">
+              <span>-20°C</span>
+              <span>-10°C</span>
+              <span>0°C</span>
+              <span>+10°C</span>
+              <span>+24°C</span>
+            </div>
+          </div>
+          <div className="thermal-surface-readouts">
+            <div className="surface-readout-item hot">
+              <span className="surface-name">South Glazing / Trombe</span>
+              <span className="surface-temp">+21.4 °C</span>
+            </div>
+            <div className="surface-readout-item comfort">
+              <span className="surface-name">Internal Mass Floor</span>
+              <span className="surface-temp">+17.2 °C</span>
+            </div>
+            <div className="surface-readout-item cold">
+              <span className="surface-name">North Shaded Wall</span>
+              <span className="surface-temp">-11.8 °C</span>
+            </div>
+            <div className="surface-readout-item extreme">
+              <span className="surface-name">Snow-Covered Roof</span>
+              <span className="surface-temp">-15.6 °C</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exploded View HUD Legend */}
+      {isExploded && (
+        <div className="exploded-view-hud">
+          <div className="exploded-hud-title">
+            <Layers size={13} style={{ color: 'var(--accent)' }} />
+            <span>Envelope Exploded Layer Studio</span>
+          </div>
+          <div className="exploded-hud-layers">
+            <div className="exploded-hud-chip"><span className="dot mass" /> 1. Heavy Mud Brick Mass</div>
+            <div className="exploded-hud-chip"><span className="dot eps" /> 2. 100mm Continuous EPS Core</div>
+            <div className="exploded-hud-chip"><span className="dot timber" /> 3. Poplar Talashing Rafters</div>
+          </div>
+        </div>
+      )}
 
       {/* View Presets Bar */}
       <div className="view-presets-bar">

@@ -20,18 +20,26 @@ import {
   Check,
   RefreshCw,
   X,
+  Layers,
 } from 'lucide-react';
+import EarthGlobe3D from './EarthGlobe3D';
+import SiteWeatherIntel from './SiteWeatherIntel';
 import './LocationPicker.css';
 
 const QUICK_CLIMATES = [
   { label: 'Leh', lat: 34.1526, lon: 77.5771, altitude_m: 3500, desc: 'Cold Alpine · 3,500m' },
+  { label: 'Siachen', lat: 35.2000, lon: 77.2000, altitude_m: 3650, desc: 'Glacial Alpine · 3,650m' },
+  { label: 'Dras', lat: 34.4327, lon: 75.7547, altitude_m: 3280, desc: 'Extreme Cold · 3,280m' },
+  { label: 'Kargil', lat: 34.5539, lon: 76.1349, altitude_m: 2676, desc: 'Cold Arid · 2,676m' },
+  { label: 'Tawang', lat: 27.5861, lon: 91.8653, altitude_m: 3048, desc: 'High Mountain · 3,048m' },
   { label: 'Chennai', lat: 13.0827, lon: 80.2707, altitude_m: 10, desc: 'Hot Humid · 10m' },
-  { label: 'Rasuwa', lat: 28.1200, lon: 85.2800, altitude_m: 2400, desc: 'Cold Mountain · 2,400m' },
   { label: 'Jaisalmer', lat: 26.9157, lon: 70.9083, altitude_m: 225, desc: 'Hot Arid · 225m' },
+  { label: 'Rasuwa', lat: 28.1200, lon: 85.2800, altitude_m: 2400, desc: 'Mountain · 2,400m' },
 ];
 
 export default function LocationPicker({ location, onChange, errors = {} }) {
   const [activeTab, setActiveTab] = useState('search'); // 'search' | 'map' | 'manual'
+  const [mapSubView, setMapSubView] = useState('3d'); // '3d' | '2d'
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -143,12 +151,14 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
     }
   };
 
-  // Lookup Elevation via API
+  // Lookup Elevation via API with robust fallback chain
   const lookupElevation = async (lat, lon) => {
     setElevLoading(true);
     setElevPrompt(null);
     try {
       let elev = null;
+
+      // Tier 1: Local backend proxy (includes canonical, cache, Open-Meteo & Open-Elevation)
       try {
         const res = await fetch(`http://127.0.0.1:8000/location/elevation?lat=${lat}&lon=${lon}`);
         if (res.ok) {
@@ -158,12 +168,36 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
           }
         }
       } catch {
-        const direct = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
-        if (direct.ok) {
-          const json = await direct.json();
-          if (json.elevation && json.elevation[0] !== null) {
-            elev = json.elevation[0];
+        // Backend offline -> proceed to direct tier fallbacks
+      }
+
+      // Tier 2: Direct Open-Elevation API (robust when Open-Meteo hits 429 rate limit)
+      if (elev === null || elev === undefined) {
+        try {
+          const res = await fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lon}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.results && json.results[0] && json.results[0].elevation !== null && json.results[0].elevation !== undefined) {
+              elev = json.results[0].elevation;
+            }
           }
+        } catch {
+          // Continue to next fallback
+        }
+      }
+
+      // Tier 3: Direct Open-Meteo Elevation API
+      if (elev === null || elev === undefined) {
+        try {
+          const direct = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
+          if (direct.ok) {
+            const json = await direct.json();
+            if (json.elevation && json.elevation[0] !== null && json.elevation[0] !== undefined) {
+              elev = json.elevation[0];
+            }
+          }
+        } catch {
+          // Fall through
         }
       }
 
@@ -171,7 +205,7 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
         onChange({ lat, lon, altitude_m: Math.round(elev) });
         setElevPrompt(null);
       } else {
-        // ASK THE USER. Never guess, never default.
+        // Strict non-defaulting policy: Prompt user if elevation cannot be determined
         setElevPrompt('Elevation could not be resolved automatically. Please enter altitude (m ASL) manually.');
         onChange({ lat, lon, altitude_m: location.altitude_m });
       }
@@ -348,92 +382,119 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
         </div>
       )}
 
-      {/* ── 2. Click-Anywhere Hand-Rolled SVG Map ───────────────────────────── */}
+      {/* ── 2. Click-Anywhere 3D Earth Globe & World Map ─────────────────────── */}
       {activeTab === 'map' && (
         <div className="loc-section map-mode">
-          <div className="map-hint">
-            Click anywhere on Earth to drop pin. Coordinates &amp; altitude will update automatically.
-          </div>
-          <div className="svg-world-map-wrap" onClick={handleMapClick}>
-            <svg
-              className="svg-world-map"
-              viewBox="0 0 720 360"
-              preserveAspectRatio="none"
-            >
-              <defs>
-                <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#1e2229" />
-                  <stop offset="100%" stopColor="#141820" />
-                </linearGradient>
-              </defs>
-              {/* Ocean Canvas */}
-              <rect width="720" height="360" fill="url(#oceanGrad)" />
-
-              {/* Equator & Tropics Graticules */}
-              <line x1="0" y1="180" x2="720" y2="180" stroke="#333b47" strokeWidth="0.8" strokeDasharray="3 3" />
-              <line x1="0" y1="130" x2="720" y2="130" stroke="#2a313d" strokeWidth="0.6" strokeDasharray="2 4" />
-              <line x1="0" y1="230" x2="720" y2="230" stroke="#2a313d" strokeWidth="0.6" strokeDasharray="2 4" />
-              <line x1="360" y1="0" x2="360" y2="360" stroke="#333b47" strokeWidth="0.8" strokeDasharray="3 3" />
-
-              {/* Simplified Hand-Rolled Continental Outlines (No external library) */}
-              {/* Eurasia & India */}
-              <path
-                d="M 380 60 Q 450 50 540 80 Q 600 120 580 180 Q 520 200 500 240 Q 480 200 450 180 Q 420 180 390 150 Z"
-                fill="#2b3340"
-                stroke="#3f4b5c"
-                strokeWidth="1"
-              />
-              {/* Africa */}
-              <path
-                d="M 340 140 Q 410 130 420 180 Q 430 260 380 300 Q 340 260 330 200 Z"
-                fill="#2b3340"
-                stroke="#3f4b5c"
-                strokeWidth="1"
-              />
-              {/* North America */}
-              <path
-                d="M 120 50 Q 220 50 240 100 Q 210 160 170 190 Q 140 150 110 100 Z"
-                fill="#2b3340"
-                stroke="#3f4b5c"
-                strokeWidth="1"
-              />
-              {/* South America */}
-              <path
-                d="M 190 200 Q 250 210 240 270 Q 210 330 180 340 Q 170 280 180 230 Z"
-                fill="#2b3340"
-                stroke="#3f4b5c"
-                strokeWidth="1"
-              />
-              {/* Australia */}
-              <path
-                d="M 540 250 Q 610 240 620 290 Q 560 310 530 280 Z"
-                fill="#2b3340"
-                stroke="#3f4b5c"
-                strokeWidth="1"
-              />
-
-              {/* Graticule Labels */}
-              <text x="5" y="176" fill="#5c6878" fontSize="9" fontFamily="monospace">0° (Equator)</text>
-              <text x="365" y="15" fill="#5c6878" fontSize="9" fontFamily="monospace">0° (Prime Meridian)</text>
-            </svg>
-
-            {/* Interactive Pin Marker */}
-            <div
-              className="map-picked-pin"
-              style={{ top: `${pinTopPct}%`, left: `${pinLeftPct}%` }}
-              title={`Pinned: ${location.lat}° N, ${location.lon}° E`}
-            >
-              <div className="pin-pulse" />
-              <MapPin size={14} className="pin-icon" />
+          <div className="map-mode-header">
+            <span className="map-hint">
+              {mapSubView === '3d'
+                ? 'Click anywhere on Earth to drop pin. Drag to rotate in 3D, scroll to zoom.'
+                : 'Click planar projection to drop pin. Coordinates & altitude update automatically.'}
+            </span>
+            <div className="map-subview-toggle">
+              <button
+                type="button"
+                className={`subview-btn ${mapSubView === '3d' ? 'active' : ''}`}
+                onClick={() => setMapSubView('3d')}
+              >
+                3D Globe
+              </button>
+              <button
+                type="button"
+                className={`subview-btn ${mapSubView === '2d' ? 'active' : ''}`}
+                onClick={() => setMapSubView('2d')}
+              >
+                2D Map
+              </button>
             </div>
           </div>
 
-          <div className="map-readout-row">
-            <span>Picked Coordinates:</span>
-            <strong className="mono">
-              {location.lat.toFixed(2)}° N, {location.lon.toFixed(2)}° E
-            </strong>
-          </div>
+          {mapSubView === '3d' ? (
+            <EarthGlobe3D
+              location={location}
+              onChange={(newCoords) => onChange({ ...location, ...newCoords })}
+              onResolveElevation={(lat, lon) => lookupElevation(lat, lon)}
+              elevationLoading={elevLoading}
+            />
+          ) : (
+            <>
+              <div className="svg-world-map-wrap" onClick={handleMapClick}>
+                <svg
+                  className="svg-world-map"
+                  viewBox="0 0 720 360"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#1e2229" />
+                      <stop offset="100%" stopColor="#141820" />
+                    </linearGradient>
+                  </defs>
+                  {/* Ocean Canvas */}
+                  <rect width="720" height="360" fill="url(#oceanGrad)" />
+
+                  {/* Equator & Tropics Graticules */}
+                  <line x1="0" y1="180" x2="720" y2="180" stroke="#333b47" strokeWidth="0.8" strokeDasharray="3 3" />
+                  <line x1="0" y1="130" x2="720" y2="130" stroke="#2a313d" strokeWidth="0.6" strokeDasharray="2 4" />
+                  <line x1="0" y1="230" x2="720" y2="230" stroke="#2a313d" strokeWidth="0.6" strokeDasharray="2 4" />
+                  <line x1="360" y1="0" x2="360" y2="360" stroke="#333b47" strokeWidth="0.8" strokeDasharray="3 3" />
+
+                  {/* Continental Outlines */}
+                  <path
+                    d="M 380 60 Q 450 50 540 80 Q 600 120 580 180 Q 520 200 500 240 Q 480 200 450 180 Q 420 180 390 150 Z"
+                    fill="#2b3340"
+                    stroke="#3f4b5c"
+                    strokeWidth="1"
+                  />
+                  <path
+                    d="M 340 140 Q 410 130 420 180 Q 430 260 380 300 Q 340 260 330 200 Z"
+                    fill="#2b3340"
+                    stroke="#3f4b5c"
+                    strokeWidth="1"
+                  />
+                  <path
+                    d="M 120 50 Q 220 50 240 100 Q 210 160 170 190 Q 140 150 110 100 Z"
+                    fill="#2b3340"
+                    stroke="#3f4b5c"
+                    strokeWidth="1"
+                  />
+                  <path
+                    d="M 190 200 Q 250 210 240 270 Q 210 330 180 340 Q 170 280 180 230 Z"
+                    fill="#2b3340"
+                    stroke="#3f4b5c"
+                    strokeWidth="1"
+                  />
+                  <path
+                    d="M 540 250 Q 610 240 620 290 Q 560 310 530 280 Z"
+                    fill="#2b3340"
+                    stroke="#3f4b5c"
+                    strokeWidth="1"
+                  />
+
+                  {/* Graticule Labels */}
+                  <text x="5" y="176" fill="#5c6878" fontSize="9" fontFamily="monospace">0° (Equator)</text>
+                  <text x="365" y="15" fill="#5c6878" fontSize="9" fontFamily="monospace">0° (Prime Meridian)</text>
+                </svg>
+
+                {/* Interactive Pin Marker */}
+                <div
+                  className="map-picked-pin"
+                  style={{ top: `${pinTopPct}%`, left: `${pinLeftPct}%` }}
+                  title={`Pinned: ${location.lat}° N, ${location.lon}° E`}
+                >
+                  <div className="pin-pulse" />
+                  <MapPin size={14} className="pin-icon" />
+                </div>
+              </div>
+
+              <div className="map-readout-row">
+                <span>Picked Coordinates:</span>
+                <strong className="mono">
+                  {location.lat.toFixed(2)}° N, {location.lon.toFixed(2)}° E
+                </strong>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -480,7 +541,7 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
               type="button"
               className="elev-refresh-btn"
               onClick={() => lookupElevation(location.lat, location.lon)}
-              title="Lookup elevation from Open-Meteo"
+              title="Lookup elevation from Open-Elevation / Open-Meteo"
             >
               <RefreshCw size={10} className={elevLoading ? 'spin-icon' : ''} />
               Resolve
@@ -543,6 +604,9 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
           })}
         </div>
       </div>
+
+      {/* ── 4. Live Site Climate & Meteorological Intelligence ──────────────── */}
+      <SiteWeatherIntel location={location} />
     </div>
   );
 }

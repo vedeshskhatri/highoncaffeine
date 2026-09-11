@@ -48,6 +48,8 @@ from api.schemas import (
     SurrogateMetricsResponse,
     SurrogatePredictRequest,
     SurrogatePredictResponse,
+    SuggestMaterialsRequest,
+    SuggestMaterialsResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -107,6 +109,7 @@ def root_endpoint() -> Dict[str, Any]:
             "validation": "/validation",
             "surrogate_metrics": "/surrogate/metrics",
             "surrogate_predict": "/surrogate/predict",
+            "suggest_materials": "/suggest-materials",
             "location_elevation": "/location/elevation",
             "location_search": "/location/search",
             "estate_summary": "/estate/summary",
@@ -360,6 +363,14 @@ def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
     annual_fuel_cost_inr = annual_kerosene_l * 2400.0
     annual_co2_kg = annual_kerosene_l * 2.5
 
+    from engine.military_logistics import calculate_military_logistics
+    mil_logistics = calculate_military_logistics(
+        kerosene_litres_per_night=float(backup_py.get("kerosene_litres_per_night", 0.0)),
+        winter_days=180,
+        occupants=request.occupancy.people,
+        post_altitude_m=request.location.altitude_m,
+    )
+
     summary_out = {
         "t_in_min_c": t_in_min_c,
         "t_in_min_hour": t_in_min_hour,
@@ -385,6 +396,7 @@ def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
             "cost_inr_per_year": round(annual_fuel_cost_inr, 0),
             "co2_kg_per_year": round(annual_co2_kg, 1),
             "payback_years": None,
+            "military_logistics": mil_logistics,
         },
         "freeze_risk": [],
         "hours_to_mild_hypothermia": None,
@@ -651,8 +663,17 @@ def sensitivity(request: SensitivityRequest) -> Dict[str, Any]:
     """Morris elementary effects screening of envelope parameters."""
     from engine.optimizer import dict_to_design
     from engine.sensitivity import morris_screening
-    from api.weather import load_fallback_csv
-    weather = load_fallback_csv()
+    from api.weather import get_weather
+    try:
+        weather, _ = get_weather(
+            lat=request.location.lat,
+            lon=request.location.lon,
+            date_str=request.weather.date,
+            mode=request.weather.mode.value,
+            user_csv_id=request.weather.user_csv_id,
+        )
+    except WeatherUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
     base_dict = request.baseline.model_dump() if hasattr(request.baseline, "model_dump") else request.baseline
     base_des = dict_to_design(base_dict)
     n_traj = request.trajectories if hasattr(request, "trajectories") and request.trajectories else 20
@@ -688,7 +709,15 @@ def retrofit(request: RetrofitRequest) -> Dict[str, Any]:
             user_csv_id=request.weather.user_csv_id,
         )
     except WeatherUnavailableError:
-        from api.weather import load_fallback_csv
+        from api.weather import load_fallback_csv, is_in_ladakh
+        if not is_in_ladakh(request.location.lat, request.location.lon):
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Weather unavailable for site ({request.location.lat}, {request.location.lon}). "
+                    "Network unreachable and offline fallback is restricted to Ladakh."
+                ),
+            )
         weather_rows = load_fallback_csv()
 
     from engine.design_doctor import diagnose_and_prescribe_retrofits
@@ -1292,4 +1321,97 @@ def search_places_endpoint(q: str, count: int = 8) -> Dict[str, Any]:
         "count": len(results),
         "results": results,
     }
+
+
+@app.get(
+    "/location/weather",
+    summary="Retrieve live or archived meteorological preview for site coordinates",
+)
+def get_location_weather_endpoint(
+    lat: float,
+    lon: float,
+    date: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Retrieve real-time or historical 24-hour meteorological preview and summary
+    for given coordinates, with elevation resolution and provenance transparency.
+    """
+    from api.weather import get_weather
+    from api.location import resolve_elevation
+    from datetime import datetime, timezone
+
+    target_date = date or "2026-01-15"
+    elev, elev_source = resolve_elevation(lat, lon)
+
+    try:
+        rows, prov = get_weather(
+            lat=lat,
+            lon=lon,
+            date_str=target_date,
+            mode="typical_day",
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Weather unavailable for coordinates ({lat}, {lon}): {exc}")
+
+    t_airs = [float(r["t_air"]) for r in rows if "t_air" in r]
+    dnis = [float(r.get("dni", 0.0)) for r in rows]
+    ghis = [float(r.get("ghi", 0.0)) for r in rows]
+    winds = [float(r.get("wind", 0.0)) for r in rows]
+
+    t_min = min(t_airs) if t_airs else 0.0
+    t_max = max(t_airs) if t_airs else 0.0
+    t_mean = round(sum(t_airs) / len(t_airs), 1) if t_airs else 0.0
+    dni_peak = round(max(dnis), 0) if dnis else 0.0
+    ghi_peak = round(max(ghis), 0) if ghis else 0.0
+    wind_avg = round(sum(winds) / len(winds), 1) if winds else 0.0
+    snow_present = any(int(r.get("snow_cover", 0)) > 0 for r in rows)
+
+    return {
+        "lat": lat,
+        "lon": lon,
+        "date": target_date,
+        "elevation_m": elev,
+        "elevation_source": elev_source,
+        "metrics": {
+            "t_air_min": round(t_min, 1),
+            "t_air_mean": t_mean,
+            "t_air_max": round(t_max, 1),
+            "solar_dni_peak_wm2": dni_peak,
+            "solar_ghi_peak_wm2": ghi_peak,
+            "wind_speed_mean_ms": wind_avg,
+            "snow_cover": snow_present,
+            "is_freezing": t_min < 0.0,
+            "is_extreme_cold": t_min < -15.0,
+        },
+        "hourly_preview": [
+            {
+                "hour": int(r["hour"]),
+                "t_air": round(float(r["t_air"]), 1),
+                "dni": round(float(r.get("dni", 0.0)), 0),
+            }
+            for r in rows
+        ],
+        "weather_provenance": prov,
+    }
+
+
+# ---------------------------------------------------------------------------
+# MATERIAL SUGGESTION ENDPOINT (Phase M1)
+# ---------------------------------------------------------------------------
+
+@app.post(
+    "/suggest-materials",
+    response_model=SuggestMaterialsResponse,
+    summary="Material Suggestion Engine (Phase M1)",
+    description="Inverts optimizer to solve for material build-ups from target indoor and design outdoor temperatures.",
+)
+def suggest_materials_endpoint(request: SuggestMaterialsRequest) -> SuggestMaterialsResponse:
+    """
+    Given a target indoor requirement and outdoor design condition,
+    simulates candidate envelope variants and returns the top 3 specifications
+    with full layer build-up, achieved minimum temperature, cost, and residual backup heat.
+    """
+    from engine.material_suggestion import suggest_materials
+    res = suggest_materials(request.model_dump())
+    return SuggestMaterialsResponse(**res)
 

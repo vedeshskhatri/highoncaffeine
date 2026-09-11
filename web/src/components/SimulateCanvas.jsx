@@ -30,6 +30,7 @@ import {
   PhysiologicalRiskPanel,
   WhatIfPanel,
   DesignComparisonPanel,
+  MilitaryLogisticsPanel,
 } from './results';
 
 // Realistic sample simulation result when testing offline or before first execution
@@ -183,6 +184,13 @@ export default function SimulateCanvas({ result, request }) {
           thermoregulation={data.occupant_thermoregulation}
           summary={data.summary}
         />
+        <div style={{ marginTop: 'var(--space-3, 12px)' }}>
+          <MilitaryLogisticsPanel
+            summary={data.summary}
+            location={request?.location}
+            occupancy={request?.occupancy}
+          />
+        </div>
       </AnimatedPanel>
 
       {/* 3. Primary Diurnal Temperature Chart (VISUAL ANCHOR) */}
