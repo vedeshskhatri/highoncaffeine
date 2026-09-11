@@ -14,4 +14,7 @@ export default defineConfig({
     // Allow /tokens route to resolve — SPA fallback
     historyApiFallback: true,
   },
+  optimizeDeps: {
+    include: ['ogl', 'three'],
+  },
 })
