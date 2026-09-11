@@ -1,12 +1,31 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Moon, ShieldCheck, AlertTriangle, Droplet } from 'lucide-react';
+import { useCountUp } from '../../hooks/useCountUp';
 
 /**
  * MetricCards.jsx — Four headline thermal and logistics metrics.
  * Redesigned with glassmorphic cards, subtle status badges, and Framer Motion hover effects.
  */
 export default function MetricCards({ summary }) {
+  const {
+    t_in_min_c = null,
+    t_in_min_hour = 6,
+    comfort_hours_ratio = null,
+    hours_below_health_threshold = null,
+    impact = null,
+  } = summary || {};
+
+  const kerosene_litres_per_year = impact?.kerosene_litres_per_year ?? null;
+  const comfortPctTarget = typeof comfort_hours_ratio === 'number' && !isNaN(comfort_hours_ratio)
+    ? comfort_hours_ratio * 100
+    : null;
+
+  const animMinTemp = useCountUp(summary ? t_in_min_c : null, 900, 1);
+  const animComfortPct = useCountUp(summary ? comfortPctTarget : null, 900, 0);
+  const animHealthHours = useCountUp(summary ? hours_below_health_threshold : null, 700, 0);
+  const animKerosene = useCountUp(summary ? kerosene_litres_per_year : null, 1100, 0);
+
   if (!summary) {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)' }}>
@@ -28,17 +47,9 @@ export default function MetricCards({ summary }) {
     );
   }
 
-  const {
-    t_in_min_c,
-    t_in_min_hour = 6,
-    comfort_hours_ratio,
-    hours_below_health_threshold,
-    impact,
-  } = summary;
-
   const minTempFormatted =
-    typeof t_in_min_c === 'number' && !Number.isNaN(t_in_min_c)
-      ? `${t_in_min_c.toFixed(1)} °C`
+    typeof animMinTemp === 'number' && !Number.isNaN(animMinTemp)
+      ? `${animMinTemp.toFixed(1)} °C`
       : '—';
 
   const hourFormatted =
@@ -47,18 +58,18 @@ export default function MetricCards({ summary }) {
       : '—';
 
   const comfortPctFormatted =
-    typeof comfort_hours_ratio === 'number' && !Number.isNaN(comfort_hours_ratio)
-      ? `${Math.round(comfort_hours_ratio * 100)}%`
+    typeof animComfortPct === 'number' && !Number.isNaN(animComfortPct)
+      ? `${Math.round(animComfortPct)}%`
       : '—';
 
   const healthHoursFormatted =
-    typeof hours_below_health_threshold === 'number' && !Number.isNaN(hours_below_health_threshold)
-      ? `${hours_below_health_threshold} / 24 h`
+    typeof animHealthHours === 'number' && !Number.isNaN(animHealthHours)
+      ? `${Math.round(animHealthHours)} / 24 h`
       : '—';
 
   const keroseneAvoidedFormatted =
-    impact && typeof impact.kerosene_litres_per_year === 'number' && !Number.isNaN(impact.kerosene_litres_per_year)
-      ? `${Math.round(impact.kerosene_litres_per_year).toLocaleString()} L`
+    typeof animKerosene === 'number' && !Number.isNaN(animKerosene)
+      ? `${Math.round(animKerosene).toLocaleString()} L`
       : '—';
 
   const isBelowSafe = typeof t_in_min_c === 'number' && t_in_min_c < 18.0;
