@@ -11,9 +11,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "framer-motion": "^13.2.0",
+    "gsap": "^3.15.0",
+    "lucide-react": "^1.44.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "recharts": "^2.15.4"
+    "recharts": "^2.15.4",
+    "three": "^0.186.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
