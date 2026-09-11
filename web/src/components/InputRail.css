@@ -1,0 +1,65 @@
+/* InputRail.css */
+
+.input-rail-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.rail-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.rail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rail-field-label {
+  font-family: var(--font-body);
+  font-size: var(--text-caption-size);
+  font-weight: 500;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.rail-field-input {
+  width: 100%;
+  background: var(--surface-2);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption-size);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.1s;
+}
+
+.rail-field-input:focus {
+  border-color: var(--accent);
+}
+
+.rail-field-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Cross-section SVG placeholder */
+.cross-section-placeholder {
+  margin: var(--space-2) var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.cross-section-label {
+  font-family: var(--font-body);
+  font-size: var(--text-caption-size);
+  color: var(--text-muted);
+  font-style: italic;
+}

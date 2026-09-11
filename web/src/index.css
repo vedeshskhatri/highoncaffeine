@@ -1,0 +1,66 @@
+/* index.css — global resets and base styles
+ * All colours, fonts, spacing resolved through tokens.css.
+ * No raw values anywhere in this file.
+ */
+
+/* 1. Token variables — must come first so Tailwind base can reference them */
+@import './tokens.css';
+
+/* 2. Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 3. Global resets */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-lh);
+  font-weight: var(--text-body-weight);
+}
+
+/* Every number is monospaced — temperatures, rupees, percentages */
+.mono,
+[data-numeric] {
+  font-family: var(--font-mono);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--text-display-weight);
+  letter-spacing: var(--text-display-spacing);
+  color: var(--text-primary);
+}
+
+/* Hairline borders — no shadows anywhere */
+* {
+  box-shadow: none !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface-1);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-sm);
+}

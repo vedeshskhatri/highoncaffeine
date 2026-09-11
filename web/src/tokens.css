@@ -1,0 +1,102 @@
+/*
+ * tokens.css — THERMA design tokens
+ * Owner: Swapnil (Rule R4 — only this file sets colour/type/spacing values)
+ *
+ * PALETTE IS PROVISIONAL (Decision D14).
+ * No component ever hardcodes a colour value.
+ * When the team palette arrives, replace values in this file ONLY.
+ * Every component resolves colour through these variables — the swap is one file.
+ *
+ * SWAP TARGET (Decision D13):
+ * --font-body is DM Sans, the closest open geometric-humanist to Google Sans.
+ * Google Sans is not publicly licensed for web use.
+ * To swap: change the value of --font-body here. Nothing else changes.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ─────────────────────────────────────────
+     TYPOGRAPHY
+     ───────────────────────────────────────── */
+
+  /* Font families */
+  --font-heading: 'Montserrat', system-ui, sans-serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;   /* swap target for Google Sans */
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Type scale — five sizes, no more */
+  /* --text-display  28px / 1.2  weight-600  -0.02em   Montserrat */
+  /* --text-title    20px / 1.3  weight-600  -0.01em   Montserrat */
+  /* --text-body     15px / 1.5  weight-400             DM Sans   */
+  /* --text-label    13px / 1.4  weight-500             DM Sans   */
+  /* --text-caption  12px / 1.4  weight-400             DM Sans   */
+  /* --text-metric   24px / 1.1  weight-500             JetBrains Mono */
+
+  --text-display-size:    28px;
+  --text-display-lh:      1.2;
+  --text-display-weight:  600;
+  --text-display-spacing: -0.02em;
+
+  --text-title-size:    20px;
+  --text-title-lh:      1.3;
+  --text-title-weight:  600;
+  --text-title-spacing: -0.01em;
+
+  --text-body-size:    15px;
+  --text-body-lh:      1.5;
+  --text-body-weight:  400;
+
+  --text-label-size:   13px;
+  --text-label-lh:     1.4;
+  --text-label-weight: 500;
+
+  --text-caption-size:   12px;
+  --text-caption-lh:     1.4;
+  --text-caption-weight: 400;
+
+  --text-metric-size:   24px;
+  --text-metric-lh:     1.1;
+  --text-metric-weight: 500;
+
+  /* ─────────────────────────────────────────
+     COLOUR — PROVISIONAL (Decision D14)
+     Semantic discipline is a hard rule:
+     each colour has exactly ONE meaning.
+     That discipline must survive any palette swap.
+     ───────────────────────────────────────── */
+
+  /* Surfaces — dark-first */
+  --bg-base:       #0E0F11;
+  --surface-1:     #16181B;
+  --surface-2:     #1E2125;
+  --border:        #2A2E33;
+  --border-strong: #3A3F46;
+
+  /* Text */
+  --text-primary:   #ECEDEE;
+  --text-secondary: #A0A6AD;
+  --text-muted:     #6B7178;
+
+  /* Semantic — each colour has EXACTLY ONE meaning (hard rule) */
+  --accent:   #4C9EE8;   /* ONLY: interactive — buttons, active step, links */
+  --solar:    #E8A33D;   /* ONLY: solar gain, daytime, warm surfaces */
+  --danger:   #E05C5C;   /* ONLY: below health threshold (18 °C) */
+  --comfort:  #3FA87A;   /* ONLY: inside comfort band */
+  --estimate: #8B7A55;   /* ONLY: the [estimate] tag on unsourced cost figures */
+
+  /* ─────────────────────────────────────────
+     SPACING — four values, nothing else
+     ───────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+
+  /* ─────────────────────────────────────────
+     BORDERS & RADIUS
+     ───────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 6px;    /* max per spec: 4–6 px */
+  --border-width: 1px; /* hairline borders, no shadows */
+}
