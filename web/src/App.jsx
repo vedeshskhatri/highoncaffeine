@@ -88,15 +88,8 @@ export default function App() {
 
   /* ── Accessible steps ───────────────────────────────────────────── */
   const accessibleSteps = useMemo(() => {
-    const s = new Set(['design']);
-    if (simulateResult || currentStep === 'simulate' || currentStep === 'optimize') {
-      s.add('simulate');
-    }
-    if (optimizeResult || currentStep === 'optimize') {
-      s.add('optimize');
-    }
-    return s;
-  }, [simulateResult, optimizeResult, currentStep]);
+    return new Set(['design', 'simulate', 'optimize']);
+  }, []);
 
   const handleStepClick = useCallback((stepId) => {
     if (accessibleSteps.has(stepId)) {
@@ -145,7 +138,7 @@ export default function App() {
   const canvasMap = {
     design:   <DesignCanvas request={simulateRequest} />,
     simulate: <SimulateCanvas result={simulateResult} request={simulateRequest} />,
-    optimize: <OptimizeCanvas result={optimizeResult} />,
+    optimize: <OptimizeCanvas result={optimizeResult} request={simulateRequest} />,
   };
 
   const isP1 = simulateRequest.weather.mode === 'design_winter_night';
