@@ -26,6 +26,15 @@ from api.errors import WeatherUnavailableError
 FALLBACK_CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "weather" / "leh_january_fallback.csv"
 GRID_NOTE_NASA = "NASA POWER ~0.5x0.625 deg grid — regional estimate, not a site measurement"
 
+# Ladakh geographic bounding box for offline fallback scoping
+LADAKH_LAT_MIN, LADAKH_LAT_MAX = 32.0, 36.5
+LADAKH_LON_MIN, LADAKH_LON_MAX = 75.0, 80.5
+
+
+def is_in_ladakh(lat: float, lon: float) -> bool:
+    """Return True if coordinates fall within the Ladakh alpine region."""
+    return LADAKH_LAT_MIN <= lat <= LADAKH_LAT_MAX and LADAKH_LON_MIN <= lon <= LADAKH_LON_MAX
+
 
 def is_in_ladakh(lat: float, lon: float) -> bool:
     """
@@ -53,12 +62,14 @@ def load_fallback_csv(csv_path: Path = FALLBACK_CSV_PATH) -> List[Dict[str, Any]
                 "wind": float(r["wind"]),
                 "rh": float(r["rh"]),
                 "snow_cover": int(r["snow_cover"]),
+                "cloud_cover": 0.0,
+                "cloud_fraction": 0.0,
             })
     return rows
 
 
 def fetch_open_meteo(lat: float, lon: float, date_str: str, hours: int = 24) -> List[Dict[str, Any]]:
-    """Fetch live weather from Open-Meteo API."""
+    """Fetch live weather from Open-Meteo API with cloud cover and realistic snow cover."""
     today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     endpoint = "https://api.open-meteo.com/v1/forecast"
     if date_str < today_iso:
@@ -69,7 +80,7 @@ def fetch_open_meteo(lat: float, lon: float, date_str: str, hours: int = 24) -> 
         "longitude": lon,
         "hourly": (
             "temperature_2m,shortwave_radiation,direct_normal_irradiance,"
-            "diffuse_radiation,wind_speed_10m,relative_humidity_2m,snow_depth"
+            "diffuse_radiation,wind_speed_10m,relative_humidity_2m,snow_depth,cloud_cover"
         ),
         "start_date": date_str,
         "end_date": date_str,
@@ -90,31 +101,37 @@ def fetch_open_meteo(lat: float, lon: float, date_str: str, hours: int = 24) -> 
     wind = hourly.get("wind_speed_10m", [])
     rh = hourly.get("relative_humidity_2m", [])
     snow_depth = hourly.get("snow_depth", [])
+    cloud_cover = hourly.get("cloud_cover", [])
 
     rows = []
     num_hours = min(len(times), hours)
     for h in range(num_hours):
         sd = snow_depth[h] if h < len(snow_depth) and snow_depth[h] is not None else 0.0
+        cc = cloud_cover[h] if h < len(cloud_cover) and cloud_cover[h] is not None else 0.0
+        c_frac = max(0.0, min(1.0, float(cc) / 100.0))
+        t_val = float(t_air[h]) if h < len(t_air) and t_air[h] is not None else -15.0
         rows.append({
             "hour": h,
-            "t_air": float(t_air[h]) if h < len(t_air) and t_air[h] is not None else -15.0,
+            "t_air": t_val,
             "ghi": float(ghi[h]) if h < len(ghi) and ghi[h] is not None else 0.0,
             "dni": float(dni[h]) if h < len(dni) and dni[h] is not None else 0.0,
             "dhi": float(dhi[h]) if h < len(dhi) and dhi[h] is not None else 0.0,
             "wind": float(wind[h]) if h < len(wind) and wind[h] is not None else 2.0,
             "rh": float(rh[h]) if h < len(rh) and rh[h] is not None else 30.0,
-            "snow_cover": 1 if sd > 0.01 else 0,
+            "snow_cover": 1 if (sd > 0.01 or (t_val < 0.0 and sd > 0.001)) else 0,
+            "cloud_cover": c_frac,
+            "cloud_fraction": c_frac,
         })
 
     return rows
 
 
 def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, Any]]:
-    """Fetch satellite-derived meteorology from NASA POWER API."""
+    """Fetch satellite-derived meteorology from NASA POWER API including cloud amount."""
     clean_date = date_str.replace("-", "")
     endpoint = "https://power.larc.nasa.gov/api/temporal/hourly/point"
     params = {
-        "parameters": "T2M,ALLSKY_SFC_SW_DWN,WS10M,RH2M",
+        "parameters": "T2M,ALLSKY_SFC_SW_DWN,WS10M,RH2M,CLOUD_AMT",
         "community": "RE",
         "longitude": lon,
         "latitude": lat,
@@ -133,6 +150,7 @@ def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, An
     sw_dwn = props.get("ALLSKY_SFC_SW_DWN", {})
     ws10m = props.get("WS10M", {})
     rh2m = props.get("RH2M", {})
+    cloud_amt = props.get("CLOUD_AMT", {})
 
     hours_keys = sorted(t2m.keys())[:24]
     rows = []
@@ -140,15 +158,20 @@ def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, An
         ghi_val = float(sw_dwn.get(k, 0.0))
         dni_val = max(0.0, ghi_val * 0.85) if ghi_val > 50.0 else 0.0
         dhi_val = max(0.0, ghi_val * 0.15) if ghi_val > 0.0 else 0.0
+        t_val = float(t2m.get(k, -15.0))
+        c_pct = float(cloud_amt.get(k, 0.0))
+        c_frac = max(0.0, min(1.0, c_pct / 100.0))
         rows.append({
             "hour": h,
-            "t_air": float(t2m.get(k, -15.0)),
+            "t_air": t_val,
             "ghi": ghi_val,
             "dni": dni_val,
             "dhi": dhi_val,
             "wind": float(ws10m.get(k, 2.0)),
             "rh": float(rh2m.get(k, 30.0)),
-            "snow_cover": 1,
+            "snow_cover": 1 if t_val < -2.0 else 0,
+            "cloud_cover": c_frac,
+            "cloud_fraction": c_frac,
         })
     return rows
 
@@ -276,7 +299,13 @@ def fetch_nasa_power_year(
     except Exception:
         pass
 
-    # 3. Offline fallback synthesis per day
+    # 3. Offline fallback synthesis per day (strictly scoped to Ladakh)
+    if not is_in_ladakh(c_lat, c_lon):
+        raise WeatherUnavailableError(
+            f"Annual weather scan unavailable for site ({c_lat}, {c_lon}) in year {year}. "
+            "NASA POWER network request failed and offline fallback synthesis is geographically restricted to Ladakh."
+        )
+
     fallback_base = load_fallback_csv()
     cur_date = date(year, 1, 1)
     end_date = date(year, 12, 31)
@@ -304,7 +333,9 @@ def fetch_nasa_power_year(
                     "dhi": r["dhi"],
                     "wind": r["wind"],
                     "rh": r["rh"],
-                    "snow_cover": 1 if t_air_mod < 0 else 0,
+                    "snow_cover": 1 if t_air_mod < -2.0 else 0,
+                    "cloud_cover": 0.0,
+                    "cloud_fraction": 0.0,
                     "provider": "fallback",
                 })
             fallback_out[d_str] = day_rows
@@ -392,7 +423,9 @@ def generate_or_get_worst_night_profile(lat: float, lon: float) -> Tuple[List[Di
                 "dhi": max(0.0, ghi_val * 0.15) if ghi_val > 0.0 else 0.0,
                 "wind": 3.0,
                 "rh": 25.0,
-                "snow_cover": 1,
+                "snow_cover": 1 if p1_min < -2.0 else 0,
+                "cloud_cover": 0.0,
+                "cloud_fraction": 0.0,
             })
         meta = {
             "p1_daily_min_c": p1_min,
@@ -403,8 +436,8 @@ def generate_or_get_worst_night_profile(lat: float, lon: float) -> Tuple[List[Di
         return rows, meta
 
     # Fetch 10-year daily record from NASA POWER Daily API
-    p1_min = -28.4  # Sourced Leh 10-year NASA POWER 1st percentile baseline
-    p5_ghi = 2.40   # 5th percentile daily global horizontal irradiance (kWh/m2/day)
+    p1_min = None
+    p5_ghi = None
     years_used = 10
 
     try:
@@ -433,11 +466,20 @@ def generate_or_get_worst_night_profile(lat: float, lon: float) -> Tuple[List[Di
                     p5_ghi = round(sw_vals[idx_p5], 2)
                     years_used = 10
     except Exception:
-        # Gracefully fall back to pre-calculated 10-year NASA POWER Leh baseline
         pass
 
+    if p1_min is None or p5_ghi is None:
+        if is_in_ladakh(c_lat, c_lon):
+            p1_min = -28.4
+            p5_ghi = 2.40
+            years_used = 10
+        else:
+            raise WeatherUnavailableError(
+                f"P1 worst-night profile unavailable for site ({c_lat}, {c_lon}). "
+                "NASA POWER 10-year daily archive unreachable and site is outside Ladakh baseline region."
+            )
+
     # Synthesize 24-hour diurnal curve using Parton & Logan (1981) model
-    # T_min at hour 6 (dawn), delta_T range approx 9.0 C, peak at hour 14
     delta_t_range = 9.0
     peak_ghi_w = (p5_ghi * 1000.0 / 10.0) * (math.pi / 2.0)  # half-sine peak irradiance ~377 W/m2
 
@@ -483,7 +525,9 @@ def generate_or_get_worst_night_profile(lat: float, lon: float) -> Tuple[List[Di
             "dhi": dhi_hour,
             "wind": 3.0,
             "rh": 25.0,
-            "snow_cover": 1,
+            "snow_cover": 1 if p1_min < -2.0 else 0,
+            "cloud_cover": 0.0,
+            "cloud_fraction": 0.0,
         })
 
     meta = {
@@ -509,9 +553,9 @@ def save_to_cache(
         execute(
             """
             INSERT OR REPLACE INTO weather_cache (
-                lat, lon, date, hour, t_air, ghi, dni, dhi, wind, rh, snow_cover, provider, fetched_at
+                lat, lon, date, hour, t_air, ghi, dni, dhi, wind, rh, snow_cover, cloud_cover, provider, fetched_at
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
             """,
             (
@@ -526,6 +570,7 @@ def save_to_cache(
                 r["wind"],
                 r["rh"],
                 r["snow_cover"],
+                r.get("cloud_cover", 0.0),
                 provider,
                 fetched_at,
             ),
@@ -537,7 +582,7 @@ def get_cached_weather(lat: float, lon: float, date_str: str) -> Optional[Tuple[
     c_lat, c_lon = round_coords(lat, lon)
     rows = query_all(
         """
-        SELECT hour, t_air, ghi, dni, dhi, wind, rh, snow_cover, provider, fetched_at
+        SELECT hour, t_air, ghi, dni, dhi, wind, rh, snow_cover, cloud_cover, provider, fetched_at
         FROM weather_cache
         WHERE lat = ? AND lon = ? AND date = ?
         ORDER BY hour ASC
@@ -555,7 +600,21 @@ def get_cached_weather(lat: float, lon: float, date_str: str) -> Optional[Tuple[
             "grid_note": grid_note,
             "fetched_at": fetched_at,
         }
-        clean_rows = [{k: r[k] for k in ["hour", "t_air", "ghi", "dni", "dhi", "wind", "rh", "snow_cover"]} for r in rows[:24]]
+        clean_rows = []
+        for r in rows[:24]:
+            c_cov = float(r.get("cloud_cover", 0.0) or 0.0)
+            clean_rows.append({
+                "hour": r["hour"],
+                "t_air": r["t_air"],
+                "ghi": r["ghi"],
+                "dni": r["dni"],
+                "dhi": r["dhi"],
+                "wind": r["wind"],
+                "rh": r["rh"],
+                "snow_cover": r["snow_cover"],
+                "cloud_cover": c_cov,
+                "cloud_fraction": c_cov,
+            })
         return clean_rows, provenance
     return None
 
@@ -570,7 +629,7 @@ def get_weather(
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """
     Get weather implementing the exact fallback chain and weather modes.
-    Returns (hourly_rows, weather_provenance).
+    Strictly scopes fallback CSV to Ladakh; non-Ladakh coordinates fail with 503 if network fails.
     """
     c_lat, c_lon = round_coords(lat, lon)
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

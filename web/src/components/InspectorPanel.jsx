@@ -20,16 +20,10 @@ import {
 } from 'lucide-react';
 import CompassControl from './CompassControl';
 import EnvelopeBuilder from './EnvelopeBuilder';
+import LocationPicker from './LocationPicker';
 import { validateRequest, fieldError } from './validation';
 import { computeTotalU } from './materialsData';
 import './InspectorPanel.css';
-
-const SITE_PRESETS = [
-  { label: 'Leh',     lat: 34.1526, lon: 77.5771, altitude_m: 3500 },
-  { label: 'Kargil',  lat: 34.5539, lon: 76.1349, altitude_m: 2676 },
-  { label: 'Manali',  lat: 32.2396, lon: 77.1887, altitude_m: 2050 },
-  { label: 'Keylong', lat: 32.5726, lon: 76.9950, altitude_m: 3094 },
-];
 
 const FALLBACK_MATERIALS = [
   { id: 'mud_brick',    name: 'Mud brick (adobe)' },
@@ -188,72 +182,19 @@ export default function InspectorPanel({
               transition={{ duration: 0.15 }}
               style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
             >
-              {/* Site Presets Card */}
+              {/* Universal Site & Location Card */}
               <div className="inspector-card">
-                <div className="card-title">Site &amp; Location</div>
-                <div className="site-presets-row" role="group" aria-label="Location presets">
-                  {SITE_PRESETS.map((p) => {
-                    const isSelected =
-                      Math.abs(request.location.lat - p.lat) < 0.01 &&
-                      Math.abs(request.location.lon - p.lon) < 0.01;
-                    return (
-                      <button
-                        key={p.label}
-                        className={`site-preset-btn ${isSelected ? 'active' : ''}`}
-                        onClick={() => setLoc({ lat: p.lat, lon: p.lon, altitude_m: p.altitude_m })}
-                      >
-                        {p.label}
-                      </button>
-                    );
-                  })}
+                <div className="card-title">
+                  <span>Site &amp; Location</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)' }}>
+                    Global · DEM Altitude
+                  </span>
                 </div>
-
-                <div className="dimension-grid" style={{ marginTop: 8 }}>
-                  <div className="dim-field">
-                    <label className="dim-label" htmlFor="field-lat">Lat (°N)</label>
-                    <input
-                      id="field-lat"
-                      className={`dim-input ${errors['location.lat'] ? 'invalid' : ''}`}
-                      type="number"
-                      value={request.location.lat}
-                      min={-90} max={90} step={0.0001}
-                      onChange={e => setLoc({ lat: parseFloat(e.target.value) })}
-                    />
-                    {fieldError(errors, 'location.lat') && (
-                      <span className="inspector-error">{fieldError(errors, 'location.lat')}</span>
-                    )}
-                  </div>
-
-                  <div className="dim-field">
-                    <label className="dim-label" htmlFor="field-lon">Lon (°E)</label>
-                    <input
-                      id="field-lon"
-                      className={`dim-input ${errors['location.lon'] ? 'invalid' : ''}`}
-                      type="number"
-                      value={request.location.lon}
-                      min={-180} max={180} step={0.0001}
-                      onChange={e => setLoc({ lon: parseFloat(e.target.value) })}
-                    />
-                    {fieldError(errors, 'location.lon') && (
-                      <span className="inspector-error">{fieldError(errors, 'location.lon')}</span>
-                    )}
-                  </div>
-
-                  <div className="dim-field">
-                    <label className="dim-label" htmlFor="field-alt">Altitude (m)</label>
-                    <input
-                      id="field-alt"
-                      className={`dim-input ${errors['location.altitude_m'] ? 'invalid' : ''}`}
-                      type="number"
-                      value={request.location.altitude_m}
-                      min={0} max={8849} step={1}
-                      onChange={e => setLoc({ altitude_m: parseFloat(e.target.value) })}
-                    />
-                    {fieldError(errors, 'location.altitude_m') && (
-                      <span className="inspector-error">{fieldError(errors, 'location.altitude_m')}</span>
-                    )}
-                  </div>
-                </div>
+                <LocationPicker
+                  location={request.location}
+                  onChange={(locUpdates) => setLoc(locUpdates)}
+                  errors={errors}
+                />
               </div>
 
               {/* Shelter Geometry Card */}

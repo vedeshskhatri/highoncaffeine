@@ -18,8 +18,20 @@
 
 **Never claim POWER is live. Never claim the P1 night is site-specific.**
 
-### Fallback
-`/data/weather/leh_january_fallback.csv` — one hardcoded Ladakh winter day, so a dead network cannot kill the demo. Provider tagged `fallback` and shown as such in the UI.
+### Open-Meteo Geocoding API — location search
+- Endpoint: `https://geocoding-api.open-meteo.com/v1/search`
+- Parameters: `name={query}&count=10&language=en&format=json`
+- Fields: `name`, `admin1`, `country`, `latitude`, `longitude`, `elevation`
+- Free, no key required. Used for place search autocomplete across all coordinates on Earth.
+
+### Open-Meteo Elevation API — altitude resolution
+- Endpoint: `https://api.open-meteo.com/v1/elevation`
+- Parameters: `latitude={lat}&longitude={lon}`
+- Fields: `elevation` (meters above sea level from 90m Copernicus DEM / GTOPO30)
+- Free, no key required. Used to accurately determine site altitude for barometric pressure and air density calculations. If elevation lookup fails, the user is prompted; the system never guesses or defaults.
+
+### Fallback — Geographically Scoped
+`/data/weather/leh_january_fallback.csv` — one hardcoded Ladakh winter day, strictly scoped to the Ladakh alpine region (lat 32.0°–36.0° N, lon 75.0°–80.0° E). If a non-Ladakh coordinate is requested without network connectivity, the system fails loudly with HTTP 503 `WeatherUnavailableError` rather than silently serving Leh winter data for tropical or temperate sites. Provider tagged `fallback` only for valid within-bounds requests.
 
 ### User CSV
 Columns: `datetime, t_air_c, ghi_wm2`. Optional: `dni_wm2, dhi_wm2, wind_ms, rh_pct`. Provider tagged `user-csv`.

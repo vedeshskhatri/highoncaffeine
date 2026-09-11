@@ -100,7 +100,7 @@ class OccupancySchema(BaseModel):
 
 class GroundSchema(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    snow_cover: bool = Field(default=True, description="Whether snow covers surrounding ground")
+    snow_cover: bool = Field(default=False, description="Whether snow covers surrounding ground")
     albedo: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Ground shortwave reflectance (derived from snow_cover if null)")
 
 
@@ -280,6 +280,11 @@ class SimulateSummarySchema(BaseModel):
     t_in_max_c: float
     comfort_hours_ratio: float
     hours_below_health_threshold: int
+    hours_above_upper_limit: Optional[int] = 0
+    binding_constraint: Optional[str] = "cold_risk"
+    cooling_demand_peak_kw: Optional[float] = 0.0
+    cooling_demand_hours: Optional[int] = 0
+    climate_classification: Optional[str] = None
     solar_gain_kwh: float
     heat_loss_kwh: HeatLossBreakdownSchema
     backup_heat: BackupHeatSchema

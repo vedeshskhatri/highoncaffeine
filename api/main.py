@@ -286,11 +286,39 @@ def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
     lo, hi = imac_comfort_band(t_out_mean, mode="nv", acceptability=0.90)
     comfort_hours_ratio = round(sum(1 for t in t_in_arr if lo <= t <= hi) / len(t_in_arr), 3)
     hours_below_health = int(sum(1 for t in t_in_arr if t < HEALTH_THRESHOLD_C))
+    hours_above_upper_limit = int(sum(1 for t in t_in_arr if t > hi))
+
+    if hours_below_health > 0 and hours_above_upper_limit == 0:
+        binding_constraint = "cold_risk"
+    elif hours_above_upper_limit > 0 and hours_below_health == 0:
+        binding_constraint = "heat_risk"
+    elif hours_above_upper_limit > 0 and hours_below_health > 0:
+        binding_constraint = "cold_and_heat_risk"
+    else:
+        binding_constraint = "optimal_comfort"
+
+    cooling_deficit_w = [max(0.0, (t - hi) * 50.0) for t in t_in_arr]
+    peak_cooling_kw = round(max(cooling_deficit_w) / 1000.0, 2)
+    cooling_hours = int(sum(1 for w in cooling_deficit_w if w > 0))
+
+    mean_rh = float(sum(r["rh"] for r in weather_rows) / len(weather_rows)) if weather_rows else 30.0
+    if request.location.altitude_m >= 2500.0:
+        climate_class = "cold_high_altitude"
+    elif t_out_mean >= 24.0 and mean_rh >= 55.0:
+        climate_class = "hot_humid"
+    elif t_out_mean >= 24.0 and mean_rh < 55.0:
+        climate_class = "hot_arid"
+    elif t_out_mean < 15.0:
+        climate_class = "cold_temperate"
+    else:
+        climate_class = "moderate_composite"
 
     # Backup heat sizing
     deficit_w = [max(0.0, (HEALTH_THRESHOLD_C - t) * 50.0) for t in t_in_arr]
     backup = backup_heat_sizing(deficit_w)
     backup_py = _to_python(backup)
+    if hours_below_health == 0 and hours_above_upper_limit > 0:
+        backup_py["note"] = "No heating demand at this site (indoor minimum > 18 °C). Site is cooling-dominated."
 
     annual_kerosene_l = float(backup_py["kerosene_litres_per_night"]) * 120.0
     annual_fuel_cost_inr = annual_kerosene_l * 2400.0
@@ -302,6 +330,11 @@ def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
         "t_in_max_c": t_in_max_c,
         "comfort_hours_ratio": comfort_hours_ratio,
         "hours_below_health_threshold": hours_below_health,
+        "hours_above_upper_limit": hours_above_upper_limit,
+        "binding_constraint": binding_constraint,
+        "cooling_demand_peak_kw": peak_cooling_kw,
+        "cooling_demand_hours": cooling_hours,
+        "climate_classification": climate_class,
         "solar_gain_kwh": float(summary_eng["solar_gain_kwh"]),
         "heat_loss_kwh": {
             "walls": float(summary_eng["heat_loss_kwh"]["walls"]),
