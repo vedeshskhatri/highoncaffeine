@@ -77,7 +77,15 @@ D1 is NOT deleted — it remains the record of why the surrogate exists.
 **Decision:** Replace "field instrument, no hero section, opens directly into work" with Editorial Engineering — a warm, light, type-led product website with an interactive shelter builder at its centre.
 **Why:** An evaluator/judge should land on a finished, authoritative product built by a serious engineering team, scroll through the narrative argument (the Siachen kerosene cost, the overnight thermal collapse), and arrive at the interactive shelter builder already convinced why it matters.
 **Palette:** Warm cream foundation (`--cream: #FFF9EB`, `--cream-2: #FBF2DE`), midnight espresso typography and contrast panels (`--espresso: #200F07`, `--espresso-70: #5A4A42`, `--espresso-40: #9A8C84`), warm hairlines (`--rule: #E8DCC4`), vivid orange for warmth/sun/gain/brand (`--orange: #F77331`, `--orange-soft: #FDE6D6`), ice blue for cold/loss/health threshold (`--ice: #2E6F8E`, `--ice-soft: #DCEAF1`), and sage for comfort (`--sage: #4A7C59`, `--sage-soft: #E3EDE5`).
-**Typography:** Montserrat 700 for headlines (56–72px hero, tight tracking -0.02em), DM Sans for body, JetBrains Mono for every single number.
-**Consequence:** Single-page long-scroll rhythm with two full-bleed espresso sections breaking the cream surface. Interactive builder live-wired to the transient solver. Zero hardcoded colors.
+### D18 — Thermal Asset Management Platform Reframe
+**Decision:** Shift product scope from a single-shelter calculator to a Thermal Asset Management Platform for extreme climates.
+**Why:** Military, disaster relief, and municipal stakeholders (MES, Northern Command, NGOs) manage estates of 40–150 posts, not isolated rooms. The primary real-world constraints are estate fuel budgets, helicopter sortie logistics, and seasonal cold snap preparation.
+**Consequence:** Added estate scoping (e.g. Ladakh vs Nepal Relief), site registries with real GPS coordinates and altitudes, cached evaluation results for instant estate dashboards, budget-constrained retrofit programme planner, cold snap operational alerts, standard drawings library, and helicopter sortie forecasts. Swapnil owns `/sites/:id/design` and `web/src/components/builder/**`; platform routes wrap around it.
+
+### D19 — react-router-dom Approved for Multi-Page Platform Shell
+**Decision:** Add `react-router-dom` to `web/` dependencies.
+**Why:** The platform requires multi-route navigation across Estate Dashboard (`/dashboard`), Site Registry (`/sites`, `/sites/:id`), Programme Planner (`/programme`), Cold Snap Alerts (`/alerts`), Design Library (`/library`), Materials Availability (`/materials`), Logistics Forecast (`/forecast`), Submission Pack Reports (`/reports/:id`), Method (`/method`), and Empirical Validation (`/validation`).
+**Consequence:** Client-side routing with clean URL navigation, breadcrumbs, persistent left sidebar, and global command palette (Cmd+K). Approved per Rule R5.
+
 
 

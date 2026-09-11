@@ -1,4 +1,4 @@
--- THERMA Database Schema per brain/04_DATA_MODEL.md
+-- THERMA Database Schema per brain/04_DATA_MODEL.md and brain/07A_PLATFORM_CONTRACT_PROPOSAL.md
 -- SQLite 3 compatible
 
 CREATE TABLE IF NOT EXISTS materials (
@@ -66,4 +66,68 @@ CREATE TABLE IF NOT EXISTS forecast_watch_cache (
   ghi           REAL,               -- W/m2
   fetched_at    TEXT,
   PRIMARY KEY (lat, lon, forecast_date, hour)
+);
+
+-- ===========================================================================
+-- THERMA PLATFORM ASSET MANAGEMENT TABLES (Phase P0 per prompt & 07A proposal)
+-- ===========================================================================
+
+CREATE TABLE IF NOT EXISTS sites (
+  id                  TEXT PRIMARY KEY,
+  name                TEXT NOT NULL,
+  estate              TEXT NOT NULL DEFAULT 'Ladakh',  -- 'Ladakh' | 'Nepal Relief'
+  lat                 REAL NOT NULL,
+  lon                 REAL NOT NULL,
+  altitude_m          REAL NOT NULL,
+  district            TEXT NOT NULL,                   -- 'Leh' | 'Kargil' | 'Rasuwa'
+  site_type           TEXT NOT NULL,                   -- 'forward_post' | 'relief_camp' | 'dwelling'
+  occupants           INTEGER NOT NULL DEFAULT 8,
+  current_design_json TEXT,                            -- full envelope & geometry json
+  notes               TEXT,
+  created_at          TEXT NOT NULL,
+  updated_at          TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS site_results (
+  site_id             TEXT PRIMARY KEY,                -- 1:1 current evaluated cache
+  computed_at         TEXT NOT NULL,
+  weather_mode        TEXT NOT NULL,                   -- 'typical_day' | 'design_winter_night'
+  summary_json        TEXT NOT NULL,                   -- cached engine output
+  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS designs (
+  id                  TEXT PRIMARY KEY,
+  name                TEXT NOT NULL,
+  revision            INTEGER NOT NULL DEFAULT 1,
+  status              TEXT NOT NULL DEFAULT 'draft',   -- 'draft' | 'approved' | 'superseded'
+  design_json         TEXT NOT NULL,
+  author              TEXT NOT NULL,
+  created_at          TEXT NOT NULL,
+  parent_id           TEXT,
+  FOREIGN KEY (parent_id) REFERENCES designs(id)
+);
+
+CREATE TABLE IF NOT EXISTS site_history (
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id             TEXT NOT NULL,
+  changed_at          TEXT NOT NULL,
+  field               TEXT NOT NULL,
+  old_value           TEXT,
+  new_value           TEXT,
+  note                TEXT,
+  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS alerts (
+  id                  TEXT PRIMARY KEY,
+  site_id             TEXT NOT NULL,
+  kind                TEXT NOT NULL,                   -- 'cold_snap'
+  severity            TEXT NOT NULL,                   -- 'critical' | 'warning' | 'advisory'
+  window_start        TEXT NOT NULL,
+  window_end          TEXT NOT NULL,
+  detail_json         TEXT NOT NULL,
+  created_at          TEXT NOT NULL,
+  acknowledged        INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
 );

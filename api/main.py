@@ -48,12 +48,16 @@ from engine.what_if import (
     apply_parameter_change,
     compare_simulations,
 )
+from api.platform import router as platform_router
 
 app = FastAPI(
     title="THERMA API",
     description="Area Specific Shelter Thermal Comfort Maintenance System (SIH 2026 PS 26051 · DRDO)",
     version="0.1.0",
 )
+
+# Mount Platform Asset Management router (Phase P0 per 07A proposal)
+app.include_router(platform_router)
 
 # Enable CORS for Vite frontend
 app.add_middleware(
