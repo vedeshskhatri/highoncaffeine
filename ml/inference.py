@@ -29,6 +29,15 @@ import urllib.error
 
 import numpy as np
 
+# Compatibility alias for unpickling scikit-learn models across versions
+try:
+    import importlib
+    import sys
+    if "_loss" not in sys.modules:
+        sys.modules["_loss"] = importlib.import_module("sklearn._loss._loss")
+except Exception:
+    pass
+
 logger = logging.getLogger("therma.ml.inference")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -453,7 +462,7 @@ class ThermaInferenceEngine:
             f"- **Predicted Indoor Temperature ($T_{{in}}$)**: **`{pred['indoor_temperature_C']:.2f} °C`**",
             f"- **Predicted Operative Temperature ($T_{{op}}$)**: **`{pred['operative_temperature_C']:.2f} °C`**",
             f"- **Predicted Mean Radiant Temperature ($T_{{mrt}}$)**: **`{pred['mean_radiant_temperature_C']:.2f} °C`**",
-            f"- **Predicted Temperature Lift ($\Delta T$)**: **`+{pred['temperature_lift_C']:.2f} °C`** above ambient",
+            f"- **Predicted Temperature Lift ($\\\\Delta T$)**: **`+{pred['temperature_lift_C']:.2f} °C`** above ambient",
             f"- **Dominant Heat Loss Bottleneck**: **`{pred['dominant_heat_loss'].upper()}`**",
             f"- **Thermal Comfort Status**: **`{pred['comfort_status']}`**",
             f"- **Thermal Risk Class**: **`{pred['thermal_risk_class']}`**",
