@@ -19,6 +19,7 @@ import { useState, useEffect, useMemo } from 'react';
 import './InputRail.css';
 import CompassControl   from './CompassControl';
 import EnvelopeBuilder  from './EnvelopeBuilder';
+import CrossSectionSVG  from './CrossSectionSVG';
 import { validateRequest, fieldError } from './validation';
 
 /* ── Presets ────────────────────────────────────────────────────────────── */
@@ -487,11 +488,9 @@ export default function InputRail({ request, onUpdate, onSimulate }) {
         </div>
       </div>
 
-      {/* ═══ Live cross-section SVG placeholder ══════════════════════ */}
-      <div className="cross-section-placeholder">
-        <div className="cross-section-label">
-          Live cross-section — Phase S3
-        </div>
+      {/* ═══ Live cross-section SVG ═════════════════════════════════ */}
+      <div className="rail-section" style={{ padding: 'var(--space-2)' }}>
+        <CrossSectionSVG request={request} />
       </div>
 
       {/* ═══ 7. SUBMIT BAR ════════════════════════════════════════════ */}

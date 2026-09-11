@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "test": "node --test src/components/validation.test.js",
+    "test": "node --test src/components/*.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
