@@ -272,50 +272,552 @@
   color: var(--espresso);
 }
 
-/* AI Answer Box */
-.ai-response-box {
-  background-color: white;
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 16px;
+/* ─────────────────────────────────────────────────────────────────────────
+   AI DIAGNOSTIC CONSOLE (HIGH-PRECISION MILITARY SURROGATE INTERFACE)
+   ───────────────────────────────────────────────────────────────────────── */
+.ai-diagnostic-console {
+  background-color: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: 24px 28px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
 }
 
-.ai-response-meta {
+.diagnostic-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rule, #e2e8f0);
+}
+
+.diagnostic-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.diagnostic-engine-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background-color: var(--comfort-soft, #f0fdf4);
+  color: var(--comfort, #15803d);
+  font-family: var(--font-heading);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.diagnostic-benchmark-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background-color: var(--surface-2, #f1f5f9);
+  color: var(--text-secondary, #475569);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dot-divider {
+  color: var(--text-muted, #94a3b8);
+}
+
+.diagnostic-site-tag {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  background-color: var(--bg-base, #f8fafc);
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--rule, #e2e8f0);
+}
+
+/* Specs Strip */
+.diagnostic-specs-strip {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  background-color: var(--bg-base, #f8fafc);
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: var(--radius-md, 10px);
+  padding: 10px 16px;
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.spec-k {
+  color: var(--text-muted, #94a3b8);
+  font-weight: 500;
+}
+
+.spec-v {
+  color: var(--text-primary, #0f172a);
+  font-weight: 600;
+}
+
+/* 4 Precision Metric Tiles */
+.thermal-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 1024px) {
+  .thermal-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .thermal-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.thermal-metric-tile {
+  background-color: var(--bg-base, #f8fafc);
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.thermal-metric-tile:hover {
+  background-color: #ffffff;
+  border-color: var(--border-strong, #cbd5e1);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.metric-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.thermal-metric-label {
+  font-family: var(--font-heading);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #94a3b8);
+  text-transform: uppercase;
+}
+
+.thermal-metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.bottleneck-val {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--solar, #c2410c);
+  font-family: var(--font-heading);
+}
+
+.thermal-lift-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--text-secondary, #475569);
+}
+
+.thermal-lift-badge strong {
+  color: var(--comfort, #15803d);
+}
+
+.thermal-metric-sub {
+  font-size: 11.5px;
+  color: var(--text-secondary, #475569);
+  line-height: 1.4;
+}
+
+.safety-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   FLUX DIAGNOSTIC CARD & STACKED BAR
+   ───────────────────────────────────────────────────────────────────────── */
+.flux-diagnostic-card {
+  background-color: #ffffff;
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flux-diagnostic-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.flux-diagnostic-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 4px 0;
+}
+
+.flux-diagnostic-sub {
+  font-size: 12.5px;
+  color: var(--text-secondary, #475569);
+  margin: 0;
+}
+
+.total-flux-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background-color: var(--bg-base, #f8fafc);
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: 8px;
+  padding: 6px 14px;
+}
+
+.total-flux-label {
+  font-family: var(--font-heading);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #94a3b8);
+}
+
+.total-flux-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+/* Stacked 100% Spectrum Meter */
+.stacked-flux-bar {
+  width: 100%;
+  height: 12px;
+  background-color: var(--surface-2, #f1f5f9);
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.stacked-flux-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.stacked-flux-segment:not(:last-child) {
+  border-right: 1.5px solid #ffffff;
+}
+
+/* Flux Component Detail Rows */
+.flux-components-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flux-item-row {
+  display: grid;
+  grid-template-columns: 4px 220px 1fr 140px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background-color: var(--bg-base, #f8fafc);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+@media (max-width: 860px) {
+  .flux-item-row {
+    grid-template-columns: 4px 180px 1fr 120px;
+  }
+}
+
+.flux-item-row:hover {
+  background-color: #ffffff;
+  border-color: var(--rule, #e2e8f0);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.flux-item-row.is-dominant-loss {
+  background-color: rgba(59, 130, 246, 0.04);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.flux-item-indicator {
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+}
+
+.flux-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.flux-item-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flux-item-label {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+}
+
+.bottleneck-chip {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.flux-item-sub {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flux-item-track-box {
+  width: 100%;
+}
+
+.flux-item-track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--surface-3, #e2e8f0);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.flux-item-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.flux-item-numbers {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.flux-item-watts {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.flux-item-pct {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  min-width: 45px;
+  text-align: right;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   EXECUTIVE DIAGNOSTIC NARRATIVE & RECOMMENDATIONS
+   ───────────────────────────────────────────────────────────────────────── */
+.diagnostic-narrative-card {
+  background-color: var(--bg-base, #f8fafc);
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 20px 24px;
+}
+
+.narrative-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--rule);
   margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule, #e2e8f0);
+  flex-wrap: wrap;
 }
 
-.badge-grounded {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-family: var(--font-mono);
+.narrative-tag {
+  font-family: var(--font-heading);
   font-size: 11px;
-  font-weight: 600;
-  background-color: var(--sage-soft);
-  color: var(--sage);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #94a3b8);
 }
 
-.badge-method {
-  font-family: var(--font-mono);
+.narrative-engine-meta {
   font-size: 11px;
-  color: var(--espresso-40);
+  color: var(--text-muted, #94a3b8);
 }
 
-.ai-answer-content {
+.diagnostic-answer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diagnostic-prose {
   font-size: 14px;
-  line-height: 1.6;
-  color: var(--espresso);
-  white-space: pre-line;
+  line-height: 1.65;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+}
+
+.diagnostic-section-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 8px 0 2px 0;
+}
+
+.diagnostic-bullet-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary, #475569);
+}
+
+.diagnostic-numbered-item {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-primary, #0f172a);
+  padding: 6px 10px;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid var(--rule, #e2e8f0);
+}
+
+.mono-code-chip {
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+  color: var(--text-primary, #0f172a);
+}
+
+/* Recommendations Card */
+.diagnostic-recommendations-card {
+  background-color: #ffffff;
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recommendations-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.recommendations-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+}
+
+.recommendations-sub {
+  font-size: 12.5px;
+  color: var(--text-secondary, #475569);
+}
+
+.recommendations-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recommendation-card-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 16px;
+  background-color: var(--bg-base, #f8fafc);
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.recommendation-card-item:hover {
+  background-color: #ffffff;
+  border-color: var(--brand-blue, #1e40af);
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.06);
+}
+
+.rec-number-box {
+  width: 28px;
+  height: 28px;
+  background-color: var(--brand-blue-soft, #eff6ff);
+  color: var(--brand-blue, #1e40af);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rec-text-paragraph {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary, #0f172a);
 }
 
 /* Citations strip */
@@ -472,156 +974,3 @@
 }
 
 /* 4. Thermal Prediction Metrics & Flux Breakdown */
-.thermal-metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
-  margin: 16px 0;
-}
-
-.thermal-metric-tile {
-  background-color: var(--cream-1, #f8fafc);
-  border: 1px solid var(--rule, #e2e8f0);
-  border-radius: 8px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.thermal-metric-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--espresso-70, #64748b);
-  font-family: var(--font-heading);
-}
-
-.thermal-metric-value {
-  font-size: 22px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  color: var(--espresso, #1e293b);
-}
-
-.thermal-metric-sub {
-  font-size: 11.5px;
-  color: var(--espresso-70, #64748b);
-}
-
-.thermal-badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  width: fit-content;
-}
-
-.thermal-badge.cold {
-  background-color: #e0f2fe;
-  color: #0369a1;
-}
-
-.thermal-badge.comfort {
-  background-color: #ecfdf5;
-  color: #047857;
-}
-
-.thermal-badge.warm {
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.thermal-badge.pass {
-  background-color: #ecfdf5;
-  color: #047857;
-}
-
-.thermal-badge.refused {
-  background-color: #fee2e2;
-  color: #b91c1c;
-}
-
-.thermal-badge.elevated {
-  background-color: #fff7ed;
-  color: #c2410c;
-}
-
-.thermal-badge.low {
-  background-color: #f0fdf4;
-  color: #15803d;
-}
-
-/* Flux Breakdown Bars */
-.flux-breakdown-section {
-  margin: 18px 0;
-  padding: 14px 16px;
-  background-color: var(--cream-1, #f8fafc);
-  border: 1px solid var(--rule, #e2e8f0);
-  border-radius: 8px;
-}
-
-.flux-section-title {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--espresso-70, #64748b);
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.flux-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-  font-size: 12.5px;
-}
-
-.flux-row-label {
-  width: 150px;
-  font-weight: 500;
-  color: var(--espresso, #334155);
-}
-
-.flux-row-track {
-  flex: 1;
-  height: 8px;
-  background-color: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.flux-row-fill {
-  height: 100%;
-  background-color: var(--orange, #f97316);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.flux-row-val {
-  width: 80px;
-  text-align: right;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  color: var(--espresso, #1e293b);
-}
-
-/* Recommendations List */
-.thermal-recs-list {
-  margin: 14px 0 0 0;
-  padding-left: 18px;
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: var(--espresso, #334155);
-}
-
-.thermal-recs-list li {
-  margin-bottom: 6px;
-}
-
