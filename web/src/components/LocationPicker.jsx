@@ -1,15 +1,17 @@
 /*
- * LocationPicker.jsx — Universal Earth Coordinates & Elevation Selector for THERMA
- * Implements the 4 required input pathways without external map or geocoding libraries:
- * 1. Browser Geolocation ("Use my current location") with explicit denial handling (NEVER Leh fallback)
- * 2. Place Search (Open-Meteo Geocoding API, debounced, keyboard navigable, showing elevation)
- * 3. Click-Anywhere Hand-Rolled SVG Map with numerical readout & pin marker
- * 4. Manual Lat/Lon/Altitude input fields with full physiological validation
- * 
- * Elevation: Open-Meteo elevation endpoint. If lookup fails, PROMPTS THE USER. Never defaults.
+ * LocationPicker.jsx — Universal Earth Coordinates & Meteorological Profile Selector
+ * Supports all terrain & microclimates from extreme high-altitude alpine posts to plains, deserts & coasts.
+ * Features:
+ * 1. Fast Place Search (backend proxy / Open-Meteo geocoding with elevation & region)
+ * 2. High-Resolution Tactical World Map (Leaflet with satellite, topo, dark, and street layers + draggable beacon)
+ * 3. 3D Earth Globe option with planetary rotation & benchmark beacons
+ * 4. Categorized Climate Benchmarks (Extreme Alpine, Mountain Valleys, Continental Plains, Hot Arid, Coastal)
+ * 5. Reverse Geocoding with real-time site identification
+ * 6. Live Meteorological Intelligence (SiteWeatherIntel with min/mean/max temp, solar radiation, wind, snow)
+ * 7. Browser Geolocation & Manual Lat/Lon/Elevation editing with strict validation
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   MapPin,
   Search,
@@ -17,35 +19,76 @@ import {
   Globe,
   Sliders,
   AlertTriangle,
-  Check,
   RefreshCw,
   X,
-  Layers,
+  Compass,
+  Mountain,
 } from 'lucide-react';
+import TacticalWorldMap from './TacticalWorldMap';
 import EarthGlobe3D from './EarthGlobe3D';
 import SiteWeatherIntel from './SiteWeatherIntel';
 import './LocationPicker.css';
 
-const QUICK_CLIMATES = [
-  { label: 'Leh', lat: 34.1526, lon: 77.5771, altitude_m: 3500, desc: 'Cold Alpine · 3,500m' },
-  { label: 'Siachen', lat: 35.2000, lon: 77.2000, altitude_m: 3650, desc: 'Glacial Alpine · 3,650m' },
-  { label: 'Dras', lat: 34.4327, lon: 75.7547, altitude_m: 3280, desc: 'Extreme Cold · 3,280m' },
-  { label: 'Kargil', lat: 34.5539, lon: 76.1349, altitude_m: 2676, desc: 'Cold Arid · 2,676m' },
-  { label: 'Tawang', lat: 27.5861, lon: 91.8653, altitude_m: 3048, desc: 'High Mountain · 3,048m' },
-  { label: 'Chennai', lat: 13.0827, lon: 80.2707, altitude_m: 10, desc: 'Hot Humid · 10m' },
-  { label: 'Jaisalmer', lat: 26.9157, lon: 70.9083, altitude_m: 225, desc: 'Hot Arid · 225m' },
-  { label: 'Rasuwa', lat: 28.1200, lon: 85.2800, altitude_m: 2400, desc: 'Mountain · 2,400m' },
+const CLIMATE_CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'alpine', label: 'High Alpine' },
+  { id: 'mountain', label: 'Mountain & Valley' },
+  { id: 'plains', label: 'Plains & Plateau' },
+  { id: 'desert', label: 'Hot Arid' },
+  { id: 'coastal', label: 'Coastal' },
+];
+
+const COMPREHENSIVE_PRESETS = [
+  // Extreme High Alpine / Glacial
+  { label: 'Siachen Base Camp', cat: 'alpine', lat: 35.2000, lon: 77.2100, altitude_m: 3600, desc: 'Glacial Alpine · 3,600m · Severe Freeze' },
+  { label: 'Leh', cat: 'alpine', lat: 34.1526, lon: 77.5771, altitude_m: 3500, desc: 'Cold Alpine · 3,500m · High Solar' },
+  { label: 'Dras', cat: 'alpine', lat: 34.4327, lon: 75.7547, altitude_m: 3280, desc: 'Extreme Cold · 3,280m · -35°C Min' },
+  { label: 'Nyoma', cat: 'alpine', lat: 33.2000, lon: 78.6500, altitude_m: 4180, desc: 'High Plateau · 4,180m · Sub-Zero' },
+  { label: 'Khardung La', cat: 'alpine', lat: 34.2789, lon: 77.6044, altitude_m: 5359, desc: 'Ultra High Pass · 5,359m · Severe Hypoxia' },
+  { label: 'Pangong Tso', cat: 'alpine', lat: 33.7500, lon: 78.6667, altitude_m: 4250, desc: 'Endorheic High Lake · 4,250m' },
+  { label: 'Tawang', cat: 'alpine', lat: 27.5861, lon: 91.8653, altitude_m: 3048, desc: 'Eastern Himalaya · 3,048m · High Moisture' },
+  { label: 'Baralacha La', cat: 'alpine', lat: 32.7500, lon: 77.4300, altitude_m: 4890, desc: 'Zanskar Pass · 4,890m · Deep Snow' },
+
+  // Mountain & Hilly Valleys
+  { label: 'Shimla', cat: 'mountain', lat: 31.1048, lon: 77.1734, altitude_m: 2276, desc: 'Himalayan Ridge · 2,276m · Temperate Cold' },
+  { label: 'Manali', cat: 'mountain', lat: 32.2396, lon: 77.1887, altitude_m: 2050, desc: 'Kullu Valley · 2,050m · Alpine Slope' },
+  { label: 'Srinagar', cat: 'mountain', lat: 34.0837, lon: 74.7973, altitude_m: 1585, desc: 'Kashmir Valley · 1,585m · Moderate Winter' },
+  { label: 'Keylong', cat: 'mountain', lat: 32.5726, lon: 76.9950, altitude_m: 3094, desc: 'Lahaul Valley · 3,094m · Cold Arid' },
+  { label: 'Auli High Camp', cat: 'mountain', lat: 30.5300, lon: 79.5700, altitude_m: 2800, desc: 'Garhwal Himalaya · 2,800m' },
+  { label: 'Rasuwa', cat: 'mountain', lat: 28.1200, lon: 85.2800, altitude_m: 2400, desc: 'Nepal Relief Zone · 2,400m' },
+  { label: 'Darjeeling', cat: 'mountain', lat: 27.0410, lon: 88.2663, altitude_m: 2042, desc: 'Lesser Himalaya · 2,042m · Humid Montane' },
+
+  // Continental Plains & Plateau
+  { label: 'New Delhi', cat: 'plains', lat: 28.6139, lon: 77.2090, altitude_m: 216, desc: 'Indo-Gangetic Plain · 216m · High Diurnal Swing' },
+  { label: 'Chandigarh', cat: 'plains', lat: 30.7333, lon: 76.7794, altitude_m: 321, desc: 'Shivalik Foothills · 321m' },
+  { label: 'Bengaluru', cat: 'plains', lat: 12.9716, lon: 77.5946, altitude_m: 920, desc: 'Deccan Plateau · 920m · Mild Temperate' },
+
+  // Hot Arid / Desert
+  { label: 'Jaisalmer', cat: 'desert', lat: 26.9157, lon: 70.9083, altitude_m: 225, desc: 'Thar Desert · 225m · Intense Diurnal Range' },
+  { label: 'Bikaner', cat: 'desert', lat: 28.0167, lon: 73.3119, altitude_m: 224, desc: 'Arid Lowland · 224m · Low Humidity' },
+
+  // Coastal / Humid
+  { label: 'Mumbai', cat: 'coastal', lat: 19.0760, lon: 72.8777, altitude_m: 14, desc: 'West Coast · 14m · High Humidity Marine' },
+  { label: 'Chennai', cat: 'coastal', lat: 13.0827, lon: 80.2707, altitude_m: 10, desc: 'Coromandel Coast · 10m · Tropical Maritime' },
+
+  // International Benchmarks
+  { label: 'Denver / Rockies', cat: 'mountain', lat: 39.7392, lon: -104.9903, altitude_m: 1603, desc: 'High Plains Foothills · 1,603m' },
+  { label: 'Tokyo', cat: 'coastal', lat: 35.6762, lon: 139.6503, altitude_m: 41, desc: 'Temperate Maritime · 41m' },
+  { label: 'London', cat: 'plains', lat: 51.5074, lon: -0.1278, altitude_m: 25, desc: 'Oceanic Basin · 25m' },
 ];
 
 export default function LocationPicker({ location, onChange, errors = {} }) {
   const [activeTab, setActiveTab] = useState('search'); // 'search' | 'map' | 'manual'
-  const [mapSubView, setMapSubView] = useState('3d'); // '3d' | '2d'
+  const [mapSubView, setMapSubView] = useState('tactical'); // 'tactical' | '3d'
+  const [activePresetCategory, setActivePresetCategory] = useState('all');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [searchError, setSearchError] = useState(null);
 
+  const [placeName, setPlaceName] = useState(null);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState(null);
 
@@ -55,7 +98,34 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
   const searchInputRef = useRef(null);
   const resultsRef = useRef(null);
 
-  // Debounced Place Search
+  // Reverse Geocode place name whenever lat or lon changes
+  useEffect(() => {
+    if (!location || location.lat === undefined || location.lon === undefined) return;
+    let isMounted = true;
+
+    const resolvePlace = async () => {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/location/reverse?lat=${location.lat}&lon=${location.lon}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data?.name) {
+            const display = data.region ? `${data.name}, ${data.region}` : data.name;
+            setPlaceName(display);
+          }
+        }
+      } catch {
+        // Silently fallback to coordinates
+      }
+    };
+
+    const timer = setTimeout(resolvePlace, 150);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [location.lat, location.lon]);
+
+  // Debounced Place Search (Open-Meteo Geocoding API + Local Proxy)
   useEffect(() => {
     if (!searchQuery || searchQuery.trim().length < 2) {
       setSearchResults([]);
@@ -67,17 +137,16 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
       setSearching(true);
       setSearchError(null);
       try {
-        // Try local backend proxy first, fallback to direct Open-Meteo
         let data = null;
         try {
-          const res = await fetch(`http://127.0.0.1:8000/location/search?q=${encodeURIComponent(searchQuery)}&count=6`);
+          const res = await fetch(`http://127.0.0.1:8000/location/search?q=${encodeURIComponent(searchQuery)}&count=8`);
           if (res.ok) {
             const json = await res.json();
             data = json.results || [];
           }
         } catch {
-          // Direct fallback
-          const direct = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=6&language=en&format=json`);
+          // Direct client fallback
+          const direct = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=8&language=en&format=json`);
           if (direct.ok) {
             const json = await direct.json();
             data = (json.results || []).map(r => ({
@@ -97,15 +166,15 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
           setSelectedIndex(-1);
         } else {
           setSearchResults([]);
-          setSearchError('No matching places found. Try manual coordinate entry.');
+          setSearchError('No matching places found. Try entering coordinates or clicking the world map.');
         }
-      } catch (err) {
+      } catch {
         setSearchError('Geocoding service unavailable. You can enter coordinates manually.');
         setSearchResults([]);
       } finally {
         setSearching(false);
       }
-    }, 280);
+    }, 250);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -131,8 +200,9 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
   // Select Place from Search
   const selectPlace = (place) => {
     setSearchResults([]);
-    setSearchQuery(`${place.name}, ${place.country}`);
+    setSearchQuery(`${place.name}${place.country ? `, ${place.country}` : ''}`);
     setSearchError(null);
+    setPlaceName(`${place.name}${place.admin1 ? `, ${place.admin1}` : ''}`);
 
     const newLoc = {
       lat: Number(place.lat.toFixed(4)),
@@ -143,7 +213,6 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
     };
 
     if (place.elevation_m === null || place.elevation_m === undefined) {
-      // Need elevation resolution
       lookupElevation(newLoc.lat, newLoc.lon);
     } else {
       setElevPrompt(null);
@@ -151,14 +220,14 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
     }
   };
 
-  // Lookup Elevation via API with robust fallback chain
+  // Lookup Elevation via API with non-defaulting policy
   const lookupElevation = async (lat, lon) => {
     setElevLoading(true);
     setElevPrompt(null);
     try {
       let elev = null;
 
-      // Tier 1: Local backend proxy (includes canonical, cache, Open-Meteo & Open-Elevation)
+      // 1. Local backend proxy
       try {
         const res = await fetch(`http://127.0.0.1:8000/location/elevation?lat=${lat}&lon=${lon}`);
         if (res.ok) {
@@ -168,31 +237,31 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
           }
         }
       } catch {
-        // Backend offline -> proceed to direct tier fallbacks
+        // Fall through to direct tier
       }
 
-      // Tier 2: Direct Open-Elevation API (robust when Open-Meteo hits 429 rate limit)
+      // 2. Direct Open-Elevation API
       if (elev === null || elev === undefined) {
         try {
           const res = await fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lon}`);
           if (res.ok) {
             const json = await res.json();
-            if (json.results && json.results[0] && json.results[0].elevation !== null && json.results[0].elevation !== undefined) {
+            if (json.results && json.results[0] && json.results[0].elevation !== null) {
               elev = json.results[0].elevation;
             }
           }
         } catch {
-          // Continue to next fallback
+          // Continue
         }
       }
 
-      // Tier 3: Direct Open-Meteo Elevation API
+      // 3. Direct Open-Meteo Elevation API
       if (elev === null || elev === undefined) {
         try {
           const direct = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
           if (direct.ok) {
             const json = await direct.json();
-            if (json.elevation && json.elevation[0] !== null && json.elevation[0] !== undefined) {
+            if (json.elevation && json.elevation[0] !== null) {
               elev = json.elevation[0];
             }
           }
@@ -205,7 +274,6 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
         onChange({ lat, lon, altitude_m: Math.round(elev) });
         setElevPrompt(null);
       } else {
-        // Strict non-defaulting policy: Prompt user if elevation cannot be determined
         setElevPrompt('Elevation could not be resolved automatically. Please enter altitude (m ASL) manually.');
         onChange({ lat, lon, altitude_m: location.altitude_m });
       }
@@ -220,7 +288,7 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
   // Browser Geolocation Pathway
   const handleCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setGeoError('Geolocation is not supported by your browser. Please search or enter coordinates.');
+      setGeoError('Geolocation is not supported by your browser.');
       return;
     }
 
@@ -240,17 +308,15 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
           onChange({ lat, lon, altitude_m: alt });
           setElevPrompt(null);
         } else {
-          // Resolve elevation or ask user
           lookupElevation(lat, lon);
         }
       },
       (err) => {
         setGeoLoading(false);
-        // Explicit denial or position error: NEVER fall back to Leh!
         if (err.code === 1) {
-          setGeoError('Location permission denied. Please search for your city or enter coordinates manually.');
+          setGeoError('Location permission denied. Please search or enter coordinates manually.');
         } else if (err.code === 2) {
-          setGeoError('Position unavailable. Please search for a location or use the interactive map.');
+          setGeoError('Position unavailable. Please search for a location or use the world map.');
         } else {
           setGeoError('Geolocation timed out. Please enter your location manually.');
         }
@@ -259,27 +325,10 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
     );
   };
 
-  // Click-Anywhere Map Coordinates Translation
-  const handleMapClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-
-    // Equirectangular projection mapping:
-    // X: [0, width] -> Lon [-180, +180]
-    // Y: [0, height] -> Lat [+85, -85] (Mercator-ish crop)
-    const normX = clickX / rect.width;
-    const normY = clickY / rect.height;
-
-    const lon = Number((-180 + normX * 360).toFixed(4));
-    const lat = Number((85 - normY * 170).toFixed(4));
-
-    lookupElevation(lat, lon);
-  };
-
-  // Pin percentage on map
-  const pinLeftPct = Math.max(1, Math.min(99, ((location.lon + 180) / 360) * 100));
-  const pinTopPct = Math.max(1, Math.min(99, ((85 - location.lat) / 170) * 100));
+  // Filtered presets
+  const filteredPresets = activePresetCategory === 'all'
+    ? COMPREHENSIVE_PRESETS
+    : COMPREHENSIVE_PRESETS.filter(p => p.cat === activePresetCategory);
 
   return (
     <div className="location-picker">
@@ -320,7 +369,7 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
               ref={searchInputRef}
               type="text"
               className="search-input"
-              placeholder="Search city, town, or military post..."
+              placeholder="Search city, high-altitude post, mountain, or valley..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -382,16 +431,23 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
         </div>
       )}
 
-      {/* ── 2. Click-Anywhere 3D Earth Globe & World Map ─────────────────────── */}
+      {/* ── 2. Click-Anywhere World Map (Tactical Leaflet / 3D Globe) ───────── */}
       {activeTab === 'map' && (
         <div className="loc-section map-mode">
           <div className="map-mode-header">
             <span className="map-hint">
-              {mapSubView === '3d'
-                ? 'Click anywhere on Earth to drop pin. Drag to rotate in 3D, scroll to zoom.'
-                : 'Click planar projection to drop pin. Coordinates & altitude update automatically.'}
+              {mapSubView === 'tactical'
+                ? 'High-res planetary map. Click or drag beacon to set target coordinates & altitude.'
+                : 'Click anywhere on Earth to drop pin. Drag to rotate in 3D, scroll to zoom.'}
             </span>
             <div className="map-subview-toggle">
+              <button
+                type="button"
+                className={`subview-btn ${mapSubView === 'tactical' ? 'active' : ''}`}
+                onClick={() => setMapSubView('tactical')}
+              >
+                Tactical Map
+              </button>
               <button
                 type="button"
                 className={`subview-btn ${mapSubView === '3d' ? 'active' : ''}`}
@@ -399,106 +455,28 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
               >
                 3D Globe
               </button>
-              <button
-                type="button"
-                className={`subview-btn ${mapSubView === '2d' ? 'active' : ''}`}
-                onClick={() => setMapSubView('2d')}
-              >
-                2D Map
-              </button>
             </div>
           </div>
 
-          {mapSubView === '3d' ? (
+          {mapSubView === 'tactical' ? (
+            <TacticalWorldMap
+              location={location}
+              onCoordsChange={(lat, lon) => lookupElevation(lat, lon)}
+              placeName={placeName}
+              elevation_m={location.altitude_m}
+            />
+          ) : (
             <EarthGlobe3D
               location={location}
               onChange={(newCoords) => onChange({ ...location, ...newCoords })}
               onResolveElevation={(lat, lon) => lookupElevation(lat, lon)}
               elevationLoading={elevLoading}
             />
-          ) : (
-            <>
-              <div className="svg-world-map-wrap" onClick={handleMapClick}>
-                <svg
-                  className="svg-world-map"
-                  viewBox="0 0 720 360"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#1e2229" />
-                      <stop offset="100%" stopColor="#141820" />
-                    </linearGradient>
-                  </defs>
-                  {/* Ocean Canvas */}
-                  <rect width="720" height="360" fill="url(#oceanGrad)" />
-
-                  {/* Equator & Tropics Graticules */}
-                  <line x1="0" y1="180" x2="720" y2="180" stroke="#333b47" strokeWidth="0.8" strokeDasharray="3 3" />
-                  <line x1="0" y1="130" x2="720" y2="130" stroke="#2a313d" strokeWidth="0.6" strokeDasharray="2 4" />
-                  <line x1="0" y1="230" x2="720" y2="230" stroke="#2a313d" strokeWidth="0.6" strokeDasharray="2 4" />
-                  <line x1="360" y1="0" x2="360" y2="360" stroke="#333b47" strokeWidth="0.8" strokeDasharray="3 3" />
-
-                  {/* Continental Outlines */}
-                  <path
-                    d="M 380 60 Q 450 50 540 80 Q 600 120 580 180 Q 520 200 500 240 Q 480 200 450 180 Q 420 180 390 150 Z"
-                    fill="#2b3340"
-                    stroke="#3f4b5c"
-                    strokeWidth="1"
-                  />
-                  <path
-                    d="M 340 140 Q 410 130 420 180 Q 430 260 380 300 Q 340 260 330 200 Z"
-                    fill="#2b3340"
-                    stroke="#3f4b5c"
-                    strokeWidth="1"
-                  />
-                  <path
-                    d="M 120 50 Q 220 50 240 100 Q 210 160 170 190 Q 140 150 110 100 Z"
-                    fill="#2b3340"
-                    stroke="#3f4b5c"
-                    strokeWidth="1"
-                  />
-                  <path
-                    d="M 190 200 Q 250 210 240 270 Q 210 330 180 340 Q 170 280 180 230 Z"
-                    fill="#2b3340"
-                    stroke="#3f4b5c"
-                    strokeWidth="1"
-                  />
-                  <path
-                    d="M 540 250 Q 610 240 620 290 Q 560 310 530 280 Z"
-                    fill="#2b3340"
-                    stroke="#3f4b5c"
-                    strokeWidth="1"
-                  />
-
-                  {/* Graticule Labels */}
-                  <text x="5" y="176" fill="#5c6878" fontSize="9" fontFamily="monospace">0° (Equator)</text>
-                  <text x="365" y="15" fill="#5c6878" fontSize="9" fontFamily="monospace">0° (Prime Meridian)</text>
-                </svg>
-
-                {/* Interactive Pin Marker */}
-                <div
-                  className="map-picked-pin"
-                  style={{ top: `${pinTopPct}%`, left: `${pinLeftPct}%` }}
-                  title={`Pinned: ${location.lat}° N, ${location.lon}° E`}
-                >
-                  <div className="pin-pulse" />
-                  <MapPin size={14} className="pin-icon" />
-                </div>
-              </div>
-
-              <div className="map-readout-row">
-                <span>Picked Coordinates:</span>
-                <strong className="mono">
-                  {location.lat.toFixed(2)}° N, {location.lon.toFixed(2)}° E
-                </strong>
-              </div>
-            </>
           )}
         </div>
       )}
 
-      {/* ── 3. Manual Entry & Numerical Fields (Always Editable) ────────────── */}
+      {/* ── 3. Manual Coordinate Fields (Always Visible & Editable) ──────────── */}
       <div className="loc-fields-grid">
         <div className="loc-field">
           <label className="loc-label" htmlFor="field-lat">Latitude (°N)</label>
@@ -564,7 +542,7 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
         </div>
       </div>
 
-      {/* ── Status, Denial, and Prompt Alerts ───────────────────────────────── */}
+      {/* ── Status Alerts ── */}
       {geoError && (
         <div className="loc-alert error">
           <AlertTriangle size={13} />
@@ -579,11 +557,28 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
         </div>
       )}
 
-      {/* ── Quick Climate Benchmarks (Global Representation) ───────────────── */}
+      {/* ── Comprehensive Climate & Terrain Presets ─────────────────────────── */}
       <div className="quick-climates-wrap">
-        <span className="quick-label">Representative Benchmarks:</span>
+        <div className="quick-header-row">
+          <span className="quick-label">
+            {placeName ? `Active: ${placeName}` : 'Representative Microclimates:'}
+          </span>
+          <div className="climate-cat-tabs">
+            {CLIMATE_CATEGORIES.map(cat => (
+              <button
+                key={cat.id}
+                type="button"
+                className={`cat-chip ${activePresetCategory === cat.id ? 'active' : ''}`}
+                onClick={() => setActivePresetCategory(cat.id)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="quick-pills">
-          {QUICK_CLIMATES.map((c) => {
+          {filteredPresets.map((c) => {
             const isSelected =
               Math.abs(location.lat - c.lat) < 0.05 &&
               Math.abs(location.lon - c.lon) < 0.05;
@@ -594,18 +589,21 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
                 className={`quick-pill ${isSelected ? 'active' : ''}`}
                 onClick={() => {
                   setElevPrompt(null);
+                  setPlaceName(c.label);
                   onChange({ lat: c.lat, lon: c.lon, altitude_m: c.altitude_m });
                 }}
                 title={c.desc}
               >
-                {c.label}
+                <span className="pill-dot" />
+                <span>{c.label}</span>
+                <span className="pill-alt">{c.altitude_m}m</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* ── 4. Live Site Climate & Meteorological Intelligence ──────────────── */}
+      {/* ── Live Site Climate & Meteorological Intelligence Card ────────────── */}
       <SiteWeatherIntel location={location} />
     </div>
   );

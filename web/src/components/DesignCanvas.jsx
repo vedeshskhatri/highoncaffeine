@@ -9,7 +9,7 @@ import Shelter3DCanvas from './Shelter3DCanvas';
 import CrossSectionSVG from './CrossSectionSVG';
 import CanvasToolbar from './CanvasToolbar';
 import MaterialSuggestionPanel from './MaterialSuggestionPanel';
-import { X, Check } from 'lucide-react';
+import { X, Check, MapPin, Wind, Sun, Snowflake } from 'lucide-react';
 import './DesignCanvas.css';
 
 const CATEGORIES = [
@@ -20,7 +20,14 @@ const CATEGORIES = [
   { label: 'membrane',   color: 'var(--text-muted)' },
 ];
 
-export default function DesignCanvas({ request, onSimulate, onApplyBuildUp }) {
+export default function DesignCanvas({
+  request,
+  onSimulate,
+  onApplyBuildUp,
+  activeSiteName,
+  siteWeather,
+  onOpenLocation,
+}) {
   const [mode, setMode] = useState('3d'); // '3d' | '2d'
   const [viewMode, setViewMode] = useState('solid'); // 'solid' | 'exploded' | 'thermal'
   const [showDimensions, setShowDimensions] = useState(true);
@@ -40,6 +47,64 @@ export default function DesignCanvas({ request, onSimulate, onApplyBuildUp }) {
 
   return (
     <div className="design-canvas-stage">
+      {/* ── 0. Floating Location & Climate Telemetry Widget ─────────────── */}
+      <div className="canvas-telemetry-banner">
+        <div className="telemetry-main-row">
+          <div className="telemetry-pin-badge">
+            <MapPin size={13} className="telemetry-icon" />
+            <span className="telemetry-name">{activeSiteName || 'Site Location'}</span>
+          </div>
+          <span className="telemetry-coord mono">
+            {request?.location?.lat?.toFixed(2)}°N, {request?.location?.lon?.toFixed(2)}°E · {request?.location?.altitude_m}m ASL
+          </span>
+          {onOpenLocation && (
+            <button
+              type="button"
+              className="telemetry-change-btn"
+              onClick={onOpenLocation}
+              title="Change Site Location & Weather"
+            >
+              <span>Switch Site</span>
+            </button>
+          )}
+        </div>
+
+        {siteWeather?.metrics && (
+          <div className="telemetry-metrics-row">
+            <div className="telemetry-metric-item" title="Minimum Diurnal Air Temperature">
+              <span className="metric-tag">T_MIN</span>
+              <span className="metric-val mono" style={{ color: siteWeather.metrics.t_air_min < 0 ? '#38bdf8' : 'inherit' }}>
+                {siteWeather.metrics.t_air_min > 0 ? `+${siteWeather.metrics.t_air_min}` : siteWeather.metrics.t_air_min}°C
+              </span>
+            </div>
+            <div className="telemetry-metric-sep" />
+            <div className="telemetry-metric-item" title="Mean Diurnal Air Temperature">
+              <span className="metric-tag">T_MEAN</span>
+              <span className="metric-val mono">{siteWeather.metrics.t_air_mean}°C</span>
+            </div>
+            <div className="telemetry-metric-sep" />
+            <div className="telemetry-metric-item" title="Maximum Diurnal Air Temperature">
+              <span className="metric-tag">T_MAX</span>
+              <span className="metric-val mono">{siteWeather.metrics.t_air_max > 0 ? `+${siteWeather.metrics.t_air_max}` : siteWeather.metrics.t_air_max}°C</span>
+            </div>
+            <div className="telemetry-metric-sep" />
+            <div className="telemetry-metric-item" title="Direct Normal Solar Irradiance Peak">
+              <span className="metric-tag">DNI_PEAK</span>
+              <span className="metric-val mono" style={{ color: '#f59e0b' }}>
+                {Math.round(siteWeather.metrics.solar_dni_peak_wm2)} W/m²
+              </span>
+            </div>
+            <div className="telemetry-metric-sep" />
+            <div className="telemetry-metric-item" title="Snow Cover Status">
+              <span className="metric-tag">SNOW</span>
+              <span className="metric-val" style={{ color: siteWeather.metrics.snow_cover ? '#38bdf8' : '#64748b' }}>
+                {siteWeather.metrics.snow_cover ? 'Active' : 'None'}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ── 1. Main Viewport (3D or 2D) ─────────────────────────────────── */}
       <AnimatePresence mode="wait">
         {mode === '3d' ? (

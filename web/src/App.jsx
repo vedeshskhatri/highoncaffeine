@@ -74,6 +74,9 @@ export default function App() {
 
   const [currentStep, setCurrentStep] = useState('design');
   const [simulateRequest, setSimulateRequest] = useState(INITIAL_SIMULATE_REQUEST);
+  const [activeSiteName, setActiveSiteName] = useState(null);
+  const [siteWeather, setSiteWeather] = useState(null);
+  const [allEstateSites, setAllEstateSites] = useState([]);
   const [gridNote, setGridNote] = useState(null);
   const [simulateResult, setSimulateResult] = useState(null);
   const [optimizeResult, setOptimizeResult] = useState(null);
@@ -89,6 +92,92 @@ export default function App() {
       localStorage.removeItem('therma_theme');
     }
   }, []);
+
+  // 1. Fetch estate sites and load active siteId from route URL
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/sites')
+      .then(r => r.ok ? r.json() : [])
+      .then(sites => {
+        if (Array.isArray(sites) && sites.length > 0) {
+          setAllEstateSites(sites);
+        }
+      })
+      .catch(() => {});
+
+    if (!siteId) return;
+
+    fetch(`http://127.0.0.1:8000/sites/${siteId}`)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(site => {
+        if (!site) return;
+        setActiveSiteName(site.name);
+        setSimulateRequest(prev => {
+          const next = {
+            ...prev,
+            location: {
+              lat: site.lat !== undefined ? site.lat : prev.location.lat,
+              lon: site.lon !== undefined ? site.lon : prev.location.lon,
+              altitude_m: site.altitude_m !== undefined ? site.altitude_m : prev.location.altitude_m,
+            },
+          };
+          if (site.current_design) {
+            if (site.current_design.geometry) next.geometry = { ...prev.geometry, ...site.current_design.geometry };
+            if (site.current_design.envelope) next.envelope = { ...prev.envelope, ...site.current_design.envelope };
+            if (site.current_design.openings) next.openings = site.current_design.openings;
+            if (site.current_design.ventilation) next.ventilation = { ...prev.ventilation, ...site.current_design.ventilation };
+            if (site.current_design.occupancy) next.occupancy = { ...prev.occupancy, ...site.current_design.occupancy };
+          }
+          return next;
+        });
+      })
+      .catch(err => {
+        console.warn('Could not load site details for', siteId, err);
+      });
+  }, [siteId]);
+
+  // 2. Fetch live meteorological profile & reverse geocode when coordinates change
+  useEffect(() => {
+    const lat = simulateRequest?.location?.lat;
+    const lon = simulateRequest?.location?.lon;
+    if (lat === undefined || lon === undefined) return;
+
+    let isMounted = true;
+    const fetchWeatherAndLocation = async () => {
+      // Reverse geocode place name
+      try {
+        const revRes = await fetch(`http://127.0.0.1:8000/location/reverse?lat=${lat}&lon=${lon}`);
+        if (revRes.ok) {
+          const revData = await revRes.json();
+          if (isMounted && revData?.name) {
+            setActiveSiteName(revData.region ? `${revData.name}, ${revData.region}` : revData.name);
+          }
+        }
+      } catch {}
+
+      // Fetch meteorological preview
+      try {
+        const wRes = await fetch(`http://127.0.0.1:8000/location/weather?lat=${lat}&lon=${lon}`);
+        if (wRes.ok) {
+          const wData = await wRes.json();
+          if (isMounted) {
+            setSiteWeather(wData);
+            if (wData?.metrics?.snow_cover !== undefined) {
+              setSimulateRequest(prev => ({
+                ...prev,
+                ground: { ...prev.ground, snow_cover: wData.metrics.snow_cover },
+              }));
+            }
+          }
+        }
+      } catch {}
+    };
+
+    const timer = setTimeout(fetchWeatherAndLocation, 160);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [simulateRequest?.location?.lat, simulateRequest?.location?.lon]);
 
   const accessibleSteps = useMemo(() => new Set(['design', 'simulate', 'optimize', 'watch']), []);
 
@@ -246,10 +335,34 @@ export default function App() {
           </div>
 
           {/* Active Shelter Configuration Pill */}
-          <div className="topbar-config-pill" title={`Dimensions: ${simulateRequest.geometry.length_m}m × ${simulateRequest.geometry.width_m}m × ${simulateRequest.geometry.height_m}m`}>
+          <div
+            className="topbar-config-pill"
+            title={`Site: ${activeSiteName || 'Custom'} | Coords: ${simulateRequest.location.lat}°N, ${simulateRequest.location.lon}°E | Altitude: ${simulateRequest.location.altitude_m}m ASL`}
+            onClick={() => {
+              if (currentStep !== 'design') setCurrentStep('design');
+              setInspectorCollapsed(false);
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             <span className="config-dot" />
-            <span className="config-name">Ladakh Rapid Shelter</span>
-            <span className="config-meta">{floorArea} m²</span>
+            <span className="config-name">{activeSiteName || 'Alpine Field Post'}</span>
+            <span className="config-meta">{simulateRequest.location.altitude_m}m ASL · {floorArea} m²</span>
+            {siteWeather?.metrics && (
+              <span
+                className="config-weather-badge mono"
+                style={{
+                  fontSize: 10,
+                  padding: '1px 6px',
+                  borderRadius: 4,
+                  background: siteWeather.metrics.t_air_min < 0 ? 'rgba(56, 189, 248, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                  color: siteWeather.metrics.t_air_min < 0 ? '#38bdf8' : '#f59e0b',
+                  fontWeight: 600,
+                  marginLeft: 4,
+                }}
+              >
+                {siteWeather.metrics.t_air_min > 0 ? `+${siteWeather.metrics.t_air_min}` : siteWeather.metrics.t_air_min}°C
+              </span>
+            )}
           </div>
         </div>
 
@@ -354,6 +467,13 @@ export default function App() {
                 <DesignCanvas
                   request={simulateRequest}
                   onSimulate={handleSimulate}
+                  activeSiteName={activeSiteName}
+                  siteWeather={siteWeather}
+                  onOpenLocation={() => {
+                    setInspectorCollapsed(false);
+                    const el = document.getElementById('field-lat');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
                   onApplyBuildUp={(updates) => {
                     setSimulateRequest((prev) => ({
                       ...prev,

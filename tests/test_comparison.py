@@ -107,11 +107,15 @@ def test_different_designs(client, standard_design_payload):
     d1 = json.loads(json.dumps(standard_design_payload))
     d1["envelope"]["walls"] = [{"material": "mud_brick", "thickness_m": 0.20}]
 
-    # Design 2: High insulation (0.20m EPS + night shutter, warmest, high cost)
+    # Design 2: High insulation (0.20m EPS wall + 0.15m EPS roof + night shutter, warmest, high cost)
     d2 = json.loads(json.dumps(standard_design_payload))
     d2["envelope"]["walls"] = [
         {"material": "mud_brick", "thickness_m": 0.30},
         {"material": "eps", "thickness_m": 0.20},
+    ]
+    d2["envelope"]["roof"] = [
+        {"material": "dense_concrete", "thickness_m": 0.15},
+        {"material": "eps", "thickness_m": 0.15},
     ]
     d2["openings"][0]["night_shutter"] = True
 

@@ -106,3 +106,110 @@
   line-height: 1.6;
   color: var(--text-secondary);
 }
+
+/* ── Floating Location & Climate Telemetry Widget ────────────────────────── */
+.canvas-telemetry-banner {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(11, 19, 41, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  max-width: 480px;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+}
+
+.canvas-telemetry-banner:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(11, 19, 41, 0.96);
+}
+
+.telemetry-main-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.telemetry-pin-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.telemetry-icon {
+  color: #f59e0b;
+}
+
+.telemetry-name {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.2px;
+}
+
+.telemetry-coord {
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.telemetry-change-btn {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 4px;
+  color: #38bdf8;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+
+.telemetry-change-btn:hover {
+  background: #38bdf8;
+  color: #0b1329;
+}
+
+.telemetry-metrics-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  overflow-x: auto;
+}
+
+.telemetry-metric-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.metric-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.4px;
+}
+
+.metric-val {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.telemetry-metric-sep {
+  width: 1px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.15);
+}

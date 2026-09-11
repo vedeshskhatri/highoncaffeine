@@ -1324,6 +1324,18 @@ def search_places_endpoint(q: str, count: int = 8) -> Dict[str, Any]:
 
 
 @app.get(
+    "/location/reverse",
+    summary="Reverse geocode coordinates into place name and region",
+)
+def reverse_geocode_endpoint(lat: float, lon: float) -> Dict[str, Any]:
+    """
+    Reverse geocode coordinates into recognizable place name, region, and country.
+    """
+    from api.location import reverse_geocode
+    return reverse_geocode(lat, lon)
+
+
+@app.get(
     "/location/weather",
     summary="Retrieve live or archived meteorological preview for site coordinates",
 )
@@ -1349,6 +1361,7 @@ def get_location_weather_endpoint(
             lon=lon,
             date_str=target_date,
             mode="typical_day",
+            elevation_m=elev,
         )
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"Weather unavailable for coordinates ({lat}, {lon}): {exc}")

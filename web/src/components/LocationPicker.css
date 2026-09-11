@@ -403,45 +403,117 @@
 .quick-climates-wrap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin-top: 4px;
-  padding-top: 6px;
+  padding-top: 8px;
   border-top: 1px dashed var(--border);
+}
+
+.quick-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .quick-label {
   font-size: 10px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.1px;
+}
+
+.climate-cat-tabs {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.cat-chip {
+  padding: 2px 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 9.5px;
   font-weight: 600;
   color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.cat-chip:hover {
+  color: var(--text-primary);
+  background: var(--surface-1);
+}
+
+.cat-chip.active {
+  background: var(--solar, #f59e0b);
+  border-color: var(--solar, #f59e0b);
+  color: #0b1329;
+  font-weight: 700;
 }
 
 .quick-pills {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .quick-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 4px 2px;
+  padding: 5px 8px;
   font-family: var(--font-body);
   font-size: 10.5px;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
-  text-align: center;
+  text-align: left;
   transition: all 0.15s ease;
 }
 
 .quick-pill:hover {
   background: var(--border);
   color: var(--text-primary);
+  border-color: rgba(56, 189, 248, 0.4);
 }
 
 .quick-pill.active {
-  background: var(--text-primary);
-  color: #ffffff;
-  border-color: var(--text-primary);
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--text-primary);
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
+}
+
+.pill-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #64748b;
+  flex-shrink: 0;
+  margin-right: 5px;
+}
+
+.quick-pill.active .pill-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+.pill-alt {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.quick-pill.active .pill-alt {
+  color: #38bdf8;
 }
