@@ -69,6 +69,10 @@ export default function CommandBar({ context = {}, onCommand }) {
         const matA = action.materialA.name || action.materialA.id;
         const matB = action.materialB.name || action.materialB.id;
         msg = `Comparing ${matA} vs ${matB} · Design comparison active`;
+      } else if (action.type === 'START_DEMO') {
+        msg = 'Launched 8-Stage Operational Demo Mode';
+      } else if (action.type === 'EXIT_DEMO') {
+        msg = 'Exited Demo Mode · Switched to Studio';
       }
 
       setStatus('success');
@@ -133,7 +137,14 @@ export default function CommandBar({ context = {}, onCommand }) {
             spellCheck="false"
             aria-label="Type command"
           />
-          <kbd className="command-bar-kbd" title="Press Enter to execute">↵</kbd>
+          <button
+            type="submit"
+            className="command-bar-submit-btn"
+            title="Press Enter or click to execute command"
+            aria-label="Execute command"
+          >
+            ↵
+          </button>
         </div>
       </form>
 

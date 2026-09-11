@@ -125,7 +125,20 @@ export default function App() {
       setTimeout(() => canvas.classList.remove('instrument-pulse'), 380);
     }
 
+    // If triggering demo mode
+    if (action.type === 'START_DEMO') {
+      setDemoMode(true);
+      return;
+    }
+
+    // Any normal studio command automatically exits demo mode so user sees the commanded state
+    setDemoMode(false);
+
     switch (action.type) {
+      case 'EXIT_DEMO': {
+        setDemoMode(false);
+        break;
+      }
       case 'NAVIGATE_STEP': {
         if (action.step === 'validation panel toggle') {
           setCurrentStep('simulate');

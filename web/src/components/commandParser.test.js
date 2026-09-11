@@ -98,9 +98,14 @@ test('commandParser: simulate site with material walls matches combinations', ()
       materialId: 'eps',
     },
     {
-      input: 'simulate Kargil with adobe walls',
+      input: 'simulate Kargil with stone wall',
       site: 'Kargil',
-      materialId: 'mud_brick',
+      materialId: 'stone',
+    },
+    {
+      input: 'simulate Manali with rammed earth wall',
+      site: 'Manali',
+      materialId: 'rammed_earth',
     },
     {
       input: 'simulate Manali with timber (softwood) walls',

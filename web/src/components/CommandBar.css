@@ -80,7 +80,7 @@
   font-size: 11px;
 }
 
-/* Kbd hint / execute glyph */
+/* Kbd hint / execute glyph button */
 .command-bar-kbd {
   font-family: var(--font-mono);
   font-size: 9px;
@@ -90,6 +90,26 @@
   padding: 0 4px;
   user-select: none;
   line-height: 1.2;
+}
+
+.command-bar-submit-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1px 5px;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.2;
+  transition: all 0.12s ease;
+}
+
+.command-bar-submit-btn:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
 }
 
 /* Right feedback section */
