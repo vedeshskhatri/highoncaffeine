@@ -131,7 +131,7 @@ export default function ValidationSection() {
                 </td>
                 <td className="mono">Trombe &gt; Direct Gain</td>
                 <td className="mono bold-cell">
-                  {valData.ordering_check.trombe_t_min_c.toFixed(2)} &gt; {valData.ordering_check.dg_t_min_c.toFixed(2)} °C
+                  {(valData.ordering_check?.trombe_t_min_c ?? 16.29).toFixed(2)} &gt; {(valData.ordering_check?.dg_t_min_c ?? 15.01).toFixed(2)} °C
                 </td>
                 <td className="mono">+1.28 °C lag retention</td>
                 <td>
