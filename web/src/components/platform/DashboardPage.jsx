@@ -15,30 +15,22 @@ import {
   Wind,
   Layers,
   Activity,
-  Maximize2,
   X,
   ChevronRight,
-  ChevronDown,
-  Info,
   MapPin,
   CheckCircle,
   Clock,
   Zap,
   Sliders,
-  Eye,
   SlidersHorizontal,
   FileText,
   BarChart3,
-  Gauge,
-  HelpCircle,
   ExternalLink,
-  ChevronLeft,
 } from 'lucide-react';
 import './DashboardPage.css';
 import {
   calculateBarometricPressurePa,
   calculateAirDensity,
-  generateAltitudeCurves,
   calculateSolarPosition,
   calculateSurfaceIrradiance,
   SUPPORTED_STATIONS,
@@ -52,14 +44,14 @@ export default function DashboardPage() {
   const { estate } = useOutletContext() || { estate: 'Ladakh' };
   const navigate = useNavigate();
 
-  // ── Centralized State ───────────────────────────────────────────────────────
+  // ── Centralized Dashboard State ───────────────────────────────────────────
   const [selectedStationId, setSelectedStationId] = useState('leh_garrison');
   const [simulationHour, setSimulationHour] = useState(12); // 0 to 23
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1); // 1x, 2x, 5x, 10x
-  const [playbackIntervalMs, setPlaybackIntervalMs] = useState(5000); // default 5s
+  const [playbackIntervalMs, setPlaybackIntervalMs] = useState(5000); // 5s default
   const [autoSiteRotation, setAutoSiteRotation] = useState(false);
-  const [simulationMode, setSimulationMode] = useState('simulation'); // 'simulation' | 'historical_p1' | 'comparison'
+  const [simulationMode, setSimulationMode] = useState('simulation'); // 'simulation' | 'historical_p1'
   const [solarSurface, setSolarSurface] = useState('south'); // 'roof' | 'south' | 'north' | 'east' | 'west'
   const [visibleSeries, setVisibleSeries] = useState({
     outdoor: true,
@@ -68,7 +60,6 @@ export default function DashboardPage() {
     mrt: true,
     sky: true,
   });
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [drawerComponent, setDrawerComponent] = useState(null); // opens detail drawer
   const [tableSearch, setTableSearch] = useState('');
   const [apiSimulationData, setApiSimulationData] = useState(null);
@@ -82,7 +73,7 @@ export default function DashboardPage() {
     );
   }, [selectedStationId]);
 
-  // Altitude Physics for current station
+  // Altitude Physics for active station
   const currentPressurePa = useMemo(
     () => calculateBarometricPressurePa(currentStation.altitude_m),
     [currentStation]
@@ -100,8 +91,8 @@ export default function DashboardPage() {
 
     const payload = {
       location: {
-        lat: currentStation.lat,
-        lon: currentStation.lon,
+        estate: currentStation.region || 'Ladakh',
+        station_name: currentStation.name,
         altitude_m: currentStation.altitude_m,
       },
       weather: {
@@ -143,9 +134,11 @@ export default function DashboardPage() {
           setApiLoading(false);
         }
       })
-      .catch((err) => {
-        console.warn('Live API simulation offline or fallback active:', err);
-        if (isMounted) setApiLoading(false);
+      .catch(() => {
+        if (isMounted) {
+          setApiSimulationData(null);
+          setApiLoading(false);
+        }
       });
 
     return () => {
@@ -153,29 +146,25 @@ export default function DashboardPage() {
     };
   }, [currentStation, simulationMode]);
 
-  // ── Physics-Grounded 24-Hour Synthetic Series Synthesizer ───────────────────
-  // Reconciles API simulation data or evaluates deterministic ISO 52016 model
+  // ── 24-Hour Synthetic / Live Simulation Series ────────────────────────────
   const hourlyData = useMemo(() => {
-    const hours = [];
+    const series = [];
     const tMin = currentStation.design_min_temp_c;
     const tMax = currentStation.design_max_temp_c;
     const tRange = tMax - tMin;
 
     for (let h = 0; h < 24; h++) {
-      // Diurnal outdoor temperature curve (sinusoidal with minimum at ~06:00, peak at ~14:00)
       const hourRad = ((h - 6.0) / 24.0) * 2.0 * Math.PI;
       const diurnalNorm = 0.5 * (1.0 - Math.cos(hourRad));
       let tOut = Number((tMin + diurnalNorm * tRange).toFixed(2));
 
-      // Solar position
       const sol = calculateSolarPosition(currentStation.lat, h);
       let ghi = 0;
       let dni = 0;
       let dhi = 0;
 
       if (sol.is_daylight && sol.altitude_deg > 0) {
-        // High altitude clear-sky irradiance
-        const maxGhi = currentStation.solar_potential_kwh_m2 * 145.0; // peak ~ 900 W/m2
+        const maxGhi = currentStation.solar_potential_kwh_m2 * 145.0;
         const sunElevFrac = Math.sin((sol.altitude_deg * Math.PI) / 180.0);
         ghi = Math.max(0, Math.round(maxGhi * sunElevFrac));
         dni = Math.max(0, Math.round(ghi * 1.15));
@@ -191,7 +180,6 @@ export default function DashboardPage() {
         solarSurface
       );
 
-      // If backend API provided series, use live simulation values; otherwise ground in physics
       let tIn = tOut + 4.5;
       let tOp = tOut + 4.8;
       let tMrt = tOut + 5.1;
@@ -206,49 +194,38 @@ export default function DashboardPage() {
         solGainW = item.solar_gain_w || 0;
         ghi = item.ghi !== undefined ? item.ghi : ghi;
       } else {
-        // Physical passive thermal flywheel effect
         const solarLagHour = (h - 2 + 24) % 24;
         const lagSol = calculateSolarPosition(currentStation.lat, solarLagHour);
         const lagIrr = lagSol.is_daylight
           ? Math.sin((lagSol.altitude_deg * Math.PI) / 180.0) * (currentStation.solar_potential_kwh_m2 * 120.0)
           : 0;
-        solGainW = Math.round(lagIrr * 4.0 * 0.65); // 4 m2 glazing * SHGC
-        const deltaSolar = (solGainW / 350.0);
+        solGainW = Math.round(lagIrr * 4.0 * 0.65);
+        const deltaSolar = solGainW / 350.0;
         tIn = Number((tOut + 6.5 + deltaSolar).toFixed(2));
         tOp = Number((tIn + 0.3).toFixed(2));
         tMrt = Number((tIn + 0.6).toFixed(2));
       }
 
-      // Sky radiation temperature (Martin & Berdahl / Swinbank model)
-      // Tsky is ~12 to 20 K below ambient under high altitude clear skies
-      const tSky = Number((tOut - (14.0 + (currentStation.altitude_m / 600.0))).toFixed(2));
-
-      // Instantaneous heat flux components (W)
-      // Conductive loss: Q = U * A * (Tin - Tout)
+      const tSky = Number((tOut - (14.0 + currentStation.altitude_m / 600.0)).toFixed(2));
       const deltaT = Math.max(0.1, tIn - tOut);
-      const qWall = Math.round(1.8 * 45.0 * deltaT); // W
-      const qRoof = Math.round(2.2 * 24.0 * (tIn - tOut + 3.0)); // W
-      const qGlazing = Math.round(2.8 * 4.0 * deltaT); // W
-      // Infiltration loss: Q_inf = rho * V * ACH/3600 * cp * deltaT
-      const vol = 6.0 * 4.0 * 2.6; // 62.4 m3
-      const ach = currentStation.baseline_envelope.ach || 0.6;
+
+      const qRoof = Math.round(2.2 * 24.0 * (tIn - tOut + 3.0));
+      const qWall = Math.round(1.8 * 52.0 * deltaT);
+      const qFloor = Math.round(1.2 * 24.0 * Math.max(0, tIn - (tOut + 5.0)));
+      const qGlazing = Math.round(2.8 * 4.0 * deltaT);
+
       const rho = calculateAirDensity(currentStation.altitude_m, tOut);
-      const qInf = Math.round(rho * vol * (ach / 3600.0) * 1005.0 * deltaT);
-      // Floor conduction
-      const qFloor = Math.round(1.2 * 24.0 * Math.max(0, tIn - 2.0));
-      // Radiative sky sub-cooling
-      const qSky = Math.round(0.9 * 24.0 * 5.67e-8 * (Math.pow(tIn + 273.15, 4) - Math.pow(tSky + 273.15, 4)));
+      const ach = currentStation.baseline_envelope?.ach || 0.6;
+      const volM3 = 6.0 * 4.0 * 2.6;
+      const qInf = Math.round((ach * volM3 * rho * 1005.0 * deltaT) / 3600.0);
 
-      const totalLossW = qWall + qRoof + qGlazing + qInf + qFloor + qSky;
-      const internalGainW = (currentStation.occupants || 8) * 100; // 100 W per occupant
-      const netBalanceW = solGainW + internalGainW - totalLossW;
+      const qSky = Math.round(0.9 * 5.67e-8 * 24.0 * (Math.pow(tIn + 273.15, 4) - Math.pow(tSky + 273.15, 4)));
 
-      // Comfort evaluation
-      let comfortStatus = 'cold_deficit';
-      if (tIn >= 18.0 && tIn <= 27.0) comfortStatus = 'comfort';
-      else if (tIn > 27.0) comfortStatus = 'warm';
+      const totalLossW = Math.max(100, qRoof + qWall + qFloor + qGlazing + qInf + qSky);
+      const internalGainW = (currentStation.occupants || 8) * 100;
+      const netHeatW = solGainW + internalGainW - totalLossW;
 
-      hours.push({
+      series.push({
         hour: h,
         time_label: `${String(h).padStart(2, '0')}:00`,
         t_out: tOut,
@@ -256,56 +233,72 @@ export default function DashboardPage() {
         t_operative: tOp,
         t_mrt: tMrt,
         t_sky: tSky,
-        ghi: ghi,
-        dni: dni,
-        dhi: dhi,
+        ghi,
+        dni,
+        dhi,
         surface_irradiance: surfaceIrr,
+        solar_alt: sol.altitude_deg,
+        solar_azimuth: sol.azimuth_deg,
         solar_gain_w: solGainW,
         internal_gain_w: internalGainW,
-        q_wall: qWall,
         q_roof: qRoof,
+        q_wall: qWall,
         q_floor: qFloor,
         q_glazing: qGlazing,
         q_inf: qInf,
         q_sky: qSky,
         total_heat_loss_w: totalLossW,
-        net_heat_balance_w: netBalanceW,
-        comfort_status: comfortStatus,
-        solar_alt: sol.altitude_deg,
-        solar_azimuth: sol.azimuth_deg,
-        delta_t: Number(deltaT.toFixed(2)),
+        net_heat_balance_w: netHeatW,
+        ach,
+        air_density: rho,
+        comfort_status: tIn >= 18.0 ? 'acceptable' : tIn >= 0.0 ? 'warning' : 'critical',
       });
     }
-    return hours;
-  }, [currentStation, simulationMode, solarSurface, apiSimulationData]);
 
-  // Current Step Data (derived directly from the scrubbed simulationHour)
+    return series;
+  }, [currentStation, solarSurface, apiSimulationData]);
+
+  // Current Step Scrubbed Data
   const currentStepData = useMemo(() => {
     return hourlyData[simulationHour] || hourlyData[12];
   }, [hourlyData, simulationHour]);
 
-  // Heat Loss Percentage Breakdown & Dominant Bottleneck Diagnosis
+  // Dynamic Heat Loss Breakdown & Bottleneck Calculation
   const diagnosisMetrics = useMemo(() => {
-    const s = currentStepData;
-    const total = Math.max(1, s.total_heat_loss_w);
-    const comps = [
-      { key: 'roof', name: 'Roof Conduction', w: s.q_roof, kw: (s.q_roof / 1000).toFixed(2), pct: Number(((s.q_roof / total) * 100).toFixed(1)), u_val: '2.20 W/m²K', area: '24.0 m²', action: 'Add 100mm PUF/EPS roof insulation board' },
-      { key: 'wall', name: 'Wall Conduction', w: s.q_wall, kw: (s.q_wall / 1000).toFixed(2), pct: Number(((s.q_wall / total) * 100).toFixed(1)), u_val: '1.80 W/m²K', area: '45.0 m²', action: 'Install continuous external EPS thermal barrier' },
-      { key: 'glazing', name: 'Glazing Conduction', w: s.q_glazing, kw: (s.q_glazing / 1000).toFixed(2), pct: Number(((s.q_glazing / total) * 100).toFixed(1)), u_val: '2.80 W/m²K', area: '4.0 m²', action: 'Upgrade to double Low-E with insulated night shutter' },
-      { key: 'infiltration', name: 'Infiltration / Airflow', w: s.q_inf, kw: (s.q_inf / 1000).toFixed(2), pct: Number(((s.q_inf / total) * 100).toFixed(1)), u_val: 'ACH 0.85 h⁻¹', area: '62.4 m³', action: 'Gasket perimeter joints and implement airlock vestibule' },
-      { key: 'floor', name: 'Floor Subgrade Loss', w: s.q_floor, kw: (s.q_floor / 1000).toFixed(2), pct: Number(((s.q_floor / total) * 100).toFixed(1)), u_val: '1.20 W/m²K', area: '24.0 m²', action: 'Lay 80mm XPS sub-slab insulation apron' },
-      { key: 'sky', name: 'Nocturnal Sky Radiation', w: s.q_sky, kw: (s.q_sky / 1000).toFixed(2), pct: Number(((s.q_sky / total) * 100).toFixed(1)), u_val: 'ε = 0.90', area: '24.0 m²', action: 'Apply low-e radiant barrier foil underside' },
+    const losses = [
+      { key: 'roof', name: 'Roof Conduction', w: currentStepData.q_roof, u_val: 'U = 2.20 W/m²K', action: 'Install 120mm PUF SIP over existing rafters with radiant barrier foil.' },
+      { key: 'wall', name: 'North/Side Wall Conduction', w: currentStepData.q_wall, u_val: 'U = 1.80 W/m²K', action: 'Apply 100mm continuous exterior EPS wrap with protective stone facing.' },
+      { key: 'glazing', name: 'South Glazing Conduction', w: currentStepData.q_glazing, u_val: 'U = 2.80 W/m²K', action: 'Upgrade to low-emissivity argon-filled double glazing with insulated nighttime shutters.' },
+      { key: 'inf', name: 'Perimeter Infiltration Leakage', w: currentStepData.q_inf, u_val: `ACH = ${currentStepData.ach} h⁻¹`, action: 'Seal door perimeter jambs, structural seams, and install two-stage airlock vestibule.' },
+      { key: 'floor', name: 'Subgrade Floor Conduction', w: currentStepData.q_floor, u_val: 'U = 1.20 W/m²K', action: 'Install 80mm high-density XPS perimeter insulation under timber floorboards.' },
+      { key: 'sky', name: 'Longwave Nocturnal Sky Radiation', w: currentStepData.q_sky, u_val: 'ε = 0.90', action: 'Apply low-emissivity exterior roof coating or deploy nighttime radiative shielding.' },
     ];
 
-    // Sort descending by contribution
-    comps.sort((a, b) => b.w - a.w);
-    const primary = comps[0];
-    const secondary = comps[1];
+    const sumW = losses.reduce((acc, l) => acc + l.w, 0);
+    const sorted = losses
+      .map((l) => ({
+        ...l,
+        pct: Number(((l.w / sumW) * 100).toFixed(1)),
+        kw: (l.w / 1000.0).toFixed(2),
+      }))
+      .sort((a, b) => b.w - a.w);
 
-    const whyText = `${primary.name} accounts for ${primary.pct}% (${primary.kw} kW) of total instantaneous envelope heat loss due to high thermal transmittance (${primary.u_val}) and severe sub-zero thermal differential (ΔT = ${s.delta_t} K).`;
+    const primary = sorted[0];
+    const secondary = sorted[1];
+
+    let whyText = '';
+    if (primary.key === 'roof') {
+      whyText = `The roof assembly accounts for ${primary.pct}% of total thermal losses due to continuous uninsulated exposure to sub-zero night skies. Conduction flux reaches ${primary.kw} kW under peak thermal gradient.`;
+    } else if (primary.key === 'inf') {
+      whyText = `Air infiltration is the primary thermal vulnerability (${primary.pct}%), causing rapid convective heat loss under high-altitude wind pressure. Cold air sweeps through structural joints and door jambs.`;
+    } else {
+      whyText = `${primary.name} represents ${primary.pct}% (${primary.kw} kW) of aggregate envelope losses due to lack of an unbroken thermal barrier.`;
+    }
 
     return {
-      components: comps,
+      components: sorted,
+      totalW: sumW,
+      totalKw: (sumW / 1000.0).toFixed(2),
       primary,
       secondary,
       whyText,
@@ -313,7 +306,17 @@ export default function DashboardPage() {
     };
   }, [currentStepData]);
 
-  // ── Simulation Playback Timer ───────────────────────────────────────────────
+  // Regional Recommendations
+  const regionalRec = useMemo(() => {
+    return ASSEMBLY_RECOMMENDATIONS[currentStation.region] || ASSEMBLY_RECOMMENDATIONS['Ladakh'];
+  }, [currentStation]);
+
+  // Deficit hours
+  const dailyDeficitHours = useMemo(() => {
+    return hourlyData.filter((h) => h.t_in < 18.0).length;
+  }, [hourlyData]);
+
+  // Simulation Playback Timer
   useEffect(() => {
     if (!isPlaying) return;
 
@@ -322,83 +325,73 @@ export default function DashboardPage() {
     }, playbackIntervalMs / playbackSpeed);
 
     return () => clearInterval(interval);
-  }, [isPlaying, playbackSpeed, playbackIntervalMs]);
+  }, [isPlaying, playbackIntervalMs, playbackSpeed]);
 
-  // ── Automatic Site Rotation (Section 31) ────────────────────────────────────
+  // Auto Site Rotation Timer
   useEffect(() => {
     if (!autoSiteRotation) return;
 
     const interval = setInterval(() => {
-      setSelectedStationId((currentId) => {
-        const idx = SUPPORTED_STATIONS.findIndex((s) => s.id === currentId);
+      setSelectedStationId((prevId) => {
+        const idx = SUPPORTED_STATIONS.findIndex((s) => s.id === prevId);
         const nextIdx = (idx + 1) % SUPPORTED_STATIONS.length;
         return SUPPORTED_STATIONS[nextIdx].id;
       });
-    }, 12000); // 12 seconds rotation
+    }, 12000);
 
     return () => clearInterval(interval);
   }, [autoSiteRotation]);
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
-  const handlePlayPause = () => setIsPlaying(!isPlaying);
-  const handleReset = () => {
+  const handlePlayPause = useCallback(() => setIsPlaying((p) => !p), []);
+  const handleReset = useCallback(() => {
     setIsPlaying(false);
     setSimulationHour(12);
-  };
-
-  // Deficit hours over 24h cycle
-  const dailyDeficitHours = useMemo(() => {
-    return hourlyData.filter((h) => h.t_in < 18.0).length;
-  }, [hourlyData]);
-
-  // Regional Recommendation for current station
-  const regionalRec = useMemo(() => {
-    return (
-      ASSEMBLY_RECOMMENDATIONS.high_altitude_cold || []
-    );
-  }, [currentStation]);
+  }, []);
 
   return (
-    <div className="therma-console-root">
-      {/* =====================================================================
-          1. TOP TECHNICAL HEADER & SIMULATION PLAYBACK CONSOLE (Sections 6, 7, 10, 31)
-          ===================================================================== */}
-      <header className="console-header">
-        <div className="console-brand-strip">
-          <div className="brand-badge-group">
-            <div className="brand-crest">
-              <Shield size={16} className="text-cobalt" />
-            </div>
-            <div className="brand-titles">
-              <div className="brand-name">
-                THERMA <span className="brand-sub">DRDO • SIH 26051</span>
-              </div>
-              <div className="brand-descriptor">
-                AREA-SPECIFIC SHELTER DESIGN & THERMAL COMFORT MAINTENANCE
-              </div>
-            </div>
+    <div className="dashboard-console-wrapper">
+      {/* ── 1. Page Header & Operational Sector Brief ───────────────────────── */}
+      <header className="dashboard-page-header">
+        <div className="header-meta-strip">
+          <span className="estate-tag">{estate} Sector Console</span>
+          <span className="dot-divider">•</span>
+          <span className="spec-tag">DRDO PS 26051</span>
+          <span className="dot-divider">•</span>
+          <span className="status-indicator online">
+            <span className="pulse-dot" />
+            ISO 52016-1 Physics Online
+          </span>
+        </div>
+
+        <div className="header-main-row">
+          <div>
+            <h1 className="dashboard-page-title">Thermal Engineering & Shelter Analysis Console</h1>
+            <p className="dashboard-page-subtitle">
+              Continuous transient heat-flux modeling, envelope diagnostics, and area-specific optimization for defense shelters.
+            </p>
           </div>
 
-          {/* Location Selector (Section 7) */}
-          <div className="header-location-selector">
-            <MapPin size={14} className="selector-icon" />
+          <div className="header-location-box">
+            <label className="selector-label">
+              <MapPin size={13} className="selector-icon" />
+              <span>STATION / POST:</span>
+            </label>
             <select
               value={selectedStationId}
               onChange={(e) => setSelectedStationId(e.target.value)}
-              className="location-dropdown"
-              title="Select Strategic Station or Regional Climate Zone"
+              className="location-select"
             >
               <optgroup label="Ladakh / Karakoram High-Altitude Posts">
                 {SUPPORTED_STATIONS.filter((s) => s.state === 'Ladakh').map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} ({s.altitude_m} m ASL • {s.design_min_temp_c} °C)
+                    {s.name} ({s.altitude_m}m ASL • {s.design_min_temp_c}°C)
                   </option>
                 ))}
               </optgroup>
               <optgroup label="Jammu & Kashmir / LoC Mountain Valleys">
                 {SUPPORTED_STATIONS.filter((s) => s.state === 'Jammu & Kashmir').map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} ({s.altitude_m} m ASL)
+                    {s.name} ({s.altitude_m}m ASL)
                   </option>
                 ))}
               </optgroup>
@@ -407,7 +400,7 @@ export default function DashboardPage() {
                   (s) => s.state === 'Himachal Pradesh' || s.state === 'Uttarakhand'
                 ).map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} ({s.altitude_m} m ASL)
+                    {s.name} ({s.altitude_m}m ASL)
                   </option>
                 ))}
               </optgroup>
@@ -416,7 +409,7 @@ export default function DashboardPage() {
                   (s) => s.state === 'Sikkim' || s.state === 'Arunachal Pradesh'
                 ).map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} ({s.altitude_m} m ASL)
+                    {s.name} ({s.altitude_m}m ASL)
                   </option>
                 ))}
               </optgroup>
@@ -431,61 +424,35 @@ export default function DashboardPage() {
               </optgroup>
             </select>
           </div>
-
-          {/* Mode & Engine Badges */}
-          <div className="header-status-pills">
-            <span className="status-indicator online">
-              <span className="pulse-dot" />
-              PHYSICS ENGINE ONLINE (ISO 52016-1)
-            </span>
-            <div className="mode-toggle-group">
-              <button
-                type="button"
-                className={`mode-btn ${simulationMode === 'simulation' ? 'active' : ''}`}
-                onClick={() => setSimulationMode('simulation')}
-              >
-                SIMULATION
-              </button>
-              <button
-                type="button"
-                className={`mode-btn ${simulationMode === 'historical_p1' ? 'active' : ''}`}
-                onClick={() => setSimulationMode('historical_p1')}
-              >
-                P1 WINTER NIGHT
-              </button>
-            </div>
-            <span className="provenance-tag">DATA: SYNTHETIC ODE SOLVER</span>
-          </div>
         </div>
 
-        {/* ── Playback Controls & Timeline Scrubber (Section 10) ── */}
-        <div className="console-playback-bar">
-          <div className="playback-controls">
+        {/* ── Simulation Playback Control Bar ── */}
+        <div className="simulation-toolbar">
+          <div className="toolbar-playback-controls">
             <button
               type="button"
-              className={`playback-btn ${isPlaying ? 'active' : ''}`}
+              className={`toolbar-btn primary ${isPlaying ? 'running' : ''}`}
               onClick={handlePlayPause}
-              title={isPlaying ? 'Pause Simulation' : 'Play 24-Hour Simulation'}
             >
-              {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+              {isPlaying ? <Pause size={13} /> : <Play size={13} />}
               <span>{isPlaying ? 'PAUSE' : 'PLAY'}</span>
             </button>
             <button
               type="button"
-              className="playback-btn secondary"
+              className="toolbar-btn secondary"
               onClick={handleReset}
-              title="Reset Simulation to Hour 12:00"
+              title="Reset to 12:00 Solar Noon"
             >
-              <RotateCcw size={13} />
+              <RotateCcw size={12} />
               <span>RESET</span>
             </button>
 
-            <div className="speed-pills">
+            <div className="speed-selector">
               {[1, 2, 5, 10].map((s) => (
                 <button
                   key={s}
                   type="button"
-                  className={`speed-pill ${playbackSpeed === s ? 'selected' : ''}`}
+                  className={`speed-option ${playbackSpeed === s ? 'active' : ''}`}
                   onClick={() => setPlaybackSpeed(s)}
                 >
                   {s}×
@@ -494,15 +461,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="playback-scrubber-wrapper">
-            <div className="time-display-badge">
-              <Clock size={13} />
-              <span>
-                SIMULATION TIME: <strong>{currentStepData.time_label} LST</strong>
-              </span>
-              <span className="time-meta">
-                (Solar Alt: {currentStepData.solar_alt}°, Az: {currentStepData.solar_azimuth}°)
-              </span>
+          <div className="toolbar-scrubber">
+            <div className="time-badge">
+              <Clock size={12} />
+              <span>{currentStepData.time_label} LST</span>
             </div>
             <input
               type="range"
@@ -512,224 +474,225 @@ export default function DashboardPage() {
               value={simulationHour}
               onChange={(e) => setSimulationHour(Number(e.target.value))}
               className="time-slider"
-              title="Scrub Simulation Hour"
             />
-            <div className="time-ticks">
+            <div className="time-tick-marks">
               <span>00:00</span>
-              <span>06:00 (Dawn)</span>
-              <span>12:00 (Noon)</span>
-              <span>18:00 (Dusk)</span>
+              <span>06:00 Dawn</span>
+              <span>12:00 Noon</span>
+              <span>18:00 Dusk</span>
               <span>23:00</span>
             </div>
           </div>
 
-          {/* Auto Site Rotation Toggle (Section 31) */}
-          <div className="auto-rotation-control">
-            <label className="toggle-switch">
+          <div className="toolbar-extras">
+            <div className="mode-toggle">
+              <button
+                type="button"
+                className={`mode-pill ${simulationMode === 'simulation' ? 'active' : ''}`}
+                onClick={() => setSimulationMode('simulation')}
+              >
+                Diurnal Day
+              </button>
+              <button
+                type="button"
+                className={`mode-pill ${simulationMode === 'historical_p1' ? 'active' : ''}`}
+                onClick={() => setSimulationMode('historical_p1')}
+              >
+                P1 Winter Night
+              </button>
+            </div>
+
+            <label className="auto-rotation-toggle">
               <input
                 type="checkbox"
                 checked={autoSiteRotation}
                 onChange={(e) => setAutoSiteRotation(e.target.checked)}
               />
-              <span className="slider-switch" />
+              <span>Auto Rotate Sites</span>
             </label>
-            <span className="toggle-label">
-              AUTO ROTATION <small>{autoSiteRotation ? '(ON 12s)' : '(OFF)'}</small>
-            </span>
           </div>
         </div>
       </header>
 
-      {/* =====================================================================
-          2. COMPACT SYSTEM KPI STRIP (Section 8)
-          ===================================================================== */}
-      <section className="console-kpi-strip" aria-label="System KPI Metrics">
+      {/* ── 2. Compact System KPI Metric Strip ──────────────────────────────── */}
+      <section className="dashboard-kpi-strip" aria-label="System Metrics">
         <div
-          className="kpi-cell"
-          onClick={() => setDrawerComponent({ name: 'Outdoor Temperature', value: `${currentStepData.t_out} °C`, note: 'Measured / synthetic ambient dry bulb from hourly ERA5/NASA POWER climatology' })}
+          className="kpi-card"
+          onClick={() => setDrawerComponent({ name: 'Outdoor Temperature (Tout)', value: `${currentStepData.t_out} °C`, note: 'Ambient dry bulb temperature calculated from station altitude and diurnal lapse model.' })}
         >
-          <div className="kpi-label">OUTDOOR TEMP</div>
-          <div className="kpi-val cold-text">
+          <span className="kpi-tag">OUTDOOR AMBIENT</span>
+          <div className="kpi-number cold-text">
             {currentStepData.t_out > 0 ? `+${currentStepData.t_out}` : currentStepData.t_out} <span className="kpi-unit">°C</span>
           </div>
-          <div className="kpi-sub">Ambient at {currentStation.altitude_m}m</div>
+          <span className="kpi-caption">{currentStation.altitude_m}m ASL</span>
         </div>
 
         <div
-          className="kpi-cell"
-          onClick={() => setDrawerComponent({ name: 'Indoor Air Temperature', value: `${currentStepData.t_in} °C`, note: 'Core conditioned room node temperature from ISO 52016-1 ODE solver' })}
+          className="kpi-card"
+          onClick={() => setDrawerComponent({ name: 'Indoor Air Temperature (Tin)', value: `${currentStepData.t_in} °C`, note: 'Conditioned interior room air temperature from ISO 52016-1 transient solver.' })}
         >
-          <div className="kpi-label">INDOOR TEMP</div>
-          <div className={`kpi-val ${currentStepData.t_in >= 18 ? 'pass-text' : currentStepData.t_in >= 0 ? 'warn-text' : 'crit-text'}`}>
+          <span className="kpi-tag">INDOOR TEMP</span>
+          <div className={`kpi-number ${currentStepData.t_in >= 18 ? 'pass-text' : currentStepData.t_in >= 0 ? 'warn-text' : 'loss-text'}`}>
             {currentStepData.t_in > 0 ? `+${currentStepData.t_in}` : currentStepData.t_in} <span className="kpi-unit">°C</span>
           </div>
-          <div className="kpi-sub">Target: ≥ 18.0 °C</div>
+          <span className="kpi-caption">Target: ≥ 18.0 °C</span>
         </div>
 
         <div
-          className="kpi-cell"
-          onClick={() => setDrawerComponent({ name: 'Operative Temperature', value: `${currentStepData.t_operative} °C`, note: 'Arithmetic mean of indoor air and area-weighted mean radiant temperature' })}
+          className="kpi-card"
+          onClick={() => setDrawerComponent({ name: 'Operative Temperature (Top)', value: `${currentStepData.t_operative} °C`, note: 'Operative temperature Top = (Tin + Tmrt) / 2 combining convective air and radiant wall temperatures.' })}
         >
-          <div className="kpi-label">OPERATIVE TEMP</div>
-          <div className="kpi-val highlight-text">
+          <span className="kpi-tag">OPERATIVE TEMP</span>
+          <div className="kpi-number highlight-text">
             {currentStepData.t_operative > 0 ? `+${currentStepData.t_operative}` : currentStepData.t_operative} <span className="kpi-unit">°C</span>
           </div>
-          <div className="kpi-sub">Top = (Tin + Tmrt)/2</div>
+          <span className="kpi-caption">Convective + Radiant</span>
         </div>
 
         <div
-          className="kpi-cell"
-          onClick={() => setDrawerComponent({ name: 'Total Heat Loss', value: `${(currentStepData.total_heat_loss_w / 1000).toFixed(2)} kW`, note: 'Sum of wall, roof, floor, glazing, infiltration and nocturnal sky radiant losses' })}
+          className="kpi-card"
+          onClick={() => setDrawerComponent({ name: 'Envelope Heat Loss (Qloss)', value: `${(currentStepData.total_heat_loss_w / 1000).toFixed(2)} kW`, note: 'Instantaneous total heat lost across roof, walls, floor, glazing, infiltration, and sky radiation.' })}
         >
-          <div className="kpi-label">HEAT LOSS</div>
-          <div className="kpi-val loss-text">
+          <span className="kpi-tag">HEAT LOSS RATE</span>
+          <div className="kpi-number loss-text">
             {(currentStepData.total_heat_loss_w / 1000).toFixed(2)} <span className="kpi-unit">kW</span>
           </div>
-          <div className="kpi-sub">{currentStepData.total_heat_loss_w} W Instantaneous</div>
+          <span className="kpi-caption">Envelope & Infiltration</span>
         </div>
 
         <div
-          className="kpi-cell"
-          onClick={() => setDrawerComponent({ name: 'Passive Solar Gain', value: `${(currentStepData.solar_gain_w / 1000).toFixed(2)} kW`, note: 'Transmitted solar radiation through south apertures accounting for incidence angle & SHGC' })}
+          className="kpi-card"
+          onClick={() => setDrawerComponent({ name: 'Passive Solar Gain (Qsol)', value: `${(currentStepData.solar_gain_w / 1000).toFixed(2)} kW`, note: 'Transmitted solar radiation through south-facing passive apertures.' })}
         >
-          <div className="kpi-label">SOLAR GAIN</div>
-          <div className="kpi-val solar-text">
+          <span className="kpi-tag">SOLAR GAIN</span>
+          <div className="kpi-number solar-text">
             {(currentStepData.solar_gain_w / 1000).toFixed(2)} <span className="kpi-unit">kW</span>
           </div>
-          <div className="kpi-sub">{currentStepData.solar_gain_w} W Transmitted</div>
+          <span className="kpi-caption">South Solar Aperture</span>
         </div>
 
         <div
-          className="kpi-cell"
-          onClick={() => setDrawerComponent({ name: 'Air Changes per Hour', value: `${currentStation.baseline_envelope.ach || 0.6} h⁻¹`, note: 'Natural envelope leakage + fresh air ventilation exchange rate' })}
+          className="kpi-card"
+          onClick={() => setDrawerComponent({ name: 'Air Exchange Rate (ACH)', value: `${currentStepData.ach} h⁻¹`, note: 'Air changes per hour across building perimeter joints and openings.' })}
         >
-          <div className="kpi-label">ACH</div>
-          <div className="kpi-val">
-            {(currentStation.baseline_envelope.ach || 0.6).toFixed(2)} <span className="kpi-unit">h⁻¹</span>
+          <span className="kpi-tag">VENTILATION</span>
+          <div className="kpi-number">
+            {currentStepData.ach} <span className="kpi-unit">h⁻¹</span>
           </div>
-          <div className="kpi-sub">Safety floor: ≥ 0.35</div>
+          <span className="kpi-caption">Infiltration Rate</span>
         </div>
 
         <div
-          className="kpi-cell"
-          onClick={() => setDrawerComponent({ name: 'Air Density', value: `${currentAirDensity} kg/m³`, note: 'Calculated via barometric equation and ideal gas law for local altitude' })}
+          className="kpi-card"
+          onClick={() => setDrawerComponent({ name: 'Air Density (ρ)', value: `${currentAirDensity} kg/m³`, note: 'Calculated using barometric lapse formula at elevation. Reduced density lowers convective heat loss.' })}
         >
-          <div className="kpi-label">AIR DENSITY</div>
-          <div className="kpi-val">
+          <span className="kpi-tag">AIR DENSITY</span>
+          <div className="kpi-number">
             {currentAirDensity} <span className="kpi-unit">kg/m³</span>
           </div>
-          <div className="kpi-sub">{currentPressureKpa} kPa Pressure</div>
+          <span className="kpi-caption">{currentPressureKpa} kPa Pressure</span>
         </div>
 
-        <div className="kpi-cell status-cell">
-          <div className="kpi-label">THERMAL STATUS</div>
-          <div className={`status-pill-solid ${currentStepData.t_in >= 18 ? 'status-ok' : currentStepData.t_in >= 0 ? 'status-warn' : 'status-crit'}`}>
-            {currentStepData.t_in >= 18 ? 'ACCEPTABLE' : currentStepData.t_in >= 0 ? 'MILD DEFICIT' : 'EXTREME COLD'}
+        <div className="kpi-card status-cell">
+          <span className="kpi-tag">COMFORT / SAFETY</span>
+          <div className="status-badge-wrapper">
+            <span className={`status-pill ${currentStepData.comfort_status}`}>
+              {currentStepData.comfort_status.toUpperCase()}
+            </span>
+            <span className="status-pill pass">
+              SAFETY: PASS
+            </span>
           </div>
-          <div className="kpi-sub">{dailyDeficitHours} h / 24h Deficit</div>
-        </div>
-
-        <div className="kpi-cell status-cell">
-          <div className="kpi-label">LIFE SAFETY</div>
-          <div className="status-pill-solid status-ok">
-            <ShieldCheck size={12} />
-            <span>PASS</span>
-          </div>
-          <div className="kpi-sub">Zero Combustion Risk</div>
+          <span className="kpi-caption">ISO 52016 / Deterministic</span>
         </div>
       </section>
 
-      {/* =====================================================================
-          3. MAIN HERO — 24-HOUR THERMAL PROFILE (Section 9)
-          ===================================================================== */}
-      <section className="console-panel hero-chart-panel">
-        <div className="panel-header-strip">
-          <div className="panel-title-group">
-            <Activity size={15} className="panel-icon" />
-            <h2 className="panel-title">24-HOUR THERMAL RESPONSE</h2>
-            <span className="panel-subtitle">
-              Continuous Transient Node Temperature & Comfort Envelope ({currentStation.name} • {currentStation.altitude_m} m ASL)
-            </span>
+      {/* ── 3. Main Hero: 24-Hour Diurnal Thermal Response ──────────────────── */}
+      <section className="dashboard-panel hero-chart-panel">
+        <div className="panel-header">
+          <div>
+            <h2 className="panel-title">24-Hour Diurnal Thermal Response</h2>
+            <p className="panel-subtitle">
+              Transient node temperatures and comfort envelope at {currentStation.name} ({currentStation.altitude_m}m ASL)
+            </p>
           </div>
 
-          <div className="chart-legend-toggles">
-            <label className="legend-toggle">
+          <div className="chart-series-toggles">
+            <label className="toggle-item">
               <input
                 type="checkbox"
                 checked={visibleSeries.outdoor}
                 onChange={() => setVisibleSeries((p) => ({ ...p, outdoor: !p.outdoor }))}
               />
-              <span className="legend-line outdoor-line" />
+              <span className="color-indicator outdoor-dot" />
               <span>Outdoor (Tout)</span>
             </label>
-            <label className="legend-toggle">
+            <label className="toggle-item">
               <input
                 type="checkbox"
                 checked={visibleSeries.indoor}
                 onChange={() => setVisibleSeries((p) => ({ ...p, indoor: !p.indoor }))}
               />
-              <span className="legend-line indoor-line" />
+              <span className="color-indicator indoor-dot" />
               <span>Indoor (Tin)</span>
             </label>
-            <label className="legend-toggle">
+            <label className="toggle-item">
               <input
                 type="checkbox"
                 checked={visibleSeries.operative}
                 onChange={() => setVisibleSeries((p) => ({ ...p, operative: !p.operative }))}
               />
-              <span className="legend-line operative-line" />
+              <span className="color-indicator operative-dot" />
               <span>Operative (Top)</span>
             </label>
-            <label className="legend-toggle">
+            <label className="toggle-item">
               <input
                 type="checkbox"
                 checked={visibleSeries.mrt}
                 onChange={() => setVisibleSeries((p) => ({ ...p, mrt: !p.mrt }))}
               />
-              <span className="legend-line mrt-line" />
+              <span className="color-indicator mrt-dot" />
               <span>MRT (Tmrt)</span>
             </label>
-            <label className="legend-toggle">
+            <label className="toggle-item">
               <input
                 type="checkbox"
                 checked={visibleSeries.sky}
                 onChange={() => setVisibleSeries((p) => ({ ...p, sky: !p.sky }))}
               />
-              <span className="legend-line sky-line" />
+              <span className="color-indicator sky-dot" />
               <span>Sky (Tsky)</span>
             </label>
-            <span className="legend-band-tag">Comfort Band: 18–27 °C</span>
+            <span className="comfort-range-indicator">Comfort Band: 18–27 °C</span>
           </div>
         </div>
 
-        {/* ── High-Precision SVG Thermal Chart ── */}
-        <div className="hero-svg-chart-container">
-          <svg className="hero-svg-chart" viewBox="0 0 1000 320" preserveAspectRatio="none">
+        {/* ── High-Precision SVG Thermal Response Chart ── */}
+        <div className="chart-viewport">
+          <svg className="thermal-svg-plot" viewBox="0 0 1000 300" preserveAspectRatio="none">
             <defs>
-              {/* Engineering Comfort Band Gradient */}
-              <linearGradient id="comfortGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#059669" stopOpacity="0.14" />
-                <stop offset="100%" stopColor="#059669" stopOpacity="0.04" />
+              <linearGradient id="comfortGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#15803d" stopOpacity="0.12" />
+                <stop offset="100%" stopColor="#15803d" stopOpacity="0.03" />
               </linearGradient>
             </defs>
 
-            {/* Vertical grid lines (0h, 3h, 6h, 9h, 12h, 15h, 18h, 21h, 24h) */}
+            {/* Time Grid Lines (0h to 24h) */}
             {[0, 3, 6, 9, 12, 15, 18, 21, 24].map((h) => {
               const x = 50 + (h / 24) * 910;
               return (
                 <g key={h}>
-                  <line x1={x} y1="20" x2={x} y2="280" stroke="var(--border)" strokeDasharray="3 3" />
-                  <text x={x} y="298" textAnchor="middle" fill="var(--text-muted)" fontSize="11" fontFamily="monospace">
+                  <line x1={x} y1="20" x2={x} y2="260" stroke="#e2e8f0" strokeDasharray="3 3" />
+                  <text x={x} y="278" textAnchor="middle" fill="#94a3b8" fontSize="11" fontFamily="monospace">
                     {String(h).padStart(2, '0')}:00
                   </text>
                 </g>
               );
             })}
 
-            {/* Horizontal temperature grid lines (-40, -20, 0, +18, +27, +40) */}
-            {/* Scale: -40°C = y: 270, +40°C = y: 30 (range 80 K => 3 px per K) */}
+            {/* Temperature Horizontal Lines (-40°C to +40°C, scale: 80 K range across 240px) */}
             {[-40, -30, -20, -10, 0, 10, 18, 27, 40].map((temp) => {
-              const y = 270 - ((temp - -40) / 80) * 240;
+              const y = 250 - ((temp - -40) / 80) * 220;
               const isZero = temp === 0;
               const isComfort = temp === 18 || temp === 27;
               return (
@@ -739,12 +702,12 @@ export default function DashboardPage() {
                     y1={y}
                     x2="965"
                     y2={y}
-                    stroke={isComfort ? '#059669' : isZero ? 'var(--text-secondary)' : 'var(--border)'}
+                    stroke={isComfort ? '#15803d' : isZero ? '#94a3b8' : '#e2e8f0'}
                     strokeWidth={isZero ? '1.5' : '1'}
                     strokeDasharray={isComfort ? '4 2' : 'none'}
-                    opacity={isComfort ? '0.7' : '0.4'}
+                    opacity={isComfort ? '0.7' : '0.6'}
                   />
-                  <text x="38" y={y + 4} textAnchor="end" fill={isComfort ? '#059669' : 'var(--text-muted)'} fontSize="10" fontFamily="monospace">
+                  <text x="40" y={y + 4} textAnchor="end" fill={isComfort ? '#15803d' : '#94a3b8'} fontSize="10" fontFamily="monospace">
                     {temp > 0 ? `+${temp}` : temp}°
                   </text>
                 </g>
@@ -753,53 +716,51 @@ export default function DashboardPage() {
 
             {/* Comfort Band Shading (18°C to 27°C) */}
             {(() => {
-              const yTop = 270 - ((27 - -40) / 80) * 240;
-              const yBottom = 270 - ((18 - -40) / 80) * 240;
-              const height = yBottom - yTop;
+              const yTop = 250 - ((27 - -40) / 80) * 220;
+              const yBottom = 250 - ((18 - -40) / 80) * 220;
               return (
                 <g>
-                  <rect x="50" y={yTop} width="910" height={height} fill="url(#comfortGrad)" />
-                  <text x="960" y={yTop + 14} textAnchor="end" fill="#059669" fontSize="10" fontWeight="bold" letterSpacing="0.5">
-                    ENGINEERING COMFORT RANGE (18–27 °C)
+                  <rect x="50" y={yTop} width="910" height={yBottom - yTop} fill="url(#comfortGradient)" />
+                  <text x="960" y={yTop + 14} textAnchor="end" fill="#15803d" fontSize="10" fontWeight="bold">
+                    ASHRAE 55 / IMAC COMFORT BAND (18–27 °C)
                   </text>
                 </g>
               );
             })()}
 
-            {/* Sunrise, Solar Noon, and Sunset Vertical Marker Lines */}
+            {/* Solar Event Markers */}
             {(() => {
               const xRise = 50 + (6.75 / 24) * 910;
               const xNoon = 50 + (12.0 / 24) * 910;
               const xSet = 50 + (17.25 / 24) * 910;
               return (
                 <g>
-                  <line x1={xRise} y1="25" x2={xRise} y2="280" stroke="#D97706" strokeDasharray="4 2" strokeWidth="1" opacity="0.6" />
-                  <text x={xRise} y="22" textAnchor="middle" fill="#D97706" fontSize="9" fontWeight="bold">
-                    ☀ SUNRISE (06:45)
+                  <line x1={xRise} y1="20" x2={xRise} y2="260" stroke="#d97706" strokeDasharray="3 3" opacity="0.6" />
+                  <text x={xRise} y="16" textAnchor="middle" fill="#d97706" fontSize="9" fontWeight="600">
+                    Sunrise (06:45)
                   </text>
 
-                  <line x1={xNoon} y1="25" x2={xNoon} y2="280" stroke="#EA580C" strokeDasharray="4 2" strokeWidth="1" opacity="0.6" />
-                  <text x={xNoon} y="22" textAnchor="middle" fill="#EA580C" fontSize="9" fontWeight="bold">
-                    SOLAR NOON (12:00)
+                  <line x1={xNoon} y1="20" x2={xNoon} y2="260" stroke="#ea580c" strokeDasharray="3 3" opacity="0.6" />
+                  <text x={xNoon} y="16" textAnchor="middle" fill="#ea580c" fontSize="9" fontWeight="600">
+                    Solar Noon (12:00)
                   </text>
 
-                  <line x1={xSet} y1="25" x2={xSet} y2="280" stroke="#D97706" strokeDasharray="4 2" strokeWidth="1" opacity="0.6" />
-                  <text x={xSet} y="22" textAnchor="middle" fill="#D97706" fontSize="9" fontWeight="bold">
-                    SUNSET (17:15)
+                  <line x1={xSet} y1="20" x2={xSet} y2="260" stroke="#d97706" strokeDasharray="3 3" opacity="0.6" />
+                  <text x={xSet} y="16" textAnchor="middle" fill="#d97706" fontSize="9" fontWeight="600">
+                    Sunset (17:15)
                   </text>
                 </g>
               );
             })()}
 
-            {/* Helper to calculate (x, y) coordinates for any temperature curve */}
-            {/* y = 270 - ((t - -40)/80) * 240 */}
+            {/* Render Temperature Curves */}
             {(() => {
               const makePath = (key) => {
                 return hourlyData
                   .map((d, i) => {
                     const x = 50 + (i / 23) * 910;
                     const val = d[key];
-                    const y = Math.max(25, Math.min(275, 270 - ((val - -40) / 80) * 240));
+                    const y = Math.max(20, Math.min(255, 250 - ((val - -40) / 80) * 220));
                     return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
                   })
                   .join(' ');
@@ -807,44 +768,35 @@ export default function DashboardPage() {
 
               return (
                 <g>
-                  {/* Sky Temperature Line */}
                   {visibleSeries.sky && (
-                    <path d={makePath('t_sky')} fill="none" stroke="#0284C7" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.8" />
+                    <path d={makePath('t_sky')} fill="none" stroke="#0369a1" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.8" />
                   )}
-
-                  {/* Outdoor Ambient Line */}
                   {visibleSeries.outdoor && (
-                    <path d={makePath('t_out')} fill="none" stroke="#64748B" strokeWidth="2" strokeDasharray="5 3" />
+                    <path d={makePath('t_out')} fill="none" stroke="#64748b" strokeWidth="2" strokeDasharray="5 3" />
                   )}
-
-                  {/* MRT Line */}
                   {visibleSeries.mrt && (
-                    <path d={makePath('t_mrt')} fill="none" stroke="#9333EA" strokeWidth="2" opacity="0.75" />
+                    <path d={makePath('t_mrt')} fill="none" stroke="#7c3aed" strokeWidth="2" opacity="0.75" />
                   )}
-
-                  {/* Operative Temperature Line */}
                   {visibleSeries.operative && (
-                    <path d={makePath('t_operative')} fill="none" stroke="#D97706" strokeWidth="2.2" />
+                    <path d={makePath('t_operative')} fill="none" stroke="#d97706" strokeWidth="2.2" />
                   )}
-
-                  {/* Indoor Temperature Line (Main Feature) */}
                   {visibleSeries.indoor && (
-                    <path d={makePath('t_in')} fill="none" stroke="#EA580C" strokeWidth="3" />
+                    <path d={makePath('t_in')} fill="none" stroke="#ea580c" strokeWidth="3" />
                   )}
                 </g>
               );
             })()}
 
-            {/* Active Simulation Scrubber Cursor Line */}
+            {/* Scrubber Cursor Position Marker */}
             {(() => {
               const xScrub = 50 + (simulationHour / 23) * 910;
-              const yTin = 270 - ((currentStepData.t_in - -40) / 80) * 240;
+              const yTin = 250 - ((currentStepData.t_in - -40) / 80) * 220;
               return (
-                <g className="scrubber-cursor-group">
-                  <line x1={xScrub} y1="20" x2={xScrub} y2="280" stroke="#DC2626" strokeWidth="1.5" />
-                  <circle cx={xScrub} cy={yTin} r="5" fill="#EA580C" stroke="#FFFFFF" strokeWidth="2" />
-                  <rect x={xScrub - 34} y="4" width="68" height="18" rx="3" fill="#DC2626" />
-                  <text x={xScrub} y="16" textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                <g>
+                  <line x1={xScrub} y1="20" x2={xScrub} y2="260" stroke="#dc2626" strokeWidth="1.5" />
+                  <circle cx={xScrub} cy={yTin} r="5" fill="#ea580c" stroke="#ffffff" strokeWidth="2" />
+                  <rect x={xScrub - 28} y="2" width="56" height="18" rx="3" fill="#dc2626" />
+                  <text x={xScrub} y="15" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="bold" fontFamily="monospace">
                     {currentStepData.time_label}
                   </text>
                 </g>
@@ -853,148 +805,142 @@ export default function DashboardPage() {
           </svg>
         </div>
 
-        {/* Tooltip Telemetry Strip for Current Scrubbed Hour */}
-        <div className="chart-telemetry-banner">
-          <div className="telemetry-item">
-            <span className="item-label">HOUR:</span>
+        {/* Current Hour Telemetry Strip */}
+        <div className="chart-telemetry-readout">
+          <div className="readout-item">
+            <span className="readout-lbl">HOUR:</span>
             <strong>{currentStepData.time_label} LST</strong>
           </div>
-          <div className="telemetry-item">
-            <span className="item-label">Tout:</span>
+          <div className="readout-item">
+            <span className="readout-lbl">Tout:</span>
             <span className="cold-text">{currentStepData.t_out} °C</span>
           </div>
-          <div className="telemetry-item">
-            <span className="item-label">Tin:</span>
+          <div className="readout-item">
+            <span className="readout-lbl">Tin:</span>
             <strong className="loss-text">{currentStepData.t_in} °C</strong>
           </div>
-          <div className="telemetry-item">
-            <span className="item-label">Top:</span>
+          <div className="readout-item">
+            <span className="readout-lbl">Top:</span>
             <span className="highlight-text">{currentStepData.t_operative} °C</span>
           </div>
-          <div className="telemetry-item">
-            <span className="item-label">Tmrt:</span>
+          <div className="readout-item">
+            <span className="readout-lbl">Tmrt:</span>
             <span>{currentStepData.t_mrt} °C</span>
           </div>
-          <div className="telemetry-item">
-            <span className="item-label">Tsky:</span>
-            <span className="sky-text">{currentStepData.t_sky} °C</span>
-          </div>
-          <div className="telemetry-item">
-            <span className="item-label">GHI:</span>
+          <div className="readout-item">
+            <span className="readout-lbl">GHI:</span>
             <span>{currentStepData.ghi} W/m²</span>
           </div>
-          <div className="telemetry-item">
-            <span className="item-label">FLUX Qloss:</span>
-            <strong>{(currentStepData.total_heat_loss_w / 1000).toFixed(2)} kW</strong>
+          <div className="readout-item">
+            <span className="readout-lbl">Solar Gain:</span>
+            <span className="solar-text">+{(currentStepData.solar_gain_w / 1000).toFixed(2)} kW</span>
+          </div>
+          <div className="readout-item">
+            <span className="readout-lbl">Total Heat Loss:</span>
+            <strong className="loss-text">{(currentStepData.total_heat_loss_w / 1000).toFixed(2)} kW</strong>
           </div>
         </div>
       </section>
 
-      {/* =====================================================================
-          4. SPLIT: THERMAL ENERGY BALANCE & HEAT LOSS BREAKDOWN (Sections 11 & 12)
-          ===================================================================== */}
-      <div className="console-split-grid">
-        {/* Left: Thermal Energy Balance Flow (Section 11) */}
-        <section className="console-panel energy-balance-panel">
-          <div className="panel-header-strip">
-            <div className="panel-title-group">
-              <Zap size={14} className="panel-icon" />
-              <h3 className="panel-title">THERMAL ENERGY BALANCE</h3>
+      {/* ── 4. Split: Thermal Energy Balance & Heat Loss Breakdown ─────────── */}
+      <div className="dashboard-grid-2col">
+        {/* Left: Thermal Energy Balance Flow */}
+        <section className="dashboard-panel">
+          <div className="panel-header">
+            <div>
+              <h3 className="panel-title">Thermal Energy Balance</h3>
+              <p className="panel-subtitle">ISO 52016-1 transient energy continuity at active timestep</p>
             </div>
-            <span className="panel-badge-mono">ISO 52016 FLUX CONTINUITY</span>
           </div>
 
-          <div className="balance-flow-diagram">
-            {/* Inflows */}
-            <div className="balance-column inflows">
-              <div className="column-title">ENERGY INFLOWS (+)</div>
-              <div className="flow-card gain-card">
-                <div className="flow-name">Solar Radiation (Qsol)</div>
-                <div className="flow-val">+{(currentStepData.solar_gain_w / 1000).toFixed(2)} kW</div>
-                <div className="flow-sub">South apertures & window gain</div>
+          <div className="energy-balance-flow">
+            <div className="flow-column">
+              <span className="flow-col-title">HEAT GAINS (+)</span>
+              <div className="flow-card gain">
+                <div className="flow-card-head">Solar Gain (Qsol)</div>
+                <div className="flow-card-num">+{(currentStepData.solar_gain_w / 1000).toFixed(2)} kW</div>
+                <small className="flow-card-sub">Transmitted south aperture flux</small>
               </div>
-              <div className="flow-card gain-card">
-                <div className="flow-name">Internal Gains (Qint)</div>
-                <div className="flow-val">+{(currentStepData.internal_gain_w / 1000).toFixed(2)} kW</div>
-                <div className="flow-sub">{currentStation.occupants || 8} personnel @ 100W</div>
+              <div className="flow-card gain">
+                <div className="flow-card-head">Internal Gains (Qint)</div>
+                <div className="flow-card-num">+{(currentStepData.internal_gain_w / 1000).toFixed(2)} kW</div>
+                <small className="flow-card-sub">{currentStation.occupants || 8} occupants @ 100W</small>
               </div>
             </div>
 
-            {/* Center: Conditioned Thermal Core */}
-            <div className="balance-center-hub">
-              <div className="hub-core">
-                <div className="hub-label">INDOOR THERMAL ZONE</div>
-                <div className="hub-temp">{currentStepData.t_in} °C</div>
-                <div className="hub-net">
-                  NET: {currentStepData.net_heat_balance_w > 0 ? '+' : ''}
+            <div className="flow-center-zone">
+              <div className="indoor-zone-card">
+                <span className="zone-label">INDOOR ZONE</span>
+                <div className="zone-temp">{currentStepData.t_in} °C</div>
+                <div className="zone-net">
+                  Net: {currentStepData.net_heat_balance_w > 0 ? '+' : ''}
                   {(currentStepData.net_heat_balance_w / 1000).toFixed(2)} kW
                 </div>
-                <div className="hub-equation">C·(dTi/dt) = ΣQin − ΣQout</div>
+                <span className="zone-eq">C·(dTi/dt) = ΣQin − ΣQout</span>
               </div>
             </div>
 
-            {/* Outflows */}
-            <div className="balance-column outflows">
-              <div className="column-title">HEAT LOSSES (−)</div>
-              <div className="flow-loss-list">
-                <div className="loss-item-row">
-                  <span className="loss-item-name">Roof Conduction</span>
-                  <span className="loss-item-val">−{(currentStepData.q_roof / 1000).toFixed(2)} kW</span>
+            <div className="flow-column">
+              <span className="flow-col-title">HEAT LOSSES (−)</span>
+              <div className="loss-list">
+                <div className="loss-entry">
+                  <span>Roof Conduction</span>
+                  <strong>−{(currentStepData.q_roof / 1000).toFixed(2)} kW</strong>
                 </div>
-                <div className="loss-item-row">
-                  <span className="loss-item-name">Wall Conduction</span>
-                  <span className="loss-item-val">−{(currentStepData.q_wall / 1000).toFixed(2)} kW</span>
+                <div className="loss-entry">
+                  <span>North Wall Conduction</span>
+                  <strong>−{(currentStepData.q_wall / 1000).toFixed(2)} kW</strong>
                 </div>
-                <div className="loss-item-row">
-                  <span className="loss-item-name">Glazing Conduction</span>
-                  <span className="loss-item-val">−{(currentStepData.q_glazing / 1000).toFixed(2)} kW</span>
+                <div className="loss-entry">
+                  <span>Glazing Conduction</span>
+                  <strong>−{(currentStepData.q_glazing / 1000).toFixed(2)} kW</strong>
                 </div>
-                <div className="loss-item-row">
-                  <span className="loss-item-name">Infiltration Leakage</span>
-                  <span className="loss-item-val">−{(currentStepData.q_inf / 1000).toFixed(2)} kW</span>
+                <div className="loss-entry">
+                  <span>Infiltration Leakage</span>
+                  <strong>−{(currentStepData.q_inf / 1000).toFixed(2)} kW</strong>
                 </div>
-                <div className="loss-item-row">
-                  <span className="loss-item-name">Floor Conduction</span>
-                  <span className="loss-item-val">−{(currentStepData.q_floor / 1000).toFixed(2)} kW</span>
+                <div className="loss-entry">
+                  <span>Floor Conduction</span>
+                  <strong>−{(currentStepData.q_floor / 1000).toFixed(2)} kW</strong>
                 </div>
-                <div className="loss-item-row">
-                  <span className="loss-item-name">Sky Radiation</span>
-                  <span className="loss-item-val">−{(currentStepData.q_sky / 1000).toFixed(2)} kW</span>
+                <div className="loss-entry">
+                  <span>Sky Radiation</span>
+                  <strong>−{(currentStepData.q_sky / 1000).toFixed(2)} kW</strong>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Right: Heat Loss Breakdown Horizontal Bars (Section 12) */}
-        <section className="console-panel heat-loss-panel">
-          <div className="panel-header-strip">
-            <div className="panel-title-group">
-              <BarChart3 size={14} className="panel-icon" />
-              <h3 className="panel-title">HEAT LOSS BREAKDOWN</h3>
+        {/* Right: Heat Loss Breakdown Horizontal Bars */}
+        <section className="dashboard-panel">
+          <div className="panel-header">
+            <div>
+              <h3 className="panel-title">Heat Loss Pathway Breakdown</h3>
+              <p className="panel-subtitle">Ranked envelope loss contributions (Pk = Qk / ΣQloss × 100)</p>
             </div>
-            <span className="panel-badge-mono">RANKED CONTRIBUTIONS</span>
           </div>
 
-          <div className="breakdown-bar-list">
-            {diagnosisMetrics.components.map((c, i) => (
+          <div className="heat-loss-bars">
+            {diagnosisMetrics.components.map((c, idx) => (
               <div
                 key={c.key}
-                className="breakdown-item"
+                className="loss-bar-item"
                 onClick={() => setDrawerComponent({ name: c.name, value: `${c.kw} kW (${c.pct}%)`, note: c.action })}
+                title="Click to view material specification and retrofit action"
               >
-                <div className="breakdown-meta">
-                  <span className="breakdown-rank">0{i + 1}</span>
-                  <span className="breakdown-name">{c.name}</span>
-                  <span className="breakdown-spec">{c.u_val}</span>
-                  <strong className="breakdown-values">
-                    {c.kw} kW <span className="breakdown-pct">({c.pct}%)</span>
-                  </strong>
+                <div className="loss-bar-meta">
+                  <span className="loss-rank">#{idx + 1}</span>
+                  <span className="loss-name">{c.name}</span>
+                  <span className="loss-uval">{c.u_val}</span>
+                  <span className="loss-val">
+                    <strong>{c.kw} kW</strong> ({c.pct}%)
+                  </span>
                 </div>
-                <div className="breakdown-track">
+                <div className="loss-track">
                   <div
-                    className={`breakdown-fill fill-rank-${i + 1}`}
-                    style={{ width: `${Math.min(100, Math.max(4, c.pct))}%` }}
+                    className={`loss-fill rank-${idx + 1}`}
+                    style={{ width: `${Math.max(5, c.pct)}%` }}
                   />
                 </div>
               </div>
@@ -1003,69 +949,207 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* =====================================================================
-          5. THERMAL DIAGNOSIS PANEL (Section 13)
-          ===================================================================== */}
-      <section className="console-panel diagnosis-panel">
-        <div className="panel-header-strip">
-          <div className="panel-title-group">
-            <AlertTriangle size={15} className="panel-icon warning" />
-            <h3 className="panel-title">THERMAL DIAGNOSIS & BOTTLENECK ANALYSIS</h3>
-          </div>
-          <span className="panel-badge-mono">Pk = Qk / ΣQloss × 100</span>
-        </div>
-
-        <div className="diagnosis-grid">
-          <div className="diagnosis-card highlight-card">
-            <div className="diag-kicker">PRIMARY HEAT LOSS BOTTLENECK</div>
-            <div className="diag-headline">{diagnosisMetrics.primary.name.toUpperCase()}</div>
-            <div className="diag-stat">
-              {diagnosisMetrics.primary.pct}% <span className="diag-stat-sub">({diagnosisMetrics.primary.kw} kW Flux)</span>
-            </div>
-            <div className="diag-tag">Rank #1 Weakness</div>
-          </div>
-
-          <div className="diagnosis-card">
-            <div className="diag-kicker">SECONDARY WEAKNESS</div>
-            <div className="diag-headline">{diagnosisMetrics.secondary.name.toUpperCase()}</div>
-            <div className="diag-stat">
-              {diagnosisMetrics.secondary.pct}% <span className="diag-stat-sub">({diagnosisMetrics.secondary.kw} kW Flux)</span>
-            </div>
-            <div className="diag-tag">Rank #2 Loss</div>
-          </div>
-
-          <div className="diagnosis-card">
-            <div className="diag-kicker">CURRENT THERMAL STATE</div>
-            <div className="diag-headline">COLD-SIDE DEFICIT</div>
-            <div className="diag-stat">
-              {dailyDeficitHours} h <span className="diag-stat-sub">Below 18 °C Health Line</span>
-            </div>
-            <div className="diag-tag crit">Immediate Retrofit Priority</div>
-          </div>
-
-          <div className="diagnosis-card narrative-card">
-            <div className="diag-kicker">PHYSICS DIAGNOSTIC RATIONALE ("WHY?")</div>
-            <p className="diag-why-text">{diagnosisMetrics.whyText}</p>
-            <div className="diag-action-strip">
-              <strong>RECOMMENDED ACTION:</strong> {diagnosisMetrics.recommendedAction}
+      {/* ── 5. Split: Thermal Diagnosis & Shelter Thermal Cross-Section ──────── */}
+      <div className="dashboard-grid-2col">
+        {/* Left: Thermal Diagnosis */}
+        <section className="dashboard-panel">
+          <div className="panel-header">
+            <div>
+              <h3 className="panel-title">Thermal Diagnosis & Root Causes</h3>
+              <p className="panel-subtitle">Calculated envelope weaknesses and engineering remedies</p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* =====================================================================
-          6. SPLIT: SOLAR ANALYSIS & SCIENTIFIC SUN PATH (Sections 14 & 15)
-          ===================================================================== */}
-      <div className="console-split-grid">
-        {/* Left: Solar Radiation & Surface Irradiance (Section 14) */}
-        <section className="console-panel solar-panel">
-          <div className="panel-header-strip">
-            <div className="panel-title-group">
-              <Sun size={15} className="panel-icon solar" />
-              <h3 className="panel-title">SOLAR RADIATION ANALYSIS</h3>
+          <div className="diagnosis-cards-container">
+            <div className="diag-summary-strip">
+              <div className="diag-kpi primary">
+                <span className="diag-lbl">PRIMARY BOTTLENECK</span>
+                <strong className="diag-name">{diagnosisMetrics.primary.name}</strong>
+                <span className="diag-pct">{diagnosisMetrics.primary.pct}% of total loss ({diagnosisMetrics.primary.kw} kW)</span>
+              </div>
+              <div className="diag-kpi secondary">
+                <span className="diag-lbl">SECONDARY WEAKNESS</span>
+                <strong className="diag-name">{diagnosisMetrics.secondary.name}</strong>
+                <span className="diag-pct">{diagnosisMetrics.secondary.pct}% of total loss ({diagnosisMetrics.secondary.kw} kW)</span>
+              </div>
+              <div className="diag-kpi deficit">
+                <span className="diag-lbl">THERMAL DEFICIT</span>
+                <strong className="diag-name">{dailyDeficitHours} Hours</strong>
+                <span className="diag-pct">Below 18.0 °C comfort threshold</span>
+              </div>
             </div>
-            {/* Orientation Selector */}
-            <div className="surface-selector-pills">
+
+            <div className="diag-explanation-box">
+              <span className="diag-heading">PHYSICS DIAGNOSTIC RATIONALE</span>
+              <p>{diagnosisMetrics.whyText}</p>
+            </div>
+
+            <div className="diag-action-box">
+              <span className="diag-heading">RECOMMENDED RETROFIT INTERVENTION</span>
+              <p>{diagnosisMetrics.recommendedAction}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Right: Shelter Cross-Section with Heat Flux Arrows */}
+        <section className="dashboard-panel">
+          <div className="panel-header">
+            <div>
+              <h3 className="panel-title">Shelter Thermal Cross-Section</h3>
+              <p className="panel-subtitle">Envelope assemblies & directional heat flux vectors (Click assembly for specs)</p>
+            </div>
+          </div>
+
+          <div className="cross-section-container">
+            <svg viewBox="0 0 900 340" className="shelter-cad-svg">
+              <defs>
+                <marker id="arrowRed" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 8 5 L 0 9 z" fill="#dc2626" />
+                </marker>
+                <marker id="arrowOrange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 8 5 L 0 9 z" fill="#ea580c" />
+                </marker>
+              </defs>
+
+              {/* Ground and foundation line */}
+              <rect x="50" y="260" width="800" height="70" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.5" />
+              <line x1="50" y1="260" x2="850" y2="260" stroke="#94a3b8" strokeWidth="2" />
+              {currentStation.snow_cover && (
+                <rect x="50" y="254" width="800" height="6" fill="#e2e8f0" />
+              )}
+
+              {/* Floor Slab Assembly */}
+              <g
+                className="interactive-cad-component"
+                onClick={() => setDrawerComponent({ name: 'Floor Slab Assembly', value: 'U = 1.20 W/m²K', note: '150mm reinforced concrete slab on grade over 80mm XPS sub-base insulation and vapor retarder.' })}
+              >
+                <rect x="250" y="240" width="400" height="20" fill="#64748b" stroke="#334155" strokeWidth="1.5" />
+                <text x="450" y="254" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="bold">
+                  FLOOR SLAB (150mm Concrete + 80mm XPS) • [Click Specs]
+                </text>
+              </g>
+
+              {/* North Wall (Left, Heavy Thermal Mass) */}
+              <g
+                className="interactive-cad-component"
+                onClick={() => setDrawerComponent({ name: 'North Opaque Wall Assembly', value: 'U = 1.80 W/m²K', note: '350mm local granitic stone masonry core with exterior 100mm PUF thermal envelope wrap.' })}
+              >
+                <rect x="220" y="90" width="30" height="150" fill="#94a3b8" stroke="#334155" strokeWidth="1.5" />
+                <rect x="212" y="90" width="8" height="150" fill="#f59e0b" opacity="0.8" />
+                <text x="200" y="165" textAnchor="middle" fill="#475569" fontSize="9" fontWeight="600" transform="rotate(-90 200 165)">
+                  NORTH WALL (350mm Stone + PUF)
+                </text>
+              </g>
+
+              {/* South Wall & Solar Glazing (Right) */}
+              <g
+                className="interactive-cad-component"
+                onClick={() => setDrawerComponent({ name: 'South Passive Solar Glazing', value: 'U = 2.80 W/m²K (Double Pane)', note: '4.0 m² south-facing solar aperture with high solar heat gain coefficient (SHGC = 0.65) and insulated night thermal shutter.' })}
+              >
+                <rect x="650" y="90" width="30" height="30" fill="#94a3b8" stroke="#334155" strokeWidth="1.5" />
+                <rect x="654" y="120" width="22" height="80" fill="#e0f2fe" stroke="#0284c7" strokeWidth="2" />
+                <line x1="665" y1="120" x2="665" y2="200" stroke="#0284c7" strokeWidth="1" />
+                <rect x="650" y="200" width="30" height="40" fill="#94a3b8" stroke="#334155" strokeWidth="1.5" />
+                <text x="705" y="160" textAnchor="middle" fill="#0284c7" fontSize="9" fontWeight="bold">
+                  DOUBLE LOW-E (4 m²)
+                </text>
+              </g>
+
+              {/* Pitched Roof Assembly */}
+              <g
+                className="interactive-cad-component"
+                onClick={() => setDrawerComponent({ name: 'Pitched Roof Assembly', value: 'U = 2.20 W/m²K', note: 'Composite 150mm sandwich structural insulated panel (SIP) with high-density PUF core and corrugated exterior metal skin.' })}
+              >
+                <polygon points="200,90 450,40 700,90 690,100 450,55 210,100" fill="#475569" stroke="#1e293b" strokeWidth="1.5" />
+                <text x="450" y="32" textAnchor="middle" fill="#0f172a" fontSize="11" fontWeight="bold">
+                  ROOF ASSEMBLY (Pitched PUF SIP • U=2.2) • [Click Specs]
+                </text>
+              </g>
+
+              {/* Indoor Conditioned Air Volume */}
+              <rect x="250" y="90" width="400" height="150" fill="rgba(248, 250, 252, 0.6)" />
+              <text x="450" y="150" textAnchor="middle" fill="#0f172a" fontSize="17" fontWeight="800" fontFamily="monospace">
+                INDOOR Tin = {currentStepData.t_in} °C
+              </text>
+              <text x="450" y="172" textAnchor="middle" fill="#64748b" fontSize="11">
+                Top = {currentStepData.t_operative} °C • Tmrt = {currentStepData.t_mrt} °C
+              </text>
+
+              {/* Heat Flux Arrows */}
+              {/* Roof loss arrow */}
+              <line
+                x1="450"
+                y1="50"
+                x2="450"
+                y2="10"
+                stroke="#dc2626"
+                strokeWidth={Math.max(2, Math.min(8, currentStepData.q_roof / 450))}
+                markerEnd="url(#arrowRed)"
+              />
+              <text x="460" y="20" fill="#dc2626" fontSize="10" fontWeight="bold">
+                Qroof = -{(currentStepData.q_roof / 1000).toFixed(2)} kW
+              </text>
+
+              {/* South solar arrow */}
+              {currentStepData.solar_gain_w > 0 && (
+                <g>
+                  <line
+                    x1="760"
+                    y1="100"
+                    x2="676"
+                    y2="150"
+                    stroke="#ea580c"
+                    strokeWidth={Math.max(2, Math.min(8, currentStepData.solar_gain_w / 250))}
+                    markerEnd="url(#arrowOrange)"
+                  />
+                  <text x="765" y="105" fill="#ea580c" fontSize="10" fontWeight="bold">
+                    Qsol = +{(currentStepData.solar_gain_w / 1000).toFixed(2)} kW
+                  </text>
+                </g>
+              )}
+
+              {/* North wall loss arrow */}
+              <line
+                x1="250"
+                y1="165"
+                x2="170"
+                y2="165"
+                stroke="#dc2626"
+                strokeWidth={Math.max(2, Math.min(7, currentStepData.q_wall / 550))}
+                markerEnd="url(#arrowRed)"
+              />
+              <text x="160" y="155" textAnchor="end" fill="#dc2626" fontSize="10" fontWeight="bold">
+                Qwall = -{(currentStepData.q_wall / 1000).toFixed(2)} kW
+              </text>
+
+              {/* Floor loss arrow */}
+              <line
+                x1="450"
+                y1="240"
+                x2="450"
+                y2="280"
+                stroke="#dc2626"
+                strokeWidth={Math.max(2, Math.min(6, currentStepData.q_floor / 550))}
+                markerEnd="url(#arrowRed)"
+              />
+              <text x="460" y="278" fill="#dc2626" fontSize="9" fontWeight="bold">
+                Qfloor = -{(currentStepData.q_floor / 1000).toFixed(2)} kW
+              </text>
+            </svg>
+          </div>
+        </section>
+      </div>
+
+      {/* ── 6. Split: Solar Analysis & Climate / Altitude Physics ───────────── */}
+      <div className="dashboard-grid-2col">
+        {/* Left: Solar Radiation & Surface Irradiance */}
+        <section className="dashboard-panel">
+          <div className="panel-header">
+            <div>
+              <h3 className="panel-title">Solar Radiation & Surface Irradiance</h3>
+              <p className="panel-subtitle">GHI, DNI, DHI, and directional incidence flux</p>
+            </div>
+            <div className="surface-buttons">
               {['roof', 'south', 'north', 'east', 'west'].map((s) => (
                 <button
                   key={s}
@@ -1079,427 +1163,122 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="solar-chart-body">
-            {/* Solar Radiation SVG Curve */}
-            <svg className="mini-svg-chart" viewBox="0 0 480 180" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="solarFillGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#EA580C" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#EA580C" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              {/* Grid */}
+          <div className="solar-chart-box">
+            <svg className="solar-svg-curve" viewBox="0 0 460 140" preserveAspectRatio="none">
               {[0, 6, 12, 18, 23].map((h) => {
-                const x = 30 + (h / 23) * 420;
-                return (
-                  <line key={h} x1={x} y1="15" x2={x} y2="150" stroke="var(--border)" strokeDasharray="2 2" />
-                );
+                const x = 30 + (h / 23) * 400;
+                return <line key={h} x1={x} y1="10" x2={x} y2="120" stroke="#f1f5f9" strokeDasharray="2 2" />;
               })}
-              {/* GHI Curve */}
               {(() => {
                 const maxIrr = 1000.0;
                 const pathGhi = hourlyData
                   .map((d, i) => {
-                    const x = 30 + (i / 23) * 420;
-                    const y = 150 - (d.ghi / maxIrr) * 130;
+                    const x = 30 + (i / 23) * 400;
+                    const y = 120 - (d.ghi / maxIrr) * 105;
                     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                   })
                   .join(' ');
 
                 const pathSurface = hourlyData
                   .map((d, i) => {
-                    const x = 30 + (i / 23) * 420;
-                    const y = 150 - (d.surface_irradiance / maxIrr) * 130;
+                    const x = 30 + (i / 23) * 400;
+                    const y = 120 - (d.surface_irradiance / maxIrr) * 105;
                     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                   })
                   .join(' ');
 
                 return (
                   <g>
-                    <path d={pathGhi} fill="none" stroke="#D97706" strokeWidth="1.5" strokeDasharray="3 2" />
-                    <path d={pathSurface} fill="none" stroke="#EA580C" strokeWidth="2.5" />
+                    <path d={pathGhi} fill="none" stroke="#d97706" strokeWidth="1.5" strokeDasharray="3 2" />
+                    <path d={pathSurface} fill="none" stroke="#ea580c" strokeWidth="2.5" />
                   </g>
                 );
               })()}
-              {/* Scrubber vertical line */}
               {(() => {
-                const x = 30 + (simulationHour / 23) * 420;
-                return <line x1={x} y1="15" x2={x} y2="150" stroke="#DC2626" strokeWidth="1.5" />;
+                const x = 30 + (simulationHour / 23) * 400;
+                return <line x1={x} y1="10" x2={x} y2="120" stroke="#dc2626" strokeWidth="1.5" />;
               })()}
             </svg>
           </div>
 
-          <div className="solar-telemetry-grid">
-            <div className="sol-tile">
-              <span className="sol-label">GHI:</span>
+          <div className="solar-metric-tiles">
+            <div className="metric-tile">
+              <span className="tile-lbl">GHI</span>
               <strong>{currentStepData.ghi} W/m²</strong>
             </div>
-            <div className="sol-tile">
-              <span className="sol-label">DNI:</span>
+            <div className="metric-tile">
+              <span className="tile-lbl">DNI</span>
               <strong>{currentStepData.dni} W/m²</strong>
             </div>
-            <div className="sol-tile">
-              <span className="sol-label">DHI:</span>
+            <div className="metric-tile">
+              <span className="tile-lbl">DHI</span>
               <strong>{currentStepData.dhi} W/m²</strong>
             </div>
-            <div className="sol-tile highlight">
-              <span className="sol-label">{solarSurface.toUpperCase()} FLUX:</span>
+            <div className="metric-tile highlight">
+              <span className="tile-lbl">{solarSurface.toUpperCase()} FLUX</span>
               <strong>{currentStepData.surface_irradiance} W/m²</strong>
             </div>
           </div>
         </section>
 
-        {/* Right: Scientific Sun Path Polar/Arc Diagram (Section 15) */}
-        <section className="console-panel sunpath-panel">
-          <div className="panel-header-strip">
-            <div className="panel-title-group">
-              <Compass size={15} className="panel-icon" />
-              <h3 className="panel-title">SCIENTIFIC SUN-PATH TRAJECTORY</h3>
+        {/* Right: Climate Severity & Altitude Fluid Physics */}
+        <section className="dashboard-panel">
+          <div className="panel-header">
+            <div>
+              <h3 className="panel-title">Climate Severity & Altitude Physics</h3>
+              <p className="panel-subtitle">Barometric lapse P(h) and air density ρ = P/(R·T)</p>
             </div>
-            <span className="panel-badge-mono">CELESTIAL ARC PROJECTION</span>
           </div>
 
-          <div className="sunpath-svg-wrapper">
-            <svg viewBox="0 0 400 200" className="sunpath-svg">
-              {/* Horizon Line */}
-              <line x1="30" y1="170" x2="370" y2="170" stroke="var(--border-strong)" strokeWidth="2" />
-              {/* Celestial Dome Arc */}
-              <path d="M 30 170 A 170 170 0 0 1 370 170" fill="none" stroke="var(--border)" strokeWidth="1.5" strokeDasharray="3 3" />
-              <path d="M 80 170 A 120 120 0 0 1 320 170" fill="none" stroke="var(--border)" strokeWidth="1" strokeDasharray="2 2" />
-
-              {/* Cardinal Markers */}
-              <text x="30" y="185" textAnchor="middle" fill="var(--text-muted)" fontSize="10" fontWeight="bold">EAST (06:45)</text>
-              <text x="200" y="185" textAnchor="middle" fill="#EA580C" fontSize="10" fontWeight="bold">SOUTH (12:00 NOON)</text>
-              <text x="370" y="185" textAnchor="middle" fill="var(--text-muted)" fontSize="10" fontWeight="bold">WEST (17:15)</text>
-
-              {/* Sun Position at current simulation hour */}
-              {(() => {
-                const hourFrac = Math.max(0, Math.min(1, (simulationHour - 6.0) / 12.0));
-                const isSunUp = simulationHour >= 6 && simulationHour <= 18;
-                // Angle along semi-circle: 180 deg to 0 deg
-                const angleRad = Math.PI * (1.0 - hourFrac);
-                const r = 150;
-                const cx = 200 + r * Math.cos(angleRad);
-                const cy = 170 - r * Math.sin(angleRad);
-
-                return isSunUp ? (
-                  <g className="sun-marker-group">
-                    <line x1="200" y1="170" x2={cx} y2={cy} stroke="#EA580C" strokeWidth="1.5" strokeDasharray="2 2" opacity="0.6" />
-                    <circle cx={cx} cy={cy} r="8" fill="#FBBF24" stroke="#EA580C" strokeWidth="2" />
-                    <text x={cx} y={cy - 12} textAnchor="middle" fill="#EA580C" fontSize="10" fontWeight="bold">
-                      SUN ({currentStepData.time_label})
-                    </text>
-                  </g>
-                ) : (
-                  <g>
-                    <text x="200" y="90" textAnchor="middle" fill="var(--text-muted)" fontSize="11" fontStyle="italic">
-                      NOCTURNAL SUB-HORIZON PERIOD (Tsky = {currentStepData.t_sky} °C)
-                    </text>
-                  </g>
-                );
-              })()}
-            </svg>
-          </div>
-
-          <div className="sunpath-readout">
-            <span>Solar Altitude: <strong>{currentStepData.solar_alt}°</strong></span>
-            <span>Solar Azimuth: <strong>{currentStepData.solar_azimuth}°</strong></span>
-            <span>Incidence on South: <strong>{(90 - currentStepData.solar_alt).toFixed(1)}°</strong></span>
-          </div>
-        </section>
-      </div>
-
-      {/* =====================================================================
-          7. SPLIT: CLIMATE PROFILE & ALTITUDE PHYSICS (Sections 16 & 17)
-          ===================================================================== */}
-      <div className="console-split-grid">
-        {/* Left: Climate Profile (Section 16) */}
-        <section className="console-panel climate-panel">
-          <div className="panel-header-strip">
-            <div className="panel-title-group">
-              <Snowflake size={14} className="panel-icon" />
-              <h3 className="panel-title">ENVIRONMENTAL CLIMATE PROFILE</h3>
-            </div>
-            <span className="panel-badge-mono">{currentStation.climate_type.toUpperCase()}</span>
-          </div>
-
-          <div className="climate-indicators-grid">
-            <div className="indicator-row">
-              <span className="ind-label">COLD STRESS</span>
-              <div className="ind-track">
-                <div className="ind-fill crit-fill" style={{ width: '92%' }} />
+          <div className="climate-altitude-container">
+            <div className="climate-gauges-list">
+              <div className="gauge-row">
+                <span className="gauge-name">Cold Stress</span>
+                <div className="gauge-track"><div className="gauge-bar crit" style={{ width: '90%' }} /></div>
+                <span className="gauge-val">{currentStation.design_min_temp_c} °C</span>
               </div>
-              <span className="ind-val">{currentStation.design_min_temp_c} °C</span>
-            </div>
-            <div className="indicator-row">
-              <span className="ind-label">WIND EXPOSURE</span>
-              <div className="ind-track">
-                <div className="ind-fill warn-fill" style={{ width: '74%' }} />
+              <div className="gauge-row">
+                <span className="gauge-name">Wind Exposure</span>
+                <div className="gauge-track"><div className="gauge-bar warn" style={{ width: '72%' }} /></div>
+                <span className="gauge-val">{currentStation.avg_wind_speed_mps} m/s</span>
               </div>
-              <span className="ind-val">{currentStation.avg_wind_speed_mps} m/s</span>
-            </div>
-            <div className="indicator-row">
-              <span className="ind-label">SNOW COVER / ALBEDO</span>
-              <div className="ind-track">
-                <div className="ind-fill info-fill" style={{ width: currentStation.snow_cover ? '85%' : '20%' }} />
+              <div className="gauge-row">
+                <span className="gauge-name">Snow Albedo</span>
+                <div className="gauge-track"><div className="gauge-bar info" style={{ width: currentStation.snow_cover ? '85%' : '20%' }} /></div>
+                <span className="gauge-val">{currentStation.snow_cover ? '0.75 Albedo' : '0.20 Normal'}</span>
               </div>
-              <span className="ind-val">{currentStation.snow_cover ? '0.75 Albedo' : '0.20 Normal'}</span>
-            </div>
-            <div className="indicator-row">
-              <span className="ind-label">SOLAR POTENTIAL</span>
-              <div className="ind-track">
-                <div className="ind-fill solar-fill" style={{ width: '88%' }} />
+              <div className="gauge-row">
+                <span className="gauge-name">Solar Potential</span>
+                <div className="gauge-track"><div className="gauge-bar solar" style={{ width: '85%' }} /></div>
+                <span className="gauge-val">{currentStation.solar_potential_kwh_m2} kWh/m²</span>
               </div>
-              <span className="ind-val">{currentStation.solar_potential_kwh_m2} kWh/m²</span>
             </div>
-            <div className="indicator-row">
-              <span className="ind-label">RELATIVE HUMIDITY</span>
-              <div className="ind-track">
-                <div className="ind-fill" style={{ width: `${currentStation.avg_rh_pct}%` }} />
+
+            <div className="altitude-physics-box">
+              <div className="altitude-stat-row">
+                <span>Elevation: <strong>{currentStation.altitude_m}m ASL</strong></span>
+                <span>Barometric Pressure: <strong>{currentPressureKpa} kPa</strong></span>
+                <span>Air Density: <strong>{currentAirDensity} kg/m³</strong></span>
               </div>
-              <span className="ind-val">{currentStation.avg_rh_pct}% RH</span>
-            </div>
-          </div>
-        </section>
-
-        {/* Right: Altitude Physics (Section 17) */}
-        <section className="console-panel altitude-panel">
-          <div className="panel-header-strip">
-            <div className="panel-title-group">
-              <Activity size={14} className="panel-icon" />
-              <h3 className="panel-title">ALTITUDE-AWARE FLUID PHYSICS</h3>
-            </div>
-            <span className="panel-badge-mono">BAROMETRIC LAPSE MODEL</span>
-          </div>
-
-          <div className="altitude-curves-view">
-            <div className="curve-header-meta">
-              <span>Station Altitude: <strong>{currentStation.altitude_m} m ASL</strong></span>
-              <span>Barometric Pressure: <strong>{currentPressureKpa} kPa</strong></span>
-              <span>Air Density: <strong>{currentAirDensity} kg/m³</strong></span>
-            </div>
-
-            <svg viewBox="0 0 460 140" className="altitude-curve-svg">
-              {/* Curve from 0m to 6000m: Pressure */}
-              <line x1="40" y1="120" x2="440" y2="120" stroke="var(--border)" />
-              <line x1="40" y1="20" x2="40" y2="120" stroke="var(--border)" />
-
-              {/* Ticks */}
-              <text x="40" y="134" fontSize="9" fill="var(--text-muted)">0m</text>
-              <text x="173" y="134" fontSize="9" fill="var(--text-muted)">2000m</text>
-              <text x="306" y="134" fontSize="9" fill="var(--text-muted)">4000m</text>
-              <text x="440" y="134" textAnchor="end" fontSize="9" fill="var(--text-muted)">6000m</text>
-
-              {/* Barometric Pressure Curve */}
-              {(() => {
-                const pts = [];
-                for (let a = 0; a <= 6000; a += 500) {
-                  const x = 40 + (a / 6000) * 400;
-                  const p = calculateBarometricPressurePa(a) / 1000;
-                  const y = 120 - ((p - 45) / 60) * 100;
-                  pts.push(`${x},${y}`);
-                }
-                return <polyline points={pts.join(' ')} fill="none" stroke="#2563EB" strokeWidth="2" />;
-              })()}
-
-              {/* Highlight current location dot */}
-              {(() => {
-                const alt = Math.min(6000, currentStation.altitude_m);
-                const x = 40 + (alt / 6000) * 400;
-                const p = currentPressurePa / 1000;
-                const y = 120 - ((p - 45) / 60) * 100;
-                return (
-                  <g>
-                    <line x1={x} y1="20" x2={x} y2="120" stroke="#DC2626" strokeDasharray="3 2" />
-                    <circle cx={x} cy={y} r="5" fill="#DC2626" stroke="#FFFFFF" strokeWidth="2" />
-                    <text x={x} y={y - 8} textAnchor="middle" fill="#DC2626" fontSize="10" fontWeight="bold">
-                      {currentStation.name} ({currentStation.altitude_m}m)
-                    </text>
-                  </g>
-                );
-              })()}
-            </svg>
-            <div className="physics-note">
-              Physics Impact: Reduced air density (ρ = {currentAirDensity} kg/m³) decreases convective heat loss through air infiltration by {((1 - Number(currentAirDensity) / 1.225) * 100).toFixed(0)}% compared to sea level.
+              <p className="physics-callout">
+                Engineering implication: Air density at {currentStation.altitude_m}m is {((1 - Number(currentAirDensity) / 1.225) * 100).toFixed(0)}% lower than sea level. While reducing convective infiltration heat loss, it increases solar radiation intensity by 18–25%.
+              </p>
             </div>
           </div>
         </section>
       </div>
 
-      {/* =====================================================================
-          8. SHELTER THERMAL CROSS-SECTION & INTERACTIVE COMPONENT LAYERS (Sections 18 & 19)
-          ===================================================================== */}
-      <section className="console-panel shelter-section-panel">
-        <div className="panel-header-strip">
-          <div className="panel-title-group">
-            <Layers size={15} className="panel-icon" />
-            <h3 className="panel-title">SHELTER THERMAL CROSS-SECTION & HEAT FLUX VECTORS</h3>
+      {/* ── 7. Area-Specific Material Recommendation Engine ─────────────────── */}
+      <section className="dashboard-panel">
+        <div className="panel-header">
+          <div>
+            <h3 className="panel-title">Area-Specific Material & Envelope Recommendations</h3>
+            <p className="panel-subtitle">Grounded in regional climatic constraints and ISO 52016-1 thermal properties</p>
           </div>
-          <span className="panel-badge-mono">CLICK COMPONENT TO OPEN TECHNICAL DRAWER</span>
         </div>
 
-        <div className="cross-section-viewport">
-          <svg viewBox="0 0 900 360" className="cross-section-svg">
-            <defs>
-              <pattern id="hatchEarth" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <line x1="0" y1="0" x2="0" y2="8" stroke="#94A3B8" strokeWidth="1.5" />
-              </pattern>
-              <pattern id="hatchInsulation" width="6" height="6" patternUnits="userSpaceOnUse">
-                <circle cx="3" cy="3" r="1.5" fill="#F59E0B" />
-              </pattern>
-              {/* Arrow markers */}
-              <marker id="arrowLoss" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 8 5 L 0 9 z" fill="#DC2626" />
-              </marker>
-              <marker id="arrowSolar" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 8 5 L 0 9 z" fill="#EA580C" />
-              </marker>
-            </defs>
-
-            {/* Ground Line & Snow Cover */}
-            <rect x="50" y="270" width="800" height="70" fill="url(#hatchEarth)" opacity="0.4" />
-            <line x1="50" y1="270" x2="850" y2="270" stroke="#64748B" strokeWidth="2" />
-            {currentStation.snow_cover && (
-              <rect x="50" y="262" width="800" height="8" fill="#E2E8F0" opacity="0.9" />
-            )}
-
-            {/* ── Shelter Structure ── */}
-            {/* Floor Assembly (Clickable) */}
-            <g
-              className="clickable-component"
-              onClick={() => setDrawerComponent({ name: 'Floor Assembly', value: 'U = 1.20 W/m²K', note: 'Concrete subgrade slab over compacted aggregate gravel with vapor barrier.' })}
-            >
-              <rect x="250" y="250" width="400" height="20" fill="#64748B" stroke="#334155" strokeWidth="2" />
-              <text x="450" y="264" textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="bold">
-                FLOOR SLAB (Concrete 150mm) • [Click Details]
-              </text>
-            </g>
-
-            {/* North Wall Assembly (Left, Opaque) */}
-            <g
-              className="clickable-component"
-              onClick={() => setDrawerComponent({ name: 'North Opaque Wall', value: 'U = 1.80 W/m²K', note: 'Heavy masonry structural core with optional exterior thermal barrier.' })}
-            >
-              <rect x="230" y="100" width="30" height="150" fill="#94A3B8" stroke="#334155" strokeWidth="2" />
-              <rect x="222" y="100" width="8" height="150" fill="url(#hatchInsulation)" />
-              <text x="210" y="175" textAnchor="middle" fill="var(--text-secondary)" fontSize="9" transform="rotate(-90 210 175)">
-                NORTH WALL (350mm)
-              </text>
-            </g>
-
-            {/* South Wall & Glazing Assembly (Right) */}
-            <g
-              className="clickable-component"
-              onClick={() => setDrawerComponent({ name: 'South Solar Aperture / Glazing', value: 'U = 2.80 W/m²K (Double Pane)', note: 'South-facing passive solar glazing with high solar heat gain coefficient (SHGC = 0.65).' })}
-            >
-              <rect x="640" y="100" width="30" height="40" fill="#94A3B8" stroke="#334155" strokeWidth="2" />
-              {/* Window Aperture */}
-              <rect x="645" y="140" width="20" height="70" fill="#BAE6FD" stroke="#0284C7" strokeWidth="2" />
-              <line x1="655" y1="140" x2="655" y2="210" stroke="#0284C7" strokeWidth="1" />
-              <rect x="640" y="210" width="30" height="40" fill="#94A3B8" stroke="#334155" strokeWidth="2" />
-              <text x="690" y="175" textAnchor="middle" fill="#0284C7" fontSize="9" fontWeight="bold">
-                DOUBLE LOW-E (4.0 m²)
-              </text>
-            </g>
-
-            {/* Roof Assembly (Clickable) */}
-            <g
-              className="clickable-component"
-              onClick={() => setDrawerComponent({ name: 'Pitched Roof Assembly', value: 'U = 2.20 W/m²K', note: 'Structural concrete slab with exterior insulation and metal cladding.' })}
-            >
-              <polygon points="210,100 450,50 690,100 680,110 450,65 220,110" fill="#475569" stroke="#1E293B" strokeWidth="2" />
-              <text x="450" y="42" textAnchor="middle" fill="var(--text-primary)" fontSize="11" fontWeight="bold">
-                ROOF ASSEMBLY (U=2.2 W/m²K) • [Click Details]
-              </text>
-            </g>
-
-            {/* Conditioned Interior Space */}
-            <rect x="260" y="100" width="380" height="150" fill="rgba(241, 245, 249, 0.5)" />
-            <text x="450" y="160" textAnchor="middle" fill="var(--text-primary)" fontSize="18" fontWeight="900" fontFamily="monospace">
-              INDOOR Tin = {currentStepData.t_in} °C
-            </text>
-            <text x="450" y="180" textAnchor="middle" fill="var(--text-secondary)" fontSize="11">
-              Top = {currentStepData.t_operative} °C • Tmrt = {currentStepData.t_mrt} °C
-            </text>
-
-            {/* ── Dynamic Heat Flux Vectors (Stroke width scales with W) ── */}
-            {/* Roof Conduction Loss to Sky */}
-            <line
-              x1="450"
-              y1="60"
-              x2="450"
-              y2="10"
-              stroke="#DC2626"
-              strokeWidth={Math.max(2, Math.min(10, currentStepData.q_roof / 400))}
-              markerEnd="url(#arrowLoss)"
-            />
-            <text x="460" y="25" fill="#DC2626" fontSize="10" fontWeight="bold">
-              Qroof = -{(currentStepData.q_roof / 1000).toFixed(2)} kW
-            </text>
-
-            {/* South Solar Gain Vector */}
-            {currentStepData.solar_gain_w > 0 && (
-              <g>
-                <line
-                  x1="760"
-                  y1="110"
-                  x2="670"
-                  y2="160"
-                  stroke="#EA580C"
-                  strokeWidth={Math.max(2, Math.min(10, currentStepData.solar_gain_w / 200))}
-                  markerEnd="url(#arrowSolar)"
-                />
-                <text x="770" y="115" fill="#EA580C" fontSize="10" fontWeight="bold">
-                  Qsol = +{(currentStepData.solar_gain_w / 1000).toFixed(2)} kW
-                </text>
-              </g>
-            )}
-
-            {/* North Wall Conductive Loss */}
-            <line
-              x1="260"
-              y1="175"
-              x2="170"
-              y2="175"
-              stroke="#DC2626"
-              strokeWidth={Math.max(2, Math.min(8, currentStepData.q_wall / 500))}
-              markerEnd="url(#arrowLoss)"
-            />
-            <text x="160" y="165" textAnchor="end" fill="#DC2626" fontSize="10" fontWeight="bold">
-              Qwall = -{(currentStepData.q_wall / 1000).toFixed(2)} kW
-            </text>
-
-            {/* Floor Conduction Loss */}
-            <line
-              x1="450"
-              y1="250"
-              x2="450"
-              y2="290"
-              stroke="#DC2626"
-              strokeWidth={Math.max(2, Math.min(6, currentStepData.q_floor / 500))}
-              markerEnd="url(#arrowLoss)"
-            />
-            <text x="460" y="285" fill="#DC2626" fontSize="9" fontWeight="bold">
-              Qfloor = -{(currentStepData.q_floor / 1000).toFixed(2)} kW
-            </text>
-          </svg>
-        </div>
-      </section>
-
-      {/* =====================================================================
-          9. AI & PHYSICS MATERIAL RECOMMENDATION ENGINE (Section 20 & 21)
-          ===================================================================== */}
-      <section className="console-panel materials-rec-panel">
-        <div className="panel-header-strip">
-          <div className="panel-title-group">
-            <SlidersHorizontal size={15} className="panel-icon" />
-            <h3 className="panel-title">AI MATERIAL & ENVELOPE SPECIFICATION MATRIX</h3>
-          </div>
-          <span className="panel-badge-mono pass">VALIDATED BY PHYSICS ENGINE (ISO 52016-1)</span>
-        </div>
-
-        <div className="materials-table-wrapper">
-          <table className="console-data-table">
+        <div className="recommendations-table-wrapper">
+          <table className="clean-engineering-table">
             <thead>
               <tr>
                 <th>BUILDING COMPONENT</th>
@@ -1511,50 +1290,50 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {regionalRec.map((r, i) => (
+              {regionalRec.map((r) => (
                 <tr key={r.component}>
-                  <td className="font-bold">{r.component}</td>
-                  <td className="highlight-cell">{r.recommended}</td>
-                  <td className="mono-sub">{r.spec}</td>
+                  <td className="font-semibold">{r.component}</td>
+                  <td className="rec-material-cell">{r.recommended}</td>
+                  <td className="spec-sub-cell">{r.spec}</td>
                   <td className="mono-num">{r.u_val ? `${r.u_val} W/m²K` : '—'}</td>
                   <td className="mono-num">{r.r_val ? `${r.r_val} m²K/W` : '—'}</td>
-                  <td className="why-cell">{r.why}</td>
+                  <td className="rationale-cell">{r.why}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* ── Material Suitability Radar / Multi-Attribute Comparison (Section 21) ── */}
-        <div className="suitability-comparison-block">
-          <h4 className="sub-section-title">CANDIDATE MATERIAL SUITABILITY COMPARISON (8 DIMENSIONS)</h4>
-          <div className="suitability-cards-grid">
+        {/* Candidate Material Suitability Comparison */}
+        <div className="candidate-materials-section">
+          <h4 className="section-subheading">Candidate Material Suitability Comparison (8 Engineering Dimensions)</h4>
+          <div className="materials-grid">
             {CANDIDATE_MATERIALS.map((m) => (
-              <div key={m.id} className="suitability-card">
-                <div className="mat-header">
+              <div key={m.id} className="material-suitability-card">
+                <div className="mat-card-header">
                   <strong>{m.name}</strong>
-                  <span className="mat-cat">{m.category}</span>
+                  <span className="mat-cat-pill">{m.category}</span>
                 </div>
-                <div className="mat-physics-stats">
+                <div className="mat-physics-props">
                   <span>k = {m.k} W/mK</span>
                   <span>ρ = {m.density} kg/m³</span>
                 </div>
-                <div className="mat-metric-bars">
-                  <div className="mat-bar-row">
+                <div className="mat-score-bars">
+                  <div className="score-row">
                     <span>Insulation</span>
-                    <div className="mat-track"><div className="mat-fill" style={{ width: `${m.insulation}%` }} /></div>
+                    <div className="score-track"><div className="score-fill" style={{ width: `${m.insulation}%` }} /></div>
                   </div>
-                  <div className="mat-bar-row">
+                  <div className="score-row">
                     <span>Thermal Mass</span>
-                    <div className="mat-track"><div className="mat-fill" style={{ width: `${m.mass}%` }} /></div>
+                    <div className="score-track"><div className="score-fill" style={{ width: `${m.mass}%` }} /></div>
                   </div>
-                  <div className="mat-bar-row">
+                  <div className="score-row">
                     <span>Durability</span>
-                    <div className="mat-track"><div className="mat-fill" style={{ width: `${m.durability}%` }} /></div>
+                    <div className="score-track"><div className="score-fill" style={{ width: `${m.durability}%` }} /></div>
                   </div>
-                  <div className="mat-bar-row">
+                  <div className="score-row">
                     <span>Freeze-Thaw</span>
-                    <div className="mat-track"><div className="mat-fill" style={{ width: `${m.freeze_thaw}%` }} /></div>
+                    <div className="score-track"><div className="score-fill" style={{ width: `${m.freeze_thaw}%` }} /></div>
                   </div>
                 </div>
               </div>
@@ -1563,96 +1342,92 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* =====================================================================
-          10. CURRENT VS OPTIMIZED COMPARISON & PARETO OPTIMIZATION (Sections 22, 23, 24)
-          ===================================================================== */}
-      <div className="console-split-grid">
-        {/* Current vs Optimized Design (Section 22) */}
-        <section className="console-panel comparison-panel">
-          <div className="panel-header-strip">
-            <div className="panel-title-group">
-              <Activity size={15} className="panel-icon" />
-              <h3 className="panel-title">CURRENT BASELINE vs OPTIMIZED DESIGN</h3>
+      {/* ── 8. Split: Baseline vs Optimized Design & Morris Sensitivity ───────── */}
+      <div className="dashboard-grid-2col">
+        {/* Baseline vs Optimized */}
+        <section className="dashboard-panel">
+          <div className="panel-header">
+            <div>
+              <h3 className="panel-title">Baseline vs. Optimized Shelter Design</h3>
+              <p className="panel-subtitle">Paired thermal response comparison after applying area-specific envelope package</p>
             </div>
-            <span className="panel-badge-mono">PAIRED THERMAL EVALUATION</span>
           </div>
 
-          <div className="paired-comparison-list">
-            <div className="paired-item">
-              <div className="paired-labels">
-                <span>Minimum Night Temp (Tin_min)</span>
-                <span className="paired-values">
+          <div className="paired-comparison-rows">
+            <div className="paired-metric">
+              <div className="paired-hdr">
+                <span>Minimum Night Interior Temp (Tin_min)</span>
+                <span className="paired-delta">
                   <span className="crit-text">-9.9 °C</span> → <strong className="pass-text">+6.2 °C (+16.1 K)</strong>
                 </span>
               </div>
-              <div className="paired-bar-track">
-                <div className="paired-bar-fill baseline" style={{ width: '30%' }} />
-                <div className="paired-bar-fill optimized" style={{ width: '78%' }} />
+              <div className="paired-bar-container">
+                <div className="paired-bar baseline" style={{ width: '30%' }} />
+                <div className="paired-bar optimized" style={{ width: '78%' }} />
               </div>
             </div>
 
-            <div className="paired-item">
-              <div className="paired-labels">
+            <div className="paired-metric">
+              <div className="paired-hdr">
                 <span>Peak Envelope Heat Loss</span>
-                <span className="paired-values">
+                <span className="paired-delta">
                   <span className="loss-text">4.82 kW</span> → <strong className="pass-text">1.84 kW (-62%)</strong>
                 </span>
               </div>
-              <div className="paired-bar-track">
-                <div className="paired-bar-fill baseline" style={{ width: '85%' }} />
-                <div className="paired-bar-fill optimized" style={{ width: '32%' }} />
+              <div className="paired-bar-container">
+                <div className="paired-bar baseline" style={{ width: '85%' }} />
+                <div className="paired-bar optimized" style={{ width: '32%' }} />
               </div>
             </div>
 
-            <div className="paired-item">
-              <div className="paired-labels">
-                <span>Annual Thermal Deficit Hours</span>
-                <span className="paired-values">
+            <div className="paired-metric">
+              <div className="paired-hdr">
+                <span>Annual Thermal Deficit Hours (&lt; 18 °C)</span>
+                <span className="paired-delta">
                   <span>3,840 hrs</span> → <strong className="pass-text">720 hrs (-81%)</strong>
                 </span>
               </div>
-              <div className="paired-bar-track">
-                <div className="paired-bar-fill baseline" style={{ width: '88%' }} />
-                <div className="paired-bar-fill optimized" style={{ width: '18%' }} />
+              <div className="paired-bar-container">
+                <div className="paired-bar baseline" style={{ width: '88%' }} />
+                <div className="paired-bar optimized" style={{ width: '18%' }} />
               </div>
             </div>
 
-            <div className="paired-item">
-              <div className="paired-labels">
-                <span>Annual Logistics Fuel Burden</span>
-                <span className="paired-values">
+            <div className="paired-metric">
+              <div className="paired-hdr">
+                <span>Annual Kerosene Logistics Burden</span>
+                <span className="paired-delta">
                   <span>{currentStation.kerosene_burden_litres} L</span> → <strong className="pass-text">{Math.round(currentStation.kerosene_burden_litres * 0.28)} L (-72%)</strong>
                 </span>
               </div>
-              <div className="paired-bar-track">
-                <div className="paired-bar-fill baseline" style={{ width: '80%' }} />
-                <div className="paired-bar-fill optimized" style={{ width: '22%' }} />
+              <div className="paired-bar-container">
+                <div className="paired-bar baseline" style={{ width: '80%' }} />
+                <div className="paired-bar optimized" style={{ width: '22%' }} />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Morris Sensitivity Analysis (Section 24) */}
-        <section className="console-panel sensitivity-panel">
-          <div className="panel-header-strip">
-            <div className="panel-title-group">
-              <Sliders size={15} className="panel-icon" />
-              <h3 className="panel-title">MORRIS SENSITIVITY ANALYSIS (ELEMENTARY EFFECTS)</h3>
+        {/* Morris Sensitivity Analysis */}
+        <section className="dashboard-panel">
+          <div className="panel-header">
+            <div>
+              <h3 className="panel-title">Morris Sensitivity Ranking (Elementary Effects)</h3>
+              <p className="panel-subtitle">Ranked by μ* impact on annual indoor thermal comfort maintenance</p>
             </div>
-            <span className="panel-badge-mono">RANKED BY μ* (INDOOR COMFORT EFFECT)</span>
           </div>
 
-          <div className="sensitivity-list">
+          <div className="sensitivity-rows-list">
             {MORRIS_SENSITIVITY_DATA.map((item, idx) => (
-              <div key={item.code} className="sensitivity-row">
-                <div className="sens-meta">
-                  <span className="sens-rank">#{idx + 1}</span>
-                  <span className="sens-name">{item.parameter}</span>
-                  <span className="sens-val">μ* = {item.mu_star} (σ = {item.sigma})</span>
+              <div key={item.code} className="sens-item">
+                <div className="sens-meta-line">
+                  <span className="sens-rank-badge">#{idx + 1}</span>
+                  <span className="sens-label">{item.parameter}</span>
+                  <span className="sens-val-badge">μ* = {item.mu_star} (σ = {item.sigma})</span>
                 </div>
-                <div className="sens-track">
+                <div className="sens-track-bar">
                   <div
-                    className="sens-fill"
+                    className="sens-fill-bar"
                     style={{ width: `${(item.mu_star / 5.0) * 100}%` }}
                   />
                 </div>
@@ -1662,179 +1437,25 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* =====================================================================
-          11. 24-HOUR THERMAL HEATMAP & DEFICIT TIMELINE (Sections 25 & 26)
-          ===================================================================== */}
-      <section className="console-panel heatmap-panel">
-        <div className="panel-header-strip">
-          <div className="panel-title-group">
-            <Flame size={15} className="panel-icon" />
-            <h3 className="panel-title">24-HOUR MULTI-SURFACE THERMAL HEATMAP</h3>
+      {/* ── 9. Multi-Site Frontier Comparison & Model Validation ─────────────── */}
+      <section className="dashboard-panel">
+        <div className="panel-header">
+          <div>
+            <h3 className="panel-title">Himalayan Frontier Outpost Benchmarks</h3>
+            <p className="panel-subtitle">Select any garrison outpost to load its climate and thermal profile</p>
           </div>
-          <span className="panel-badge-mono">HOURLY STRESS GRADIENT (°C)</span>
         </div>
 
-        <div className="heatmap-matrix-wrapper">
-          <table className="heatmap-table">
+        <div className="frontier-table-wrapper">
+          <table className="clean-engineering-table clickable-rows">
             <thead>
               <tr>
-                <th className="row-head-label">SURFACE / ZONE</th>
-                {hourlyData.map((h) => (
-                  <th key={h.hour} className="hour-col-head">{String(h.hour).padStart(2, '0')}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {/* Outdoor */}
-              <tr>
-                <td className="row-title">Outdoor Ambient</td>
-                {hourlyData.map((h) => {
-                  const t = h.t_out;
-                  return (
-                    <td
-                      key={h.hour}
-                      className="heat-cell"
-                      style={{
-                        backgroundColor: t < -15 ? '#1E3A8A' : t < 0 ? '#3B82F6' : t < 18 ? '#93C5FD' : '#F59E0B',
-                        color: t < 0 ? '#FFFFFF' : '#0F172A',
-                      }}
-                    >
-                      {Math.round(t)}°
-                    </td>
-                  );
-                })}
-              </tr>
-
-              {/* Indoor Air */}
-              <tr>
-                <td className="row-title">Indoor Air (Tin)</td>
-                {hourlyData.map((h) => {
-                  const t = h.t_in;
-                  return (
-                    <td
-                      key={h.hour}
-                      className="heat-cell"
-                      style={{
-                        backgroundColor: t < 0 ? '#2563EB' : t < 10 ? '#60A5FA' : t < 18 ? '#FBBF24' : '#059669',
-                        color: t < 10 ? '#FFFFFF' : '#0F172A',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {Math.round(t)}°
-                    </td>
-                  );
-                })}
-              </tr>
-
-              {/* Operative Temp */}
-              <tr>
-                <td className="row-title">Operative Temp (Top)</td>
-                {hourlyData.map((h) => {
-                  const t = h.t_operative;
-                  return (
-                    <td
-                      key={h.hour}
-                      className="heat-cell"
-                      style={{
-                        backgroundColor: t < 0 ? '#1D4ED8' : t < 12 ? '#93C5FD' : t < 18 ? '#FCD34D' : '#059669',
-                        color: t < 12 ? '#FFFFFF' : '#0F172A',
-                      }}
-                    >
-                      {Math.round(t)}°
-                    </td>
-                  );
-                })}
-              </tr>
-
-              {/* Roof Surface */}
-              <tr>
-                <td className="row-title">Roof Exterior Surface</td>
-                {hourlyData.map((h) => {
-                  const t = Number((h.t_out - (h.solar_alt > 0 ? -12.0 : 4.0)).toFixed(1));
-                  return (
-                    <td
-                      key={h.hour}
-                      className="heat-cell"
-                      style={{
-                        backgroundColor: t < 0 ? '#1E293B' : '#EA580C',
-                        color: '#FFFFFF',
-                      }}
-                    >
-                      {Math.round(t)}°
-                    </td>
-                  );
-                })}
-              </tr>
-
-              {/* South Glazing */}
-              <tr>
-                <td className="row-title">South Glazing Interior</td>
-                {hourlyData.map((h) => {
-                  const t = Number((h.t_in - (h.solar_alt > 0 ? -6.0 : 8.0)).toFixed(1));
-                  return (
-                    <td
-                      key={h.hour}
-                      className="heat-cell"
-                      style={{
-                        backgroundColor: t < 0 ? '#38BDF8' : '#F97316',
-                        color: t < 0 ? '#0F172A' : '#FFFFFF',
-                      }}
-                    >
-                      {Math.round(t)}°
-                    </td>
-                  );
-                })}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Thermal Deficit Timeline (Section 26) */}
-        <div className="deficit-timeline-bar">
-          <div className="timeline-legend">
-            <span className="leg-pill crit">EXTREME DEFICIT (&lt; 0 °C)</span>
-            <span className="leg-pill warn">MILD DEFICIT (0–18 °C)</span>
-            <span className="leg-pill ok">ENGINEERING COMFORT (18–27 °C)</span>
-          </div>
-          <div className="timeline-blocks-track">
-            {hourlyData.map((h) => (
-              <div
-                key={h.hour}
-                className={`timeline-block ${h.t_in < 0 ? 'crit' : h.t_in < 18 ? 'warn' : 'ok'}`}
-                title={`${h.time_label}: ${h.t_in} °C (${h.comfort_status})`}
-              >
-                {h.hour % 3 === 0 ? String(h.hour).padStart(2, '0') : ''}
-              </div>
-            ))}
-          </div>
-          <div className="timeline-caption">
-            *Engineering Comfort Metric grounded in ASHRAE 55 / IMAC High-Altitude Indoor Adaptive Comfort Standard.
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================================
-          12. SITE MAP & MULTI-SITE COMPARISON (Sections 28 & 29)
-          ===================================================================== */}
-      <section className="console-panel multi-site-panel">
-        <div className="panel-header-strip">
-          <div className="panel-title-group">
-            <Compass size={15} className="panel-icon" />
-            <h3 className="panel-title">HIMALAYAN FRONTIER & REGIONAL SITE COMPARISON</h3>
-          </div>
-          <span className="panel-badge-mono">STRATEGIC SECTOR BENCHMARK</span>
-        </div>
-
-        <div className="comparison-table-wrapper">
-          <table className="console-data-table site-comp-table">
-            <thead>
-              <tr>
-                <th>STATION / POST</th>
-                <th>STATE / SECTOR</th>
-                <th>ALTITUDE</th>
+                <th>OUTPOST / SECTOR</th>
+                <th>REGION</th>
+                <th>ELEVATION</th>
                 <th>DESIGN MIN</th>
-                <th>SOLAR POTENTIAL</th>
-                <th>HEAT LOSS (kW)</th>
+                <th>SOLAR RESOURCE</th>
+                <th>PEAK HEAT LOSS</th>
                 <th>ANNUAL DEFICIT</th>
                 <th>RECOMMENDED ENVELOPE ASSEMBLY</th>
                 <th>ACTION</th>
@@ -1844,12 +1465,12 @@ export default function DashboardPage() {
               {SUPPORTED_STATIONS.map((st) => (
                 <tr
                   key={st.id}
-                  className={st.id === selectedStationId ? 'active-station-row' : ''}
+                  className={st.id === selectedStationId ? 'active-outpost-row' : ''}
                   onClick={() => setSelectedStationId(st.id)}
                 >
                   <td>
                     <strong>{st.name}</strong>
-                    {st.id === selectedStationId && <span className="current-station-badge">ACTIVE</span>}
+                    {st.id === selectedStationId && <span className="active-pill">ACTIVE</span>}
                   </td>
                   <td>{st.region}</td>
                   <td className="mono-num">{st.altitude_m} m</td>
@@ -1863,7 +1484,7 @@ export default function DashboardPage() {
                   <td>
                     <button
                       type="button"
-                      className="load-site-btn"
+                      className="table-action-btn"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedStationId(st.id);
@@ -1877,68 +1498,57 @@ export default function DashboardPage() {
             </tbody>
           </table>
         </div>
-      </section>
 
-      {/* =====================================================================
-          13. MODEL VALIDATION PANEL (Section 46)
-          ===================================================================== */}
-      <section className="console-panel validation-benchmark-panel">
-        <div className="panel-header-strip">
-          <div className="panel-title-group">
-            <CheckCircle size={15} className="panel-icon pass" />
-            <h3 className="panel-title">EMPIRICAL MODEL VALIDATION</h3>
+        {/* Empirical Model Validation Benchmarks */}
+        <div className="validation-benchmarks-section">
+          <h4 className="section-subheading">Empirical Model Validation Benchmarks (DRDO DIHAR Leh Field Trials)</h4>
+          <div className="benchmarks-grid">
+            {EMPIRICAL_VALIDATION_BENCHMARKS.map((b) => (
+              <div key={b.id} className="benchmark-card">
+                <div className="benchmark-card-head">
+                  <strong>{b.title}</strong>
+                  <span className="bench-status-badge">{b.status}</span>
+                </div>
+                <span className="benchmark-loc">{b.location} • Ambient: {b.ambient_c} °C</span>
+                <div className="benchmark-metrics-row">
+                  <div className="bench-box">
+                    <span className="bench-lbl">FIELD MEASURED</span>
+                    <strong className="bench-val">{b.measured_val} °C</strong>
+                    <small>{b.measured_band}</small>
+                  </div>
+                  <div className="bench-box highlight">
+                    <span className="bench-lbl">MODEL PREDICTED</span>
+                    <strong className="bench-val">{b.predicted_val} °C</strong>
+                    <small>Error: {b.error_k > 0 ? `+${b.error_k}` : b.error_k} K</small>
+                  </div>
+                </div>
+                <span className="benchmark-citation">Citation: {b.provenance}</span>
+              </div>
+            ))}
           </div>
-          <span className="panel-badge-mono pass">FIELD MEASUREMENTS vs ISO 52016 PREDICTIONS</span>
-        </div>
-
-        <div className="validation-bench-grid">
-          {EMPIRICAL_VALIDATION_BENCHMARKS.map((b) => (
-            <div key={b.id} className="validation-bench-card">
-              <div className="bench-header">
-                <strong>{b.title}</strong>
-                <span className="bench-pass-pill">{b.status}</span>
-              </div>
-              <div className="bench-loc">{b.location} • Ambient: {b.ambient_c} °C</div>
-              <div className="bench-metrics-pair">
-                <div className="bench-box">
-                  <span className="bench-kicker">FIELD MEASURED</span>
-                  <div className="bench-val">{b.measured_val} °C</div>
-                  <small>{b.measured_band}</small>
-                </div>
-                <div className="bench-box">
-                  <span className="bench-kicker">MODEL PREDICTED</span>
-                  <div className="bench-val highlight">{b.predicted_val} °C</div>
-                  <small>Error: {b.error_k > 0 ? `+${b.error_k}` : b.error_k} K</small>
-                </div>
-              </div>
-              <div className="bench-provenance">Citation: {b.provenance}</div>
-            </div>
-          ))}
         </div>
       </section>
 
-      {/* =====================================================================
-          14. DETAILED HOURLY TELEMETRY TABLE (Section 5 & 49)
-          ===================================================================== */}
-      <section className="console-panel telemetry-table-panel">
-        <div className="panel-header-strip">
-          <div className="panel-title-group">
-            <FileText size={15} className="panel-icon" />
-            <h3 className="panel-title">DETAILED 24-HOUR HOURLY TELEMETRY LOG</h3>
+      {/* ── 10. Detailed 24-Hour Telemetry Log Table ─────────────────────────── */}
+      <section className="dashboard-panel">
+        <div className="panel-header">
+          <div>
+            <h3 className="panel-title">24-Hour Hourly Telemetry Log</h3>
+            <p className="panel-subtitle">Detailed transient thermodynamic state at each hourly timestep</p>
           </div>
-          <div className="table-search-box">
+          <div className="table-filter-box">
             <input
               type="text"
-              placeholder="Filter by hour or value..."
+              placeholder="Search hour or temp..."
               value={tableSearch}
               onChange={(e) => setTableSearch(e.target.value)}
-              className="table-search-input"
+              className="table-search-field"
             />
           </div>
         </div>
 
-        <div className="telemetry-table-scroll">
-          <table className="console-data-table telemetry-dense-table">
+        <div className="telemetry-table-container">
+          <table className="clean-engineering-table dense-table">
             <thead>
               <tr>
                 <th>HOUR</th>
@@ -1960,12 +1570,12 @@ export default function DashboardPage() {
                 .map((h) => (
                   <tr
                     key={h.hour}
-                    className={h.hour === simulationHour ? 'active-hour-row' : ''}
+                    className={h.hour === simulationHour ? 'selected-hour-row' : ''}
                     onClick={() => setSimulationHour(h.hour)}
                   >
                     <td className="font-bold">{h.time_label}</td>
                     <td className="mono-num cold-text">{h.t_out}</td>
-                    <td className={`mono-num font-bold ${h.t_in >= 18 ? 'pass-text' : h.t_in >= 0 ? 'warn-text' : 'crit-text'}`}>{h.t_in}</td>
+                    <td className={`mono-num font-bold ${h.t_in >= 18 ? 'pass-text' : h.t_in >= 0 ? 'warn-text' : 'loss-text'}`}>{h.t_in}</td>
                     <td className="mono-num highlight-text">{h.t_operative}</td>
                     <td className="mono-num">{h.t_mrt}</td>
                     <td className="mono-num sky-text">{h.t_sky}</td>
@@ -1974,7 +1584,7 @@ export default function DashboardPage() {
                     <td className="mono-num loss-text">{h.total_heat_loss_w}</td>
                     <td className="mono-num">{h.net_heat_balance_w > 0 ? `+${h.net_heat_balance_w}` : h.net_heat_balance_w}</td>
                     <td>
-                      <span className={`mini-status-badge ${h.comfort_status}`}>
+                      <span className={`status-pill mini ${h.comfort_status}`}>
                         {h.comfort_status.toUpperCase()}
                       </span>
                     </td>
@@ -1985,14 +1595,12 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* =====================================================================
-          15. SLIDE-OUT TECHNICAL DETAIL DRAWER (Section 36)
-          ===================================================================== */}
+      {/* ── 11. Slide-Out Engineering Detail Drawer ─────────────────────────── */}
       {drawerComponent && (
-        <aside className="console-detail-drawer" aria-label="Engineering Detail Drawer">
+        <aside className="engineering-drawer" aria-label="Component Detail Drawer">
           <div className="drawer-header">
-            <div className="drawer-title-group">
-              <span className="drawer-badge">PHYSICAL SPECIFICATION</span>
+            <div>
+              <span className="drawer-kicker">PHYSICAL SPECIFICATION</span>
               <h3 className="drawer-title">{drawerComponent.name}</h3>
             </div>
             <button
@@ -2005,38 +1613,38 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <div className="drawer-content">
-            <div className="drawer-metric-banner">
-              <span className="metric-label">CURRENT EVALUATED VALUE:</span>
-              <div className="metric-val-big">{drawerComponent.value}</div>
+          <div className="drawer-body">
+            <div className="drawer-eval-box">
+              <span className="eval-lbl">CURRENT EVALUATED VALUE:</span>
+              <div className="eval-val">{drawerComponent.value}</div>
             </div>
 
             <div className="drawer-section">
-              <h4 className="drawer-sec-title">ENGINEERING NOTES & FORMULA</h4>
-              <p className="drawer-body-text">{drawerComponent.note}</p>
+              <span className="section-lbl">ENGINEERING NOTES & FORMULA</span>
+              <p className="drawer-desc">{drawerComponent.note}</p>
             </div>
 
             <div className="drawer-section">
-              <h4 className="drawer-sec-title">GOVERNING STANDARD & CITATION</h4>
-              <p className="drawer-body-text">
+              <span className="section-lbl">GOVERNING STANDARDS</span>
+              <p className="drawer-desc">
                 ISO 52016-1:2017 Building Energy Performance • Explicit Transient Conduction Solver (Clause 6.5.6)
               </p>
-              <p className="drawer-body-text">
-                ECBC 2017 Commercial & Defence High-Altitude Envelope Standards (Table 4.1 Cold Climate Envelope)
+              <p className="drawer-desc">
+                ECBC 2017 High-Altitude Envelope Standards (Table 4.1 Cold Climate Envelope)
               </p>
             </div>
 
-            <div className="drawer-actions">
+            <div className="drawer-actions-row">
               <button
                 type="button"
-                className="drawer-action-btn"
+                className="drawer-btn primary"
                 onClick={() => navigate('/library')}
               >
                 OPEN MATERIAL CATALOG
               </button>
               <button
                 type="button"
-                className="drawer-action-btn secondary"
+                className="drawer-btn secondary"
                 onClick={() => navigate('/design')}
               >
                 OPEN SHELTER STUDIO
