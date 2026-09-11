@@ -82,6 +82,34 @@ FIXTURES_DIR = Path(__file__).resolve().parent.parent / "data" / "fixtures"
 VALIDATION_RESULTS_DIR = Path(__file__).resolve().parent.parent / "validation" / "results"
 
 
+@app.get("/", summary="THERMA API Root & Documentation Portal")
+def root_endpoint() -> Dict[str, Any]:
+    """Root metadata and navigational portal for the THERMA API."""
+    return {
+        "title": "THERMA API",
+        "description": "Area Specific Shelter Thermal Comfort Maintenance System (SIH 2026 PS 26051 · DRDO)",
+        "version": "0.1.0",
+        "status": "operational",
+        "frontend_url": "http://localhost:5173",
+        "docs_url": "http://127.0.0.1:8000/docs",
+        "endpoints": {
+            "health": "/health",
+            "simulate": "/simulate",
+            "materials": "/materials",
+            "validation": "/validation",
+            "surrogate_metrics": "/surrogate/metrics",
+            "surrogate_predict": "/surrogate/predict",
+            "location_elevation": "/location/elevation",
+            "location_search": "/location/search",
+            "estate_summary": "/estate/summary",
+            "sites": "/sites",
+            "alerts": "/alerts",
+            "programme": "/programme",
+            "forecast_watch": "/forecast_watch",
+        },
+    }
+
+
 # ---------------------------------------------------------------------------
 # Helper: convert numpy scalars to Python natives (A3-4 fix)
 # ---------------------------------------------------------------------------
