@@ -62,6 +62,13 @@ export default {
           letterSpacing: 'var(--text-title-spacing)',
         },
       ],
+      subhead: [
+        'var(--text-subhead-size)',
+        {
+          lineHeight: 'var(--text-subhead-lh)',
+          fontWeight: 'var(--text-subhead-weight)',
+        },
+      ],
       body: [
         'var(--text-body-size)',
         { lineHeight: 'var(--text-body-lh)', fontWeight: 'var(--text-body-weight)' },

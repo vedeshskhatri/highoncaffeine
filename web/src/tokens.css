@@ -43,6 +43,10 @@
   --text-title-weight:  600;
   --text-title-spacing: -0.01em;
 
+  --text-subhead-size:   17px;
+  --text-subhead-lh:     1.35;
+  --text-subhead-weight: 600;
+
   --text-body-size:    15px;
   --text-body-lh:      1.5;
   --text-body-weight:  400;
