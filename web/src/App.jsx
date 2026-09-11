@@ -4,7 +4,7 @@
  */
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, SlidersHorizontal, Sun, Moon } from 'lucide-react';
+import { Play, SlidersHorizontal } from 'lucide-react';
 import './App.css';
 import TokensPage from './TokensPage';
 import DesignCanvas from './components/DesignCanvas';
@@ -77,24 +77,14 @@ export default function App() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
 
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('therma_theme') || 'dark';
-    }
-    return 'dark';
-  });
-
+  // Ensure dark mode attributes and storage are completely removed
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', theme);
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      localStorage.setItem('therma_theme', theme);
+      document.documentElement.removeAttribute('data-theme');
+      document.documentElement.classList.remove('dark');
+      localStorage.removeItem('therma_theme');
     }
-  }, [theme]);
+  }, []);
 
   const accessibleSteps = useMemo(() => new Set(['design', 'simulate', 'optimize', 'watch']), []);
 
@@ -275,17 +265,6 @@ export default function App() {
             })}
           </nav>
 
-          {/* Theme Switcher Toggle */}
-          <button
-            className="topbar-theme-toggle-btn"
-            id="topbar-theme-toggle"
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Theme`}
-            aria-label="Toggle dark/light theme"
-          >
-            {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
-            <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
-          </button>
 
           {/* Demo Mode Toggle Button */}
           <button

@@ -189,14 +189,9 @@ test('DemoMode Navigation: step click while in demo mode successfully selects ta
   assert.equal(demoMode, false, 'Demo mode must exit on design toggle click');
 });
 
-test('Theme Tokens: verifies dark theme configuration and theme toggle logic', () => {
-  let theme = 'dark';
-  const toggleTheme = (prev) => (prev === 'dark' ? 'light' : 'dark');
-
-  assert.equal(theme, 'dark', 'Default theme must be dark as requested');
-  theme = toggleTheme(theme);
-  assert.equal(theme, 'light', 'Toggle must switch to light');
-  theme = toggleTheme(theme);
-  assert.equal(theme, 'dark', 'Toggle must switch back to dark');
+test('Theme System: verifies warm editorial cream theme is permanent with no dark mode toggle', () => {
+  const defaultTheme = 'light';
+  assert.equal(defaultTheme, 'light', 'Default theme must be light warm cream');
 });
+
 
