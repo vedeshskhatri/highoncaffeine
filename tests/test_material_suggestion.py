@@ -94,18 +94,18 @@ def test_impossible_target_honest_negative_result():
 
 
 def test_location_sensitivity():
-    """Verify (c): Changing location only changes recommendations/temperatures (computed, not a lookup)."""
-    # Location 1: Leh (altitude 3500m, lat 34.15)
-    loc_leh = {"lat": 34.1526, "lon": 77.5771, "altitude_m": 3500}
-    # Location 2: Siachen Base Camp (altitude 5400m, lat 35.5)
-    loc_siachen = {"lat": 35.5000, "lon": 77.0000, "altitude_m": 5400}
+    """Verify (c): Changing location with real site weather changes recommendations and proves Siachen is colder than Leh."""
+    # Location 1: Leh (altitude 3500m, lat 34.1526, lon 77.5771)
+    loc_leh = {"lat": 34.1526, "lon": 77.5771, "altitude_m": 3500.0}
+    # Location 2: Siachen Glacier High Camp (altitude 5400m, lat 35.5, lon 77.0)
+    loc_siachen = {"lat": 35.5000, "lon": 77.0000, "altitude_m": 5400.0}
 
     geom = {"length_m": 6.0, "width_m": 4.0, "height_m": 2.6, "orientation_deg": 180}
     occ = {"people": 8, "watts_per_person": 100}
 
+    # Run WITHOUT explicit design_outdoor_c so real site weather reaches the engine
     res_leh = suggest_materials(
         target_indoor_c=20.0,
-        design_outdoor_c=-20.0,
         location=loc_leh,
         geometry=geom,
         occupancy=occ,
@@ -113,19 +113,58 @@ def test_location_sensitivity():
 
     res_siachen = suggest_materials(
         target_indoor_c=20.0,
-        design_outdoor_c=-20.0,
         location=loc_siachen,
         geometry=geom,
         occupancy=occ,
     )
 
-    # The achieved temperatures must differ due to elevation air density & solar irradiance
-    t_min_leh = res_leh["recommendations"][0]["achieved_indoor_c_min"]
-    t_min_siachen = res_siachen["recommendations"][0]["achieved_indoor_c_min"]
-
-    assert abs(t_min_leh - t_min_siachen) > 0.05, (
-        f"Expected thermal difference between Leh ({t_min_leh:.2f}) and Siachen ({t_min_siachen:.2f})"
+    # 1. Site outdoor ambient must be colder at Siachen than Leh
+    t_out_leh = res_leh["design_outdoor_c"]
+    t_out_siachen = res_siachen["design_outdoor_c"]
+    assert t_out_siachen < t_out_leh, (
+        f"Expected Siachen outdoor ({t_out_siachen:.1f} °C) to be colder than Leh ({t_out_leh:.1f} °C)"
     )
+
+    # 2. Achieved indoor minimum MUST be colder at Siachen than Leh
+    t_min_leh = res_leh["recommendations"][0]["achieved_min_c"]
+    t_min_siachen = res_siachen["recommendations"][0]["achieved_min_c"]
+    assert t_min_siachen < t_min_leh - 3.0, (
+        f"Expected Siachen indoor min ({t_min_siachen:.1f} °C) to be significantly colder than Leh ({t_min_leh:.1f} °C)"
+    )
+
+    # 3. Required backup kerosene at Siachen must be strictly greater than Leh
+    fuel_leh = res_leh["recommendations"][0]["backup_heat"]["kerosene_liters_per_night"]
+    fuel_siachen = res_siachen["recommendations"][0]["backup_heat"]["kerosene_liters_per_night"]
+    assert fuel_siachen > fuel_leh, (
+        f"Expected Siachen backup fuel ({fuel_siachen:.2f} L) to exceed Leh ({fuel_leh:.2f} L)"
+    )
+
+
+def test_hot_climate_comfort_direction_no_eps_trap():
+    """Verify Chennai in May triggers cooling regime and does NOT recommend 100mm EPS heat trap."""
+    loc_chennai = {"lat": 13.0827, "lon": 80.2707, "altitude_m": 10.0}
+    geom = {"length_m": 6.0, "width_m": 4.0, "height_m": 2.6, "orientation_deg": 180}
+    occ = {"people": 4, "watts_per_person": 100}
+
+    res_chennai = suggest_materials(
+        target_indoor_c=20.0,
+        location=loc_chennai,
+        geometry=geom,
+        occupancy=occ,
+        date="2024-05-15",
+    )
+
+    assert res_chennai["regime"] == "cooling"
+    assert res_chennai["design_outdoor_c"] > 25.0
+    for rec in res_chennai["recommendations"]:
+        # Must not recommend 100mm EPS wall blanket in hot Chennai summer
+        assert "100mm Expanded polystyrene" not in rec["title"], (
+            f"Rule violation: recommended 100mm EPS heat trap for Chennai: {rec['title']}"
+        )
+        assert rec["achieved_max_c"] > 20.0
+        assert rec["backup_heat"]["peak_kw"] > 0.0
+        assert "active cooling" in rec["backup_heat"]["summary_note"]
+
 
 
 def test_locally_available_toggle():

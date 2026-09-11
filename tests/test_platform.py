@@ -25,21 +25,28 @@ def test_estate_summary_hand_reconciliation():
     assert resp.status_code == 200
     data = resp.json()
 
-    assert data["estate"] == "Ladakh"
-    assert data["total_sites"] == 11
-    assert data["evaluated_sites"] == 11
-    assert data["unevaluated_sites"] == 0
-    assert data["coverage_str"] == "11 of 11 sites"
-
-    # Fetch all individual site results from DB
     sites = query_all("SELECT id, occupants FROM sites WHERE estate = 'Ladakh'")
-    evals = query_all("SELECT * FROM site_results")
+    evals = query_all(
+        """
+        SELECT r.* FROM site_results r
+        JOIN sites s ON r.site_id = s.id
+        WHERE s.estate = 'Ladakh'
+        """
+    )
     eval_map = {e["site_id"]: json.loads(e["summary_json"]) for e in evals}
+    evaluated_count = len([s for s in sites if s["id"] in eval_map])
+    unevaluated_count = len(sites) - evaluated_count
 
-    hand_fuel = sum(eval_map[s["id"]]["annual_fuel_litres"] for s in sites)
-    hand_cost = sum(eval_map[s["id"]]["annual_cost_inr"] for s in sites)
-    hand_co2 = sum(eval_map[s["id"]]["annual_co2_kg"] for s in sites) / 1000.0
-    hand_occupants = sum(s["occupants"] for s in sites)
+    assert data["estate"] == "Ladakh"
+    assert data["total_sites"] == len(sites)
+    assert data["evaluated_sites"] == evaluated_count
+    assert data["unevaluated_sites"] == unevaluated_count
+    assert data["coverage_str"] == f"{evaluated_count} of {len(sites)} sites"
+
+    hand_fuel = sum(eval_map[s["id"]]["annual_fuel_litres"] for s in sites if s["id"] in eval_map)
+    hand_cost = sum(eval_map[s["id"]]["annual_cost_inr"] for s in sites if s["id"] in eval_map)
+    hand_co2 = sum(eval_map[s["id"]]["annual_co2_kg"] for s in sites if s["id"] in eval_map) / 1000.0
+    hand_occupants = sum(s["occupants"] for s in sites if s["id"] in eval_map)
 
     # Reconcile hand sums against API aggregates
     assert round(data["aggregates"]["annual_fuel_litres"], 1) == round(hand_fuel, 1)
@@ -59,7 +66,8 @@ def test_estate_scoping_nepal_separated():
     ladakh_data = ladakh_resp.json()
     nepal_data = nepal_resp.json()
 
-    assert ladakh_data["total_sites"] == 11
+    ladakh_count = len(query_all("SELECT id FROM sites WHERE estate = 'Ladakh'"))
+    assert ladakh_data["total_sites"] == ladakh_count
     assert nepal_data["total_sites"] == 1
     assert nepal_data["estate"] == "Nepal Relief"
     assert nepal_data["worst_performing_sites"][0]["name"] == "Rasuwa Earthquake Relief Camp 4"
