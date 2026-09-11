@@ -98,7 +98,12 @@ CONSTRAINTS
 - Do not fill in a value you could not source, under any circumstances.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 6 is the core of this report — it IS the deliverable.
 Section 8 lists every material you could not source.
@@ -175,7 +180,12 @@ CONSTRAINTS
 - Never adjust a published figure.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 9 must state honestly which citations you verified
 by reading the actual source versus which you took from a secondhand reference.
 That distinction is the entire point of this phase.
@@ -258,7 +268,12 @@ CONSTRAINTS
 - Do not guess a safety threshold.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 7 must state how many values ended up as
 "estimate" and why. A high estimate count is not a failure — hiding it is.
 ```
@@ -316,7 +331,12 @@ CONSTRAINTS
 - Do not accept "it's computed" without knowing what it was computed FROM.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 is the trace table. Section 8 lists every
 untraceable number as a blocker with an owner. Section 10 is NO while any
 untraceable number remains on screen.

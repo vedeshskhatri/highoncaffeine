@@ -62,8 +62,8 @@ Architectural decision record. Append-only. Each entry states what, why, alterna
 **Consequence:** no component hardcodes a colour. All colours resolve through `tokens.css`, so the swap is one file. Semantic discipline (red = below health threshold, green = comfort, amber = estimate) must survive the swap.
 
 ### D15 — Single-branch trunk workflow
-**Decision:** one `main` branch, direct pushes, no PRs, push at end of every phase.
-**Why:** four to six people on a compressed timeline; branch and PR overhead cost more coordination time than the review catches, and merge conflicts across six long-lived branches at hour 20 is a worse failure than a briefly broken main. Contribution is still individually attributed because everyone pushes their own commits.
-**Alternatives:** feature branches with PR review (rejected: overhead), one person merging everything (rejected: explicitly penalised by the evaluation criteria).
-**Consequence:** no review gate, so pull-rebase-test-push discipline is mandatory and a broken main is everyone's emergency. CI moves from pre-merge to post-push.
+**Decision:** one `main` branch, direct pushes, no PRs, no feature branches, push at the end of every phase. Existing branches merged and deleted.
+**Why:** four to six people on a compressed timeline. Branch and PR overhead costs more coordination time than the review catches, and reconciling six long-lived branches at hour 20 is a worse failure mode than a briefly broken main. Contribution remains individually attributed because everyone pushes their own commits, which is what the evaluation criteria actually require.
+**Alternatives:** feature branches with PR review (rejected: overhead at this team size and timeline); one person merging everything (rejected: explicitly penalised by the evaluation criteria).
+**Consequence:** no review gate. Pull-rebase-test-push discipline becomes mandatory and a broken main is everyone's emergency. CI moves from pre-merge to post-push. Branch deletion is a human action, never an agent action.
 

@@ -58,7 +58,12 @@ CONSTRAINTS
 - Do not put physical constants here — those go in physics_constants.py in A1.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 6 is the most important section of this report. Every material property
 must appear there with its source. If any row says "assumed" or "typical",
@@ -125,7 +130,12 @@ CONSTRAINTS
   when you lack a source.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 6 must list EVERY constant and coefficient with
 its source. Section 8 must list anything you could not source.
 ```
@@ -177,7 +187,12 @@ CONSTRAINTS
   failing one because it hides the problem permanently.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 is the verbatim pytest output. Section 8 lists
 every failure as a blocker assigned to whoever owns that code.
 ```
@@ -235,7 +250,12 @@ CONSTRAINTS
 - Do not skip a scenario because it is inconvenient.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 is the verbatim validation output including the
 ordering line. Section 9 must state honestly what you did NOT verify — for
 example, you have not validated against any measurement you took yourself.
@@ -307,7 +327,12 @@ CONSTRAINTS
   whole build for our credibility.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 6 lists every factor with its source.
 Section 7 states how many values ended up as "estimate" and why.
 ```

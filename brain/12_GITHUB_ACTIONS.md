@@ -1,22 +1,36 @@
 # 12 — GIT AND CI
 
-## 1. Single branch
+## 1. Single branch — trunk based
 
-- There is ONE branch: `main`. No other branch is ever created.
+- There is ONE branch: `main`. No other branch exists or is ever created.
 - Nobody creates a branch. Nobody opens a pull request. Nobody forks.
-- Every agent commits and pushes DIRECTLY to `main`.
-- Push at the END OF EVERY PHASE, without exception. A phase is not complete until its work is pushed to `main`.
+- Everyone commits and pushes DIRECTLY to `main`.
+- Push at the END OF EVERY PHASE. A phase is not complete until its work is pushed to `main`.
 - Before every push, in this order:
     1. `git pull --rebase origin main`
-    2. resolve any conflict — never force-push, never `git push -f`
+    2. resolve any conflict. NEVER force-push. NEVER `git push -f`.
     3. run the tests that exist for your area
     4. `git push origin main`
-- Because there is no PR review, a broken `main` blocks the whole team. Do not push code that does not run. If your work is incomplete at the end of a phase, push it in a state that IMPORTS and RUNS, with unfinished functions raising NotImplementedError — never a broken import and never a syntax error.
-- Commit message format is unchanged: `<AGENT><PHASE>: <what>` (e.g. `V2: multi-layer wall discretisation with Fourier sizing`).
-- Commit small and often within a phase. Push at least once per phase.
+- There is no PR review, so a broken `main` blocks everyone. Do not push code that does not run. If a phase ends with work unfinished, push it in a state that IMPORTS and RUNS, with unfinished functions raising NotImplementedError. Never a broken import. Never a syntax error.
+- If you push something broken, say so in the team chat IMMEDIATELY. Silence plus a red CI is how an hour disappears.
+- Commit message format unchanged: `<AGENT><PHASE>: <what>` (e.g. `V2: multi-layer wall discretisation with Fourier sizing`).
+- Commit small and often within a phase; push at least once per phase.
 - Pair work still uses `Co-authored-by:` trailers.
-- Every team member must have their own commits. The contribution graph is scored. Nobody commits on behalf of anyone else.
-- Ownership boundaries from 00_MASTER_RULES.md section 3 STILL APPLY. A single branch does not mean shared ownership. Editing someone else's files is still a rule violation — it is now just easier to do by accident, so be more careful, not less.
+- Everyone pushes their OWN commits. Nobody commits on behalf of anyone else. The contribution graph is scored.
+- Ownership boundaries from 00_MASTER_RULES.md section 3 STILL APPLY. One branch does not mean shared ownership — editing another agent's files is still a rule violation, and it is now easier to do by accident, so be more careful, not less.
+
+### Branch hygiene
+
+The repository must contain exactly one branch: `main`.
+If any agent finds another branch existing at any point, it is a mistake.
+Do NOT delete it yourself — report it in section 8 of your phase report so a human can confirm it is merged before removal.
+
+Verification command any agent may run (read-only, safe):
+```bash
+git branch -a
+git branch --no-merged main
+```
+An agent may RUN these to check. An agent may never run `git branch -d`, `git branch -D`, or `git push origin --delete`.
 
 ## 2. Commit messages
 

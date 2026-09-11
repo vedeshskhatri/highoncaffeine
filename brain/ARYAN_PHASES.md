@@ -66,7 +66,12 @@ CONSTRAINTS
 - Do not touch /engine or /web.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 8 must state explicitly: "Swapnil is unblocked" or what is still missing.
 ```
@@ -109,7 +114,12 @@ CONSTRAINTS
 - Do not hand-edit the .db file — it is always rebuilt from the CSV.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT, all ten sections.
 ```
 
@@ -163,7 +173,12 @@ CONSTRAINTS
 - Do not invent a fallback dataset.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 must include the actual offline test from (c) —
 this is a scored requirement and it must be genuinely verified, not assumed.
 ```
@@ -225,7 +240,12 @@ CONSTRAINTS
 - Never fail-fast on CSV errors.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 5 must state exactly what diurnal shape you used
 to synthesise the profile and why. That is a modelling assumption a judge could
 reasonably ask about.
@@ -285,6 +305,11 @@ CONSTRAINTS
 - Never render undefined or NaN — show an em dash.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 must include the hex-search result from (b).
 ```

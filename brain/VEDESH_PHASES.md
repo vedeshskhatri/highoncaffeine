@@ -55,7 +55,12 @@ CONSTRAINTS
 - Do not modify brain/07_API_CONTRACT.md.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 Emit the PHASE REPORT block exactly as defined in brain/00_MASTER_RULES.md section 4.
 All ten sections. In section 5 justify your MAX_NODES choice with the arithmetic.
 ```
@@ -104,7 +109,12 @@ CONSTRAINTS
 - Do not edit files outside /engine.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT, all ten sections. Section 9 must honestly list what you did
 not verify — for example, you have not verified behaviour with real weather.
 ```
@@ -149,7 +159,12 @@ CONSTRAINTS
 - Do not change the timestep to make something work.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. In section 4 include the actual node counts. In section 5
 state any assumption about how area is apportioned across nodes.
 ```
@@ -195,7 +210,12 @@ CONSTRAINTS
 - Do not inline any constant that belongs in physics_constants.py.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 6 must list every numeric constant you used and
 where it came from. Any row sourced "assumed" is a rule violation — flag it.
 ```
@@ -245,7 +265,12 @@ CONSTRAINTS
   Do not move on.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 must contain actual numbers for (a) and (b),
 not descriptions. Section 10 is NO unless both directions are correct.
 ```
@@ -290,7 +315,12 @@ CONSTRAINTS
 - Do not start the optimizer until both pass.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 must contain the actual max-difference figures
 and the actual timing. Section 10 is NO unless (a) < 1e-9 and (c) is exact.
 ```
@@ -346,7 +376,12 @@ CONSTRAINTS
 - n_samples reported must be the number ACTUALLY evaluated.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 includes actual figures for every check above.
 Section 9 must state explicitly whether you verified (b) by hand or assumed it.
 ```

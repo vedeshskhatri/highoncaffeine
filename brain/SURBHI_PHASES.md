@@ -91,7 +91,12 @@ CONSTRAINTS
 - Do not invent a figure to fill a gap.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 8 lists every TODO figure with who owes it to you.
 ```
@@ -157,7 +162,12 @@ CONSTRAINTS
   follow-up question is where scripts break.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Save the bank to /docs/qa-bank.md.
 Section 9 must name anyone still not fluent on their assigned category.
 ```
@@ -217,7 +227,12 @@ CONSTRAINTS
 - Do not let a beat be narrated by someone who has not practised it.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 9 must state what could still go wrong on the day
 and what the response is for each. Be pessimistic here — that is the job.
 ```
@@ -289,7 +304,12 @@ CONSTRAINTS
 - Do not claim a user-test figure you did not measure.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 8 lists every UI issue the user test surfaced,
 assigned to Swapnil. Section 10 is NO until the README setup has been verified
 from a clean clone by someone who did not write it.

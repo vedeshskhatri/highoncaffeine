@@ -61,7 +61,12 @@ CONSTRAINTS
   in tokens.css is the ONLY change needed when the real palette arrives.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 8 must state: "Aryan and I are unblocked on components" or what is missing.
 ```
@@ -105,7 +110,12 @@ CONSTRAINTS
 - All colour and spacing through tokens.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT, all ten sections.
 ```
 
@@ -152,7 +162,12 @@ CONSTRAINTS
   blocker for Vedesh. Do not edit the contract.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 includes the actual request body from (c).
 ```
 
@@ -199,7 +214,12 @@ CONSTRAINTS
 - No animation — this redraws constantly and animation would make it feel laggy.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT with screenshots. Section 4 must state the actual
 thickness ratios from (a).
 ```
@@ -267,7 +287,12 @@ CONSTRAINTS
 - Do not add a charting library beyond Recharts.
 
 OUTPUT
-Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch. If any other branch exists, do NOT delete it — report it in section 8.
+State the pushed commit hash in section 2 of the report.
 PHASE REPORT with screenshots. Section 9 must state honestly which
 components you tested with real backend data versus fixtures.
 ```
