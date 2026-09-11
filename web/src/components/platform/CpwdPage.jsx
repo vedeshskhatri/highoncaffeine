@@ -5,7 +5,6 @@ import {
   Bot,
   MapPin,
   Layers,
-  Sparkles,
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
@@ -285,17 +284,6 @@ export default function CpwdPage() {
 
       {/* 2. Navigation Tabs */}
       <nav className="cpwd-tabs" aria-label="Thermal AI Tool Tabs">
-        <button
-          type="button"
-          className="cpwd-tab-btn"
-          style={{ color: '#0284c7', borderColor: 'rgba(2, 132, 199, 0.4)', background: 'rgba(2, 132, 199, 0.06)' }}
-          onClick={() => window.dispatchEvent(new CustomEvent('open-therma-orb'))}
-          title="Open the Grounded Thermal AI Chatbox Orb"
-        >
-          <Sparkles size={15} />
-          <span>Launch AI Assistant (Orb)</span>
-        </button>
-
         <button
           type="button"
           className={`cpwd-tab-btn ${activeTab === 'sites' ? 'active' : ''}`}
