@@ -624,9 +624,14 @@ def get_estate_summary(estate: str = Query("Ladakh")):
                 "id": sid,
                 "name": s["name"],
                 "district": s["district"],
+                "altitude_m": s.get("altitude_m", 3500.0),
+                "occupants": s.get("occupants", 8),
+                "lat": s.get("lat"),
+                "lon": s.get("lon"),
                 "t_in_min_c": t_min,
                 "hours_below_health_threshold": sm["hours_below_health_threshold"],
                 "annual_fuel_litres": sm["annual_fuel_litres"],
+                "annual_cost_inr": sm.get("annual_cost_inr", sm["annual_fuel_litres"] * 2400.0),
             })
 
     # Sort worst sites descending by hours below health threshold
@@ -659,6 +664,7 @@ def get_estate_summary(estate: str = Query("Ladakh")):
             "avg_t_min_c": round(sum(t_mins) / len(t_mins), 2) if t_mins else None,
         },
         "worst_performing_sites": worst_sites[:5],
+        "all_evaluated_sites": worst_sites,
         "district_exposure": list(district_buckets.values()),
         "temperature_bands": [{"band": k, "count": v} for k, v in band_buckets.items()],
         "active_alerts_count": active_alerts_cnt,
