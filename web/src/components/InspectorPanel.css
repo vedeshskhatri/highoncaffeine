@@ -511,44 +511,82 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .outpost-quick-chip {
+  all: unset;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 5px 8px;
-  background: var(--surface-2, #F8FAFC);
+  align-items: stretch;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  padding: 7px 8px;
+  background: #ffffff;
   border: 1px solid var(--border, #E2E8F0);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   text-align: left;
-  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .outpost-quick-chip:hover {
   background: #ffffff;
   border-color: var(--solar, #C2410C);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(194, 65, 12, 0.08);
 }
 
 .outpost-quick-chip.active {
-  background: rgba(194, 65, 12, 0.08);
+  background: #FFF7ED;
   border-color: var(--solar, #C2410C);
-  box-shadow: inset 0 0 0 1px var(--solar, #C2410C);
+  box-shadow: 0 0 0 1px var(--solar, #C2410C);
+}
+
+.outpost-chip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .outpost-chip-name {
-  font-family: var(--font-body, inherit);
+  font-family: var(--font-heading, inherit);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary, #0F172A);
+  letter-spacing: -0.01em;
+}
+
+.outpost-active-pip {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--solar, #C2410C);
+  box-shadow: 0 0 4px var(--solar, #C2410C);
+}
+
+.outpost-chip-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 3px;
 }
 
 .outpost-chip-alt {
-  font-size: 9.5px;
-  color: var(--text-muted, #64748B);
-  margin-top: 1px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+}
+
+.outpost-chip-region {
+  font-size: 9px;
+  color: var(--text-muted, #94A3B8);
 }
 
 .custom-loc-toggle-btn {
@@ -576,62 +614,122 @@
 }
 
 /* ── Architectural Archetypes Grid ─────────────────────────────────────── */
+.typology-preset-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #64748B);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .archetypes-grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .archetype-card-btn {
+  all: unset;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 8px 10px;
-  background: var(--surface-2, #F8FAFC);
+  width: 100%;
+  padding: 10px 12px;
+  background: #ffffff;
   border: 1px solid var(--border, #E2E8F0);
-  border-radius: 5px;
+  border-radius: 7px;
   cursor: pointer;
   text-align: left;
-  transition: all 0.16s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .archetype-card-btn:hover {
   background: #ffffff;
   border-color: rgba(194, 65, 12, 0.4);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .archetype-card-btn.active {
-  background: #ffffff;
+  background: #FFFDFB;
   border-color: var(--solar, #C2410C);
-  box-shadow: 0 2px 8px rgba(194, 65, 12, 0.12), inset 0 0 0 1px var(--solar, #C2410C);
+  border-left: 3.5px solid var(--solar, #C2410C);
+  box-shadow: 0 2px 10px rgba(194, 65, 12, 0.1);
 }
 
 .archetype-card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.archetype-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.archetype-icon {
+  color: var(--solar, #C2410C);
+  flex-shrink: 0;
 }
 
 .archetype-name {
   font-family: var(--font-heading, inherit);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-primary, #0F172A);
+  letter-spacing: -0.01em;
 }
 
 .archetype-dims {
-  font-size: 10.5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
   font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  color: var(--text-secondary, #475569);
+}
+
+.archetype-card-btn.active .archetype-dims {
+  background: rgba(194, 65, 12, 0.1);
+  border-color: rgba(194, 65, 12, 0.25);
   color: var(--solar, #C2410C);
 }
 
 .archetype-desc {
   font-family: var(--font-body, inherit);
-  font-size: 10.5px;
-  color: var(--text-muted, #64748B);
-  margin: 3px 0 0 0;
-  line-height: 1.35;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary, #475569);
+  margin: 0 0 6px 0;
+  text-align: left;
+}
+
+.archetype-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.archetype-tag-pill {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--solar, #C2410C);
+  background: rgba(194, 65, 12, 0.08);
+  padding: 1.5px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(194, 65, 12, 0.2);
+  letter-spacing: 0.02em;
 }
 
 /* ── Tactile Dimension Sliders ─────────────────────────────────────────── */

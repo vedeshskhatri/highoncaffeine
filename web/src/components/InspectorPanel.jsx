@@ -23,6 +23,9 @@ import {
   AlertCircle,
   Play,
   Check,
+  Shield,
+  Home,
+  Building2,
 } from 'lucide-react';
 import CompassControl from './CompassControl';
 import EnvelopeBuilder from './EnvelopeBuilder';
@@ -35,8 +38,8 @@ import './InspectorPanel.css';
 const FALLBACK_MATERIALS = [
   { id: 'mud_brick',    name: 'Mud brick (adobe)' },
   { id: 'rammed_earth', name: 'Rammed earth' },
-  { id: 'stone',        name: 'Stone (local)' },
-  { id: 'concrete',     name: 'Concrete' },
+  { id: 'stone',        name: 'Local stone masonry' },
+  { id: 'concrete',     name: 'Reinforced concrete' },
   { id: 'eps',          name: 'EPS insulation' },
   { id: 'xps',          name: 'XPS insulation' },
   { id: 'timber',       name: 'Timber (softwood)' },
@@ -58,20 +61,22 @@ const HEATER_OPTIONS = [
 ];
 
 const STRATEGIC_OUTPOSTS = [
-  { id: 'siachen', label: 'Siachen', region: 'Karakoram', lat: 35.2000, lon: 77.2100, altitude_m: 3600, tag: 'Glacial · 3,600m' },
-  { id: 'dras', label: 'Dras', region: 'Ladakh', lat: 34.4327, lon: 75.7547, altitude_m: 3280, tag: '-35°C Min · 3,280m' },
-  { id: 'leh', label: 'Leh', region: 'Ladakh', lat: 34.1526, lon: 77.5771, altitude_m: 3500, tag: 'Plateau · 3,500m' },
-  { id: 'manali', label: 'Manali', region: 'Himachal', lat: 32.2396, lon: 77.1887, altitude_m: 2050, tag: 'Valley · 2,050m' },
-  { id: 'jaisalmer', label: 'Jaisalmer', region: 'Rajasthan', lat: 26.9157, lon: 70.9083, altitude_m: 225, tag: 'Desert · 225m' },
-  { id: 'delhi', label: 'New Delhi', region: 'NCR', lat: 28.6139, lon: 77.2090, altitude_m: 216, tag: 'Plains · 216m' },
+  { id: 'siachen', label: 'Siachen', region: 'Karakoram', lat: 35.2000, lon: 77.2100, altitude_m: 3600, tag: 'Glacial Zone' },
+  { id: 'dras', label: 'Dras', region: 'Ladakh', lat: 34.4327, lon: 75.7547, altitude_m: 3280, tag: '-35°C Extreme' },
+  { id: 'leh', label: 'Leh', region: 'Ladakh', lat: 34.1526, lon: 77.5771, altitude_m: 3500, tag: 'Cold Plateau' },
+  { id: 'manali', label: 'Manali', region: 'Himachal', lat: 32.2396, lon: 77.1887, altitude_m: 2050, tag: 'Alpine Valley' },
+  { id: 'jaisalmer', label: 'Jaisalmer', region: 'Rajasthan', lat: 26.9157, lon: 70.9083, altitude_m: 225, tag: 'Arid Desert' },
+  { id: 'delhi', label: 'New Delhi', region: 'NCR', lat: 28.6139, lon: 77.2090, altitude_m: 216, tag: 'Lowland Plain' },
 ];
 
 const ARCHETYPES = [
   {
     id: 'sentry',
     label: 'Alpine Sentry',
-    dims: '6×4m',
-    desc: 'Adobe mass wall + 100mm EPS, Trombe wall, 180° S',
+    dims: '6.0×4.0m',
+    desc: 'Adobe thermal mass + 100mm continuous EPS, south Trombe wall absorber.',
+    tags: ['Trombe Wall', '100mm EPS', 'South 180°'],
+    icon: Shield,
     l: 6.0, w: 4.0, h: 2.6,
     walls: [{ material: 'mud_brick', thickness_m: 0.30 }, { material: 'eps', thickness_m: 0.10 }],
     roof: [{ material: 'concrete', thickness_m: 0.15 }, { material: 'eps', thickness_m: 0.12 }],
@@ -81,8 +86,10 @@ const ARCHETYPES = [
   {
     id: 'hq',
     label: 'Passive Solar HQ',
-    dims: '8×5m',
-    desc: 'Rammed earth + 120mm XPS, double glazing, 180° S',
+    dims: '8.0×5.0m',
+    desc: 'Rammed earth + 120mm XPS, high-mass floor, Low-E double glazing aperture.',
+    tags: ['Rammed Earth', '120mm XPS', 'High Mass'],
+    icon: Sun,
     l: 8.0, w: 5.0, h: 2.8,
     walls: [{ material: 'rammed_earth', thickness_m: 0.35 }, { material: 'xps', thickness_m: 0.12 }],
     roof: [{ material: 'timber', thickness_m: 0.05 }, { material: 'eps', thickness_m: 0.15 }],
@@ -92,8 +99,10 @@ const ARCHETYPES = [
   {
     id: 'bunk',
     label: 'Arctic Bunkhouse',
-    dims: '10×6m',
-    desc: 'Timber SIPs + 150mm EPS, airlock mudroom, triple pane',
+    dims: '10.0×6.0m',
+    desc: 'Structural insulated panels (SIPs), east arctic airlock mudroom, triple pane.',
+    tags: ['Arctic Vestibule', '150mm SIPs', 'Triple Low-E'],
+    icon: Home,
     l: 10.0, w: 6.0, h: 2.8,
     walls: [{ material: 'timber', thickness_m: 0.05 }, { material: 'eps', thickness_m: 0.15 }],
     roof: [{ material: 'timber', thickness_m: 0.05 }, { material: 'eps', thickness_m: 0.20 }],
@@ -317,8 +326,14 @@ export default function InspectorPanel({
                             }
                           }}
                         >
-                          <span className="outpost-chip-name">{outpost.label}</span>
-                          <span className="outpost-chip-alt mono">{outpost.altitude_m}m</span>
+                          <div className="outpost-chip-header">
+                            <span className="outpost-chip-name">{outpost.label}</span>
+                            {isSelected && <span className="outpost-active-pip" />}
+                          </div>
+                          <div className="outpost-chip-meta">
+                            <span className="outpost-chip-alt mono">{outpost.altitude_m.toLocaleString()}m</span>
+                            <span className="outpost-chip-region">{outpost.region}</span>
+                          </div>
                         </button>
                       );
                     })}
@@ -360,24 +375,36 @@ export default function InspectorPanel({
                       <Sparkles size={13} style={{ color: 'var(--solar, #C2410C)' }} />
                       <span>Architectural Typology</span>
                     </div>
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>1-Click Presets</span>
+                    <span className="typology-preset-tag">1-Click Presets</span>
                   </div>
 
                   <div className="archetypes-grid">
-                    {ARCHETYPES.map((arch) => (
-                      <button
-                        key={arch.id}
-                        type="button"
-                        className={`archetype-card-btn ${activeArchetype === arch.id ? 'active' : ''}`}
-                        onClick={() => applyArchetype(arch)}
-                      >
-                        <div className="archetype-card-top">
-                          <span className="archetype-name">{arch.label}</span>
-                          <span className="archetype-dims mono">{arch.dims}</span>
-                        </div>
-                        <p className="archetype-desc">{arch.desc}</p>
-                      </button>
-                    ))}
+                    {ARCHETYPES.map((arch) => {
+                      const IconComponent = arch.icon || Sparkles;
+                      const isSelected = activeArchetype === arch.id;
+                      return (
+                        <button
+                          key={arch.id}
+                          type="button"
+                          className={`archetype-card-btn ${isSelected ? 'active' : ''}`}
+                          onClick={() => applyArchetype(arch)}
+                        >
+                          <div className="archetype-card-top">
+                            <div className="archetype-title-group">
+                              <IconComponent size={14} className="archetype-icon" />
+                              <span className="archetype-name">{arch.label}</span>
+                            </div>
+                            <span className="archetype-dims mono">{arch.dims}</span>
+                          </div>
+                          <p className="archetype-desc">{arch.desc}</p>
+                          <div className="archetype-tags-row">
+                            {arch.tags.map((tag) => (
+                              <span key={tag} className="archetype-tag-pill">{tag}</span>
+                            ))}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

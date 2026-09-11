@@ -311,19 +311,19 @@
 /* ── Thermal Heatmap Gradient Scale HUD ───────────────────────────────── */
 .thermal-heatmap-hud {
   position: absolute;
-  top: 20px;
-  left: 20px;
-  width: 260px;
-  padding: 12px 14px;
-  background: var(--glass-bg);
+  bottom: 74px;
+  left: 16px;
+  width: 270px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  z-index: 20;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: var(--radius-sm, 6px);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  z-index: 25;
   pointer-events: auto;
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .thermal-hud-header {
@@ -425,18 +425,19 @@
 /* ── Exploded View HUD Legend ─────────────────────────────────────────── */
 .exploded-view-hud {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  bottom: 74px;
+  left: 16px;
+  width: 260px;
   padding: 10px 14px;
-  background: var(--glass-bg);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  z-index: 20;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: var(--radius-sm, 6px);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  z-index: 25;
   pointer-events: auto;
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .exploded-hud-title {

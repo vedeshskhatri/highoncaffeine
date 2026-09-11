@@ -74,11 +74,7 @@
   right: 140px;
 }
 
-/* Left Floating Tool Rail (comfortably clear of top telemetry banner) */
-.cad-tool-rail {
-  position: absolute;
-  top: 96px;
-  left: 16px;
+.zoom-tool-btn {
   background: none;
   border: none;
   width: 26px;
@@ -113,22 +109,22 @@
   margin: 0 2px;
 }
 
-/* Left Floating Tool Rail */
+/* Left Floating CAD Tool Rail (Cleanly below top-left site telemetry banner) */
 .cad-tool-rail {
   position: absolute;
-  top: 72px;
+  top: 76px;
   left: 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(232, 220, 196, 0.85);
-  border-radius: var(--radius-sm);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: var(--radius-sm, 6px);
   padding: 4px;
-  box-shadow: 0 4px 16px rgba(32, 15, 7, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  z-index: 30;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  z-index: 25;
 }
 
 .cad-tool-btn {

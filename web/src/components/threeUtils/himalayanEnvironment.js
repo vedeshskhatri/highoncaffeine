@@ -174,110 +174,150 @@ export function createSkyDome(biome = 'plateau') {
 }
 
 /**
- * Generates low-poly procedural mountain ridges & terrain relief matching the biome
+ * Generates continuous, majestic procedural mountain ridges & relief matching the biome.
+ * Replaces choppy isolated triangles with continuous multi-octave topological massifs.
  */
 export function createDynamicMountains(biome = 'plateau') {
   const mountainGroup = new THREE.Group();
   mountainGroup.name = 'dynamic-mountains';
 
-  const segments = 64;
-  const outerRadius = 76;
-  const outerGeo = new THREE.BufferGeometry();
+  // ── Palette Configuration per Biome ──
+  let snowColor = new THREE.Color(0xFDFFFF);
+  let rockColor = new THREE.Color(0x423E3A);
+  let shadowColor = new THREE.Color(0x23201D);
+  let peakBaseHeight = 26;
+  let peakModulation = 14;
+  let snowAltitude = 20;
+
+  if (biome === 'glacial') {
+    // Siachen & Dras: Towering icy horns, massive glacial massifs
+    snowColor = new THREE.Color(0xFFFFFF);
+    rockColor = new THREE.Color(0x353C47);
+    shadowColor = new THREE.Color(0x181C23);
+    peakBaseHeight = 32;
+    peakModulation = 18;
+    snowAltitude = 16;
+  } else if (biome === 'valley') {
+    // Manali & Shimla: Pine-forested lower slopes, craggy granite crests
+    snowColor = new THREE.Color(0xF0F4F8);
+    rockColor = new THREE.Color(0x2E3A2F);
+    shadowColor = new THREE.Color(0x1A231C);
+    peakBaseHeight = 22;
+    peakModulation = 11;
+    snowAltitude = 22;
+  } else if (biome === 'desert') {
+    // Jaisalmer: Broad undulating sand ridges & golden sandstone mesas
+    snowColor = new THREE.Color(0xF2BA7B); // Sun-drenched sandstone crest
+    rockColor = new THREE.Color(0x9E693B);
+    shadowColor = new THREE.Color(0x5E391D);
+    peakBaseHeight = 12;
+    peakModulation = 7;
+    snowAltitude = 100; // No snow in desert
+  } else if (biome === 'plains') {
+    // New Delhi: Soft, gentle rolling green horizon swell
+    snowColor = new THREE.Color(0x8A9A86);
+    rockColor = new THREE.Color(0x566453);
+    shadowColor = new THREE.Color(0x333C31);
+    peakBaseHeight = 6;
+    peakModulation = 3.5;
+    snowAltitude = 100;
+  } else {
+    // Cold High Plateau (Leh, Ladakh)
+    snowColor = new THREE.Color(0xFAFAFA);
+    rockColor = new THREE.Color(0x4A443E);
+    shadowColor = new THREE.Color(0x2A2521);
+    peakBaseHeight = 24;
+    peakModulation = 13;
+    snowAltitude = 21;
+  }
+
+  // Helper: Continuous multi-octave harmonic elevation
+  const getElevation = (theta, base, mod) => {
+    return base +
+      Math.sin(theta * 2.0) * (mod * 0.40) +
+      Math.cos(theta * 3.0 + 0.6) * (mod * 0.28) +
+      Math.sin(theta * 5.0 + 1.2) * (mod * 0.18) +
+      Math.cos(theta * 7.0 + 2.1) * (mod * 0.10) +
+      Math.sin(theta * 11.0 + 0.4) * (mod * 0.05);
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TIER 1: CONTINUOUS DISTANT MOUNTAIN MASSIFS (Radius ~75m - 82m)
+  // ══════════════════════════════════════════════════════════════════════════
+  const segments = 80;
   const outerPositions = [];
   const outerColors = [];
 
-  // Color palettes per biome
-  let snowColor = new THREE.Color(0xF8FAFC);
-  let rockColor = new THREE.Color(0x47433F);
-  let shadowColor = new THREE.Color(0x2E2B28);
-  let peakBaseHeight = 26;
-  let peakModulation = 12;
+  // Precompute 3 concentric rings of vertices:
+  // Ring 1 (Crest), Ring 2 (Mid-slope Shoulder), Ring 3 (Base Skirt)
+  const ring1 = []; // Ridge Crest
+  const ring2 = []; // Mid-slope shoulder
+  const ring3 = []; // Base skirt
 
-  if (biome === 'glacial') {
-    // Towering icy glaciers & sharp snowy horns
-    snowColor = new THREE.Color(0xFDFFFF);
-    rockColor = new THREE.Color(0x3B414B);
-    shadowColor = new THREE.Color(0x1F242C);
-    peakBaseHeight = 32;
-    peakModulation = 16;
-  } else if (biome === 'valley') {
-    // Fir forested slopes with craggy slate tops
-    snowColor = new THREE.Color(0xE2E8F0);
-    rockColor = new THREE.Color(0x344238); // Dark pine evergreen slate
-    shadowColor = new THREE.Color(0x242D26);
-    peakBaseHeight = 22;
-    peakModulation = 10;
-  } else if (biome === 'desert') {
-    // Red sandstone mesas & wind-swept golden ridges
-    snowColor = new THREE.Color(0xE6A868); // Sunlit sandstone cap
-    rockColor = new THREE.Color(0x9E693B); // Desert ochre canyon rock
-    shadowColor = new THREE.Color(0x613E22);
-    peakBaseHeight = 14;
-    peakModulation = 7;
-  } else if (biome === 'plains') {
-    // Gentle rolling low horizon hills
-    snowColor = new THREE.Color(0x8A9A86); // Soft green grass hill
-    rockColor = new THREE.Color(0x5A6857);
-    shadowColor = new THREE.Color(0x3A4438);
-    peakBaseHeight = 8;
-    peakModulation = 4;
-  } else {
-    // Cold high plateau
-    snowColor = new THREE.Color(0xF8FAFC);
-    rockColor = new THREE.Color(0x4E4944);
-    shadowColor = new THREE.Color(0x2E2B28);
-    peakBaseHeight = 26;
-    peakModulation = 12;
+  for (let i = 0; i <= segments; i++) {
+    const theta = (i / segments) * Math.PI * 2;
+    const hCrest = Math.max(biome === 'plains' ? 3 : 10, getElevation(theta, peakBaseHeight, peakModulation));
+
+    // Radial variations for organic contours
+    const r1 = 78 + Math.sin(theta * 4.0) * 3.5;
+    const r2 = 66 + Math.cos(theta * 5.0) * 3.0;
+    const r3 = 54;
+
+    const x1 = Math.cos(theta) * r1;
+    const z1 = Math.sin(theta) * r1;
+    const y1 = hCrest;
+
+    const x2 = Math.cos(theta) * r2;
+    const z2 = Math.sin(theta) * r2;
+    const y2 = hCrest * 0.42 + Math.sin(theta * 8.0) * 1.5;
+
+    const x3 = Math.cos(theta) * r3;
+    const z3 = Math.sin(theta) * r3;
+    const y3 = -1.8;
+
+    // Determine colors with elevation-based snowline
+    const c1 = new THREE.Color().copy(y1 >= snowAltitude ? snowColor : rockColor);
+    const c2 = new THREE.Color().copy(rockColor);
+    if (y1 >= snowAltitude) {
+      c2.lerp(snowColor, 0.4); // Snow dust on upper shoulders
+    }
+    const c3 = new THREE.Color().copy(shadowColor);
+
+    ring1.push({ x: x1, y: y1, z: z1, c: c1 });
+    ring2.push({ x: x2, y: y2, z: z2, c: c2 });
+    ring3.push({ x: x3, y: y3, z: z3, c: c3 });
   }
 
-  // Generate continuous jagged mountain ring
+  // Triangulate between rings to create continuous panoramic mountain faces
+  const addTriangle = (pA, pB, pC) => {
+    outerPositions.push(pA.x, pA.y, pA.z);
+    outerColors.push(pA.c.r, pA.c.g, pA.c.b);
+
+    outerPositions.push(pB.x, pB.y, pB.z);
+    outerColors.push(pB.c.r, pB.c.g, pB.c.b);
+
+    outerPositions.push(pC.x, pC.y, pC.z);
+    outerColors.push(pC.c.r, pC.c.g, pC.c.b);
+  };
+
   for (let i = 0; i < segments; i++) {
-    const angle1 = (i / segments) * Math.PI * 2;
-    const angle2 = ((i + 1) / segments) * Math.PI * 2;
+    const a1 = ring1[i];
+    const a2 = ring1[i + 1];
+    const b1 = ring2[i];
+    const b2 = ring2[i + 1];
+    const c1 = ring3[i];
+    const c2 = ring3[i + 1];
 
-    const seed = Math.sin(angle1 * 3.5) * (peakModulation * 0.5) +
-                 Math.cos(angle1 * 7.2) * (peakModulation * 0.3) +
-                 Math.sin(angle1 * 2.0) * (peakModulation * 0.6);
-    const peakHeight = Math.max(biome === 'plains' ? 4 : 12, peakBaseHeight + seed);
+    // Upper mountain face: quad (a1, a2, b2, b1)
+    addTriangle(a1, b1, a2);
+    addTriangle(a2, b1, b2);
 
-    const x1 = Math.cos(angle1) * outerRadius;
-    const z1 = Math.sin(angle1) * outerRadius;
-    const x2 = Math.cos(angle2) * outerRadius;
-    const z2 = Math.sin(angle2) * outerRadius;
-
-    const midAngle = (angle1 + angle2) / 2;
-    const peakR = outerRadius * (0.93 + Math.sin(i * 2.1) * 0.07);
-    const px = Math.cos(midAngle) * peakR;
-    const pz = Math.sin(midAngle) * peakR;
-
-    const by1 = -2;
-    const by2 = -2;
-
-    // Face 1: Main peak facet
-    outerPositions.push(x1, by1, z1);
-    outerColors.push(rockColor.r, rockColor.g, rockColor.b);
-
-    outerPositions.push(px, peakHeight, pz);
-    outerColors.push(snowColor.r, snowColor.g, snowColor.b);
-
-    outerPositions.push(x2, by2, z2);
-    outerColors.push(shadowColor.r, shadowColor.g, shadowColor.b);
-
-    // Face 2: Flank facet
-    const subHeight = peakHeight * 0.72;
-    const subX = Math.cos(angle2) * (outerRadius * 0.94);
-    const subZ = Math.sin(angle2) * (outerRadius * 0.94);
-
-    outerPositions.push(px, peakHeight, pz);
-    outerColors.push(snowColor.r, snowColor.g, snowColor.b);
-
-    outerPositions.push(subX, subHeight, subZ);
-    outerColors.push(snowColor.r * 0.92, snowColor.g * 0.92, snowColor.b * 0.92);
-
-    outerPositions.push(x2, by2, z2);
-    outerColors.push(rockColor.r, rockColor.g, rockColor.b);
+    // Lower mountain scree: quad (b1, b2, c2, c1)
+    addTriangle(b1, c1, b2);
+    addTriangle(b2, c1, c2);
   }
 
+  const outerGeo = new THREE.BufferGeometry();
   outerGeo.setAttribute('position', new THREE.Float32BufferAttribute(outerPositions, 3));
   outerGeo.setAttribute('color', new THREE.Float32BufferAttribute(outerColors, 3));
   outerGeo.computeVertexNormals();
@@ -291,56 +331,80 @@ export function createDynamicMountains(biome = 'plateau') {
   const mountainMesh = new THREE.Mesh(outerGeo, mountainMat);
   mountainGroup.add(mountainMesh);
 
-  // Mid-ground rocky foothills
-  const midGeo = new THREE.BufferGeometry();
+  // ══════════════════════════════════════════════════════════════════════════
+  // TIER 2: CONTINUOUS MID-GROUND FOOTHILLS (Radius ~36m - 46m)
+  // ══════════════════════════════════════════════════════════════════════════
+  const midSegments = 60;
   const midPositions = [];
   const midColors = [];
-  const midRadius = 48;
-  const midSegments = 48;
 
-  let footRock = new THREE.Color(0x635E57);
-  let footCap = new THREE.Color(0xCBD5E1);
+  const midRing1 = [];
+  const midRing2 = [];
+
+  let footCapColor = new THREE.Color(0xCBD5E1);
+  let footBaseColor = new THREE.Color(0x4B4641);
 
   if (biome === 'glacial') {
-    footRock = new THREE.Color(0x4A5260);
-    footCap = new THREE.Color(0xF1F5F9);
+    footCapColor = new THREE.Color(0xEEF5FB);
+    footBaseColor = new THREE.Color(0x3B4250);
   } else if (biome === 'valley') {
-    footRock = new THREE.Color(0x2E3A2F);
-    footCap = new THREE.Color(0x4C5E4E);
+    footCapColor = new THREE.Color(0x3E5240); // Pine treeline
+    footBaseColor = new THREE.Color(0x243026);
   } else if (biome === 'desert') {
-    footRock = new THREE.Color(0x8C5628);
-    footCap = new THREE.Color(0xC98547);
+    footCapColor = new THREE.Color(0xDE9858); // Sand dune ridge
+    footBaseColor = new THREE.Color(0x8C5226);
   } else if (biome === 'plains') {
-    footRock = new THREE.Color(0x4F5B4B);
-    footCap = new THREE.Color(0x6E7D6A);
+    footCapColor = new THREE.Color(0x6E7F6B);
+    footBaseColor = new THREE.Color(0x455042);
+  }
+
+  const midBaseH = peakBaseHeight * 0.38;
+  const midModH = peakModulation * 0.40;
+
+  for (let i = 0; i <= midSegments; i++) {
+    const theta = (i / midSegments) * Math.PI * 2;
+    const hMid = Math.max(biome === 'plains' ? 1.5 : 4, getElevation(theta + 1.2, midBaseH, midModH));
+
+    const rTop = 44 + Math.sin(theta * 6.0) * 2.5;
+    const rBase = 32;
+
+    const xt = Math.cos(theta) * rTop;
+    const zt = Math.sin(theta) * rTop;
+    const yt = hMid;
+
+    const xb = Math.cos(theta) * rBase;
+    const zb = Math.sin(theta) * rBase;
+    const yb = -1.2;
+
+    const cTop = new THREE.Color().copy(footCapColor);
+    const cBase = new THREE.Color().copy(footBaseColor);
+
+    midRing1.push({ x: xt, y: yt, z: zt, c: cTop });
+    midRing2.push({ x: xb, y: yb, z: zb, c: cBase });
   }
 
   for (let i = 0; i < midSegments; i++) {
-    const a1 = (i / midSegments) * Math.PI * 2;
-    const a2 = ((i + 1) / midSegments) * Math.PI * 2;
-    const hillHeight = Math.max(
-      biome === 'plains' ? 2 : 5,
-      (peakBaseHeight * 0.45) + Math.sin(a1 * 4) * 3 + Math.cos(a1 * 6) * 2
-    );
+    const t1 = midRing1[i];
+    const t2 = midRing1[i + 1];
+    const b1 = midRing2[i];
+    const b2 = midRing2[i + 1];
 
-    const x1 = Math.cos(a1) * midRadius;
-    const z1 = Math.sin(a1) * midRadius;
-    const x2 = Math.cos(a2) * midRadius;
-    const z2 = Math.sin(a2) * midRadius;
+    midPositions.push(t1.x, t1.y, t1.z);
+    midColors.push(t1.c.r, t1.c.g, t1.c.b);
+    midPositions.push(b1.x, b1.y, b1.z);
+    midColors.push(b1.c.r, b1.c.g, b1.c.b);
+    midPositions.push(t2.x, t2.y, t2.z);
+    midColors.push(t2.c.r, t2.c.g, t2.c.b);
 
-    const mx = (x1 + x2) / 2 * 0.96;
-    const mz = (z1 + z2) / 2 * 0.96;
-
-    midPositions.push(x1, -1.0, z1);
-    midColors.push(footRock.r, footRock.g, footRock.b);
-
-    midPositions.push(mx, hillHeight, mz);
-    midColors.push(footCap.r, footCap.g, footCap.b);
-
-    midPositions.push(x2, -1.0, z2);
-    midColors.push(footRock.r, footRock.g, footRock.b);
+    midPositions.push(t2.x, t2.y, t2.z);
+    midColors.push(t2.c.r, t2.c.g, t2.c.b);
+    midPositions.push(b1.x, b1.y, b1.z);
+    midColors.push(b1.c.r, b1.c.g, b1.c.b);
+    midPositions.push(b2.x, b2.y, b2.z);
+    midColors.push(b2.c.r, b2.c.g, b2.c.b);
   }
 
+  const midGeo = new THREE.BufferGeometry();
   midGeo.setAttribute('position', new THREE.Float32BufferAttribute(midPositions, 3));
   midGeo.setAttribute('color', new THREE.Float32BufferAttribute(midColors, 3));
   midGeo.computeVertexNormals();

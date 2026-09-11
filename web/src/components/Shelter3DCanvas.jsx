@@ -186,22 +186,40 @@ export default function Shelter3DCanvas({
     rimLight.position.set(0, 12, -16);
     scene.add(rimLight);
 
-    // ── Sun Visual Glyph ──
+    // ── Luminous Celestial Sun & Solar Halo ──
     const sunGroup = new THREE.Group();
-    const coreGeo = new THREE.SphereGeometry(0.55, 24, 24);
-    const coreMat = new THREE.MeshBasicMaterial({ color: 0xFFA044 });
+    sunGroup.name = 'celestial-sun';
+
+    // 1. Incandescent solar core
+    const coreGeo = new THREE.SphereGeometry(0.42, 24, 24);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xFFFDF0 });
     const sunCore = new THREE.Mesh(coreGeo, coreMat);
     sunGroup.add(sunCore);
 
-    const coronaGeo = new THREE.RingGeometry(0.65, 0.95, 32);
-    const coronaMat = new THREE.MeshBasicMaterial({
-      color: 0xF77331,
+    // 2. Procedural soft radiant solar flare sprite (auto billboard)
+    const flareCanvas = document.createElement('canvas');
+    flareCanvas.width = 128;
+    flareCanvas.height = 128;
+    const fCtx = flareCanvas.getContext('2d');
+    const fGrad = fCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    fGrad.addColorStop(0.0, 'rgba(255, 255, 245, 1.0)');
+    fGrad.addColorStop(0.2, 'rgba(255, 215, 130, 0.85)');
+    fGrad.addColorStop(0.5, 'rgba(247, 115, 49, 0.35)');
+    fGrad.addColorStop(0.85, 'rgba(247, 115, 49, 0.08)');
+    fGrad.addColorStop(1.0, 'rgba(247, 115, 49, 0.0)');
+    fCtx.fillStyle = fGrad;
+    fCtx.fillRect(0, 0, 128, 128);
+
+    const flareTexture = new THREE.CanvasTexture(flareCanvas);
+    const flareMat = new THREE.SpriteMaterial({
+      map: flareTexture,
       transparent: true,
-      opacity: 0.5,
-      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
-    const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
-    sunGroup.add(coronaMesh);
+    const flareSprite = new THREE.Sprite(flareMat);
+    flareSprite.scale.set(3.2, 3.2, 1.0);
+    sunGroup.add(flareSprite);
 
     scene.add(sunGroup);
     sunGroupRef.current = sunGroup;
