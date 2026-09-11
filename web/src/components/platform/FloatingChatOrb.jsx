@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Bot, 
   Search,
   Sparkles, 
   RefreshCw,
@@ -585,24 +584,6 @@ export default function FloatingChatOrb() {
                       <span>{aiLoading ? 'Predicting...' : 'Query Thermal AI'}</span>
                     </button>
                   </form>
-
-                  {/* Empty State when no question asked yet */}
-                  {!aiResponse && !aiLoading && (
-                    <div className="chatbox-empty-state">
-                      <div className="empty-state-icon">
-                        <Bot size={30} />
-                      </div>
-                      <h4 className="empty-state-title">Awaiting Thermal Performance Inquiry</h4>
-                      <p className="empty-state-desc">
-                        Enter any question regarding high-altitude shelter indoor temperature, envelope insulation materials, heat loss bottlenecks, or safety compliance. You can also click any sample inquiry chip above.
-                      </p>
-                      <div className="empty-state-badges">
-                        <span className="empty-badge mono">5 ML Surrogates (CatBoost, RF, MLP)</span>
-                        <span className="empty-badge mono">120,000 Hourly Timesteps</span>
-                        <span className="empty-badge mono">DRDO PS 26051 Grounded</span>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Loading State while evaluating models */}
                   {aiLoading && (
