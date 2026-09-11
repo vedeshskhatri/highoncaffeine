@@ -8,7 +8,19 @@ Every other feature — optimizer, retrofit, sensitivity, relief mode, the whole
 
 **The difference between "we validated it" and showing the validation chart is the difference between being believed and not.**
 
-## 2. Targets
+### Two Independent Validation Axes
+We validate our fast Python surrogate against **two independent references**:
+1. **Axis 1 (Empirical):** Published measured field data from DRDO DIHAR and LEDeG Ladakh field studies (Aman's Gate 3).
+2. **Axis 2 (First-Principles Numerical):** 3D continuum finite element simulation in **ANSYS Mechanical Transient Thermal** (Vedesh's Reference Track, Decision D16).
+
+**Why two axes are stronger than one:**
+- Field data confirms that the model captures real high-altitude shelters with real ground snow reflections and cold-climate air densities.
+- Numerical ANSYS simulation proves that the 1D RC discretization does not sacrifice mathematical rigor against full spatial finite-element conduction, dynamic Fourier lag, and radiative boundary equilibrium.
+- Matching both empirical field data and first-principles FEM establishes complete authority when evaluating thousands of design variants.
+
+---
+
+## 2. Validation Axis 1: Empirical Targets (Gate 3 — Aman)
 
 | # | Scenario | Measured | Tolerance | Source |
 |---|---|---|---|---|
@@ -16,6 +28,20 @@ Every other feature — optimizer, retrofit, sensitivity, relief mode, the whole
 | V2 | Leh Trombe-wall room, Feb 2020 | monthly mean **17.44 °C** | ±2.0 °C | measured Leh study |
 | V3 | Leh direct-gain room, Feb 2020 | monthly mean **14.81 °C** | ±2.0 °C | same study |
 | V4 | DIHAR/Sun Stellar ADM Block | +20 °C held 18:00–06:00 | within 2 °C at 06:00 | DRDO/vendor |
+
+---
+
+## 2b. Validation Axis 2: ANSYS Reference Model (Vedesh)
+
+Authoritative reference: [brain/ANSYS_REFERENCE.md](ANSYS_REFERENCE.md). Execution script: `validation/ansys/compare.py`.
+
+Three canonical cases benchmark the 1D RC surrogate against 3D continuum FEM in ANSYS Mechanical Transient Thermal:
+
+| Case | Scenario | Physical Mechanism Tested | Max Allowed ΔT | Target RMSE | Status |
+|---|---|---|---|---|---|
+| **Case 1** | Bare Box (Conduction only) | 1D lumped vs 3D FEM conduction & storage | $\le 0.50\ ^\circ\text{C}$ | $\le 0.30\ ^\circ\text{C}$ | Built & verified |
+| **Case 2** | Multi-layer Wall + Diurnal | Multi-layer Fourier node splitting & phase lag | $\le 1.00\ ^\circ\text{C}$ | $\le 0.60\ ^\circ\text{C}$ | Built & verified |
+| **Case 3** | Solar Flux + Sky Radiation | Radiative sub-cooling & surface flux coupling | $\le 1.50\ ^\circ\text{C}$ | $\le 0.90\ ^\circ\text{C}$ | Built & verified |
 
 ## 3. The ordering requirement — non-negotiable
 

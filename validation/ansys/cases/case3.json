@@ -1,0 +1,106 @@
+{
+  "_metadata": {
+    "case_id": "CASE3",
+    "name": "Case 3 — Solar Flux and Sky Longwave Radiation",
+    "purpose": "Validate surface radiative boundary equilibrium, absorbed solar heat flux coupling, and clear-sky radiative cooling between 1D RC solver and ANSYS continuum FEM",
+    "max_tolerance_c": 1.50,
+    "rmse_tolerance_c": 0.90,
+    "note": "Transient Thermal applies solar load as an imposed tabular heat flux on the south wall, and sky radiation as tabular ambient radiation on the roof, matching Python's physical formulation exactly."
+  },
+  "location": {
+    "lat": 34.1526,
+    "lon": 77.5771,
+    "altitude_m": 3500.0
+  },
+  "geometry": {
+    "length_m": 4.0,
+    "width_m": 3.0,
+    "height_m": 2.5,
+    "orientation_deg": 180.0
+  },
+  "envelope": {
+    "walls": [
+      {
+        "material": "mud_brick",
+        "thickness_m": 0.25
+      },
+      {
+        "material": "eps_board",
+        "thickness_m": 0.05
+      }
+    ],
+    "roof": [
+      {
+        "material": "cgi_sheet",
+        "thickness_m": 0.002
+      },
+      {
+        "material": "eps_board",
+        "thickness_m": 0.10
+      }
+    ],
+    "floor": [
+      {
+        "material": "eps_board",
+        "thickness_m": 0.05
+      },
+      {
+        "material": "dense_concrete",
+        "thickness_m": 0.10
+      }
+    ],
+    "roof_emissivity": 0.90
+  },
+  "openings": [],
+  "ventilation": {
+    "ach": 0.0,
+    "heater_type": "none"
+  },
+  "occupancy": {
+    "people": 0,
+    "watts_per_person": 0.0
+  },
+  "ground": {
+    "snow_cover": false,
+    "albedo": 0.20
+  },
+  "comfort": {
+    "model": "imac",
+    "health_threshold_c": 18.0
+  },
+  "simulation": {
+    "timestep_s": 60.0,
+    "spinup_days": 2,
+    "enable_sky_radiation": true
+  },
+  "weather": {
+    "mode": "hourly",
+    "hours": 24,
+    "hourly": [
+      { "hour": 0, "t_air": -12.07, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -40.29 },
+      { "hour": 1, "t_air": -13.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -42.41 },
+      { "hour": 2, "t_air": -14.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -43.74 },
+      { "hour": 3, "t_air": -15.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -44.20 },
+      { "hour": 4, "t_air": -14.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -43.74 },
+      { "hour": 5, "t_air": -13.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -42.41 },
+      { "hour": 6, "t_air": -12.07, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -40.29 },
+      { "hour": 7, "t_air": -10.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -37.52 },
+      { "hour": 8, "t_air": -7.59, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -34.28 },
+      { "hour": 9, "t_air": -5.00, "dni": 344.42, "dhi": 45.92, "ghi": 287.01, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 194.21, "t_sky_c": -30.78 },
+      { "hour": 10, "t_air": -2.41, "dni": 636.40, "dhi": 84.85, "ghi": 530.33, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 421.35, "t_sky_c": -27.24 },
+      { "hour": 11, "t_air": 0.00, "dni": 831.49, "dhi": 110.87, "ghi": 692.91, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 589.62, "t_sky_c": -23.93 },
+      { "hour": 12, "t_air": 2.07, "dni": 900.00, "dhi": 120.00, "ghi": 750.00, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 653.18, "t_sky_c": -21.08 },
+      { "hour": 13, "t_air": 3.66, "dni": 831.49, "dhi": 110.87, "ghi": 692.91, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 589.62, "t_sky_c": -18.87 },
+      { "hour": 14, "t_air": 4.66, "dni": 636.40, "dhi": 84.85, "ghi": 530.33, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 421.35, "t_sky_c": -17.48 },
+      { "hour": 15, "t_air": 5.00, "dni": 344.42, "dhi": 45.92, "ghi": 287.01, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 194.21, "t_sky_c": -17.01 },
+      { "hour": 16, "t_air": 4.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -17.48 },
+      { "hour": 17, "t_air": 3.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -18.87 },
+      { "hour": 18, "t_air": 2.07, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -21.08 },
+      { "hour": 19, "t_air": 0.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -23.93 },
+      { "hour": 20, "t_air": -2.41, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -27.24 },
+      { "hour": 21, "t_air": -5.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -30.78 },
+      { "hour": 22, "t_air": -7.59, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -34.28 },
+      { "hour": 23, "t_air": -10.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0, "q_solar_flux_south_w_m2": 0.0, "t_sky_c": -37.52 }
+    ]
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "_metadata": {
+    "case_id": "CASE2",
+    "name": "Case 2 — Multi-layer Wall, Diurnal Swing",
+    "purpose": "Validate Fourier multi-layer node splitting, thermal damping, and diurnal lag between 1D RC solver and ANSYS continuum FEM",
+    "max_tolerance_c": 1.00,
+    "rmse_tolerance_c": 0.60
+  },
+  "location": {
+    "lat": 34.1526,
+    "lon": 77.5771,
+    "altitude_m": 3500.0
+  },
+  "geometry": {
+    "length_m": 4.0,
+    "width_m": 3.0,
+    "height_m": 2.5,
+    "orientation_deg": 180.0
+  },
+  "envelope": {
+    "walls": [
+      {
+        "material": "mud_brick",
+        "thickness_m": 0.25
+      },
+      {
+        "material": "eps_board",
+        "thickness_m": 0.05
+      }
+    ],
+    "roof": [
+      {
+        "material": "cgi_sheet",
+        "thickness_m": 0.002
+      },
+      {
+        "material": "eps_board",
+        "thickness_m": 0.10
+      }
+    ],
+    "floor": [
+      {
+        "material": "eps_board",
+        "thickness_m": 0.05
+      },
+      {
+        "material": "dense_concrete",
+        "thickness_m": 0.10
+      }
+    ],
+    "roof_emissivity": 0.90
+  },
+  "openings": [],
+  "ventilation": {
+    "ach": 0.0,
+    "heater_type": "none"
+  },
+  "occupancy": {
+    "people": 0,
+    "watts_per_person": 0.0
+  },
+  "ground": {
+    "snow_cover": false,
+    "albedo": 0.20
+  },
+  "comfort": {
+    "model": "imac",
+    "health_threshold_c": 18.0
+  },
+  "simulation": {
+    "timestep_s": 60.0,
+    "spinup_days": 2,
+    "enable_sky_radiation": false
+  },
+  "weather": {
+    "mode": "hourly",
+    "hours": 24,
+    "hourly": [
+      { "hour": 0, "t_air": -12.07, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 1, "t_air": -13.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 2, "t_air": -14.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 3, "t_air": -15.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 4, "t_air": -14.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 5, "t_air": -13.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 6, "t_air": -12.07, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 7, "t_air": -10.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 8, "t_air": -7.59, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 9, "t_air": -5.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 10, "t_air": -2.41, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 11, "t_air": 0.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 12, "t_air": 2.07, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 13, "t_air": 3.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 14, "t_air": 4.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 15, "t_air": 5.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 16, "t_air": 4.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 17, "t_air": 3.66, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 18, "t_air": 2.07, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 19, "t_air": 0.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 20, "t_air": -2.41, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 21, "t_air": -5.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 22, "t_air": -7.59, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 },
+      { "hour": 23, "t_air": -10.00, "dni": 0.0, "dhi": 0.0, "ghi": 0.0, "cloud_cover": 0.0 }
+    ]
+  }
+}

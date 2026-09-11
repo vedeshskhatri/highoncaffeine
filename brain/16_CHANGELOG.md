@@ -27,6 +27,7 @@ Format:
 [2026-09-11 12:28] SWAPNIL S2 — compass control, multi-layer envelope builder, client-side validation per 07_API_CONTRACT.md (63cbca4)
 [2026-09-11 12:32] SWAPNIL S3 — live cross-section SVG with scaled wall/roof/floor layers, snow drift, and sun glyph (354fe18)
 [2026-09-11 12:37] SWAPNIL S4 — Recharts suite (TempChart, DeltaAmbient, DeltaDesign), LeversPanel, ValidationPanel, ParetoPlot, RetrofitList (d806ecf)
+[2026-09-11 13:00] VEDESH — ANSYS reference model track established (D16); setup guide, canonical case configs, comparison script, and phases V7-V9 created
 ```
 
 ---

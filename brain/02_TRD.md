@@ -14,13 +14,15 @@
 | Styling | Tailwind | 3.4 |
 | Charts | Recharts | 2.x |
 | Tests | pytest | — |
+| Reference model | ANSYS Transient Thermal (Mechanical) | 2023 R2+ Student (offline reference, not a runtime dependency) |
 
-**Nothing else.** No ORM, no Docker, no Redis, no Celery, no state library, no component library, no PDF library, no 3D library. Adding anything requires a `17_DECISIONS.md` entry and Vedesh's sign-off.
+**Nothing else.** No ORM, no Docker, no Redis, no Celery, no state library, no component library, no PDF library, no 3D library. The application has strictly **no ANSYS dependency at run time** — ANSYS is used exclusively offline as a high-fidelity reference benchmark for validation. Adding anything requires a `17_DECISIONS.md` entry and Vedesh's sign-off.
 
-### Explicitly rejected, with reasons — do not reopen
+### Explicitly rejected / reclassified, with reasons — do not reopen
 
-| Rejected | Why |
+| Technology | Status / Reason |
 |---|---|
+| ANSYS as runtime engine | **Used as reference, not as the product engine.** Finding the most efficient combination of materials, shape, and size requires evaluating thousands of designs; ANSYS structurally cannot search a design space in seconds. ANSYS is used offline as the high-fidelity benchmark to validate our fast Python surrogate against. |
 | PostgreSQL | Three tables. Setup friction across four machines exceeds any benefit. SQLite is a file, committed to the repo, identical for everyone. |
 | Prisma | Node/TS ORM; engine must be Python for NumPy vectorisation. Forces a second service or an unmaintained Python client. |
 | Any ORM | Three tables. Raw `sqlite3` + thin `db.py` is ~40 lines. Typed models live in Pydantic. |

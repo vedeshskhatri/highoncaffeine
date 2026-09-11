@@ -385,3 +385,149 @@ State the pushed commit hash in section 2 of the report.
 PHASE REPORT. Section 4 includes actual figures for every check above.
 Section 9 must state explicitly whether you verified (b) by hand or assumed it.
 ```
+
+---
+
+## PHASE V7 — ANSYS Install, Case 1 Setup and Solve
+
+```
+You are setting up the ANSYS reference model track for THERMA (SIH 2026, PS 26051).
+
+FIRST: read brain/ANSYS_REFERENCE.md completely before touching ANSYS.
+Also review validation/ansys/cases/case1.json and validation/ansys/README.md.
+
+CONTEXT
+ANSYS is our high-fidelity reference model; our Python 5R1C solver is the fast searchable surrogate.
+Case 1 tests pure conduction and thermal capacitance on a bare box shelter under constant ambient temperature.
+
+TASK — Phase V7
+1. Download and install ANSYS Student 2023 R2+ (Mechanical Transient Thermal).
+2. Set up Engineering Data with Mud_Brick:
+   - k = 0.75 W/(m*K)
+   - rho = 1700 kg/m^3
+   - Cp = 880 J/(kg*K)
+   All numbers sourced from data/materials.csv.
+3. Model geometry in SpaceClaim / DesignModeler per ANSYS_REFERENCE.md Section 4:
+   - Internal dimensions: 4.0 m (X) x 3.0 m (Y) x 2.5 m (Z)
+   - 0.30 m homogeneous mud brick envelope
+   - Air volume interior body
+4. Mesh the geometry:
+   - Target element size 100 mm (0.10 m)
+   - Check Mesh Statistics: verify node count < 512,000 (Student limit)
+5. Apply boundary conditions:
+   - Initial temperature: 20.0 °C uniform across all bodies
+   - External convection: h_e = 25.0 W/(m^2*K) to constant T_out = -10.0 °C on all exterior faces
+   - No solar, no radiation
+   - End time: 86400 s (24 h), timestep 60 s
+6. Insert Temperature Probe at indoor air center (Probe_Indoor_Air).
+7. Solve Transient Thermal analysis.
+8. Export probe results table to validation/ansys/results/ansys_case1_export.csv.
+9. Run compare script:
+   python -m validation.ansys.compare --case case1 --ansys-csv validation/ansys/results/ansys_case1_export.csv
+
+VERIFICATION — paste actual numbers into the report:
+  a. Mesh statistics: report exact node count and element count.
+  b. Solve elapsed clock time in ANSYS Mechanical.
+  c. Paste first 5 rows and last 5 rows of validation/ansys/results/ansys_case1_export.csv.
+  d. Paste output of compare.py: report exact Max Delta T, RMSE, and Mean Bias.
+  e. Confirm Max Delta T <= 0.50 °C tolerance. If failed, follow diagnostic guide in ANSYS_REFERENCE.md Section 7.
+
+CONSTRAINTS
+- Material properties must match data/materials.csv exactly.
+- Do not modify engine/ or api/.
+
+OUTPUT
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests (pytest tests/ -v)
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch.
+State the pushed commit hash in section 2 of the report.
+PHASE REPORT. All ten sections required.
+```
+
+---
+
+## PHASE V8 — ANSYS Cases 2 and 3 Setup and Solve
+
+```
+You are continuing the ANSYS reference track for THERMA (SIH 2026, PS 26051).
+
+FIRST: review validation/ansys/cases/case2.json, case3.json, and brain/ANSYS_REFERENCE.md Sections 3 and 4.
+
+TASK — Phase V8
+1. Case 2 (Multi-layer Wall, Diurnal Swing):
+   - Geometry: 4.0 x 3.0 x 2.5 m shelter with multi-layer envelope:
+     * Walls: 0.25 m mud brick (outer) + 0.05 m EPS board (inner)
+     * Roof: 0.002 m CGI sheet (outer) + 0.10 m EPS board (inner)
+     * Floor: 0.05 m EPS board + 0.10 m dense concrete
+   - Tabular diurnal outdoor temperature: 24h sinusoid (-15 °C min at 03:00 to +5 °C max at 15:00)
+   - External convection h_e = 25.0 W/(m^2*K) to tabular ambient
+   - Solve 48h (evaluate final 24h); export probe to validation/ansys/results/ansys_case2_export.csv
+2. Case 3 (Solar Flux + Sky Radiation):
+   - Same multi-layer envelope as Case 2
+   - South face: Tabular Heat Flux q''_sol(t) from case3.json (absorptivity alpha = 0.70)
+   - Roof face: Tabular Radiation to Swinbank sky temperature T_sky(t) from case3.json (emissivity eps = 0.90)
+   - Solve 48h; export probe to validation/ansys/results/ansys_case3_export.csv
+3. Execute compare script for both cases:
+   python -m validation.ansys.compare --case case2 --ansys-csv validation/ansys/results/ansys_case2_export.csv
+   python -m validation.ansys.compare --case case3 --ansys-csv validation/ansys/results/ansys_case3_export.csv
+
+VERIFICATION — paste actual numbers into the report:
+  a. Node counts for Case 2 and Case 3 meshes (< 512,000).
+  b. Case 2: Peak indoor temperature and time of peak in ANSYS vs Python (verify thermal lag).
+  c. Case 3: Peak daytime indoor temperature and overnight minimum in ANSYS vs Python.
+  d. Paste first 5 and last 5 rows of ansys_case2_export.csv and ansys_case3_export.csv.
+  e. Paste compare.py output for Case 2 (confirm Max Delta T <= 1.00 °C).
+  f. Paste compare.py output for Case 3 (confirm Max Delta T <= 1.50 °C).
+
+CONSTRAINTS
+- Solar load applied strictly as imposed heat flux, not native CFD ray tracing (see ANSYS_REFERENCE.md Section 3).
+- All numbers sourced from data/materials.csv and case JSONs.
+
+OUTPUT
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch.
+State the pushed commit hash in section 2 of the report.
+PHASE REPORT. All ten sections required.
+```
+
+---
+
+## PHASE V9 — Comparison Suite, Agreement Table, and Handover
+
+```
+You are finalizing the ANSYS reference track for THERMA (SIH 2026, PS 26051).
+
+TASK — Phase V9
+1. Run the unified reference comparison suite:
+   python -m validation.ansys.compare --all
+2. Verify all three overlay plots are generated in validation/ansys/plots/:
+   - case1_overlay.png
+   - case2_overlay.png
+   - case3_overlay.png
+3. Update brain/ANSYS_REFERENCE.md Section 7 and brain/10_VALIDATION.md Section 2b:
+   - Fill in the agreement table shell with the REAL measured deviation numbers and RMSE.
+   - Replace [TO COMPLETE V9] markers with the verified values.
+4. Review Section 10 of brain/ANSYS_REFERENCE.md (Handover note for Aman). Confirm Aman has the exact numbers to speak to the panel.
+
+GATE: The agreement table in brain/ANSYS_REFERENCE.md and brain/10_VALIDATION.md is filled in with real deviations from actual runs, and all three cases pass tolerance.
+
+VERIFICATION — paste actual output:
+  a. Paste the complete output of `python -m validation.ansys.compare --all`.
+  b. Confirm all three cases report PASS in the table.
+  c. Confirm git diff shows real numbers populated in brain/ANSYS_REFERENCE.md and brain/10_VALIDATION.md.
+  d. Confirm git status is clean and main is the only branch.
+
+OUTPUT
+Before emitting the report:
+  1. git pull --rebase origin main
+  2. run your tests
+  3. git push origin main
+Then run `git branch -a` and confirm `main` is the only branch.
+State the pushed commit hash in section 2 of the report.
+PHASE REPORT. All ten sections required.
+```

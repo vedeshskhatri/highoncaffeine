@@ -67,3 +67,9 @@ Architectural decision record. Append-only. Each entry states what, why, alterna
 **Alternatives:** feature branches with PR review (rejected: overhead at this team size and timeline); one person merging everything (rejected: explicitly penalised by the evaluation criteria).
 **Consequence:** no review gate. Pull-rebase-test-push discipline becomes mandatory and a broken main is everyone's emergency. CI moves from pre-merge to post-push. Branch deletion is a human action, never an agent action.
 
+### D16 — ANSYS reinstated as reference model (partial reversal of D1)
+**Decision:** build three canonical cases in ANSYS Transient Thermal as a reference model; keep the Python 5R1C solver as the searchable surrogate, validated against ANSYS.
+**Why:** the PS explicitly names ANSYS ("Development of a general model in ANSYS software"). D1's original reasoning conflated "ANSYS cannot search a design space" (true, and still our justification for the surrogate) with "we should not use ANSYS at all" (wrong — the Student edition is free and its caps are generous for a single-room box; the real cost was learning time, which is a scheduling question, not a capability one). Building both gives a second validation axis, and it is the axis the PS author named.
+**Consequence:** ~6-10 h of one person's time, scheduled outside V1-V5. The ANSYS piece is three cases, not a general parameterised model, and we say so. Solar is an imposed flux boundary condition, not a computed solar load, and we say that too.
+D1 is NOT deleted — it remains the record of why the surrogate exists.
+
