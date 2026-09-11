@@ -105,23 +105,44 @@ export default function InspectorPanel({
   const floorArea = ((request?.geometry?.length_m || 6) * (request?.geometry?.width_m || 4)).toFixed(1);
 
   return (
-    <aside
-      className={`inspector-panel ${collapsed ? 'collapsed' : ''}`}
-      aria-label="Shelter Design Inspector"
-    >
-      {/* ── 1. Inspector Header & Tab Bar ──────────────────────────────── */}
-      <div className="inspector-header">
-        <div className="inspector-title-row">
-          <h3 className="inspector-heading">Shelter Inspector</h3>
-          <button
-            className="inspector-collapse-btn"
+    <>
+      {/* ── Togglable Arrow Tab when Inspector is Collapsed ──────────── */}
+      <AnimatePresence>
+        {collapsed && (
+          <motion.button
+            key="inspector-expand-tab"
+            className="inspector-expand-tab"
             onClick={onToggleCollapse}
-            title={collapsed ? 'Expand inspector' : 'Collapse inspector'}
-            aria-label="Toggle inspector panel"
+            title="Expand Shelter Inspector"
+            aria-label="Expand Shelter Inspector"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 24 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
           >
-            {collapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-          </button>
-        </div>
+            <ChevronLeft size={16} className="inspector-expand-chevron" />
+            <span className="inspector-expand-label">Inspector</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <aside
+        className={`inspector-panel ${collapsed ? 'collapsed' : ''}`}
+        aria-label="Shelter Design Inspector"
+      >
+        {/* ── 1. Inspector Header & Tab Bar ──────────────────────────────── */}
+        <div className="inspector-header">
+          <div className="inspector-title-row">
+            <h3 className="inspector-heading">Shelter Inspector</h3>
+            <button
+              className="inspector-collapse-btn"
+              onClick={onToggleCollapse}
+              title="Collapse inspector"
+              aria-label="Collapse inspector panel"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
 
         {/* Tab Pills */}
         <div className="inspector-tabs" role="tablist">
@@ -608,5 +629,6 @@ export default function InspectorPanel({
         </button>
       </div>
     </aside>
+  </>
   );
 }
