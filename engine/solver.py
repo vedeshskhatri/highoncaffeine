@@ -12,7 +12,8 @@ Surface film resistances cited from ISO 6946:
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 
-from engine.constants import DT_INTERNAL_S
+from engine.constants import DT_INTERNAL_S, FO_TARGET
+from engine.discretise import build_nodes, DiscretisedSurface
 from engine.types import Design, Layer, NodeArray, Opening
 
 
@@ -28,25 +29,14 @@ class SolverDivergedError(ThermaError):
     pass
 
 
-# --- ISO 6946 Surface Film Resistances [m^2*K/W] ---
-R_SI: float = 0.13  # ISO 6946 Table 1: Internal surface film resistance
-R_SE: float = 0.04  # ISO 6946 Table 1: External surface film resistance
-
 # Standard air volumetric heat capacity [J/(m^3*K)] at sea level: rho=1.204 kg/m^3, Cp=1005 J/(kg*K)
 C_AIR_VOLUMETRIC: float = 1210.0
 
 
 def _extract_hourly_temperatures_k(weather: Any) -> np.ndarray:
-    """Extract hourly outdoor temperature series in KELVIN from weather input.
-
-    Accepts:
-    - Sequence of floats (assumed Celsius, converted to Kelvin)
-    - Dict with 't_air' or 'hourly' list
-    - Object with 't_air' attribute
-    """
+    """Extract hourly outdoor temperature series in KELVIN from weather input."""
     if isinstance(weather, (list, tuple, np.ndarray)):
         if len(weather) > 0 and isinstance(weather[0], dict):
-            # list of dicts [{'t_air': -20.0}, ...]
             temps_c = [item.get("t_air", item.get("t_out", 0.0)) for item in weather]
         else:
             temps_c = list(weather)
@@ -62,9 +52,7 @@ def _extract_hourly_temperatures_k(weather: Any) -> np.ndarray:
     else:
         raise TypeError(f"Unsupported weather format: {type(weather)}")
 
-    # Convert Celsius to Kelvin
-    temps_k = np.array(temps_c, dtype=np.float64) + 273.15
-    return temps_k
+    return np.array(temps_c, dtype=np.float64) + 273.15
 
 
 def run_single(
@@ -75,19 +63,18 @@ def run_single(
 ) -> Dict[str, Any]:
     """Simulate thermal response for a single shelter design over weather time series.
 
-    Phase V1: Single node per surface. Conduction only.
-    No solar radiation, no infiltration, no sky radiation, no multi-day spin-up.
+    Phase V2: Multi-layer discretisation with Fourier sizing.
+    Conduction only (no solar, no infiltration, no sky radiation, no multi-day spinup).
 
     Args:
         design: Shelter design specification
         weather: Hourly weather dataset or temperature list [Celsius]
-        opts: Optional simulation controls (e.g. timestep_s, initial_temp_c)
-        materials_db: Optional materials lookup module or dict. If None,
-            imports `engine.materials` (Aman's module). If `engine.materials`
-            does not exist, lets ImportError surface per Rule R1.
+        opts: Optional simulation controls (timestep_s, initial_temp_c)
+        materials_db: Materials lookup provider or dict. If None, imports
+            engine.materials and surfaces ImportError if missing (Rule R1).
 
     Returns:
-        Dictionary containing hourly series:
+        Dictionary containing hourly simulation series:
             - 'hour': int
             - 't_out_c': float
             - 't_in_c': float
@@ -97,7 +84,6 @@ def run_single(
         ImportError: If materials_db is not provided and engine.materials is missing
         SolverDivergedError: If numerical divergence or non-physical temperature occurs
     """
-    # Rule R1 / Phase V1 requirement: Resolve materials from engine.materials
     if materials_db is None:
         try:
             from engine import materials as mats
@@ -110,6 +96,7 @@ def run_single(
 
     opts = opts or {}
     dt: float = float(opts.get("timestep_s", DT_INTERNAL_S))
+    fo_target: float = float(opts.get("fo_target", FO_TARGET))
 
     # Parse hourly outdoor temperatures in Kelvin
     t_out_hourly_k = _extract_hourly_temperatures_k(weather)
@@ -117,111 +104,48 @@ def run_single(
     if n_hours == 0:
         raise ValueError("Weather time series cannot be empty")
 
-    # Geometry & Dimensions
-    length_m = design.length_m
-    width_m = design.width_m
-    height_m = design.height_m
-    volume_m3 = length_m * width_m * height_m
-
-    # Indoor air capacitance [J/K]
+    # Geometry & Air Capacitance
+    volume_m3 = design.length_m * design.width_m * design.height_m
     c_air = C_AIR_VOLUMETRIC * volume_m3
 
-    # Define 6 surfaces: North, East, South, West, Roof, Floor
-    # Orientation: length along East-West, width along North-South
-    surface_defs = [
-        ("north_wall", design.walls, length_m * height_m),
-        ("south_wall", design.walls, length_m * height_m),
-        ("east_wall", design.walls, width_m * height_m),
-        ("west_wall", design.walls, width_m * height_m),
-        ("roof", design.roof, length_m * width_m),
-        ("floor", design.floor, length_m * width_m),
-    ]
+    # Discretise envelope surfaces into multi-node RC networks
+    surfaces_dict = build_nodes(
+        design=design,
+        materials_db=materials_db,
+        dt_s=dt,
+        fo_target=fo_target,
+    )
+    active_surfaces: List[DiscretisedSurface] = [s for s in surfaces_dict.values() if len(s.nodes) > 0]
 
-    # Deduct glazed openings area from corresponding wall surfaces
-    surface_areas: Dict[str, float] = {}
-    for name, _, gross_area in surface_defs:
-        surface_areas[name] = gross_area
-
-    glazing_conductances: List[Tuple[float, float]] = []  # (U_value, area_m2)
+    # Process glazed openings (pure resistance, zero capacitance - Rule T-2)
+    # Night shutter: U_effective = 1 / (1/U_glass + R_shutter)
+    glazing_list: List[Tuple[float, float, bool, float]] = []  # (u_val, area_m2, has_shutter, r_shutter)
     for op in design.openings:
-        facing_wall = f"{op.facing}_wall" if not op.facing.endswith("wall") and op.facing != "roof" else op.facing
-        if facing_wall in surface_areas:
-            surface_areas[facing_wall] = max(0.0, surface_areas[facing_wall] - op.area_m2)
-
-        # Lookup glazing U-value from materials
         if hasattr(materials_db, "get"):
             mat_prop = materials_db.get(op.glazing_id)
             u_val = getattr(mat_prop, "u_value", 2.8)
+            r_shutter = getattr(mat_prop, "r_shutter", 0.5)
         elif isinstance(materials_db, dict):
             mat_prop = materials_db[op.glazing_id]
-            u_val = mat_prop.u_value if hasattr(mat_prop, "u_value") else mat_prop["u_value"]
+            u_val = mat_prop.u_value if hasattr(mat_prop, "u_value") else mat_prop.get("u_value", 2.8)
+            r_shutter = getattr(mat_prop, "r_shutter", 0.5) if hasattr(mat_prop, "r_shutter") else mat_prop.get("r_shutter", 0.5)
         else:
             raise TypeError("Unsupported materials_db type")
-        glazing_conductances.append((u_val, op.area_m2))
 
-    # Precalculate properties for each surface (Single-node representation)
-    # Surface node sits in the center of the thermal resistance
-    surface_nodes = []
-    for name, layers, area_m2 in surface_defs:
-        net_area = surface_areas[name]
-        if net_area <= 0.0 or len(layers) == 0:
-            continue
-
-        # Aggregate layer resistance and capacitance
-        # For single-node: sum layer resistances and capacities
-        total_r_material = 0.0
-        total_c = 0.0
-        for lay in layers:
-            if hasattr(materials_db, "get"):
-                m = materials_db.get(lay.material_id)
-                k = getattr(m, "k")
-                rho = getattr(m, "rho")
-                cp = getattr(m, "cp")
-            elif isinstance(materials_db, dict):
-                m = materials_db[lay.material_id]
-                k = m.k if hasattr(m, "k") else m["k"]
-                rho = m.rho if hasattr(m, "rho") else m["rho"]
-                cp = m.cp if hasattr(m, "cp") else m["cp"]
-            else:
-                raise TypeError("Unsupported materials_db type")
-
-            d = lay.thickness_m
-            total_r_material += d / (k * net_area)
-            total_c += rho * cp * d * net_area
-
-        # Conductance from indoor air to surface center node:
-        # R_in = R_si / net_area + (total_r_material / 2)
-        r_in = (R_SI / net_area) + (total_r_material / 2.0)
-        k_in = 1.0 / r_in  # [W/K]
-
-        # Conductance from surface center node to outdoor air:
-        # R_out = R_se / net_area + (total_r_material / 2)
-        r_out = (R_SE / net_area) + (total_r_material / 2.0)
-        k_out = 1.0 / r_out  # [W/K]
-
-        surface_nodes.append({
-            "name": name,
-            "C": total_c,
-            "K_in": k_in,
-            "K_out": k_out,
-            "material": layers[0].material_id,
-            "thickness_m": sum(l.thickness_m for l in layers),
-        })
-
-    # Direct glazing conductance (pure resistance, zero capacitance, Rule T-2)
-    k_glazing_total = sum(u_val * a for u_val, a in glazing_conductances)
+        glazing_list.append((u_val, op.area_m2, op.night_shutter, r_shutter))
 
     # Initial temperatures in Kelvin
-    # If initial_temp_c provided, use it; otherwise start at initial outdoor temperature
     if "initial_temp_c" in opts:
         t_in = float(opts["initial_temp_c"]) + 273.15
     else:
         t_in = t_out_hourly_k[0]
 
-    # Initialize all surface nodes to t_in
-    t_surfaces = np.full(len(surface_nodes), t_in, dtype=np.float64)
+    # Initialize node temperatures for each surface
+    # surface_node_temps[s_idx] is a numpy array of node temperatures for surface s
+    surface_node_temps: List[np.ndarray] = [
+        np.full(len(s.nodes), t_in, dtype=np.float64) for s in active_surfaces
+    ]
 
-    # Output storage
     hourly_results = []
     substeps_per_hour = int(round(3600.0 / dt))
 
@@ -230,53 +154,80 @@ def run_single(
     for hour_idx in range(n_hours):
         t_out = t_out_hourly_k[hour_idx]
 
+        # Night shutter status: closed during nighttime (approx. 18:00 to 06:00, or night flag)
+        is_night = (hour_idx < 6 or hour_idx >= 18)
+        k_glazing_hour = 0.0
+        for u_val, area, has_shutter, r_shutter in glazing_list:
+            if has_shutter and is_night and r_shutter > 0.0:
+                u_eff = 1.0 / ((1.0 / u_val) + r_shutter)
+            else:
+                u_eff = u_val
+            k_glazing_hour += u_eff * area
+
         for _ in range(substeps_per_hour):
             global_step += 1
 
-            # Divergence check on indoor temperature
             if np.isnan(t_in) or np.isinf(t_in) or t_in < 50.0 or t_in > 500.0:
                 raise SolverDivergedError(
                     f"Indoor air node diverged at step {global_step} (T={t_in:.1f}K). "
                     f"Check timestep vs fastest time constant."
                 )
 
-            # 1. Update each surface node
-            # Q entering surface node from inside: K_in * (t_in - t_s)
-            # Q entering surface node from outside: K_out * (t_out - t_s)
-            dt_surfaces = np.zeros_like(t_surfaces)
-            q_from_surfaces_to_air = 0.0
+            total_q_surfaces_to_air = 0.0
 
-            for i, sn in enumerate(surface_nodes):
-                t_s = t_surfaces[i]
+            # Update each multi-node surface
+            for s_idx, surf in enumerate(active_surfaces):
+                t_nodes = surface_node_temps[s_idx]
+                n_nodes = len(t_nodes)
+                c_nodes = [node.C for node in surf.nodes]
+                dt_nodes = np.zeros(n_nodes, dtype=np.float64)
 
-                # Divergence check on surface node
-                if np.isnan(t_s) or np.isinf(t_s) or t_s < 50.0 or t_s > 500.0:
-                    dx = sn["thickness_m"]
+                # Node 0 (outermost): connected to outdoor air via K_ext
+                # and to Node 1 via K_inter[0] (if n_nodes > 1)
+                q_from_ext = surf.K_ext * (t_out - t_nodes[0])
+                if n_nodes == 1:
+                    # Single-node surface: connected to outside and inside
+                    q_from_int = surf.K_int * (t_in - t_nodes[0])
+                    dt_nodes[0] = (q_from_ext + q_from_int) / c_nodes[0]
+                    total_q_surfaces_to_air += surf.K_int * (t_nodes[0] - t_in)
+                else:
+                    q_to_next = surf.K_inter[0] * (t_nodes[1] - t_nodes[0])
+                    dt_nodes[0] = (q_from_ext + q_to_next) / c_nodes[0]
+
+                    # Internal nodes: 1 to n_nodes - 2
+                    for j in range(1, n_nodes - 1):
+                        q_from_prev = surf.K_inter[j - 1] * (t_nodes[j - 1] - t_nodes[j])
+                        q_to_next = surf.K_inter[j] * (t_nodes[j + 1] - t_nodes[j])
+                        dt_nodes[j] = (q_from_prev + q_to_next) / c_nodes[j]
+
+                    # Innermost node (n_nodes - 1): connected to previous and indoor air via K_int
+                    last_idx = n_nodes - 1
+                    q_from_prev = surf.K_inter[last_idx - 1] * (t_nodes[last_idx - 1] - t_nodes[last_idx])
+                    q_from_in = surf.K_int * (t_in - t_nodes[last_idx])
+                    dt_nodes[last_idx] = (q_from_prev + q_from_in) / c_nodes[last_idx]
+
+                    # Heat flow entering indoor air from surface innermost node
+                    total_q_surfaces_to_air += surf.K_int * (t_nodes[last_idx] - t_in)
+
+                # Advance surface nodes
+                t_nodes += dt * dt_nodes
+
+                # Check divergence on surface nodes
+                if np.isnan(t_nodes[0]) or np.isinf(t_nodes[0]) or t_nodes[0] < 50.0 or t_nodes[0] > 500.0:
+                    node_obj = surf.nodes[0]
                     raise SolverDivergedError(
-                        f"Node {i} ({sn['name']}) diverged at step {global_step} (T={t_s:.1f}K). "
-                        f"dx={dx:.4f}m, material={sn['material']}. "
-                        f"Check timestep vs fastest time constant."
+                        f"Surface '{surf.name}' node 0 diverged at step {global_step} (T={t_nodes[0]:.1f}K). "
+                        f"dx={node_obj.dx_m:.4f}m, material={node_obj.material_id}."
                     )
 
-                q_in_to_s = sn["K_in"] * (t_in - t_s)
-                q_out_to_s = sn["K_out"] * (t_out - t_s)
+            # Glazing heat flow entering air (pure resistance, zero capacitance)
+            q_glazing_to_air = k_glazing_hour * (t_out - t_in)
 
-                dt_surfaces[i] = (q_in_to_s + q_out_to_s) / sn["C"]
-                # Heat entering air from surface s:
-                q_from_surfaces_to_air += sn["K_in"] * (t_s - t_in)
-
-            # 2. Glazing heat transfer (zero capacitance): Q entering air from glazing:
-            q_from_glazing_to_air = k_glazing_total * (t_out - t_in)
-
-            # 3. Indoor air temperature derivative:
-            # C_air * dT_in/dt = sum(K_in * (T_s - T_in)) + K_glazing * (T_out - T_in)
-            dt_in = (q_from_surfaces_to_air + q_from_glazing_to_air) / c_air
-
-            # Explicit forward Euler update
-            t_surfaces += dt * dt_surfaces
+            # Air node update
+            dt_in = (total_q_surfaces_to_air + q_glazing_to_air) / c_air
             t_in += dt * dt_in
 
-        # Hourly recording (convert back to Celsius at boundary)
+        # Hourly output recording
         t_out_c = float(t_out - 273.15)
         t_in_c = float(t_in - 273.15)
         hourly_results.append({
@@ -290,6 +241,7 @@ def run_single(
         "series": hourly_results,
         "t_in_c": [r["t_in_c"] for r in hourly_results],
         "t_out_c": [r["t_out_c"] for r in hourly_results],
+        "node_counts": {s.name: len(s.nodes) for s in active_surfaces},
     }
 
 
