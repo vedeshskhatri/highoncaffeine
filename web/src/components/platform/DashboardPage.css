@@ -403,13 +403,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: auto;
 }
 
 .status-badge-wrapper {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
-  flex-wrap: nowrap;
 }
 
 .status-pill {
