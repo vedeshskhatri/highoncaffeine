@@ -1,18 +1,27 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { Moon, ShieldCheck, AlertTriangle, Droplet } from 'lucide-react';
 
 /**
- * MetricCards.jsx — Four headline thermal and logistics metrics per brain/08_UI_SPEC.md.
- * Numbers rendered in JetBrains Mono (--font-mono), labels in caption.
- * Zero hardcoded colors — resolved strictly through tokens.
+ * MetricCards.jsx — Four headline thermal and logistics metrics.
+ * Redesigned with glassmorphic cards, subtle status badges, and Framer Motion hover effects.
  */
 export default function MetricCards({ summary }) {
   if (!summary) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-3)' }}>
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-surface-1 border border-border rounded-md p-3">
-            <div className="text-caption text-text-muted uppercase tracking-wider mb-1">—</div>
-            <div className="font-mono text-metric text-text-muted">—</div>
+          <div
+            key={i}
+            style={{
+              background: 'var(--surface-1)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-3)',
+              minHeight: 96,
+            }}
+          >
+            <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: 11 }}>—</div>
           </div>
         ))}
       </div>
@@ -54,79 +63,132 @@ export default function MetricCards({ summary }) {
 
   const isBelowSafe = typeof t_in_min_c === 'number' && t_in_min_c < 18.0;
 
+  const cards = [
+    {
+      id: 'dawn-min',
+      label: 'Overnight Min (Dawn)',
+      meta: hourFormatted,
+      value: minTempFormatted,
+      sub: isBelowSafe ? 'Below 18 °C threshold' : 'Maintains safe temperature',
+      icon: Moon,
+      color: isBelowSafe ? 'var(--danger)' : 'var(--text-primary)',
+      accentBorder: isBelowSafe ? '1.5px solid var(--danger)' : '1px solid var(--border)',
+    },
+    {
+      id: 'comfort-band',
+      label: 'Comfort Hours',
+      meta: 'IMAC Band',
+      value: comfortPctFormatted,
+      sub: 'Diurnal hours in thermal comfort',
+      icon: ShieldCheck,
+      color: 'var(--comfort)',
+      accentBorder: '1px solid var(--border)',
+    },
+    {
+      id: 'health-risk',
+      label: 'Cold Exposure Risk',
+      meta: 'WHO < 18°C',
+      value: healthHoursFormatted,
+      sub: 'Hours below health guidance',
+      icon: AlertTriangle,
+      color: hours_below_health_threshold > 0 ? 'var(--danger)' : 'var(--comfort)',
+      accentBorder: '1px solid var(--border)',
+    },
+    {
+      id: 'kerosene-saved',
+      label: 'Kerosene Avoided',
+      meta: 'Annual',
+      value: keroseneAvoidedFormatted,
+      sub: 'Displaced combustion fuel/year',
+      icon: Droplet,
+      color: 'var(--accent)',
+      accentBorder: '1px solid var(--border)',
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-      {/* 1. Dawn Minimum */}
-      <div
-        className="bg-surface-1 border rounded-md p-3 flex flex-col justify-between"
-        style={{ borderColor: isBelowSafe ? 'var(--danger)' : 'var(--border)' }}
-      >
-        <div className="flex items-center justify-between mb-1">
-          <span className="font-body text-caption text-text-secondary uppercase tracking-wider">
-            Overnight Min (Dawn)
-          </span>
-          <span className="font-mono text-caption text-text-muted">{hourFormatted}</span>
-        </div>
-        <div
-          className="font-mono text-metric font-medium mb-1"
-          style={{ color: isBelowSafe ? 'var(--danger)' : 'var(--text-primary)' }}
-        >
-          {minTempFormatted}
-        </div>
-        <div className="font-body text-caption text-text-muted">
-          {isBelowSafe ? 'Below 18 °C threshold' : 'Maintains safe temperature'}
-        </div>
-      </div>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: 'var(--space-3)',
+        width: '100%',
+      }}
+    >
+      {cards.map((c) => {
+        const Icon = c.icon;
+        return (
+          <motion.div
+            key={c.id}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              background: 'var(--surface-1)',
+              border: c.accentBorder,
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-3)',
+              boxShadow: 'var(--shadow-sm)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 104,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon size={14} color="var(--text-muted)" />
+                <span
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: 'var(--text-secondary)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {c.label}
+                </span>
+              </div>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  color: 'var(--text-muted)',
+                  background: 'var(--surface-2)',
+                  padding: '1px 6px',
+                  borderRadius: 4,
+                }}
+              >
+                {c.meta}
+              </span>
+            </div>
 
-      {/* 2. Comfort Band Hours */}
-      <div className="bg-surface-1 border border-border rounded-md p-3 flex flex-col justify-between">
-        <div className="font-body text-caption text-text-secondary uppercase tracking-wider mb-1">
-          Comfort Hours
-        </div>
-        <div
-          className="font-mono text-metric font-medium mb-1"
-          style={{ color: 'var(--comfort)' }}
-        >
-          {comfortPctFormatted}
-        </div>
-        <div className="font-body text-caption text-text-muted">
-          Inside IMAC adaptive band
-        </div>
-      </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 24,
+                fontWeight: 600,
+                color: c.color,
+                lineHeight: 1.1,
+                marginBottom: 4,
+              }}
+            >
+              {c.value}
+            </div>
 
-      {/* 3. Hours below Health Threshold */}
-      <div className="bg-surface-1 border border-border rounded-md p-3 flex flex-col justify-between">
-        <div className="font-body text-caption text-text-secondary uppercase tracking-wider mb-1">
-          Cold Exposure Risk
-        </div>
-        <div
-          className="font-mono text-metric font-medium mb-1"
-          style={{
-            color: hours_below_health_threshold > 0 ? 'var(--danger)' : 'var(--comfort)',
-          }}
-        >
-          {healthHoursFormatted}
-        </div>
-        <div className="font-body text-caption text-text-muted">
-          Hours &lt; 18.0 °C (WHO guidance)
-        </div>
-      </div>
-
-      {/* 4. Kerosene Fuel Avoided */}
-      <div className="bg-surface-1 border border-border rounded-md p-3 flex flex-col justify-between">
-        <div className="font-body text-caption text-text-secondary uppercase tracking-wider mb-1">
-          Kerosene Saved
-        </div>
-        <div
-          className="font-mono text-metric font-medium mb-1"
-          style={{ color: 'var(--solar)' }}
-        >
-          {keroseneAvoidedFormatted}
-        </div>
-        <div className="font-body text-caption text-text-muted">
-          Per post per year heating saving
-        </div>
-      </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 11,
+                color: 'var(--text-muted)',
+              }}
+            >
+              {c.sub}
+            </div>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }
