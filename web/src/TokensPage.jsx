@@ -5,25 +5,25 @@ import './TokensPage.css';
  * 'meaning' is only for semantic colours — the four colours with hard rules.
  */
 const SURFACE_COLOURS = [
-  { token: '--bg-base',       value: '#0E0F11', label: 'bg-base' },
-  { token: '--surface-1',     value: '#16181B', label: 'surface-1' },
-  { token: '--surface-2',     value: '#1E2125', label: 'surface-2' },
-  { token: '--border',        value: '#2A2E33', label: 'border' },
-  { token: '--border-strong', value: '#3A3F46', label: 'border-strong' },
+  { token: '--bg-base',       value: '#FFF9EB', label: 'bg-base (Vanilla Custard)' },
+  { token: '--surface-1',     value: '#FFFFFF', label: 'surface-1 (Card base)' },
+  { token: '--surface-2',     value: '#F7EED9', label: 'surface-2 (Custard tint)' },
+  { token: '--border',        value: '#E5D5BC', label: 'border (Warm hairline)' },
+  { token: '--border-strong', value: '#C4AD8E', label: 'border-strong (Contrast)' },
 ];
 
 const TEXT_COLOURS = [
-  { token: '--text-primary',   value: '#ECEDEE', label: 'text-primary' },
-  { token: '--text-secondary', value: '#A0A6AD', label: 'text-secondary' },
-  { token: '--text-muted',     value: '#6B7178', label: 'text-muted' },
+  { token: '--text-primary',   value: '#200F07', label: 'text-primary (Midnight Espresso)' },
+  { token: '--text-secondary', value: '#5C3E28', label: 'text-secondary' },
+  { token: '--text-muted',     value: '#8E7563', label: 'text-muted' },
 ];
 
 const SEMANTIC_COLOURS = [
-  { token: '--accent',   value: '#4C9EE8', label: 'accent',   meaning: 'Interactive only: buttons, active step, links' },
-  { token: '--solar',    value: '#E8A33D', label: 'solar',    meaning: 'Solar gain, daytime, warm surfaces' },
-  { token: '--danger',   value: '#E05C5C', label: 'danger',   meaning: 'ONLY: below health threshold (18 °C)' },
-  { token: '--comfort',  value: '#3FA87A', label: 'comfort',  meaning: 'ONLY: inside comfort band' },
-  { token: '--estimate', value: '#8B7A55', label: 'estimate', meaning: 'ONLY: the [estimate] tag on unsourced cost figures' },
+  { token: '--accent',   value: '#F77331', label: 'accent (Vivid Orange)',   meaning: 'Interactive only: buttons, active step, links' },
+  { token: '--solar',    value: '#F77331', label: 'solar (Vivid Orange)',    meaning: 'Solar gain, daytime, warm surfaces' },
+  { token: '--danger',   value: '#D63939', label: 'danger',                  meaning: 'ONLY: below health threshold (18 °C)' },
+  { token: '--comfort',  value: '#238551', label: 'comfort',                 meaning: 'ONLY: inside comfort band' },
+  { token: '--estimate', value: '#9E742A', label: 'estimate',                meaning: 'ONLY: the [estimate] tag on unsourced cost figures' },
 ];
 
 /* ── Type scale ─────────────────────────────────────────────────────────── */
@@ -49,6 +49,16 @@ const TYPE_SCALE = [
     details: '20px · Montserrat 600 · -0.01em',
   },
   {
+    token: '--text-subhead',
+    sample: 'Subhead — 17px / 1.35 / 600',
+    family: 'var(--font-heading)',
+    size: 'var(--text-subhead-size)',
+    lh: 'var(--text-subhead-lh)',
+    weight: 'var(--text-subhead-weight)',
+    spacing: 'normal',
+    details: '17px · Montserrat 600',
+  },
+  {
     token: '--text-body',
     sample: 'Body — 15px / 1.5 / 400 — The thermal mass of a wall delays and attenuates the temperature wave.',
     family: 'var(--font-body)',
@@ -56,7 +66,7 @@ const TYPE_SCALE = [
     lh: 'var(--text-body-lh)',
     weight: 'var(--text-body-weight)',
     spacing: 'normal',
-    details: '15px · DM Sans 400',
+    details: '15px · Google Sans 400',
   },
   {
     token: '--text-label',
@@ -66,7 +76,7 @@ const TYPE_SCALE = [
     lh: 'var(--text-label-lh)',
     weight: 'var(--text-label-weight)',
     spacing: 'normal',
-    details: '13px · DM Sans 500',
+    details: '13px · Google Sans 500',
   },
   {
     token: '--text-caption',
@@ -76,7 +86,7 @@ const TYPE_SCALE = [
     lh: 'var(--text-caption-lh)',
     weight: 'var(--text-caption-weight)',
     spacing: 'normal',
-    details: '12px · DM Sans 400',
+    details: '12px · Google Sans 400',
   },
   {
     token: '--text-metric',

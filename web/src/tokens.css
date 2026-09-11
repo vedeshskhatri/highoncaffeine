@@ -1,19 +1,11 @@
 /*
  * tokens.css — THERMA design tokens
- * Owner: Swapnil (Rule R4 — only this file sets colour/type/spacing values)
- *
- * PALETTE IS PROVISIONAL (Decision D14).
- * No component ever hardcodes a colour value.
- * When the team palette arrives, replace values in this file ONLY.
- * Every component resolves colour through these variables — the swap is one file.
- *
- * SWAP TARGET (Decision D13):
- * --font-body is DM Sans, the closest open geometric-humanist to Google Sans.
- * Google Sans is not publicly licensed for web use.
- * To swap: change the value of --font-body here. Nothing else changes.
+ * Theme: Light — Vanilla Custard (#FFF9EB), Vivid Orange (#F77331) & Midnight Espresso (#200F07)
+ * Typography: Montserrat (Headings) + Google Sans (Body copy) + JetBrains Mono (Telemetry)
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.cdnfonts.com/css/google-sans');
 
 :root {
   /* ─────────────────────────────────────────
@@ -22,17 +14,10 @@
 
   /* Font families */
   --font-heading: 'Montserrat', system-ui, sans-serif;
-  --font-body:    'DM Sans', system-ui, sans-serif;   /* swap target for Google Sans */
+  --font-body:    'Google Sans', 'DM Sans', system-ui, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
 
   /* Type scale — five sizes, no more */
-  /* --text-display  28px / 1.2  weight-600  -0.02em   Montserrat */
-  /* --text-title    20px / 1.3  weight-600  -0.01em   Montserrat */
-  /* --text-body     15px / 1.5  weight-400             DM Sans   */
-  /* --text-label    13px / 1.4  weight-500             DM Sans   */
-  /* --text-caption  12px / 1.4  weight-400             DM Sans   */
-  /* --text-metric   24px / 1.1  weight-500             JetBrains Mono */
-
   --text-display-size:    28px;
   --text-display-lh:      1.2;
   --text-display-weight:  600;
@@ -64,30 +49,27 @@
   --text-metric-weight: 500;
 
   /* ─────────────────────────────────────────
-     COLOUR — PROVISIONAL (Decision D14)
-     Semantic discipline is a hard rule:
-     each colour has exactly ONE meaning.
-     That discipline must survive any palette swap.
+     COLOUR — Light Theme (Vanilla Custard, Vivid Orange & Midnight Espresso)
      ───────────────────────────────────────── */
 
-  /* Surfaces — dark-first */
-  --bg-base:       #0E0F11;
-  --surface-1:     #16181B;
-  --surface-2:     #1E2125;
-  --border:        #2A2E33;
-  --border-strong: #3A3F46;
+  /* Surfaces — Light Theme */
+  --bg-base:       #FFF9EB;   /* Vanilla Custard foundation */
+  --surface-1:     #FFFFFF;   /* Crisp clean card surfaces */
+  --surface-2:     #F7EED9;   /* Warm custard-tinted panels, inputs, hover states */
+  --border:        #E5D5BC;   /* Warm soft hairline border */
+  --border-strong: #C4AD8E;   /* Defined contrast borders */
 
-  /* Text */
-  --text-primary:   #ECEDEE;
-  --text-secondary: #A0A6AD;
-  --text-muted:     #6B7178;
+  /* Text — Midnight Espresso foundation */
+  --text-primary:   #200F07;   /* Midnight Espresso — ultra sharp & authoritative */
+  --text-secondary: #5C3E28;   /* Warm medium espresso */
+  --text-muted:     #8E7563;   /* Warm muted espresso */
 
-  /* Semantic — each colour has EXACTLY ONE meaning (hard rule) */
-  --accent:   #4C9EE8;   /* ONLY: interactive — buttons, active step, links */
-  --solar:    #E8A33D;   /* ONLY: solar gain, daytime, warm surfaces */
-  --danger:   #E05C5C;   /* ONLY: below health threshold (18 °C) */
-  --comfort:  #3FA87A;   /* ONLY: inside comfort band */
-  --estimate: #8B7A55;   /* ONLY: the [estimate] tag on unsourced cost figures */
+  /* Semantic — Vivid Orange hero accent */
+  --accent:   #F77331;   /* Vivid Orange — interactive buttons, active step, key highlights */
+  --solar:    #F77331;   /* Vivid Orange — solar gain, daytime, warm surfaces */
+  --danger:   #D63939;   /* High-visibility crimson — below health threshold (18 °C) */
+  --comfort:  #238551;   /* Forest emerald — inside comfort band */
+  --estimate: #9E742A;   /* Rich warm gold — the [estimate] tag on unsourced cost figures */
 
   /* ─────────────────────────────────────────
      SPACING — four values, nothing else
