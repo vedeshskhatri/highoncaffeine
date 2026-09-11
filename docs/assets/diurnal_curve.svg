@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 480" width="100%" height="100%">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="comfortBand" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4A7C59" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#4A7C59" stop-opacity="0.10"/>
+    </linearGradient>
+    <linearGradient id="dangerBand" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2E6F8E" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#2E6F8E" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="sunGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F97316" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#F97316" stop-opacity="0.00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="950" height="480" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+
+  <!-- Title & Subtitle -->
+  <text x="40" y="38" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#0F172A">
+    Diurnal Temperature Profile: Standard Prefab vs. THERMA Optimized Shelter
+  </text>
+  <text x="40" y="56" font-family="-apple-system, sans-serif" font-size="12" fill="#64748B">
+    Design Winter Night in Leh (Altitude: 3,500 m) · Extreme Night Radiative Freeze (-22.0 °C Outdoor Ambient)
+  </text>
+
+  <!-- Chart Dimensions: Left=80, Right=890 (Width=810), Top=90, Bottom=410 (Height=320) -->
+  <!-- Temp Scale: +25°C at Y=100, -25°C at Y=400 (50°C span = 300px => 6px per °C, 0°C at Y=250) -->
+  <!-- Formula: Y(T) = 250 - (T * 6) -->
+
+  <!-- Shaded Comfort Band (+18°C to +22°C): Y(+22)=118, Y(+18)=142 -->
+  <rect x="80" y="118" width="810" height="24" fill="url(#comfortBand)"/>
+  <text x="895" y="134" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#059669">
+    Comfort Band (18–22 °C)
+  </text>
+
+  <!-- Shaded Sub-Zero Danger Zone (0°C to -25°C): Y(0)=250 to Y(-25)=400 -->
+  <rect x="80" y="250" width="810" height="150" fill="url(#dangerBand)"/>
+  <text x="895" y="325" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#2E6F8E">
+    Sub-Zero Freeze Zone
+  </text>
+
+  <!-- Horizontal Grid Lines -->
+  <!-- +20°C: Y=130 -->
+  <line x1="80" y1="130" x2="890" y2="130" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="70" y="134" text-anchor="end" font-family="monospace" font-size="11" fill="#64748B">+20°C</text>
+
+  <!-- +18°C WHO Health Threshold: Y=142 -->
+  <line x1="80" y1="142" x2="890" y2="142" stroke="#059669" stroke-width="1.75" stroke-dasharray="5,5"/>
+  <text x="70" y="146" text-anchor="end" font-family="monospace" font-size="11" font-weight="700" fill="#059669">+18°C</text>
+
+  <!-- +10°C: Y=190 -->
+  <line x1="80" y1="190" x2="890" y2="190" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="70" y="194" text-anchor="end" font-family="monospace" font-size="11" fill="#94A3B8">+10°C</text>
+
+  <!-- 0°C Freezing Line: Y=250 -->
+  <line x1="80" y1="250" x2="890" y2="250" stroke="#475569" stroke-width="1.5"/>
+  <text x="70" y="254" text-anchor="end" font-family="monospace" font-size="11" font-weight="700" fill="#475569">0°C</text>
+
+  <!-- -10°C: Y=310 -->
+  <line x1="80" y1="310" x2="890" y2="310" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="70" y="314" text-anchor="end" font-family="monospace" font-size="11" fill="#94A3B8">-10°C</text>
+
+  <!-- -20°C: Y=370 -->
+  <line x1="80" y1="370" x2="890" y2="370" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="70" y="374" text-anchor="end" font-family="monospace" font-size="11" fill="#64748B">-20°C</text>
+
+  <!-- Vertical Hour Grid Lines & Labels (Hour 0 to 23, step = 810 / 23 ≈ 35.21px) -->
+  <!-- Hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00, 23:00 -->
+  <g font-family="monospace" font-size="10" fill="#64748B" text-anchor="middle">
+    <!-- H0 -->
+    <line x1="80" y1="90" x2="80" y2="400" stroke="#E2E8F0" stroke-dasharray="2,2"/>
+    <text x="80" y="420">00:00</text>
+    <!-- H4 -->
+    <line x1="221" y1="90" x2="221" y2="400" stroke="#E2E8F0" stroke-dasharray="2,2"/>
+    <text x="221" y="420">04:00</text>
+    <!-- H8 -->
+    <line x1="362" y1="90" x2="362" y2="400" stroke="#E2E8F0" stroke-dasharray="2,2"/>
+    <text x="362" y="420">08:00</text>
+    <!-- H12 Solar Noon -->
+    <line x1="502" y1="90" x2="502" y2="400" stroke="#FDBA74" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <text x="502" y="420" font-weight="700" fill="#EA580C">12:00 (Noon)</text>
+    <!-- H16 -->
+    <line x1="643" y1="90" x2="643" y2="400" stroke="#E2E8F0" stroke-dasharray="2,2"/>
+    <text x="643" y="420">16:00</text>
+    <!-- H20 -->
+    <line x1="784" y1="90" x2="784" y2="400" stroke="#E2E8F0" stroke-dasharray="2,2"/>
+    <text x="784" y="420">20:00</text>
+    <!-- H23 -->
+    <line x1="890" y1="90" x2="890" y2="400" stroke="#E2E8F0" stroke-dasharray="2,2"/>
+    <text x="890" y="420">23:00</text>
+  </g>
+
+  <!-- Daylight Solar Insolation Shading (07:00 to 17:00) -->
+  <rect x="326" y="90" width="352" height="310" fill="url(#sunGlow)"/>
+
+  <!-- ========================================================================= -->
+  <!-- CURVES -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. Outdoor Ambient Curve (Tout) -->
+  <!-- Drops from -18°C at H0 to -22°C at H5, rises to -4°C at H13, plunges back to -18°C at H23 -->
+  <path d="M 80 359 
+           C 150 375, 221 382, 256 382 
+           C 320 375, 400 310, 502 274 
+           C 550 268, 643 310, 713 345 
+           C 800 360, 850 365, 890 368"
+        fill="none" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="5,4"/>
+
+  <!-- 2. Standard Uninsulated Military CGI Prefab Curve -->
+  <!-- Plunges below 0°C at H22, collapses to -18.0°C at H4, rises to +8°C at H13, collapses back to -12°C -->
+  <path d="M 80 320 
+           C 150 345, 221 358, 256 358 
+           C 350 340, 420 230, 537 202 
+           C 620 215, 713 290, 800 325 
+           C 850 335, 875 342, 890 348"
+        fill="none" stroke="#EF4444" stroke-width="3"/>
+
+  <!-- 3. THERMA Optimized Passive Solar Shelter Curve -->
+  <!-- Holds +17.2°C at dawn (H5), peaks at +21.4°C at H14, remains entirely above +16°C all night -->
+  <path d="M 80 148 
+           C 150 148, 221 147, 256 146.8 
+           C 362 145, 450 128, 572 121.6 
+           C 650 125, 750 140, 820 145 
+           C 860 147, 880 148, 890 148"
+        fill="none" stroke="#059669" stroke-width="4"/>
+
+  <!-- Key Annotation Marker Points -->
+  <!-- Dawn Minimum Point on THERMA curve -->
+  <circle cx="256" cy="146.8" r="6" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+  <!-- Dawn Minimum Point on Uninsulated curve -->
+  <circle cx="256" cy="358" r="6" fill="#EF4444" stroke="#FFFFFF" stroke-width="2"/>
+
+  <!-- Callout Boxes -->
+  <!-- Callout 1: Dawn Hold +17.2°C -->
+  <g transform="translate(180, 100)">
+    <rect width="180" height="42" rx="6" fill="#FFFFFF" stroke="#059669" stroke-width="1.5"/>
+    <text x="10" y="18" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#047857">THERMA Optimized Shelter</text>
+    <text x="10" y="33" font-family="monospace" font-size="10" font-weight="700" fill="#065F46">Holds +17.2 °C at Dawn (05:00)</text>
+    <line x1="76" y1="42" x2="76" y2="47" stroke="#059669" stroke-width="1.5"/>
+  </g>
+
+  <!-- Callout 2: Collapse -18.0°C -->
+  <g transform="translate(180, 375)">
+    <rect width="185" height="42" rx="6" fill="#FFFFFF" stroke="#EF4444" stroke-width="1.5"/>
+    <text x="10" y="18" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#B91C1C">Standard Military Prefab</text>
+    <text x="10" y="33" font-family="monospace" font-size="10" font-weight="700" fill="#991B1B">Collapses to -18.0 °C (Acute Risk)</text>
+    <line x1="76" y1="0" x2="76" y2="-17" stroke="#EF4444" stroke-width="1.5"/>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(420, 442)">
+    <rect x="0" y="0" width="16" height="4" fill="#059669"/>
+    <text x="24" y="8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#065F46">THERMA Optimized (+17.2°C Dawn Hold)</text>
+
+    <rect x="290" y="0" width="16" height="4" fill="#EF4444"/>
+    <text x="314" y="8" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#B91C1C">Uninsulated Prefab (-18.0°C Collapse)</text>
+
+    <line x1="560" y1="2" x2="576" y2="2" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <text x="584" y="8" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">Outdoor Ambient (-22.0°C)</text>
+  </g>
+</svg>

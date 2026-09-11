@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 440" width="100%" height="100%">
+  <defs>
+    <linearGradient id="uninsGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="100%" stop-color="#F87171"/>
+    </linearGradient>
+    <linearGradient id="optGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="950" height="440" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+
+  <!-- Header -->
+  <text x="40" y="38" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#0F172A">
+    Component-Level 24-Hour Heat Loss Attribution (kWh/day)
+  </text>
+  <text x="40" y="56" font-family="-apple-system, sans-serif" font-size="12" fill="#64748B">
+    Uninsulated Military Prefab (98.8 kWh/day) vs. THERMA Optimized Passive Shelter (21.6 kWh/day) · -78.1% Total Loss Reduction
+  </text>
+
+  <!-- Scale: Max 40 kWh = 380px => 9.5px per kWh. Origin X=240 -->
+
+  <!-- Categories -->
+
+  <!-- 1. Wall Conduction -->
+  <g transform="translate(0, 90)">
+    <text x="220" y="16" text-anchor="end" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#1E293B">Wall Conduction</text>
+    <text x="220" y="30" text-anchor="end" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">Mass + Ext. Insulation</text>
+
+    <!-- Uninsulated: 38.5 kWh => 365px -->
+    <rect x="240" y="4" width="365" height="16" rx="3" fill="url(#uninsGrad)"/>
+    <text x="615" y="17" font-family="monospace" font-size="11" font-weight="700" fill="#B91C1C">38.5 kWh (39.0%)</text>
+
+    <!-- Optimized: 7.2 kWh => 68px -->
+    <rect x="240" y="24" width="68" height="16" rx="3" fill="url(#optGrad)"/>
+    <text x="318" y="37" font-family="monospace" font-size="11" font-weight="700" fill="#047857">7.2 kWh (-81.3%)</text>
+  </g>
+
+  <!-- 2. Glazing Conduction -->
+  <g transform="translate(0, 155)">
+    <text x="220" y="16" text-anchor="end" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#1E293B">Glazing Night Loss</text>
+    <text x="220" y="30" text-anchor="end" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">Insulating Night Shutter</text>
+
+    <!-- Uninsulated: 24.1 kWh => 229px -->
+    <rect x="240" y="4" width="229" height="16" rx="3" fill="url(#uninsGrad)"/>
+    <text x="479" y="17" font-family="monospace" font-size="11" font-weight="700" fill="#B91C1C">24.1 kWh (24.4%)</text>
+
+    <!-- Optimized: 4.2 kWh => 40px -->
+    <rect x="240" y="24" width="40" height="16" rx="3" fill="url(#optGrad)"/>
+    <text x="290" y="37" font-family="monospace" font-size="11" font-weight="700" fill="#047857">4.2 kWh (-82.6%)</text>
+  </g>
+
+  <!-- 3. Roof Sky Radiation -->
+  <g transform="translate(0, 220)">
+    <text x="220" y="16" text-anchor="end" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#1E293B">Roof Sky Radiation</text>
+    <text x="220" y="30" text-anchor="end" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">Low-Emissivity Coating</text>
+
+    <!-- Uninsulated: 19.4 kWh => 184px -->
+    <rect x="240" y="4" width="184" height="16" rx="3" fill="url(#uninsGrad)"/>
+    <text x="434" y="17" font-family="monospace" font-size="11" font-weight="700" fill="#B91C1C">19.4 kWh (19.6%)</text>
+
+    <!-- Optimized: 4.8 kWh => 45px -->
+    <rect x="240" y="24" width="45" height="16" rx="3" fill="url(#optGrad)"/>
+    <text x="295" y="37" font-family="monospace" font-size="11" font-weight="700" fill="#047857">4.8 kWh (-75.3%)</text>
+  </g>
+
+  <!-- 4. Air Infiltration -->
+  <g transform="translate(0, 285)">
+    <text x="220" y="16" text-anchor="end" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#1E293B">Air Infiltration</text>
+    <text x="220" y="30" text-anchor="end" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">0.80 ACH vs. 0.40 ACH</text>
+
+    <!-- Uninsulated: 16.8 kWh => 160px -->
+    <rect x="240" y="4" width="160" height="16" rx="3" fill="url(#uninsGrad)"/>
+    <text x="410" y="17" font-family="monospace" font-size="11" font-weight="700" fill="#B91C1C">16.8 kWh (17.0%)</text>
+
+    <!-- Optimized: 5.4 kWh => 51px -->
+    <rect x="240" y="24" width="51" height="16" rx="3" fill="url(#optGrad)"/>
+    <text x="301" y="37" font-family="monospace" font-size="11" font-weight="700" fill="#047857">5.4 kWh (-67.9%)</text>
+  </g>
+
+  <!-- Total Summary Bar -->
+  <g transform="translate(0, 350)">
+    <line x1="80" y1="0" x2="890" y2="0" stroke="#E2E8F0" stroke-width="1.5"/>
+    <text x="220" y="24" text-anchor="end" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#0F172A">TOTAL 24h HEAT LOSS</text>
+    
+    <rect x="240" y="12" width="450" height="18" rx="4" fill="#FEE2E2" stroke="#EF4444"/>
+    <text x="250" y="26" font-family="monospace" font-size="11" font-weight="700" fill="#991B1B">Baseline: 98.8 kWh/day</text>
+
+    <rect x="240" y="12" width="98" height="18" rx="4" fill="#D1FAE5" stroke="#059669"/>
+    <text x="350" y="26" font-family="monospace" font-size="11" font-weight="800" fill="#047857">THERMA: 21.6 kWh/day (-78.1% Net Reduction)</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(680, 50)">
+    <rect x="0" y="0" width="14" height="14" rx="2" fill="url(#uninsGrad)"/>
+    <text x="20" y="11" font-family="-apple-system, sans-serif" font-size="11" fill="#475569">Uninsulated Prefab</text>
+
+    <rect x="140" y="0" width="14" height="14" rx="2" fill="url(#optGrad)"/>
+    <text x="160" y="11" font-family="-apple-system, sans-serif" font-size="11" fill="#475569">THERMA Optimized</text>
+  </g>
+</svg>

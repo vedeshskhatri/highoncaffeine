@@ -17,13 +17,16 @@
 
 ---
 
-![THERMA High Altitude Passive Solar Engineering Platform](./web/src/assets/hero.png)
+![THERMA High Altitude Passive Solar Engineering Platform](./docs/assets/therma_hero_banner.jpg)
 
 ---
 
 # 🏛️ System Architecture
 
-## 🔍 View Component Flowchart (Mermaid)
+![THERMA System Architecture](./docs/assets/system_architecture.svg)
+
+<details open>
+<summary><b>🔍 View Component Flowchart (Mermaid)</b></summary>
 
 ```mermaid
 flowchart TD
@@ -91,6 +94,7 @@ flowchart TD
     Client --> TH
     Client --> EXP
 ```
+</details>
 
 ---
 
@@ -417,6 +421,11 @@ sequenceDiagram
 
 THERMA processes every design through an end-to-end, deterministic engineering pipeline:
 
+![THERMA 14-Step Physics & Decision-Support Pipeline](./docs/assets/pipeline_flowchart.svg)
+
+<details open>
+<summary><b>🔍 View Step-by-Step Data Flow (Mermaid)</b></summary>
+
 ```mermaid
 flowchart TD
     S1[1. MATERIALS<br/>CPWD DSR 2023 & Cited k, rho, cp] --> S2[2. WEATHER<br/>NASA POWER & Cold Night Extreme]
@@ -433,6 +442,7 @@ flowchart TD
     S12 --> S13[13. EXPLAINABLE REC<br/>Deterministic 'Why' Synthesis]
     S13 --> S14[14. REPORT / AUDIT<br/>Military Spec & JSON Provenance]
 ```
+</details>
 
 ---
 
@@ -594,6 +604,8 @@ $$Q_{\text{inf}} = \frac{\text{ACH} \times V \times \rho_{\text{alt}} \times c_{
 
 The Thermal Diagnosis Engine decomposes 24-hour simulation results into an explainable energy balance breakdown:
 
+![Component-Level 24-Hour Heat Loss Attribution](./docs/assets/heat_loss_chart.svg)
+
 ### Heat Loss Path Breakdown ($100\%$ Conservation Invariant)
 
 $$\sum Q_{\text{loss}} = Q_{\text{walls}} + Q_{\text{roof}} + Q_{\text{floor}} + Q_{\text{glazing}} + Q_{\text{infiltration}} + Q_{\text{sky}}$$
@@ -643,6 +655,8 @@ $$\Delta T(t) = T_{\text{in, variant}}(t) - T_{\text{in, baseline}}(t) \quad \te
 
 Displayed as an interactive green/red delta strip showing exact hourly thermal gains across the diurnal cycle.
 
+![24-Hour Diurnal Temperature Profile: Standard Prefab vs. THERMA Optimized Shelter](./docs/assets/diurnal_curve.svg)
+
 ---
 
 # 16. Multi-Design Comparison & Trade-Off Matrix
@@ -659,6 +673,8 @@ $$k_i^* = \frac{K_i - K_{\min}}{K_{\max} - K_{\min}} \quad \text{(Normalized Cap
 $$D_i = \sqrt{\left(1.0 - c_i^*\right)^2 + \left(k_i^* - 0.0\right)^2}$$
 
 $$\text{Best Trade-Off Design} = \arg\min_{i \in \text{Safe Designs}} D_i$$
+
+![Multi-Criteria Decision Analysis: Pareto Knee Point & Utopia Distance](./docs/assets/comparison_tradeoff.svg)
 
 ```
                                   UTOPIA POINT (Comfort=1.0, Cost=0.0)
@@ -882,6 +898,8 @@ THERMA's fast 1D RC network was benchmarked against high-density 3D continuum fi
 # 24. Siachen Helicopter Logistics & Kerosene Economics
 
 THERMA converts every simulation result directly into real-world defense logistics metrics:
+
+![High-Altitude Fuel Logistics & Defense Economic Payoff](./docs/assets/fuel_logistics_chart.svg)
 
 ### Financial & Carbon Equations
 

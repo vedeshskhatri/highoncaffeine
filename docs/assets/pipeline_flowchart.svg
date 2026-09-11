@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="stepBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1E40AF"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="stepOrange" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#C2410C"/>
+      <stop offset="100%" stop-color="#EA580C"/>
+    </linearGradient>
+    <linearGradient id="stepGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#065F46"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="stepPurple" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5B21B6"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <marker id="pArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#64748B"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="480" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <text x="40" y="36" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#0F172A">
+    THERMA 14-Step Physics &amp; Decision-Support Pipeline
+  </text>
+  <text x="40" y="54" font-family="-apple-system, sans-serif" font-size="12" fill="#64748B">
+    Deterministic Data Flow: Sourced Thermophysics → Transient Solvers → Pareto Optimization → Defense Payoff
+  </text>
+
+  <!-- Row 1: Steps 1 to 5 (Left to Right) -->
+  <!-- Y=80, Height=75, Width=165, Gap=25 -->
+  <!-- Step 1: Materials -->
+  <g transform="translate(40, 80)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#3B82F6" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepBlue)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">1. MATERIALS DB</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">CPWD DSR 2023</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">k, rho, cp, cost basis</text>
+  </g>
+  <line x1="205" y1="117" x2="225" y2="117" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 2: Weather -->
+  <g transform="translate(230, 80)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#3B82F6" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepBlue)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">2. CLIMATE PROFILE</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">NASA POWER / EPW</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">-22°C Extreme Night</text>
+  </g>
+  <line x1="395" y1="117" x2="415" y2="117" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 3: Physics Discretization -->
+  <g transform="translate(420, 80)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#EA580C" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepOrange)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">3. RC SOLVER CORE</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">1D Fourier Nodes</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">Fo &lt;= 0.25 Stability</text>
+  </g>
+  <line x1="585" y1="117" x2="605" y2="117" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 4: Transient Simulation -->
+  <g transform="translate(610, 80)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#EA580C" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepOrange)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">4. SIMULATION</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">3-Day Spin-Up</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">24h Hourly Diffusion</text>
+  </g>
+  <line x1="775" y1="117" x2="795" y2="117" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 5: Validation -->
+  <g transform="translate(800, 80)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#059669" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepGreen)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">5. VALIDATION BENCH</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">DIHAR Leh V1-V4</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#047857">V2 &gt; V3 Ordering PASS</text>
+  </g>
+
+  <!-- Flow Down to Row 2 -->
+  <path d="M 882 155 L 882 190 L 882 205" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Row 2: Steps 6 to 10 (Right to Left) -->
+  <!-- Step 6: Thermal Diagnosis -->
+  <g transform="translate(800, 210)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#059669" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepGreen)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">6. THERMAL DIAGNOSIS</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">100% Heat Loss Split</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">Dominant Bottleneck</text>
+  </g>
+  <line x1="800" y1="247" x2="780" y2="247" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 7: What-If Analysis -->
+  <g transform="translate(610, 210)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#059669" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepGreen)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">7. WHAT-IF SANDBOX</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">1-Variable Sensitivity</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">Diurnal Delta Curve</text>
+  </g>
+  <line x1="610" y1="247" x2="590" y2="247" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 8: Multi-Objective Optimization -->
+  <g transform="translate(420, 210)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepPurple)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">8. OPTIMIZATION</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">Latin Hypercube LHS</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">N=3,200 Variants</text>
+  </g>
+  <line x1="420" y1="247" x2="400" y2="247" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 9: Pareto Frontier -->
+  <g transform="translate(230, 210)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepPurple)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">9. PARETO / UTOPIA</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">Non-Dominated Sort</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">Knee-Point Min Di</text>
+  </g>
+  <line x1="230" y1="247" x2="210" y2="247" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 10: Retrofit Doctor -->
+  <g transform="translate(40, 210)">
+    <rect width="165" height="75" rx="8" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.5"/>
+    <rect x="0" y="0" width="165" height="24" rx="8" fill="url(#stepPurple)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">10. RETROFIT DOCTOR</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">Existing Buildings</text>
+    <text x="10" y="60" font-family="monospace" font-size="9.5" fill="#64748B">°C Gained per ₹1,000</text>
+  </g>
+
+  <!-- Flow Down to Row 3 -->
+  <path d="M 122 285 L 122 320 L 122 335" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Row 3: Steps 11 to 14 (Left to Right) -->
+  <!-- Step 11: Safety Interlock -->
+  <g transform="translate(40, 340)">
+    <rect width="195" height="85" rx="8" fill="#FEF2F2" stroke="#EF4444" stroke-width="1.5"/>
+    <rect x="0" y="0" width="195" height="24" rx="8" fill="#DC2626"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">11. SAFETY INTERLOCK</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#991B1B">ACH &gt;= 0.35 Mandate</text>
+    <text x="10" y="60" font-family="-apple-system, sans-serif" font-size="9.5" fill="#7F1D1D">Instant Refusal on Combustion</text>
+    <text x="10" y="74" font-family="monospace" font-size="9" fill="#991B1B">Zero CO Poisoning Risk</text>
+  </g>
+  <line x1="235" y1="382" x2="265" y2="382" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 12: Defense Logistics Payoff -->
+  <g transform="translate(270, 340)">
+    <rect width="210" height="85" rx="8" fill="#F8FAFC" stroke="#059669" stroke-width="1.5"/>
+    <rect x="0" y="0" width="210" height="24" rx="8" fill="url(#stepGreen)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">12. LOGISTICS IMPACT</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#047857">₹2,400 / Litre Kerosene</text>
+    <text x="10" y="60" font-family="-apple-system, sans-serif" font-size="9.5" fill="#334155">1,180 L / year Saved per Post</text>
+    <text x="10" y="74" font-family="monospace" font-size="9" fill="#059669">₹28.3 Lakh / year Payoff</text>
+  </g>
+  <line x1="480" y1="382" x2="510" y2="382" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 13: Explainable 'Why' Recommendation -->
+  <g transform="translate(515, 340)">
+    <rect width="210" height="85" rx="8" fill="#F8FAFC" stroke="#3B82F6" stroke-width="1.5"/>
+    <rect x="0" y="0" width="210" height="24" rx="8" fill="url(#stepBlue)"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">13. EXPLAINABLE 'WHY'</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">Morris Parameter Diffs</text>
+    <text x="10" y="60" font-family="-apple-system, sans-serif" font-size="9.5" fill="#334155">Deterministic Synthesis</text>
+    <text x="10" y="74" font-family="monospace" font-size="9" fill="#1E40AF">No LLM Hallucinations</text>
+  </g>
+  <line x1="725" y1="382" x2="755" y2="382" stroke="#64748B" stroke-width="2" marker-end="url(#pArrow)"/>
+
+  <!-- Step 14: Engineering Report & Spec -->
+  <g transform="translate(760, 340)">
+    <rect width="200" height="85" rx="8" fill="#F8FAFC" stroke="#0F172A" stroke-width="1.5"/>
+    <rect x="0" y="0" width="200" height="24" rx="8" fill="#0F172A"/>
+    <text x="10" y="16" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">14. MILITARY SPEC SHEET</text>
+    <text x="10" y="44" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">1-Click Clipboard Spec</text>
+    <text x="10" y="60" font-family="-apple-system, sans-serif" font-size="9.5" fill="#334155">Audit Trail &amp; JSON Run ID</text>
+    <text x="10" y="74" font-family="monospace" font-size="9" fill="#0F172A">MES Defense Deployment</text>
+  </g>
+</svg>

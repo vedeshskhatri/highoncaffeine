@@ -1,0 +1,294 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" width="100%" height="100%">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#EDF2F7"/>
+    </linearGradient>
+    <linearGradient id="titleBarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1E40AF"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
+    <linearGradient id="engineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF7ED"/>
+      <stop offset="100%" stop-color="#FFEDD5"/>
+    </linearGradient>
+
+    <!-- Filters for subtle shadows -->
+    <filter id="cardShadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <filter id="boxShadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.05"/>
+    </filter>
+
+    <!-- Markers for arrows -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#2563EB"/>
+    </marker>
+  </defs>
+
+  <!-- Outer Background Canvas -->
+  <rect width="1100" height="720" rx="20" fill="url(#bgGrad)" stroke="#CBD5E1" stroke-width="1.5"/>
+
+  <!-- Main Architecture Container Card -->
+  <rect x="25" y="25" width="1050" height="670" rx="16" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.5" filter="url(#cardShadow)"/>
+
+  <!-- Title Pill Header -->
+  <rect x="45" y="45" width="460" height="34" rx="8" fill="url(#titleBarGrad)"/>
+  <text x="60" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" letter-spacing="0.5">
+    System Architecture — THERMA High-Altitude Platform
+  </text>
+
+  <!-- ========================================================================= -->
+  <!-- 1. STORAGE & MASTER DATA LAYER (TOP LEFT) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(50, 105)">
+    <!-- Box boundary -->
+    <rect width="280" height="290" rx="12" fill="#F8FAFC" stroke="#0284C7" stroke-width="1.5" filter="url(#boxShadow)"/>
+    
+    <!-- Header Badge -->
+    <rect x="12" y="-12" width="110" height="24" rx="6" fill="#0F172A"/>
+    <text x="22" y="4" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">Storage Layer</text>
+
+    <rect x="180" y="-12" width="88" height="24" rx="6" fill="url(#badgeGrad)"/>
+    <text x="188" y="4" font-family="monospace" font-size="10" font-weight="700" fill="#FFFFFF">LOCAL / DB</text>
+
+    <!-- Database Icon -->
+    <g transform="translate(20, 25)">
+      <path d="M 0 10 C 0 4, 32 4, 32 10 L 32 36 C 32 42, 0 42, 0 36 Z" fill="#DC2626" opacity="0.9"/>
+      <ellipse cx="16" cy="10" rx="16" ry="6" fill="#EF4444"/>
+      <path d="M 0 18 C 0 24, 32 24, 32 18" fill="none" stroke="#B91C1C" stroke-width="2"/>
+      <path d="M 0 27 C 0 33, 32 33, 32 27" fill="none" stroke="#B91C1C" stroke-width="2"/>
+    </g>
+
+    <!-- DB Title & Details -->
+    <text x="65" y="38" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#0F172A">SQLite 3 (therma.db)</text>
+    <text x="65" y="54" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">• Materials: materials.csv (CPWD DSR)</text>
+    <text x="65" y="68" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">• Sites: 12 Real Evaluated Border Outposts</text>
+    <text x="65" y="82" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">• Weather: NASA POWER / Extreme Night</text>
+    <text x="65" y="96" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">• Designs: Multi-Variant Drawing Library</text>
+
+    <!-- Divider -->
+    <line x1="15" y1="120" x2="265" y2="120" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+    <!-- Validation & Benchmarks Data -->
+    <g transform="translate(20, 135)">
+      <rect width="32" height="32" rx="6" fill="#475569"/>
+      <path d="M 8 16 L 14 22 L 24 10" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+    <text x="65" y="148" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#0F172A">Validation Reference Store</text>
+    <text x="65" y="164" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">• DRDO-DIHAR Leh Trials (V1–V4)</text>
+    <text x="65" y="178" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">• ANSYS Mechanical 3D FEM (Cases 1–3)</text>
+    <text x="65" y="192" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">• 10/10 Inviolable Physics Sanity Gates</text>
+
+    <!-- Safety Invariant Seal -->
+    <g transform="translate(20, 215)">
+      <rect width="240" height="58" rx="8" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1"/>
+      <circle cx="20" cy="29" r="10" fill="#EF4444"/>
+      <text x="16" y="34" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">!</text>
+      <text x="38" y="24" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#991B1B">Safety Interlock Trigger (ACH &lt; 0.35)</text>
+      <text x="38" y="40" font-family="-apple-system, sans-serif" font-size="10" fill="#7F1D1D">Instant Refusal: Blocks CO Asphyxiation Hazard</text>
+    </g>
+  </g>
+
+  <!-- Connecting Bus: Storage -> Core Engine -->
+  <line x1="330" y1="230" x2="380" y2="230" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arrowBlue)" marker-start="url(#arrowBlue)"/>
+  <rect x="335" y="212" width="40" height="16" rx="4" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text x="340" y="224" font-family="monospace" font-size="9" font-weight="700" fill="#1E40AF">SQL/C</text>
+
+  <!-- ========================================================================= -->
+  <!-- 2. CORE COMPUTATIONAL & PHYSICS ENGINE (CENTER) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(385, 95)">
+    <!-- Box boundary -->
+    <rect width="295" height="310" rx="14" fill="url(#engineGrad)" stroke="#F97316" stroke-width="2" filter="url(#boxShadow)"/>
+
+    <!-- Header Badge -->
+    <rect x="80" y="-12" width="135" height="24" rx="6" fill="#C2410C"/>
+    <text x="90" y="4" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">CORE ENGINE :8000</text>
+
+    <!-- Server Icon -->
+    <g transform="translate(20, 20)">
+      <rect width="36" height="36" rx="8" fill="#EA580C"/>
+      <line x1="8" y1="14" x2="28" y2="14" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="22" x2="28" y2="22" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="30" r="2" fill="#FED7AA"/>
+      <circle cx="18" cy="30" r="2" fill="#FED7AA"/>
+    </g>
+
+    <text x="68" y="34" font-family="-apple-system, sans-serif" font-size="14" font-weight="800" fill="#7C2D12">FastAPI Physics Engine</text>
+    <text x="68" y="50" font-family="monospace" font-size="10" font-weight="600" fill="#9A3412">Python 3.9+ · Uvicorn ASGI · NumPy Core</text>
+
+    <!-- Engine Modules List -->
+    <g transform="translate(18, 65)">
+      <rect width="260" height="225" rx="8" fill="#FFFFFF" stroke="#FDBA74" stroke-width="1"/>
+
+      <!-- Module items -->
+      <text x="12" y="22" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#1E293B">1D Multi-Node RC Diffusion Solver</text>
+      <text x="12" y="36" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• Biot/Fourier stability: Fo &lt;= 0.25 (dt=60s)</text>
+      <text x="12" y="49" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• 3-Day Spinup + 24h transient simulation</text>
+
+      <line x1="10" y1="58" x2="250" y2="58" stroke="#FED7AA" stroke-width="1"/>
+
+      <text x="12" y="73" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#1E293B">Solar &amp; Radiative Exchange Core</text>
+      <text x="12" y="87" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• Perez Anisotropic Sky + Snow Albedo (0.75)</text>
+      <text x="12" y="100" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• Swinbank Sky Radiation + Altitude Density</text>
+
+      <line x1="10" y1="109" x2="250" y2="109" stroke="#FED7AA" stroke-width="1"/>
+
+      <text x="12" y="124" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#1E293B">Vectorized Pareto Optimizer</text>
+      <text x="12" y="138" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• Latin Hypercube Sampling: N=3,200 in &lt;6s</text>
+      <text x="12" y="151" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• Non-Dominated Sorting: Comfort vs Capital</text>
+
+      <line x1="10" y1="160" x2="250" y2="160" stroke="#FED7AA" stroke-width="1"/>
+
+      <text x="12" y="175" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#1E293B">Decision Support &amp; Attribution</text>
+      <text x="12" y="189" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• Morris Screener (20 Trajectories, mu*, sigma)</text>
+      <text x="12" y="202" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• Utopia Distance: Knee-Point Trade-off Search</text>
+      <text x="12" y="215" font-family="-apple-system, sans-serif" font-size="10" fill="#64748B">• 100% Heat Loss Diagnosis &amp; Retrofit Doctor</text>
+    </g>
+  </g>
+
+  <!-- Connecting Bus: Core Engine -> Client Frontend -->
+  <line x1="680" y1="230" x2="735" y2="230" stroke="#2563EB" stroke-width="2.5" marker-end="url(#arrowBlue)" marker-start="url(#arrowBlue)"/>
+  <rect x="686" y="212" width="46" height="16" rx="4" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text x="691" y="224" font-family="monospace" font-size="9" font-weight="700" fill="#1E40AF">REST/JSON</text>
+
+  <!-- ========================================================================= -->
+  <!-- 3. CLIENT FRONTEND APPLICATION (RIGHT) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(740, 105)">
+    <!-- Box boundary -->
+    <rect width="280" height="290" rx="12" fill="#F8FAFC" stroke="#3B82F6" stroke-width="1.5" filter="url(#boxShadow)"/>
+
+    <!-- Header Badge -->
+    <rect x="80" y="-12" width="120" height="24" rx="6" fill="#1D4ED8"/>
+    <text x="88" y="4" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">VITE CLIENT :5173</text>
+
+    <!-- React App Icon -->
+    <g transform="translate(20, 20)">
+      <rect width="36" height="36" rx="8" fill="#3B82F6"/>
+      <circle cx="18" cy="18" r="4" fill="#FFFFFF"/>
+      <ellipse cx="18" cy="18" rx="12" ry="5" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(30 18 18)"/>
+      <ellipse cx="18" cy="18" rx="12" ry="5" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(-30 18 18)"/>
+    </g>
+
+    <text x="68" y="34" font-family="-apple-system, sans-serif" font-size="14" font-weight="800" fill="#0F172A">React 18 + Vite</text>
+    <text x="68" y="50" font-family="-apple-system, sans-serif" font-size="11" fill="#64748B">TailwindCSS · Editorial Tokens</text>
+
+    <!-- UI Components List -->
+    <g transform="translate(15, 65)">
+      <rect width="250" height="210" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+      <text x="12" y="22" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#1E293B">Interactive Visual Modules</text>
+      <text x="12" y="38" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• Dynamic Cross-Section SVG (Heat Flux)</text>
+      <text x="12" y="54" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• Diurnal Temp Curves (Recharts 24h)</text>
+      <text x="12" y="70" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• Delta Ambient Heat Flow Across dT</text>
+      <text x="12" y="86" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• Three.js WebGL 3D Spatial Inspector</text>
+
+      <line x1="10" y1="96" x2="240" y2="96" stroke="#E2E8F0" stroke-width="1"/>
+
+      <text x="12" y="112" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#1E293B">Decision Support Workflows</text>
+      <text x="12" y="128" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• What-If Sandbox (Single Variable)</text>
+      <text x="12" y="144" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• Multi-Design Comparison (2-4 Designs)</text>
+      <text x="12" y="160" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• Estate Hub (12 Border Posts Pin-Drop)</text>
+      <text x="12" y="176" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• Cold-Snap Alert Acknowledge Matrix</text>
+      <text x="12" y="194" font-family="-apple-system, sans-serif" font-size="10.5" fill="#475569">• 1-Click Military Spec Sheet Clipboard</text>
+    </g>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 4. OPERATIONAL SUBSYSTEMS (BOTTOM SPLIT) -->
+  <!-- ========================================================================= -->
+
+  <!-- Subsystem A: Dual-Axis Validation & Scientific Grounding (Bottom Left) -->
+  <g transform="translate(50, 440)">
+    <rect width="460" height="230" rx="12" fill="#F8FAFC" stroke="#059669" stroke-width="1.5" filter="url(#boxShadow)"/>
+
+    <rect x="15" y="-12" width="220" height="24" rx="6" fill="#065F46"/>
+    <text x="25" y="4" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">DUAL-AXIS VALIDATION BENCH</text>
+
+    <!-- Content 2 Columns -->
+    <g transform="translate(18, 20)">
+      <!-- Axis 1: Field Data -->
+      <rect width="205" height="190" rx="8" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1"/>
+      <text x="10" y="20" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#065F46">Axis 1: DRDO Field Trials</text>
+      <text x="10" y="38" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• V1: DIHAR Leh Pilot</text>
+      <text x="20" y="52" font-family="monospace" font-size="9" fill="#059669">15-20°C at -19°C (PASS)</text>
+      <text x="10" y="68" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• V2: Trombe Wall Feb 2020</text>
+      <text x="20" y="82" font-family="monospace" font-size="9" fill="#059669">Mean 16.29°C vs 17.44°C</text>
+      <text x="10" y="98" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• V3: Direct Gain Feb 2020</text>
+      <text x="20" y="112" font-family="monospace" font-size="9" fill="#059669">Mean 15.01°C vs 14.81°C</text>
+      <text x="10" y="128" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• V4: Sun Stellar ADM Block</text>
+      <text x="20" y="142" font-family="monospace" font-size="9" fill="#059669">18.88°C at 06:00 (PASS)</text>
+      <text x="10" y="162" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#065F46">Ordering Constraint:</text>
+      <text x="10" y="176" font-family="monospace" font-size="9" font-weight="700" fill="#047857">Trombe (V2) &gt; Direct (V3) ✓</text>
+    </g>
+
+    <g transform="translate(235, 20)">
+      <!-- Axis 2: ANSYS FEM -->
+      <rect width="205" height="190" rx="8" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1"/>
+      <text x="10" y="20" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#065F46">Axis 2: ANSYS 3D Continuum</text>
+      <text x="10" y="38" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Case 1: Pure Conduction</text>
+      <text x="20" y="52" font-family="monospace" font-size="9" fill="#059669">RMSE = 0.18°C (Max &lt;0.5°C)</text>
+      <text x="10" y="68" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Case 2: Multi-Layer Fourier</text>
+      <text x="20" y="82" font-family="monospace" font-size="9" fill="#059669">RMSE = 0.34°C (Phase Lag ✓)</text>
+      <text x="10" y="98" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Case 3: Surface Radiative</text>
+      <text x="20" y="112" font-family="monospace" font-size="9" fill="#059669">RMSE = 0.62°C (Sky Sink ✓)</text>
+      <text x="10" y="132" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#065F46">Physics Sanity Tests:</text>
+      <text x="10" y="148" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• 10/10 Invariant Checks Pass</text>
+      <text x="10" y="162" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Exact Energy Conservation</text>
+      <text x="10" y="176" font-family="monospace" font-size="9" font-weight="700" fill="#047857">dE = Qin - Qout (Delta=0) ✓</text>
+    </g>
+  </g>
+
+  <!-- Subsystem B: Defense Logistics & Multi-Post Platform (Bottom Right) -->
+  <g transform="translate(535, 440)">
+    <rect width="485" height="230" rx="12" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.5" filter="url(#boxShadow)"/>
+
+    <rect x="15" y="-12" width="220" height="24" rx="6" fill="#5B21B6"/>
+    <text x="25" y="4" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">DEFENSE LOGISTICS &amp; ASSETS</text>
+
+    <!-- Content 2 Columns -->
+    <g transform="translate(18, 20)">
+      <rect width="215" height="190" rx="8" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1"/>
+      <text x="10" y="20" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#5B21B6">Siachen Logistics Multiplier</text>
+      <text x="10" y="38" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Kerosene Airlift Delivery Cost:</text>
+      <text x="20" y="52" font-family="monospace" font-size="10" font-weight="700" fill="#7C3AED">₹2,400 / Litre</text>
+      <text x="10" y="68" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Monthly Burn (15-Man Post):</text>
+      <text x="20" y="82" font-family="monospace" font-size="10" font-weight="700" fill="#7C3AED">₹3,20,000 / month</text>
+      <text x="10" y="98" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Annual Payoff per Shelter:</text>
+      <text x="20" y="112" font-family="monospace" font-size="10" font-weight="700" fill="#059669">₹28,32,000 / year saved</text>
+      <text x="10" y="128" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Fuel Avoided per Post:</text>
+      <text x="20" y="142" font-family="monospace" font-size="10" font-weight="700" fill="#059669">1,180 Litres / year</text>
+      <text x="10" y="162" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Capital Payback Horizon:</text>
+      <text x="20" y="176" font-family="monospace" font-size="10" font-weight="700" fill="#059669">2.1 Years Payback</text>
+    </g>
+
+    <g transform="translate(245, 20)">
+      <rect width="220" height="190" rx="8" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="1"/>
+      <text x="10" y="20" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#5B21B6">Estate Surveillance Hub</text>
+      <text x="10" y="38" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• 12 Border Outposts Scanned:</text>
+      <text x="20" y="52" font-family="-apple-system, sans-serif" font-size="9" fill="#64748B">Siachen, DBO, Galwan, Hanle, Nyoma</text>
+      <text x="10" y="68" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Cold Snap Severity Tiers:</text>
+      <text x="20" y="82" font-family="-apple-system, sans-serif" font-size="9.5" fill="#DC2626">Critical · Warning · Advisory</text>
+      <text x="10" y="98" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Programme Planner:</text>
+      <text x="20" y="112" font-family="-apple-system, sans-serif" font-size="9.5" fill="#334155">Ranked Retrofit Budgeting (CSV)</text>
+      <text x="10" y="128" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Humanitarian Mode:</text>
+      <text x="20" y="142" font-family="-apple-system, sans-serif" font-size="9.5" fill="#334155">Nepal Earthquake Emergency Shelters</text>
+      <text x="10" y="162" font-family="-apple-system, sans-serif" font-size="10" fill="#334155">• Military Spec Clipboard:</text>
+      <text x="20" y="176" font-family="monospace" font-size="9" font-weight="700" fill="#5B21B6">Deterministic Run ID SHA256</text>
+    </g>
+  </g>
+
+  <!-- Flow Arrows connecting Engine to Bottom Subsystems -->
+  <path d="M 460 405 L 460 440" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M 600 405 L 600 440" fill="none" stroke="#7C3AED" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>
