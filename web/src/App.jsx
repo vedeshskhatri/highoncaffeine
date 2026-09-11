@@ -1,29 +1,22 @@
+/*
+ * App.jsx — THERMA High-Altitude Architectural Shelter Studio
+ * Inspired by contemporary architectural 3D CAD design tools ("hut.").
+ */
 import { useState, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Sparkles, SlidersHorizontal } from 'lucide-react';
 import './App.css';
-import InputRail from './components/InputRail';
 import DesignCanvas from './components/DesignCanvas';
 import SimulateCanvas from './components/SimulateCanvas';
 import OptimizeCanvas from './components/OptimizeCanvas';
+import InspectorPanel from './components/InspectorPanel';
 
-/*
- * STEPS — the three phases of THERMA
- * A step is only clickable if it is already accessible (valid input reached it).
- * Phase S2 wires up the validation logic; for now only Design is accessible.
- */
 const STEPS = [
-  { id: 'design',   label: 'Design',   number: 1 },
-  { id: 'simulate', label: 'Simulate', number: 2 },
-  { id: 'optimize', label: 'Optimize', number: 3 },
+  { id: 'design',   label: 'Design Studio', number: 1 },
+  { id: 'simulate', label: 'Simulation',    number: 2 },
+  { id: 'optimize', label: 'Optimization',  number: 3 },
 ];
 
-/*
- * INITIAL STATE — mirrors SimulateRequest from 07_API_CONTRACT.md exactly.
- * Fields that drive UI display but are not in the contract (drawerOpen) are
- * held separately.
- *
- * grid_note: populated from weather_provenance.grid_note in a /simulate
- * response when mode is design_winter_night. Null until first response.
- */
 const INITIAL_SIMULATE_REQUEST = {
   location: {
     lat: 34.1526,
@@ -31,7 +24,7 @@ const INITIAL_SIMULATE_REQUEST = {
     altitude_m: 3500,
   },
   weather: {
-    mode: 'typical_day',       // 'typical_day' | 'design_winter_night' | 'user_csv'
+    mode: 'typical_day',
     date: '2026-01-15',
     hours: 24,
     user_csv_id: null,
@@ -40,7 +33,7 @@ const INITIAL_SIMULATE_REQUEST = {
     length_m: 6.0,
     width_m: 4.0,
     height_m: 2.6,
-    orientation_deg: 180,      // 0=N 90=E 180=S 270=W
+    orientation_deg: 180,
   },
   envelope: {
     walls: [
@@ -62,41 +55,28 @@ const INITIAL_SIMULATE_REQUEST = {
 };
 
 export default function App() {
-  /* ── Step state ─────────────────────────────────────────────────── */
   const [currentStep, setCurrentStep] = useState('design');
-
-  /*
-   * ── Simulate request state ───────────────────────────────────────
-   * Single object lifted to App. InputRail receives this + a setter.
-   * The rail never remounts — only the canvas swaps on step change.
-   */
   const [simulateRequest, setSimulateRequest] = useState(INITIAL_SIMULATE_REQUEST);
-
-  /*
-   * ── grid_note ────────────────────────────────────────────────────
-   * Populated from a /simulate response weather_provenance.grid_note.
-   * Shown as caption under the weather toggle when mode is P1.
-   */
   const [gridNote, setGridNote] = useState(null);
-
-  /* ── Simulate / optimize results ────────────────────────────────── */
   const [simulateResult, setSimulateResult] = useState(null);
   const [optimizeResult, setOptimizeResult] = useState(null);
+  const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  /* ── Mobile drawer state (UI only — not in SimulateRequest) ─────── */
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  /* ── Accessible steps ───────────────────────────────────────────── */
-  const accessibleSteps = useMemo(() => {
-    return new Set(['design', 'simulate', 'optimize']);
-  }, []);
+  const accessibleSteps = useMemo(() => new Set(['design', 'simulate', 'optimize']), []);
 
   const handleStepClick = useCallback((stepId) => {
     if (accessibleSteps.has(stepId)) {
       setCurrentStep(stepId);
-      setDrawerOpen(false);
+      setMobileDrawerOpen(false);
     }
   }, [accessibleSteps]);
+
+  const updateRequest = useCallback((updater) => {
+    setSimulateRequest(prev =>
+      typeof updater === 'function' ? updater(prev) : { ...prev, ...updater }
+    );
+  }, []);
 
   const handleSimulate = useCallback(async () => {
     try {
@@ -118,153 +98,130 @@ export default function App() {
     setCurrentStep('simulate');
   }, [simulateRequest]);
 
-  /* ── Partial update helpers ─────────────────────────────────────── */
-  const updateWeatherMode = useCallback((mode) => {
-    setSimulateRequest(prev => ({
-      ...prev,
-      weather: { ...prev.weather, mode },
-    }));
-    // Clear grid_note when switching to typical_day
-    if (mode === 'typical_day') setGridNote(null);
-  }, []);
-
-  const updateRequest = useCallback((updater) => {
-    setSimulateRequest(prev =>
-      typeof updater === 'function' ? updater(prev) : { ...prev, ...updater }
-    );
-  }, []);
-
-  /* ── Canvas by step ─────────────────────────────────────────────── */
-  const canvasMap = {
-    design:   <DesignCanvas request={simulateRequest} />,
-    simulate: <SimulateCanvas result={simulateResult} request={simulateRequest} />,
-    optimize: <OptimizeCanvas result={optimizeResult} request={simulateRequest} />,
-  };
-
-  const isP1 = simulateRequest.weather.mode === 'design_winter_night';
+  const floorArea = (simulateRequest.geometry.length_m * simulateRequest.geometry.width_m).toFixed(1);
 
   return (
     <>
-      {/* ── Top bar ──────────────────────────────────────────────── */}
+      {/* ── 1. Top Navigation Bar ──────────────────────────────────────── */}
       <header className="app-topbar" role="banner">
-        <span className="app-wordmark" aria-label="THERMA application">THERMA</span>
+        <div className="topbar-left">
+          <div className="app-wordmark" aria-label="THERMA application">
+            <span>THERMA</span>
+            <span className="wordmark-dot">.</span>
+            <span className="app-badge">STUDIO</span>
+          </div>
 
-        {/* Step rail */}
-        <nav className="step-rail" aria-label="Application steps">
-          {STEPS.map((step, i) => {
-            const isActive = step.id === currentStep;
-            const isClickable = accessibleSteps.has(step.id) && !isActive;
-            return (
-              <div key={step.id} style={{ display: 'flex', alignItems: 'center' }}>
-                {i > 0 && <div className="step-divider" aria-hidden="true" />}
+          {/* Active Shelter Configuration Breadcrumb */}
+          <div className="topbar-config-pill">
+            <span className="config-name">Ladakh_Rapid_Shelter</span>
+            <span className="config-divider">/</span>
+            <span className="config-meta">
+              {floorArea} m² ({simulateRequest.geometry.length_m}m × {simulateRequest.geometry.width_m}m × {simulateRequest.geometry.height_m}m)
+            </span>
+          </div>
+        </div>
+
+        <div className="topbar-right">
+          {/* Step Pill Rail */}
+          <nav className="step-rail" aria-label="Application steps">
+            {STEPS.map((step) => {
+              const isActive = step.id === currentStep;
+              const isClickable = accessibleSteps.has(step.id) && !isActive;
+              return (
                 <button
+                  key={step.id}
                   id={`step-btn-${step.id}`}
-                  className={[
-                    'step-item',
-                    isActive ? 'active' : '',
-                    isClickable ? 'clickable' : '',
-                  ].join(' ')}
+                  className={`step-item ${isActive ? 'active' : ''} ${isClickable ? 'clickable' : ''}`}
                   onClick={() => isClickable && handleStepClick(step.id)}
                   aria-current={isActive ? 'step' : undefined}
-                  aria-disabled={!isClickable && !isActive}
-                  title={
-                    !accessibleSteps.has(step.id) && !isActive
-                      ? 'Complete the current step to unlock'
-                      : undefined
-                  }
                 >
-                  <span className="step-number" aria-hidden="true">{step.number}</span>
-                  {step.label}
+                  {isActive && (
+                    <motion.div
+                      layoutId="step-pill-slider"
+                      className="step-pill-indicator"
+                      transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="step-number" aria-hidden="true" style={{ position: 'relative', zIndex: 2 }}>
+                    {step.number}
+                  </span>
+                  <span style={{ position: 'relative', zIndex: 2 }}>{step.label}</span>
                 </button>
-              </div>
-            );
-          })}
-        </nav>
+              );
+            })}
+          </nav>
+
+          {/* Primary Action Button */}
+          <button
+            className="topbar-action-btn"
+            id="topbar-run-sim-btn"
+            onClick={handleSimulate}
+            title="Execute 24-hour thermal diurnal simulation"
+          >
+            <Play size={13} fill="currentColor" />
+            <span>Simulate</span>
+          </button>
+        </div>
       </header>
 
-      {/* ── App body ─────────────────────────────────────────────── */}
+      {/* ── 2. Studio Body ─────────────────────────────────────────────── */}
       <div className="app-body">
-
-        {/* Mobile overlay */}
-        {drawerOpen && (
+        {/* Mobile Drawer Overlay */}
+        {mobileDrawerOpen && (
           <div
             className="drawer-overlay"
-            onClick={() => setDrawerOpen(false)}
+            onClick={() => setMobileDrawerOpen(false)}
             aria-hidden="true"
           />
         )}
 
-        {/*
-         * ── InputRail ───────────────────────────────────────────────
-         * NEVER remounts. The canvas swaps; this stays mounted.
-         * Verified in Phase S1 verification step.
-         */}
-        <aside
-          className={`input-rail ${drawerOpen ? 'open' : ''}`}
-          aria-label="Shelter design inputs"
-        >
-          {/* Weather mode toggle — MUST be at the very top of the rail */}
-          <div className="weather-mode-section">
-            <div className="weather-mode-label" id="weather-mode-label">
-              Weather mode
-            </div>
-            <div
-              className="weather-toggle"
-              role="group"
-              aria-labelledby="weather-mode-label"
-            >
-              <button
-                id="weather-toggle-typical"
-                className={`weather-toggle-btn ${!isP1 ? 'active' : ''}`}
-                onClick={() => updateWeatherMode('typical_day')}
-                aria-pressed={!isP1}
-              >
-                Typical day
-              </button>
-              <button
-                id="weather-toggle-p1"
-                className={`weather-toggle-btn ${isP1 ? 'active' : ''}`}
-                onClick={() => updateWeatherMode('design_winter_night')}
-                aria-pressed={isP1}
-              >
-                Design winter night
-              </button>
-            </div>
-            {/* grid_note: must be visible when P1 active — never hidden */}
-            {isP1 && (
-              <p className="grid-note" role="note">
-                {gridNote
-                  ? gridNote
-                  : 'Weather from regional grid estimate (NASA POWER archive). Not a local measurement.'}
-              </p>
-            )}
-          </div>
-
-          {/* InputRail fields — never remounts */}
-          <InputRail
-            request={simulateRequest}
-            onUpdate={updateRequest}
-            onSimulate={handleSimulate}
-          />
-        </aside>
-
-        {/* ── Canvas — swaps by step ─────────────────────────────── */}
+        {/* Main Canvas Area */}
         <main className="canvas-area" id="main-canvas" aria-label={`${currentStep} canvas`}>
-          {canvasMap[currentStep]}
+          {currentStep === 'design' && (
+            <DesignCanvas request={simulateRequest} onSimulate={handleSimulate} />
+          )}
+
+          {currentStep === 'simulate' && (
+            <div className="step-results-wrapper">
+              <SimulateCanvas result={simulateResult} request={simulateRequest} />
+            </div>
+          )}
+
+          {currentStep === 'optimize' && (
+            <div className="step-results-wrapper">
+              <OptimizeCanvas result={optimizeResult} request={simulateRequest} />
+            </div>
+          )}
         </main>
+
+        {/* Right Inspector Panel (Step 1: Design Studio) */}
+        {currentStep === 'design' && (
+          <div className={`inspector-wrapper ${mobileDrawerOpen ? 'mobile-open' : ''}`}>
+            <InspectorPanel
+              request={simulateRequest}
+              onUpdate={updateRequest}
+              onSimulate={handleSimulate}
+              gridNote={gridNote}
+              collapsed={inspectorCollapsed}
+              onToggleCollapse={() => setInspectorCollapsed(c => !c)}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Mobile drawer toggle */}
-      <button
-        className="drawer-toggle-btn"
-        id="drawer-toggle"
-        onClick={() => setDrawerOpen(o => !o)}
-        aria-expanded={drawerOpen}
-        aria-controls="main-canvas"
-        aria-label="Toggle input panel"
-      >
-        {drawerOpen ? '✕ Close' : '⚙ Inputs'}
-      </button>
+      {/* Mobile Inspector Drawer Toggle */}
+      {currentStep === 'design' && (
+        <button
+          className="drawer-toggle-btn"
+          id="drawer-toggle"
+          onClick={() => setMobileDrawerOpen(o => !o)}
+          aria-expanded={mobileDrawerOpen}
+          aria-label="Toggle input panel"
+        >
+          <SlidersHorizontal size={14} />
+          <span>{mobileDrawerOpen ? 'Close Inspector' : 'Inspector'}</span>
+        </button>
+      )}
     </>
   );
 }
