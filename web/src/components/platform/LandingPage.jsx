@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowRight, 
+  Shield,
   ShieldAlert, 
   Sun, 
   Cpu, 
@@ -20,7 +21,17 @@ export default function LandingPage() {
       {/* Top Editorial Nav */}
       <header className="editorial-nav">
         <Link to="/" className="editorial-brand">
+          <div className="brand-shield-box">
+            <Shield size={16} />
+          </div>
           <span className="editorial-logo">THERMA</span>
+          <div className="brand-thermometer-sticker" title="High-Altitude Thermal Monitor">
+            <img
+              src="/thermometer_sticker.png"
+              alt="Thermometer Sticker"
+              className="thermometer-sticker-img"
+            />
+          </div>
         </Link>
         <div className="editorial-nav-links">
           <Link to="/dashboard" className="editorial-nav-cta">
