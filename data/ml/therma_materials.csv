@@ -1,0 +1,32 @@
+material_id,material_name,category,thermal_conductivity_W_mK,density_kg_m3,specific_heat_J_kgK,solar_absorptance,solar_reflectance,longwave_emissivity,typical_thickness_min_m,typical_thickness_max_m,cost_inr_m3,cost_source,cost_basis,citation,source_type,locally_available_ladakh
+mud_brick,Mud brick (adobe),structural,0.75,1700.0,880.0,0.7,0.3,0.9,0.15,0.6,2400.0,CPWD DSR 2023,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+rammed_earth,Rammed earth,structural,1.25,2000.0,900.0,0.75,0.25,0.9,0.15,0.6,1800.0,CPWD DSR 2023,SOURCED,NBC 2016 Part 8 Sec 3 Tbl 1,PEER_REVIEWED_STANDARD,1
+stone_masonry,Granite field stone masonry,structural,2.2,2400.0,840.0,0.65,0.35,0.9,0.15,0.6,3500.0,CPWD DSR 2023,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+cgi_sheet,Corrugated galvanised iron sheet,structural,50.0,7800.0,480.0,0.65,0.35,0.25,0.001,0.01,85000.0,Local market survey Leh,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+pu_sandwich_panel,Polyurethane prefab sandwich panel,structural,0.024,40.0,1400.0,0.4,0.6,0.85,0.004,0.024,12000.0,Manufacturer catalog 2024,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,0
+prefab_sandwich,Prefab sandwich panel (PUF/EPS),structural,0.035,45.0,1400.0,0.5,0.5,0.85,0.05,0.15,7500.0,Manufacturer catalog 2024,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,0
+eps_board,Expanded polystyrene (EPS),insulation,0.036,25.0,1200.0,0.3,0.7,0.9,0.025,0.2,4500.0,CPWD DSR 2023,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+eps,Expanded polystyrene (EPS),insulation,0.038,25.0,1400.0,0.3,0.7,0.9,0.025,0.2,4500.0,CPWD DSR 2023,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+rockwool,Mineral wool rockwool slab,insulation,0.038,48.0,840.0,0.3,0.7,0.9,0.025,0.2,5200.0,CPWD DSR 2023,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+straw_bale,Straw bale insulation,insulation,0.07,110.0,1800.0,0.6,0.4,0.9,0.025,0.2,1200.0,CPWD DSR 2023 Market Survey Estimate,ESTIMATE,NBC 2016 Part 8 Sec 3 Tbl 1,PEER_REVIEWED_STANDARD,1
+air_cavity_unvented,Unventilated air cavity 25-50mm,insulation,0.18,1.2,1005.0,0.0,1.0,0.9,0.025,0.2,,UNAVAILABLE,UNAVAILABLE,ISO 6946:2017 Tbl 3,PEER_REVIEWED_STANDARD,1
+air_gap,Unventilated air cavity (25mm),insulation,0.15,1.2,1005.0,0.0,1.0,0.9,0.025,0.2,,UNAVAILABLE,UNAVAILABLE,ISO 6946:2017 Table 9,PEER_REVIEWED_STANDARD,1
+single_glass,Single clear glazing 4mm,glazing,1.0,2500.0,840.0,0.06,0.94,0.84,0.004,0.024,18000.0,CPWD DSR 2023 Market Survey Estimate,ESTIMATE,ASHRAE HoF 2021 Ch.15 Tbl 4,PEER_REVIEWED_STANDARD,1
+single_pane,Single clear glass 4mm,glazing,1.0,2500.0,840.0,,,0.84,0.004,0.024,1500.0,CPWD DSR 2023 Market Survey Estimate,ESTIMATE,ISO 52016-1:2017 Table B.14,PEER_REVIEWED_STANDARD,1
+double_glass,Double glazing 4-12-4 air,glazing,1.0,2500.0,840.0,0.1,0.9,0.84,0.004,0.024,36000.0,Market survey Leh,SOURCED,ASHRAE HoF 2021 Ch.15 Tbl 4,PEER_REVIEWED_STANDARD,1
+double_pane,Double glazing (4-12-4 air),glazing,1.0,2500.0,840.0,,,0.84,0.004,0.024,3200.0,Market survey Leh,SOURCED,ISO 52016-1:2017 Table B.14,PEER_REVIEWED_STANDARD,1
+double_glass_night_shutter,Double glazing with insulated night shutter,glazing,1.0,2500.0,840.0,0.1,0.9,0.84,0.004,0.024,42000.0,CPWD DSR 2023 Market Survey Estimate,ESTIMATE,ASHRAE HoF 2021 Ch.15 Tbl 4 & ISO 6946,PEER_REVIEWED_STANDARD,1
+double_pane_shutter,Double glazing with night shutter,glazing,1.0,2500.0,840.0,,,0.84,0.004,0.024,3700.0,CPWD DSR 2023 Market Survey Estimate,ESTIMATE,ISO 52016-1:2017 Table B.14,PEER_REVIEWED_STANDARD,1
+triple_pane,Triple glazing (4-12-4-12-4 argon/air),glazing,1.0,2500.0,840.0,,,0.84,0.004,0.024,5400.0,Market survey Leh,SOURCED,ISO 52016-1:2017 Table B.14 & ASHRAE HoF 2021 Ch.15,PEER_REVIEWED_STANDARD,1
+dense_concrete,Heavyweight reinforced concrete,mass,1.75,2300.0,1000.0,0.65,0.35,0.9,0.1,0.3,6500.0,CPWD DSR 2023,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+concrete,Heavyweight concrete,mass,1.75,2300.0,1000.0,0.65,0.35,0.9,0.1,0.3,5500.0,CPWD DSR 2023,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+stone_floor,Dressed stone floor slab,mass,2.0,2500.0,850.0,0.7,0.3,0.9,0.15,0.6,5500.0,CPWD DSR 2023,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+water_wall_container,Water container thermal mass,mass,0.6,1000.0,4184.0,0.85,0.15,0.95,0.1,0.3,2000.0,CPWD DSR 2023 Market Survey Estimate,ESTIMATE,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+water_wall,Water thermal mass container,mass,0.6,1000.0,4186.0,0.85,0.15,0.95,0.1,0.3,2000.0,CPWD DSR 2023 Market Survey Estimate,ESTIMATE,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+hdpe_tarpaulin,Heavy-duty HDPE woven tarpaulin,relief,0.33,950.0,1900.0,0.7,0.3,0.9,0.001,0.01,1500.0,UNHCR relief specs,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+tarpaulin,Heavy duty HDPE tarpaulin,relief,0.19,950.0,1800.0,0.75,0.25,0.9,0.001,0.01,650.0,UNHCR relief specs,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+pe_plastic_sheeting,Polyethylene clear plastic sheeting,relief,0.33,920.0,2100.0,0.15,0.85,0.85,0.001,0.01,1200.0,UNHCR relief specs,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+plastic_sheeting,Polyethylene relief sheeting 200mu,relief,0.33,920.0,1900.0,0.3,0.7,0.9,0.001,0.01,400.0,UNHCR relief specs,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+wool_blanket_layer,Quilted wool blanket layer,relief,0.045,120.0,1380.0,0.6,0.4,0.9,0.001,0.01,2200.0,Red Cross relief item,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+blanket_layer,Woolen felt / relief blanket,relief,0.045,120.0,1360.0,0.6,0.4,0.9,0.001,0.01,900.0,Red Cross relief item,SOURCED,ASHRAE HoF 2021 Ch.26 Tbl 1,PEER_REVIEWED_STANDARD,1
+mud_skirt,Compacted earth perimeter skirt,relief,0.85,1600.0,840.0,0.75,0.25,0.9,0.001,0.01,500.0,CPWD DSR 2023 Market Survey Estimate,ESTIMATE,NBC 2016 Part 8 Sec 3 Tbl 1,PEER_REVIEWED_STANDARD,1

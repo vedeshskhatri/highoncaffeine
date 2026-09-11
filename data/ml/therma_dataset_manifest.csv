@@ -1,0 +1,14 @@
+filename,description,rows_count,columns_count,size_bytes,sha256_hash
+therma_simulation_timeseries.csv,Primary ML time-series dataset containing 24-hour simulation timesteps across Himalayan shelters,50400,59,20569885,2a7e941224cd148de2cc53cb82a0b0a1221c43802f38966516f0da38ccb8a3f0
+therma_design_parameters.csv,"Shelter architectural geometry, construction buildup, insulation, and ventilation parameters",2100,40,582442,90d67487e39d741e4584a5e9fe347ac7ab5a4dfad031d996f4b01ad6fd1b9bd2
+therma_materials.csv,Scientifically verified thermal and economic properties of envelope materials with standard citations,31,17,5979,22828b45b5930ca8ef1e47234bcfe81787ad968253bbee0ed42cf679a18dae09
+therma_weather.csv,Diurnal winter meteorological driving data for 12 high-altitude Himalayan locations across 8 scenarios,2304,20,338858,56eb657ae867456812255815ac6f06c9d3696dc8f7e38fb1108d9cb38378c7d7
+therma_heat_balance.csv,Hourly heat flux components and numerical energy balance conservation audits,50400,18,5124457,360f9e7569fdc4ef7757d4a5a4cd071b50e20f143c2addd022af9beb4443fa80
+therma_safety.csv,Occupant life-safety ventilation interlock audit for combustion heating,2100,7,101736,b6cde63608ef4d64a6e5721ece8b6722db1abb62b101264cf7f776658e0f1200
+therma_diagnosis.csv,"24-hour component heat loss breakdown, dominant thermal weakness, and rule-based interventions",2100,26,497167,be1b5ff2e0bf8c43dc4d7f554a460cd540c44f5d68346823a739d6f5f9eb254f
+therma_optimization_candidates.csv,"3,200+ shelter candidates with true mathematical Pareto dominance flags",3200,17,371149,de0032f03da48704a1ad769b2943c5f0ab9911fea7a27e0e2d9fb5c81833c657
+therma_validation.csv,"Sourced literature validation benchmark cases (DIHAR-DRDO, HAWS, ISO 52016-1)",4,21,2057,cb9879871ebaab69a4256d3aac894976c4557856de4b436e791d5e5c656e79b6
+therma_ml_master.csv,Clean curated feature-target matrix for surrogate machine learning model training,50400,50,16874919,1b173c7ea4576c2f8693137ff4315db621c742f18aa966467f58b93b8dfdf41a
+train.csv,70% training split strictly partitioned by simulation_id (zero data leakage),35280,50,11811151,5f45ba5ef483d293ff3825d3de52e371aff2ce145b9428e3a62b239c4aa2061f
+validation.csv,15% validation split strictly partitioned by simulation_id (zero data leakage),7560,50,2535225,903f4e02d11254a971206bf2365a822f2a26877efebca4d5e7be46aa32280a95
+test.csv,15% test split strictly partitioned by simulation_id (zero data leakage),7560,50,2530205,21791cbd566fde08f3d2d18fdb07b023b557986a0cbcef2b094faae1f698d88b

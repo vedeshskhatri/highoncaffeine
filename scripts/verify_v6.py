@@ -11,6 +11,8 @@ import sys
 import time
 
 sys.path.insert(0, os.path.abspath("."))
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 from api.weather import load_fallback_csv
 from engine.materials import load as load_materials

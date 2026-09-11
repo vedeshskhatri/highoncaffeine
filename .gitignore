@@ -33,6 +33,7 @@ wheels/
 *.tmp
 # Large uncompressed timeseries files (>100MB exceeds GitHub push limit; use .gz or splits)
 data/ml/*timeseries.csv
+data/ml/therma_ml_master.csv
 
 
 # Node / Frontend
