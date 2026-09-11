@@ -36,12 +36,14 @@ class SafetyResult:
     Attributes:
         refused: True if the design violates safety constraints, False otherwise.
         reason: Plain-language explanation for non-engineers if refused, otherwise None.
+        actionable_constraint: Authoritative actionable remediation step if refused.
     """
     refused: bool
     reason: Optional[str] = None
+    actionable_constraint: Optional[str] = None
 
 
-def check(design: Any, heater_type: str = "none") -> SafetyResult:
+def check(design: Any, heater_type: Optional[str] = "none") -> SafetyResult:
     """
     Evaluate safety of shelter design and proposed heating system.
 
@@ -51,14 +53,16 @@ def check(design: Any, heater_type: str = "none") -> SafetyResult:
                      'none' | 'electric' | 'flued_stove' | 'unflued_combustion'.
 
     Returns:
-        SafetyResult: Interlock decision with plain-language explanation.
+        SafetyResult: Interlock decision with plain-language explanation and actionable constraint.
     """
-    if isinstance(design, dict):
-        ach = float(design.get("ach", design.get("ventilation", {}).get("ach", 0.0)))
+    if design is None:
+        ach = 0.0
+    elif isinstance(design, dict):
+        ach = float(design.get("ach", design.get("ventilation", {}).get("ach", 0.0) if isinstance(design.get("ventilation"), dict) else 0.0))
     else:
         ach = float(getattr(design, "ach", 0.0))
 
-    heater_normalized = heater_type.lower().strip()
+    heater_normalized = str(heater_type or "none").lower().strip()
 
     if heater_normalized == "unflued_combustion" and ach < ACH_MIN_COMBUSTION:
         return SafetyResult(
@@ -68,6 +72,11 @@ def check(design: Any, heater_type: str = "none") -> SafetyResult:
                 f"for an unflued combustion heater. Carbon monoxide asphyxiation risk. "
                 f"Increase ventilation to at least {ACH_MIN_COMBUSTION:.2f} ACH or specify a flued stove or electric heater."
             ),
+            actionable_constraint=(
+                f"Ventilation requirement not satisfied for selected heater. "
+                f"Increase ventilation to at least {ACH_MIN_COMBUSTION:.2f} ACH or specify a flued stove or electric heater."
+            ),
         )
 
-    return SafetyResult(refused=False, reason=None)
+    return SafetyResult(refused=False, reason=None, actionable_constraint=None)
+

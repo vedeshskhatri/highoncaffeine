@@ -19,6 +19,7 @@ import AnimatedPanel from './AnimatedPanel';
 import TempChart from './TempChart';
 import DeltaAmbientChart from './DeltaAmbientChart';
 import ValidationPanel from './ValidationPanel';
+import DataProvenancePanel from './DataProvenancePanel';
 import {
   MetricCards,
   HeatLossBreakdown,
@@ -114,7 +115,10 @@ export default function SimulateCanvas({ result, request }) {
   if (isRefused) {
     return (
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <RefusalCard refusal_reason={data.refusal_reason} />
+        <RefusalCard
+          refusal_reason={data.refusal_reason}
+          actionable_constraint={data.actionable_constraint}
+        />
       </div>
     );
   }
@@ -236,6 +240,9 @@ export default function SimulateCanvas({ result, request }) {
 
         {/* Validation vs Field Trials Panel */}
         <ValidationPanel initialExpanded={true} />
+
+        {/* Scientific & Economic Data Provenance (Phase 9) */}
+        <DataProvenancePanel />
 
         {/* Engineering Spec Sheet Export */}
         <SpecSheetCopy

@@ -40,6 +40,7 @@ from api.schemas import (
     WatchPostSchema,
     AnnualScanRequest,
     AnnualScanResponse,
+    DataProvenanceResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -199,6 +200,8 @@ def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
         return {
             "refused": True,
             "refusal_reason": safety_outcome.reason,
+            "actionable_constraint": safety_outcome.actionable_constraint,
+            "safety_status": "REFUSED",
             "weather_provenance": provenance,
             "series": [],
             "surfaces": [],
@@ -892,6 +895,36 @@ def health() -> Dict[str, Any]:
         "offline_capable": True,
         "_stub": False,
     }
+
+
+# ---------------------------------------------------------------------------
+# GET /provenance — Authoritative Scientific Data Provenance Registry
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/provenance",
+    response_model=DataProvenanceResponse,
+    summary="Authoritative Scientific & Economic Data Provenance Registry",
+)
+def get_data_provenance() -> Dict[str, Any]:
+    """
+    Returns the complete, verified provenance registry across 5 core pillars:
+      1. Physical constants
+      2. Material properties
+      3. Weather
+      4. Costs
+      5. Validation measurements
+
+    Guarantees:
+      - Status strictly in {SOURCED, DERIVED, ESTIMATE, UNAVAILABLE}
+      - Every ESTIMATE reports: 'Estimate — source unavailable.'
+      - Every DERIVED reports: 'Derived from sourced inputs.'
+    """
+    from engine.provenance import get_full_provenance_registry
+    registry = get_full_provenance_registry()
+    registry["_stub"] = False
+    return registry
+
 
 
 # ---------------------------------------------------------------------------

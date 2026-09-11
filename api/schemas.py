@@ -293,12 +293,15 @@ class SimulateResponse(BaseModel):
     stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
     refused: bool = False
     refusal_reason: Optional[str] = None
+    actionable_constraint: Optional[str] = None
+    safety_status: Optional[str] = None
     weather_provenance: Optional[WeatherProvenanceSchema] = None
     series: List[SeriesItemSchema] = Field(default_factory=list)
     summary: Optional[SimulateSummarySchema] = None
     surfaces: List[SurfaceSummarySchema] = Field(default_factory=list)
     diagnosis: Optional[Dict[str, Any]] = None
     occupant_thermoregulation: Optional[OccupantThermoregulationSchema] = None
+
 
 
 class BaselineScoreSchema(BaseModel):
@@ -557,5 +560,27 @@ class AnnualScanResponse(BaseModel):
 
 AnnualScanRequest.model_rebuild()
 AnnualScanResponse.model_rebuild()
+
+
+class ProvenanceItemSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    item: str = Field(..., description="Parameter, measurement, or entity name")
+    source: str = Field(..., description="Official standard, peer-reviewed paper, or citation")
+    status: str = Field(..., description="SOURCED | DERIVED | ESTIMATE | UNAVAILABLE")
+    basis: str = Field(..., description="Methodological basis or citation notes")
+    value: Optional[str] = Field(default=None, description="Quantified nominal value or range")
+    unit: Optional[str] = Field(default=None, description="Physical or currency units")
+    category: Optional[str] = Field(default=None, description="Sub-category grouping")
+
+
+class DataProvenanceResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    physical_constants: List[ProvenanceItemSchema]
+    material_properties: List[ProvenanceItemSchema]
+    weather: List[ProvenanceItemSchema]
+    costs: List[ProvenanceItemSchema]
+    validation_measurements: List[ProvenanceItemSchema]
+    _stub: bool = False
+
 
 
