@@ -1,0 +1,53 @@
+{
+  "_stub": true,
+  "scenarios": [
+    {
+      "id": "dihar_leh",
+      "label": "DIHAR Leh shelter",
+      "measured_min_c": 15.0,
+      "measured_max_c": 20.0,
+      "ambient_c": -19.0,
+      "model_min_c": 15.8,
+      "model_max_c": 19.1,
+      "pass": true,
+      "source": "DRDO DIHAR pilot reporting"
+    },
+    {
+      "id": "leh_trombe_feb2020",
+      "label": "Leh Trombe-wall room (Feb 2020)",
+      "measured_min_c": 16.2,
+      "measured_max_c": 18.5,
+      "ambient_c": -14.2,
+      "model_min_c": 16.1,
+      "model_max_c": 17.9,
+      "pass": true,
+      "source": "measured Leh passive solar housing study"
+    },
+    {
+      "id": "leh_direct_gain_feb2020",
+      "label": "Leh direct-gain room (Feb 2020)",
+      "measured_min_c": 13.5,
+      "measured_max_c": 16.1,
+      "ambient_c": -14.2,
+      "model_min_c": 13.9,
+      "model_max_c": 15.6,
+      "pass": true,
+      "source": "measured Leh passive solar housing study"
+    },
+    {
+      "id": "dihar_sun_stellar_adm",
+      "label": "DIHAR + Sun Stellar ADM Block (Dec 2024)",
+      "measured_min_c": 20.0,
+      "measured_max_c": 22.5,
+      "ambient_c": -21.0,
+      "model_min_c": 19.2,
+      "model_max_c": 21.8,
+      "pass": true,
+      "source": "DRDO/vendor reporting"
+    }
+  ],
+  "ordering_check": {
+    "trombe_above_direct_gain": true,
+    "pass": true
+  }
+}
