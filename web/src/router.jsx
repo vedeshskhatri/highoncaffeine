@@ -14,6 +14,7 @@ import MaterialsPage from './components/platform/MaterialsPage';
 import ReportPage from './components/platform/ReportPage';
 import MethodPage from './components/platform/MethodPage';
 import ValidationPage from './components/platform/ValidationPage';
+import VerifyPage from './components/platform/VerifyPage';
 import TokensPage from './TokensPage';
 import App from './App';
 
@@ -72,6 +73,10 @@ export const router = createBrowserRouter([
       {
         path: '/validation',
         element: <ValidationPage />,
+      },
+      {
+        path: '/verify',
+        element: <VerifyPage />,
       },
     ],
   },

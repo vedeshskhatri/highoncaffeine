@@ -26,6 +26,7 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
     { to: '/materials', label: 'Materials Catalog', icon: Boxes },
     { to: '/method', label: 'Method & Physics', icon: BookOpen },
     { to: '/validation', label: 'Empirical Checks', icon: Award },
+    { to: '/verify', label: 'Interactive Verify', icon: Award },
   ];
 
   return (

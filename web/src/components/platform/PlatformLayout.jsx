@@ -15,6 +15,7 @@ const PAGE_TITLES = {
   '/materials': 'Materials & Regional Supply Realities',
   '/method': 'Methodology & Standards Specification',
   '/validation': 'Empirical Model Benchmark & Verification',
+  '/verify': 'Interactive Verification & Empirical Benchmarks',
 };
 
 export default function PlatformLayout() {
@@ -67,6 +68,12 @@ export default function PlatformLayout() {
     breadcrumbs = [
       { label: 'Site Registry', to: '/sites' },
       { label: 'Select Site' },
+    ];
+  } else if (location.pathname === '/verify') {
+    activeTitle = 'Interactive Verification & Empirical Benchmarks';
+    breadcrumbs = [
+      { label: 'Empirical Checks', to: '/validation' },
+      { label: 'Interactive Harness' },
     ];
   }
 

@@ -105,6 +105,11 @@ export default function CommandPalette({ isOpen, onClose }) {
             <span>Empirical Checks</span>
             <span className="cmd-item-meta">V1–V4 Benchmark Suite</span>
           </div>
+          <div className="cmd-item" onClick={() => handleSelect('/verify')}>
+            <Award size={16} className="cmd-item-icon" />
+            <span>Interactive Verification</span>
+            <span className="cmd-item-meta">Live Empirical Validation Harness</span>
+          </div>
 
           {/* Sites Section */}
           {filteredSites.length > 0 && (
