@@ -1,0 +1,224 @@
+/* CanvasToolbar.css — Modern CAD Floating Toolbars */
+
+/* Top-right 2D/3D Mode Switcher */
+.mode-toggle-pill {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  box-shadow: var(--shadow-floating);
+  z-index: 30;
+}
+
+.mode-toggle-btn {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 6px 16px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color 0.15s ease;
+  z-index: 2;
+}
+
+.mode-toggle-btn.active {
+  color: #ffffff;
+}
+
+.mode-indicator-slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  border-radius: var(--radius-full);
+  background: var(--text-primary);
+  z-index: 1;
+  box-shadow: 0 2px 6px rgba(32, 15, 7, 0.18);
+}
+
+/* Top-left Zoom & Navigation Controls */
+.viewport-zoom-pill {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 3px 6px;
+  box-shadow: var(--shadow-floating);
+  z-index: 30;
+}
+
+.zoom-tool-btn {
+  background: none;
+  border: none;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zoom-tool-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-2);
+}
+
+.zoom-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0 6px;
+  user-select: none;
+}
+
+.zoom-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 2px;
+}
+
+/* Left Floating Tool Rail */
+.cad-tool-rail {
+  position: absolute;
+  top: 80px;
+  left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 6px;
+  box-shadow: var(--shadow-floating);
+  z-index: 30;
+}
+
+.cad-tool-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cad-tool-btn:hover {
+  color: var(--text-primary);
+  background: var(--surface-2);
+  transform: scale(1.08);
+}
+
+.cad-tool-btn.active {
+  color: var(--accent);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+/* Tooltip on hover */
+.cad-tool-tooltip {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--text-primary);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 40;
+}
+
+.cad-tool-btn:hover .cad-tool-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(2px);
+}
+
+/* Bottom Floating Action Bar */
+.canvas-bottom-pill {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 6px 12px;
+  box-shadow: var(--shadow-floating);
+  z-index: 30;
+}
+
+.bottom-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.bottom-pill-btn.secondary {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+
+.bottom-pill-btn.secondary:hover {
+  background: var(--border);
+}
+
+.bottom-pill-btn.primary {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(247, 115, 49, 0.35);
+}
+
+.bottom-pill-btn.primary:hover {
+  background: #E55C1A;
+  transform: translateY(-1px);
+}
