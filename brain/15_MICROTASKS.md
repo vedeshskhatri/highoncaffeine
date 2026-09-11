@@ -10,8 +10,8 @@ Flat checklist across all phases. Tick as done. Owner in brackets.
 - [ ] [R] `requirements.txt`, `package.json`, two-command setup verified
 
 ## Data
-- [ ] [A] `materials.csv` with `source` on every row
-- [ ] [A] Loader raises `UnsourcedMaterialError` on missing source
+- [x] [A] `materials.csv` with `source` on every row
+- [x] [A] Loader raises `UnsourcedMaterialError` on missing source
 - [ ] [R] SQLite schema, four tables
 - [ ] [R] `seed.py` rebuilds `therma.db` from CSV
 - [ ] [R] Open-Meteo fetch + cache
@@ -21,17 +21,17 @@ Flat checklist across all phases. Tick as done. Owner in brackets.
 - [ ] [R] CSV ingest with column-level errors
 
 ## Physics
-- [ ] [A] Solar position, published algorithm, cited
-- [ ] [A] `cos_theta` clamped at zero
-- [ ] [A] Ground albedo, snow vs bare
-- [ ] [A] Sky temperature, Swinbank, Kelvin
-- [ ] [A] Linearised `h_r`, recomputed per step
-- [ ] [A] Altitude pressure and air density
-- [ ] [A] Convective coefficient density scaling
-- [ ] [A] IMAC band coefficients — **sourced, not invented**
-- [ ] [A] Health threshold 18 °C
-- [ ] [A] `ACH_MIN_COMBUSTION` — **sourced**
-- [ ] [A] Kerosene energy content, CO₂ factor
+- [x] [A] Solar position, published algorithm, cited
+- [x] [A] `cos_theta` clamped at zero
+- [x] [A] Ground albedo, snow vs bare
+- [x] [A] Sky temperature, Swinbank, Kelvin
+- [x] [A] Linearised `h_r`, recomputed per step
+- [x] [A] Altitude pressure and air density
+- [x] [A] Convective coefficient density scaling
+- [x] [A] IMAC band coefficients — **sourced, not invented**
+- [x] [A] Health threshold 18 °C
+- [x] [A] `ACH_MIN_COMBUSTION` — **sourced**
+- [x] [A] Kerosene energy content, CO₂ factor
 
 ## Engine
 - [ ] [V] Single node conduction
@@ -63,7 +63,7 @@ Flat checklist across all phases. Tick as done. Owner in brackets.
 - [ ] [V] Pareto front
 - [ ] [V] Top-3 with generated `why`
 - [ ] [V] Morris sensitivity
-- [ ] [A] Retrofit ranking, degrees per rupee
+- [x] [A] Retrofit ranking, degrees per rupee
 
 ## API
 - [ ] [R] Pydantic models for every request and response
@@ -74,11 +74,11 @@ Flat checklist across all phases. Tick as done. Owner in brackets.
 - [ ] [A] Contract shape tests
 
 ## Validation
-- [ ] [A] Four scenario configs
-- [ ] [A] `validation.run` + `--check`
-- [ ] [A] Results committed
-- [ ] [A] All 10 sanity tests pass
-- [ ] [A] **Ordering check: Trombe above direct-gain**
+- [x] [A] Four scenario configs
+- [x] [A] `validation.run` + `--check`
+- [x] [A] Results committed
+- [x] [A] All 10 sanity tests pass
+- [x] [A] **Ordering check: Trombe above direct-gain**
 
 ## UI
 - [ ] [S] Step rail

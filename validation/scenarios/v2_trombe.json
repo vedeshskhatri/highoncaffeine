@@ -1,0 +1,51 @@
+{
+  "_metadata": {
+    "scenario_id": "V2",
+    "name": "Leh Trombe-wall room, Feb 2020",
+    "measured": "monthly mean 17.44 °C",
+    "tolerance": "±2.0 °C (15.44 °C to 19.44 °C)",
+    "source": "measured Leh passive solar housing study",
+    "description": "Room equipped with unvented/vented dark masonry Trombe wall on south facade with double glazing, providing thermal storage and delayed evening release."
+  },
+  "location": { "lat": 34.1526, "lon": 77.5771, "altitude_m": 3500 },
+  "weather": {
+    "mode": "typical_day",
+    "date": "2026-02-15",
+    "hours": 24,
+    "user_csv_id": null
+  },
+  "geometry": {
+    "length_m": 4.5,
+    "width_m": 3.6,
+    "height_m": 2.7,
+    "orientation_deg": 180
+  },
+  "envelope": {
+    "walls": [
+      { "material": "mud_brick", "thickness_m": 0.35 },
+      { "material": "straw_bale", "thickness_m": 0.08 }
+    ],
+    "roof": [
+      { "material": "mud_skirt", "thickness_m": 0.15 },
+      { "material": "straw_bale", "thickness_m": 0.10 }
+    ],
+    "floor": [
+      { "material": "stone_floor", "thickness_m": 0.15 }
+    ],
+    "roof_emissivity": 0.90
+  },
+  "openings": [
+    {
+      "facing": "south",
+      "area_m2": 6.0,
+      "glazing": "double_glass",
+      "night_shutter": false,
+      "is_trombe_collector": true
+    }
+  ],
+  "ventilation": { "ach": 0.5, "heater_type": "none" },
+  "occupancy": { "people": 2, "watts_per_person": 100 },
+  "ground": { "snow_cover": true, "albedo": 0.75 },
+  "comfort": { "model": "imac", "health_threshold_c": 18.0 },
+  "simulation": { "timestep_s": 60, "spinup_days": 3 }
+}

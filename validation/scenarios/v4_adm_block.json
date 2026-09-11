@@ -1,0 +1,51 @@
+{
+  "_metadata": {
+    "scenario_id": "V4",
+    "name": "DIHAR / Sun Stellar ADM Block, Dec 2024",
+    "measured": "+20 °C held 18:00–06:00",
+    "tolerance": "within 2 °C at 06:00 (≥ 18.0 °C)",
+    "source": "DRDO/vendor reporting",
+    "description": "Administrative block deployed at DIHAR Leh featuring advanced solar thermal storage and premium building envelope maintaining +20 °C through sub-zero Himalayan night."
+  },
+  "location": { "lat": 34.1526, "lon": 77.5771, "altitude_m": 3500 },
+  "weather": {
+    "mode": "typical_day",
+    "date": "2026-12-15",
+    "hours": 24,
+    "user_csv_id": null
+  },
+  "geometry": {
+    "length_m": 12.0,
+    "width_m": 8.0,
+    "height_m": 3.0,
+    "orientation_deg": 180
+  },
+  "envelope": {
+    "walls": [
+      { "material": "pu_sandwich_panel", "thickness_m": 0.12 },
+      { "material": "dense_concrete", "thickness_m": 0.20 }
+    ],
+    "roof": [
+      { "material": "pu_sandwich_panel", "thickness_m": 0.15 },
+      { "material": "cgi_sheet", "thickness_m": 0.002 }
+    ],
+    "floor": [
+      { "material": "eps_board", "thickness_m": 0.10 },
+      { "material": "dense_concrete", "thickness_m": 0.15 }
+    ],
+    "roof_emissivity": 0.25
+  },
+  "openings": [
+    {
+      "facing": "south",
+      "area_m2": 18.0,
+      "glazing": "double_glass_night_shutter",
+      "night_shutter": true
+    }
+  ],
+  "ventilation": { "ach": 0.35, "heater_type": "none" },
+  "occupancy": { "people": 12, "watts_per_person": 100 },
+  "ground": { "snow_cover": true, "albedo": 0.75 },
+  "comfort": { "model": "imac", "health_threshold_c": 18.0 },
+  "simulation": { "timestep_s": 60, "spinup_days": 3 }
+}

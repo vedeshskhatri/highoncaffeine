@@ -1,0 +1,51 @@
+{
+  "_metadata": {
+    "scenario_id": "V1",
+    "name": "DIHAR Leh solar-heated shelter",
+    "measured": "15–20 °C indoor at -19 °C ambient",
+    "tolerance": "model min/max inside 15–20 °C band",
+    "source": "DRDO DIHAR pilot reporting",
+    "description": "High-altitude passive solar shelter developed by Defence Institute of High Altitude Research (DIHAR), Leh. High insulation, double glazing, and passive solar capture."
+  },
+  "location": { "lat": 34.1526, "lon": 77.5771, "altitude_m": 3500 },
+  "weather": {
+    "mode": "typical_day",
+    "date": "2026-01-15",
+    "hours": 24,
+    "user_csv_id": null
+  },
+  "geometry": {
+    "length_m": 8.0,
+    "width_m": 5.0,
+    "height_m": 2.7,
+    "orientation_deg": 180
+  },
+  "envelope": {
+    "walls": [
+      { "material": "mud_brick", "thickness_m": 0.30 },
+      { "material": "eps_board", "thickness_m": 0.10 }
+    ],
+    "roof": [
+      { "material": "eps_board", "thickness_m": 0.15 },
+      { "material": "cgi_sheet", "thickness_m": 0.002 }
+    ],
+    "floor": [
+      { "material": "eps_board", "thickness_m": 0.05 },
+      { "material": "stone_floor", "thickness_m": 0.10 }
+    ],
+    "roof_emissivity": 0.25
+  },
+  "openings": [
+    {
+      "facing": "south",
+      "area_m2": 7.5,
+      "glazing": "double_glass_night_shutter",
+      "night_shutter": true
+    }
+  ],
+  "ventilation": { "ach": 0.4, "heater_type": "none" },
+  "occupancy": { "people": 6, "watts_per_person": 100 },
+  "ground": { "snow_cover": true, "albedo": 0.75 },
+  "comfort": { "model": "imac", "health_threshold_c": 18.0 },
+  "simulation": { "timestep_s": 60, "spinup_days": 3 }
+}
