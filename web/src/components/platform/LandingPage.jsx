@@ -13,6 +13,7 @@ import {
   Building2, 
   Layers 
 } from 'lucide-react';
+import FloatingChatOrb from './FloatingChatOrb';
 import './LandingPage.css';
 
 export default function LandingPage() {
@@ -156,6 +157,8 @@ export default function LandingPage() {
           <div>Autonomous Engineering Systems · Defence & Humanitarian Thermal Architecture</div>
         </div>
       </footer>
+
+      <FloatingChatOrb />
     </div>
   );
 }

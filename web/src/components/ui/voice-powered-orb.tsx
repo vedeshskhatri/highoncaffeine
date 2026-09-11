@@ -17,7 +17,7 @@ interface VoicePoweredOrbProps {
 export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
   className,
   hue = 0,
-  enableVoiceControl = true,
+  enableVoiceControl = false,
   voiceSensitivity = 1.5,
   maxRotationSpeed = 1.2,
   maxHoverIntensity = 0.8,
@@ -317,6 +317,7 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
       while (container.firstChild) {
         container.removeChild(container.firstChild);
       }
+      glContext.canvas.style.pointerEvents = "none";
       container.appendChild(glContext.canvas);
 
       const geometry = new Triangle(glContext);
@@ -362,6 +363,11 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
         }
       };
       window.addEventListener("resize", resize);
+      let resizeObserver: ResizeObserver | null = null;
+      if (typeof ResizeObserver !== "undefined") {
+        resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+      }
       resize();
 
       let lastTime = 0;
@@ -405,15 +411,18 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
           // Always rotate when there's voice input, even at low levels
           if (voiceLevel > 0.05) {
             currentRot += dt * voiceRotationSpeed;
+          } else {
+            currentRot += dt * baseRotationSpeed;
           }
 
           // Use voice level to drive hover effects for visual feedback
-          program.uniforms.hover.value = Math.min(voiceLevel * 2.0, 1.0);
-          program.uniforms.hoverIntensity.value = Math.min(voiceLevel * maxHoverIntensity * 0.8, maxHoverIntensity);
+          program.uniforms.hover.value = Math.min(voiceLevel * 2.0 + 0.15, 1.0);
+          program.uniforms.hoverIntensity.value = Math.min(voiceLevel * maxHoverIntensity * 0.8 + 0.1, maxHoverIntensity);
         } else {
-          // Keep effects at 0 when not using voice control
-          program.uniforms.hover.value = 0;
-          program.uniforms.hoverIntensity.value = 0;
+          // Ambient rotation and idle shimmer when voice control is off
+          currentRot += dt * baseRotationSpeed;
+          program.uniforms.hover.value = 0.12;
+          program.uniforms.hoverIntensity.value = 0.18;
           if (onVoiceDetected) {
             onVoiceDetected(false);
           }
@@ -433,6 +442,9 @@ export const VoicePoweredOrb: FC<VoicePoweredOrbProps> = ({
       return () => {
         cancelAnimationFrame(rafId);
         window.removeEventListener("resize", resize);
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        }
 
         // Clean up canvas safely
         if (container && glContext && glContext.canvas) {
