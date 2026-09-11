@@ -342,8 +342,26 @@
   cursor: pointer;
 }
 
+.auto-rotation-toggle.active {
+  color: var(--text-primary, #0f172a);
+}
+
 .auto-rotation-toggle input {
   accent-color: #1d4ed8;
+}
+
+.auto-rotate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  margin-left: 2px;
 }
 
 /* ── 2. Compact System KPI Metric Strip ──────────────────────────────────── */
@@ -1314,10 +1332,12 @@
   transition: all 0.15s ease;
 }
 
-.table-action-btn:hover {
+.table-action-btn:hover,
+.table-action-btn.active {
   background-color: #1d4ed8;
   border-color: #1d4ed8;
   color: #ffffff;
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.25);
 }
 
 /* Validation Benchmarks */

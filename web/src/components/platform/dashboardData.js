@@ -159,6 +159,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 5.8,
     kerosene_burden_litres: 4800,
+    peak_heat_loss_kw: 5.6,
+    annual_deficit_hours: '4,480 h',
+    recommended_assembly: '350mm Granite Masonry + 100mm PUF + Low-E Triple Glazing',
     occupants: 16,
     status: 'critical',
     baseline_envelope: {
@@ -191,6 +194,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 6.4,
     kerosene_burden_litres: 6200,
+    peak_heat_loss_kw: 6.8,
+    annual_deficit_hours: '5,420 h',
+    recommended_assembly: '120mm PUF SIP + VIP Vacuum Core + Air-Lock Vestibule',
     occupants: 12,
     status: 'critical',
     baseline_envelope: {
@@ -223,6 +229,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 6.1,
     kerosene_burden_litres: 2840,
+    peak_heat_loss_kw: 3.8,
+    annual_deficit_hours: '2,860 h',
+    recommended_assembly: '300mm Mud Brick + 80mm PUF + Dual Passive Trombe Wall',
     occupants: 18,
     status: 'warning',
     baseline_envelope: {
@@ -255,6 +264,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 5.2,
     kerosene_burden_litres: 5100,
+    peak_heat_loss_kw: 6.1,
+    annual_deficit_hours: '4,650 h',
+    recommended_assembly: '400mm Dressed Stone + 120mm EPS + Night Roll Shutters',
     occupants: 14,
     status: 'critical',
     baseline_envelope: {
@@ -287,6 +299,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 6.3,
     kerosene_burden_litres: 4600,
+    peak_heat_loss_kw: 5.2,
+    annual_deficit_hours: '4,120 h',
+    recommended_assembly: '350mm Rammed Earth + 80mm PUF + Low-E Argon Triple Glaze',
     occupants: 10,
     status: 'critical',
     baseline_envelope: {
@@ -319,6 +334,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 6.8,
     kerosene_burden_litres: 3900,
+    peak_heat_loss_kw: 4.9,
+    annual_deficit_hours: '3,950 h',
+    recommended_assembly: '400mm Rammed Earth + 100mm EPS + Low-Emissivity Metal Roof',
     occupants: 8,
     status: 'warning',
     baseline_envelope: {
@@ -352,6 +370,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 4.6,
     kerosene_burden_litres: 3400,
+    peak_heat_loss_kw: 4.2,
+    annual_deficit_hours: '2,540 h',
+    recommended_assembly: '80mm Timber Log + 80mm EPS Core + Double Argon Pane',
     occupants: 10,
     status: 'warning',
     baseline_envelope: {
@@ -385,6 +406,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 6.2,
     kerosene_burden_litres: 4100,
+    peak_heat_loss_kw: 4.7,
+    annual_deficit_hours: '3,680 h',
+    recommended_assembly: '400mm Rammed Earth + 80mm EPS + Solar Air Preheater',
     occupants: 12,
     status: 'warning',
     baseline_envelope: {
@@ -418,6 +442,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 6.0,
     kerosene_burden_litres: 6400,
+    peak_heat_loss_kw: 6.4,
+    annual_deficit_hours: '5,180 h',
+    recommended_assembly: '120mm PUF SIP + VIP Vacuum Core + Vestibule Airlock',
     occupants: 8,
     status: 'critical',
     baseline_envelope: {
@@ -451,6 +478,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 4.2,
     kerosene_burden_litres: 4800,
+    peak_heat_loss_kw: 4.5,
+    annual_deficit_hours: '3,420 h',
+    recommended_assembly: '100mm Moisture-Resistant PUF + Corrugated Steel Skin',
     occupants: 14,
     status: 'critical',
     baseline_envelope: {
@@ -484,6 +514,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: true,
     solar_potential_kwh_m2: 4.8,
     kerosene_burden_litres: 3100,
+    peak_heat_loss_kw: 3.4,
+    annual_deficit_hours: '2,180 h',
+    recommended_assembly: '350mm Local Stone + 80mm EPS Wrap + Timber Ceilings',
     occupants: 12,
     status: 'warning',
     baseline_envelope: {
@@ -517,6 +550,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: false,
     solar_potential_kwh_m2: 7.2,
     kerosene_burden_litres: 0,
+    peak_heat_loss_kw: 1.2,
+    annual_deficit_hours: '240 h',
+    recommended_assembly: '450mm Sandstone Mass + Cavity Air Gap + Cool-Roof White Finish',
     occupants: 10,
     status: 'acceptable',
     baseline_envelope: {
@@ -550,6 +586,9 @@ export const SUPPORTED_STATIONS = [
     snow_cover: false,
     solar_potential_kwh_m2: 5.4,
     kerosene_burden_litres: 0,
+    peak_heat_loss_kw: 0.0,
+    annual_deficit_hours: '0 h',
+    recommended_assembly: '200mm Aerated Concrete + Cross-Vent Louvers + High-Emittance Outer Skin',
     occupants: 16,
     status: 'acceptable',
     baseline_envelope: {
