@@ -1,0 +1,110 @@
+.platform-topbar {
+  height: 56px;
+  background-color: var(--cream);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-estate-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background-color: var(--cream-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--espresso-70);
+}
+
+.topbar-sep {
+  color: var(--espresso-40);
+  font-size: 14px;
+}
+
+.topbar-page-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0;
+}
+
+.topbar-center {
+  flex: 1;
+  max-width: 440px;
+  margin: 0 20px;
+}
+
+.topbar-cmd-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background-color: var(--cream-2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  color: var(--espresso-70);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topbar-cmd-btn:hover {
+  border-color: var(--espresso-40);
+  background-color: var(--cream);
+}
+
+.cmd-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 5px;
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--espresso-40);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.engine-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: var(--sage-soft);
+  border: 1px solid var(--sage);
+  border-radius: 20px;
+}
+
+.status-dot-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--sage);
+  box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.2);
+}
+
+.status-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sage);
+}
