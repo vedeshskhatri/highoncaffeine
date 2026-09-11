@@ -146,23 +146,23 @@ export default function RetrofitList({ items = DEFAULT_RETROFITS, budgetCap = 20
                   opacity: isExceeded ? 0.6 : 1.0,
                 }}
               >
-                <td style={{ padding: '8px', color: 'var(--text-secondary)' }}>#{row.rank}</td>
-                <td style={{ padding: '8px', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>
+                <td style={{ padding: 'var(--space-2)', color: 'var(--text-secondary)' }}>#{row.rank}</td>
+                <td style={{ padding: 'var(--space-2)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>
                   {row.label}
                 </td>
-                <td style={{ padding: '8px', textAlign: 'right', color: 'var(--comfort)', fontWeight: 600 }}>
+                <td style={{ padding: 'var(--space-2)', textAlign: 'right', color: 'var(--comfort)', fontWeight: 600 }}>
                   +{row.delta_t.toFixed(1)} °C
                 </td>
-                <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-secondary)' }}>
+                <td style={{ padding: 'var(--space-2)', textAlign: 'right', color: 'var(--text-secondary)' }}>
                   ₹{row.cost_inr.toLocaleString()}
                 </td>
-                <td style={{ padding: '8px', textAlign: 'right', color: 'var(--solar)', fontWeight: 600 }}>
+                <td style={{ padding: 'var(--space-2)', textAlign: 'right', color: 'var(--solar)', fontWeight: 600 }}>
                   {row.degrees_per_1000.toFixed(2)} °C
                 </td>
-                <td style={{ padding: '8px', textAlign: 'right', color: isExceeded ? 'var(--danger)' : 'var(--text-primary)' }}>
+                <td style={{ padding: 'var(--space-2)', textAlign: 'right', color: isExceeded ? 'var(--danger)' : 'var(--text-primary)' }}>
                   ₹{row.cumulative_cost.toLocaleString()}
                 </td>
-                <td style={{ padding: '8px', textAlign: 'right', color: row.cumulative_min_c >= 18.0 ? 'var(--comfort)' : 'var(--danger)', fontWeight: 600 }}>
+                <td style={{ padding: 'var(--space-2)', textAlign: 'right', color: row.cumulative_min_c >= 18.0 ? 'var(--comfort)' : 'var(--danger)', fontWeight: 600 }}>
                   {row.cumulative_min_c.toFixed(1)} °C
                 </td>
               </tr>

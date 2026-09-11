@@ -240,7 +240,7 @@ export default function OptimizeCanvas({ result, request }) {
             color: 'var(--bg-base)',
             border: 'none',
             borderRadius: 'var(--radius-sm)',
-            padding: '8px 16px',
+            padding: 'var(--space-2) var(--space-3)',
             fontFamily: 'var(--font-body)',
             fontSize: 'var(--text-body-size)',
             fontWeight: 600,
