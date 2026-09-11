@@ -207,6 +207,16 @@ def solar_position(
           - altitude_deg: Solar altitude above the horizon in degrees [°].
           - azimuth_deg: Solar azimuth angle in degrees clockwise from North [0°=N, 90°=E, 180°=S, 270°=W].
     """
+    # Parse day_of_year if provided as ISO date string or int
+    if isinstance(day_of_year, str):
+        if "-" in day_of_year:
+            from datetime import datetime
+            doy_val = datetime.strptime(day_of_year, "%Y-%m-%d").timetuple().tm_yday
+        else:
+            doy_val = int(day_of_year)
+    else:
+        doy_val = int(day_of_year)
+
     # Universal Time (UT) in hours
     ut_hours = hour_local - tz_offset_hours
 
@@ -215,7 +225,7 @@ def solar_position(
     year = 2026
     delta_years = year - 2000
     leap_days = (delta_years + 3) // 4
-    n_days = delta_years * 365 + leap_days + (day_of_year - 1) - 1.5 + (ut_hours / 24.0)
+    n_days = delta_years * 365 + leap_days + (doy_val - 1) - 1.5 + (ut_hours / 24.0)
 
     # Mean longitude of the sun [degrees]
     l_deg = (280.460 + 0.9856474 * n_days) % 360.0
