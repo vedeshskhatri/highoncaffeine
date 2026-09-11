@@ -12,7 +12,7 @@
  *   - Strict empty state: "0 feasible designs within budget." (no fictional designs, no silent budget change)
  *   - Strictly token colors — zero hardcoded hex colors
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ResponsiveContainer,
   ScatterChart,
@@ -254,15 +254,17 @@ const SAMPLE_PARETO_POINTS = (() => {
   return pts;
 })();
 
-export default function ParetoPlot({ points = SAMPLE_PARETO_POINTS, onSelectDesign }) {
+export default function ParetoPlot({ points = SAMPLE_PARETO_POINTS, data: propData, onSelectDesign }) {
   const [selectedBudget, setSelectedBudget] = useState(null); // null = unconstrained
   const [budgetInput, setBudgetInput] = useState('');
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [yAxisMode, setYAxisMode] = useState('discomfort'); // 'discomfort' (Phase 5 requirement) or 'comfort'
+  const [visibleCount, setVisibleCount] = useState(0);
 
-  // Standardize raw input points
+  // Standardize raw input points (supports either points or data prop)
+  const inputData = propData || points;
   const rawData = useMemo(() => {
-    const src = points && points.length > 0 ? points : SAMPLE_PARETO_POINTS;
+    const src = inputData && inputData.length > 0 ? inputData : SAMPLE_PARETO_POINTS;
     return src.map((p, idx) => {
       const comf = p.comfort_hours_ratio != null ? p.comfort_hours_ratio : 0.0;
       const discomf = p.discomfort_hours != null
@@ -281,7 +283,7 @@ export default function ParetoPlot({ points = SAMPLE_PARETO_POINTS, onSelectDesi
         is_safe: p.is_safe !== false && p.safety_status !== 'REFUSED',
       };
     });
-  }, [points]);
+  }, [inputData]);
 
   // Apply budget filter
   const activeBudget = selectedBudget;
@@ -308,6 +310,34 @@ export default function ParetoPlot({ points = SAMPLE_PARETO_POINTS, onSelectDesi
       is_pareto: frontierIdSet.has(p.id || p.design_id),
     }));
   }, [filteredCandidates, frontierIdSet]);
+
+  // Sort the data array so the landing order is:
+  // baseline first → dominated (is_pareto: false) → pareto frontier → rank 3 → rank 2 → rank 1 last
+  const sortedData = useMemo(() => {
+    if (!displayData) return [];
+    return [...displayData].sort((a, b) => {
+      const order = (pt) => {
+        if (pt.id === 'base' || pt.id === 'baseline' || pt.design_id === 'baseline') return -1; // baseline very first
+        if (!pt.is_pareto && !pt.rank) return 0; // dominated first
+        if (pt.is_pareto && !pt.rank) return 1; // frontier
+        return 2 + (3 - (pt.rank ?? 3)); // rank 3, 2, 1
+      };
+      return order(a) - order(b);
+    });
+  }, [displayData]);
+
+  // Progressive dot landing animation (12ms per dot)
+  useEffect(() => {
+    setVisibleCount(0);
+    if (!sortedData || sortedData.length === 0) return;
+    let count = 0;
+    const id = setInterval(() => {
+      count++;
+      setVisibleCount(count);
+      if (count >= sortedData.length) clearInterval(id);
+    }, 12);
+    return () => clearInterval(id);
+  }, [sortedData]);
 
   const handlePointClick = (pt) => {
     setSelectedPoint(pt);
@@ -602,12 +632,12 @@ export default function ParetoPlot({ points = SAMPLE_PARETO_POINTS, onSelectDesi
 
               <Scatter
                 name="Shelter Designs"
-                data={displayData}
+                data={sortedData.slice(0, visibleCount)}
                 isAnimationActive={false}
                 onClick={handlePointClick}
                 style={{ cursor: 'pointer' }}
               >
-                {displayData.map((entry, index) => {
+                {sortedData.slice(0, visibleCount).map((entry, index) => {
                   const isSelected = selectedPoint && (selectedPoint.id === entry.id || selectedPoint.design_id === entry.design_id);
                   let fill = 'var(--text-muted)';
                   let opacity = 0.35;
