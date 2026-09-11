@@ -48,6 +48,8 @@ from api.schemas import (
     SurrogateMetricsResponse,
     SurrogatePredictRequest,
     SurrogatePredictResponse,
+    SuggestMaterialsRequest,
+    SuggestMaterialsResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -107,6 +109,7 @@ def root_endpoint() -> Dict[str, Any]:
             "validation": "/validation",
             "surrogate_metrics": "/surrogate/metrics",
             "surrogate_predict": "/surrogate/predict",
+            "suggest_materials": "/suggest-materials",
             "location_elevation": "/location/elevation",
             "location_search": "/location/search",
             "estate_summary": "/estate/summary",
@@ -1292,4 +1295,26 @@ def search_places_endpoint(q: str, count: int = 8) -> Dict[str, Any]:
         "count": len(results),
         "results": results,
     }
+
+
+# ---------------------------------------------------------------------------
+# MATERIAL SUGGESTION ENDPOINT (Phase M1)
+# ---------------------------------------------------------------------------
+
+@app.post(
+    "/suggest-materials",
+    response_model=SuggestMaterialsResponse,
+    summary="Material Suggestion Engine (Phase M1)",
+    description="Inverts optimizer to solve for material build-ups from target indoor and design outdoor temperatures.",
+)
+def suggest_materials_endpoint(request: SuggestMaterialsRequest) -> SuggestMaterialsResponse:
+    """
+    Given a target indoor requirement and outdoor design condition,
+    simulates candidate envelope variants and returns the top 3 specifications
+    with full layer build-up, achieved minimum temperature, cost, and residual backup heat.
+    """
+    from engine.material_suggestion import suggest_materials
+    res = suggest_materials(request.model_dump())
+    return SuggestMaterialsResponse(**res)
+
 

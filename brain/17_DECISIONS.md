@@ -90,3 +90,9 @@ D1 is NOT deleted — it remains the record of why the surrogate exists.
 **Decision:** Add `scikit-learn` to backend dependencies for an MLP neural network surrogate trained on our ISO 52016-1 solver.
 **Why:** The round one judge explicitly asked about training a machine learning model ourselves. Replacing the solver with an LLM/Ollama would be scientifically invalid and unverifiable. Instead, following standard building energy meta-modelling literature, we train an MLP surrogate on runs of our own ISO 52016-1 solver. This provides interactive sub-millisecond screening for design optimization while preserving the ISO 52016-1 solver as the rigorous ground truth for validation and final verification.
 **Consequence:** `scikit-learn` added to `requirements.txt`. The validation path (`validation/`) and final spec sheets NEVER use the surrogate — they strictly execute the ISO 52016-1 ODE solver. Any surrogate-generated metric in the UI displays a clear "surrogate estimate" badge.
+
+### D21 — Material Suggestion Inversion (Phase M1)
+**Decision:** Build a requirement-first optimizer inversion (`POST /suggest-materials`) that accepts indoor temperature target and design outdoor condition, returning top three compliant material build-ups sorted by cost, or reporting the honest physical deficit and required backup heat.
+**Why:** Round two evaluation feedback directly asked: "if I want -20 C outside and +20 C inside, what material should I use?" Inverting the search directly answers the field engineer's question without trial-and-error envelope guessing.
+**Consequence:** Evaluates 144+ combinatorial variants via vectorized batch simulation in < 2 seconds. When targets are unachievable passively, it calculates the backup heater sizing (kW) and kerosene consumption (L/night), preserving scientific honesty rather than generating false passes.
+

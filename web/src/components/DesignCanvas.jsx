@@ -8,6 +8,7 @@ import AnimatedPanel from './AnimatedPanel';
 import Shelter3DCanvas from './Shelter3DCanvas';
 import CrossSectionSVG from './CrossSectionSVG';
 import CanvasToolbar from './CanvasToolbar';
+import MaterialSuggestionPanel from './MaterialSuggestionPanel';
 import { X, Check } from 'lucide-react';
 import './DesignCanvas.css';
 
@@ -19,7 +20,7 @@ const CATEGORIES = [
   { label: 'membrane',   color: 'var(--text-muted)' },
 ];
 
-export default function DesignCanvas({ request, onSimulate }) {
+export default function DesignCanvas({ request, onSimulate, onApplyBuildUp }) {
   const [mode, setMode] = useState('3d'); // '3d' | '2d'
   const [viewMode, setViewMode] = useState('solid'); // 'solid' | 'exploded' | 'thermal'
   const [showDimensions, setShowDimensions] = useState(true);
@@ -27,6 +28,7 @@ export default function DesignCanvas({ request, onSimulate }) {
   const [snowCover, setSnowCover] = useState(request?.ground?.snow_cover ?? true);
   const [zoomLevel, setZoomLevel] = useState(100);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [materialSuggestionOpen, setMaterialSuggestionOpen] = useState(false);
 
   const length_m = request?.geometry?.length_m ?? 6.0;
   const width_m = request?.geometry?.width_m ?? 4.0;
@@ -136,6 +138,18 @@ export default function DesignCanvas({ request, onSimulate }) {
         onResetZoom={() => setZoomLevel(100)}
         onSimulate={onSimulate}
         onOpenNotes={() => setNotesOpen(true)}
+        onOpenMaterialSuggestion={() => setMaterialSuggestionOpen(true)}
+      />
+
+      {/* ── 2.5 Requirement-Driven Material Suggestion Panel (Evaluator Ask) ── */}
+      <MaterialSuggestionPanel
+        isOpen={materialSuggestionOpen}
+        onClose={() => setMaterialSuggestionOpen(false)}
+        request={request}
+        onApplyBuildUp={(buildup) => {
+          if (onApplyBuildUp) onApplyBuildUp(buildup);
+          setMaterialSuggestionOpen(false);
+        }}
       />
 
       {/* ── 3. Design Notes Modal ──────────────────────────────────────── */}
