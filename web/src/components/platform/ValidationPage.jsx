@@ -105,16 +105,16 @@ export default function ValidationPage() {
                     <td style={{ fontSize: '0.8rem', color: 'var(--espresso-70)' }}>
                       {s.source}
                     </td>
-                    <td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
                       {s.pass ? (
                         <span className="badge-pass">
-                          <CheckCircle2 size={10} style={{ display: 'inline', marginRight: 4 }} />
-                          PASS
+                          <CheckCircle2 size={13} />
+                          <span>PASS</span>
                         </span>
                       ) : (
                         <span className="badge-fail">
-                          <XCircle size={10} style={{ display: 'inline', marginRight: 4 }} />
-                          FAIL
+                          <XCircle size={13} />
+                          <span>FAIL</span>
                         </span>
                       )}
                     </td>
