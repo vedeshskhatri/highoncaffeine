@@ -1,129 +1,146 @@
 /*
- * DesignCanvas.jsx — Phase S3
+ * DesignCanvas.jsx — Phase S3 Redesign
  * Main canvas display for Step 1: Design.
- * Renders full-width architectural cross-section with live shelter telemetry.
+ * Centers the live architectural cross-section as the dominant interactive element.
  */
 import CrossSectionSVG from './CrossSectionSVG';
 
-export default function DesignCanvas({ request }) {
-  const wallLayers = request?.envelope?.walls || [];
-  const roofLayers = request?.envelope?.roof || [];
-  const floorLayers = request?.envelope?.floor || [];
+const CATEGORIES = [
+  { label: 'structural', color: 'var(--solar)' },
+  { label: 'insulation', color: 'var(--accent)' },
+  { label: 'glazing',    color: 'var(--text-secondary)' },
+  { label: 'mass',       color: 'var(--comfort)' },
+  { label: 'membrane',   color: 'var(--text-muted)' },
+];
 
-  const totalWall_m = wallLayers.reduce((s, l) => s + (Number(l.thickness_m) || 0), 0);
-  const totalRoof_m = roofLayers.reduce((s, l) => s + (Number(l.thickness_m) || 0), 0);
-  const totalFloor_m = floorLayers.reduce((s, l) => s + (Number(l.thickness_m) || 0), 0);
+export default function DesignCanvas({ request }) {
+  const length_m = request?.geometry?.length_m ?? 6;
+  const width_m = request?.geometry?.width_m ?? 4;
+  const orientation_deg = request?.geometry?.orientation_deg ?? 180;
+
+  const wallLayers = request?.envelope?.walls || [];
+  const totalWall_m = wallLayers.reduce((s, l) => s + (Math.max(0, Number(l.thickness_m)) || 0), 0);
+  const totalWall_mm = Math.round(totalWall_m * 1000);
 
   return (
-    <div style={{
-      width: '100%',
-      maxWidth: 900,
-      margin: '0 auto',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 'var(--space-3)',
-      padding: 'var(--space-2)',
-    }}>
-      {/* Overview header */}
-      <div style={{
+    <div
+      className="design-canvas"
+      style={{
+        width: '100%',
+        maxWidth: 860,
+        margin: '0 auto',
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
-        borderBottom: 'var(--border-width) solid var(--border)',
-        paddingBottom: 'var(--space-2)',
-      }}>
-        <div>
-          <h2 style={{
+        flexDirection: 'column',
+        gap: 'var(--space-3)',
+        padding: 'var(--space-2)',
+      }}
+    >
+      <style>{`
+        .design-canvas .cross-section-container {
+          width: 100%;
+          max-width: 860px;
+          background: var(--surface-1);
+          border: var(--border-width) solid var(--border);
+          border-radius: var(--radius-md);
+          box-shadow: none;
+        }
+        .design-canvas .cross-section-header {
+          display: none;
+        }
+        .design-canvas .cross-section-legend {
+          display: none;
+        }
+        .design-canvas .cross-section-svg-wrapper {
+          width: 100%;
+          height: 400px;
+          max-height: 400px;
+          aspect-ratio: auto;
+        }
+      `}</style>
+
+      {/* 1. Header bar above SVG */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingBottom: 'var(--space-2)',
+          borderBottom: 'var(--border-width) solid var(--border)',
+          boxShadow: 'none',
+        }}
+      >
+        <h2
+          style={{
             fontFamily: 'var(--font-heading)',
             fontSize: 'var(--text-title-size)',
+            lineHeight: 'var(--text-title-lh)',
+            fontWeight: 'var(--text-title-weight)',
+            letterSpacing: 'var(--text-title-spacing)',
             color: 'var(--text-primary)',
             margin: 0,
-          }}>
-            Shelter Architecture &amp; Envelope
-          </h2>
-          <p style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 'var(--text-caption-size)',
-            color: 'var(--text-muted)',
-            margin: '4px 0 0',
-          }}>
-            Live 2D cross-section · scaled proportionally · outside → inside layer ordering
-          </p>
-        </div>
+          }}
+        >
+          Shelter cross-section
+        </h2>
 
-        {/* Quick summary metrics */}
-        <div style={{
-          display: 'flex',
-          gap: 'var(--space-3)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 'var(--text-caption-size)',
-        }}>
-          <div>
-            <span style={{ color: 'var(--text-muted)' }}>Span: </span>
-            <span style={{ color: 'var(--text-primary)' }}>{request?.geometry?.length_m}m × {request?.geometry?.width_m}m</span>
-          </div>
-          <div>
-            <span style={{ color: 'var(--text-muted)' }}>Wall Thk: </span>
-            <span style={{ color: 'var(--solar)' }}>{Math.round(totalWall_m * 1000)} mm</span>
-          </div>
-          <div>
-            <span style={{ color: 'var(--text-muted)' }}>Roof Thk: </span>
-            <span style={{ color: 'var(--text-primary)' }}>{Math.round(totalRoof_m * 1000)} mm</span>
-          </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--text-caption-size)',
+            lineHeight: 'var(--text-caption-lh)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <span>span={length_m}m × {width_m}m</span>
+          <span style={{ color: 'var(--border-strong)', userSelect: 'none' }}>|</span>
+          <span>wall {totalWall_mm}mm</span>
+          <span style={{ color: 'var(--border-strong)', userSelect: 'none' }}>|</span>
+          <span>orient {orientation_deg}°</span>
         </div>
       </div>
 
-      {/* Main architectural cross-section */}
+      {/* 2. Dominant architectural cross-section */}
       <CrossSectionSVG request={request} />
 
-      {/* Quick guide */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: 'var(--space-2)',
-        marginTop: 'var(--space-1)',
-      }}>
-        <div style={{
-          background: 'var(--surface-1)',
-          border: 'var(--border-width) solid var(--border)',
-          borderRadius: 'var(--radius-sm)',
-          padding: 'var(--space-2)',
-        }}>
-          <div style={{ color: 'var(--solar)', fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-            SOLAR PASSIVE ORIENTATION
+      {/* 3. Slim legend row below SVG */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 'var(--space-3)',
+          fontFamily: 'var(--font-body)',
+          fontSize: 'var(--text-caption-size)',
+          lineHeight: 'var(--text-caption-lh)',
+          color: 'var(--text-muted)',
+          paddingTop: 'var(--space-1)',
+        }}
+      >
+        {CATEGORIES.map(cat => (
+          <div
+            key={cat.label}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--space-1)',
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: cat.color,
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+            <span>{cat.label}</span>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
-            Sun glyph dynamically orbits around the building based on the orientation angle. South glazing captures maximum winter irradiance.
-          </p>
-        </div>
-
-        <div style={{
-          background: 'var(--surface-1)',
-          border: 'var(--border-width) solid var(--border)',
-          borderRadius: 'var(--radius-sm)',
-          padding: 'var(--space-2)',
-        }}>
-          <div style={{ color: 'var(--accent)', fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-            MULTI-LAYER ENVELOPE
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
-            Layers render strictly to scale outside-to-inside. Hover any layer on the diagram to inspect its material and millimeter thickness.
-          </p>
-        </div>
-
-        <div style={{
-          background: 'var(--surface-1)',
-          border: 'var(--border-width) solid var(--border)',
-          borderRadius: 'var(--radius-sm)',
-          padding: 'var(--space-2)',
-        }}>
-          <div style={{ color: 'var(--comfort)', fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-            GROUND &amp; ALBEDO
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 12, margin: '4px 0 0', lineHeight: 1.4 }}>
-            Toggling snow cover applies a snow drift to the terrain and roof, driving high ground albedo (0.80) solar reflection into south openings.
-          </p>
-        </div>
+        ))}
       </div>
     </div>
   );
