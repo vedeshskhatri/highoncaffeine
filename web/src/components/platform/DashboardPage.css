@@ -3,7 +3,7 @@
 .dashboard-container {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: 20px;
   width: 100%;
 }
 
@@ -12,7 +12,7 @@
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 14px 22px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -28,13 +28,13 @@
 }
 
 .banner-pulse-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background-color: #059669;
   box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
   flex-shrink: 0;
-  animation: pulse-dot 2s infinite ease-in-out;
+  animation: pulse-dot 2.2s infinite ease-in-out;
 }
 
 @keyframes pulse-dot {
@@ -46,7 +46,7 @@
 .banner-text-group {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .banner-title {
@@ -55,21 +55,17 @@
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .banner-subtitle {
   font-family: var(--font-body);
   font-size: 12px;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .banner-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.banner-badge-group {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -83,16 +79,17 @@
   background-color: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
-  padding: 5px 12px;
+  padding: 4px 12px;
   font-family: var(--font-body);
   font-size: 12px;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .banner-stat-chip strong {
   font-family: var(--font-mono);
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .banner-chip-icon.cold {
@@ -106,17 +103,18 @@
 .banner-refresh-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background-color: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
-  padding: 5px 12px;
+  padding: 4px 12px;
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .banner-refresh-btn:hover {
@@ -125,15 +123,15 @@
   border-color: var(--border-strong);
 }
 
-/* ── 1. Top Section: Metrics Grid ────────────────────────────────────────── */
+/* ── 1. Top Section: 4 Metric Cards ──────────────────────────────────────── */
 .metrics-grid {
   display: grid;
-  grid-template-columns: 1.45fr 1fr 1fr 1fr;
+  grid-template-columns: 1.35fr 1fr 1fr 1fr;
   gap: var(--card-gap);
   align-items: stretch;
 }
 
-@media (max-width: 1360px) {
+@media (max-width: 1300px) {
   .metrics-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -145,18 +143,18 @@
   }
 }
 
-/* Base Metric Card */
 .metric-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 22px 24px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
+  min-width: 0;
 }
 
 .metric-card:hover {
@@ -164,69 +162,76 @@
   box-shadow: var(--shadow-md);
 }
 
-.metric-card-featured {
-  grid-column: span 1;
+.metric-card-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.metric-card-top {
+.metric-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
-.metric-header-group {
+.metric-title-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  min-width: 0;
 }
 
-.metric-category-label {
+.metric-eyebrow {
   font-family: var(--font-heading);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--text-muted);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.metric-headline-row {
+.metric-headline-wrapper {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin: 2px 0;
+  margin: 3px 0;
+  flex-wrap: nowrap;
 }
 
-.metric-headline-val {
-  font-family: var(--font-mono);
-  font-size: 25px;
+.metric-primary-value {
+  font-family: var(--font-heading);
+  font-size: 23px;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
   line-height: 1.1;
-  margin: 0;
+  white-space: nowrap;
 }
 
-.metric-sub-badge {
+.metric-pill-sub {
   font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-  background-color: var(--surface-2);
-  padding: 2px 7px;
-  border-radius: var(--radius-sm);
-}
-
-.metric-caption-text {
-  font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 400;
   color: var(--text-secondary);
-  line-height: 1.4;
+  background-color: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 
-.metric-icon-wrap {
-  width: 36px;
-  height: 36px;
+.metric-desc {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.metric-icon {
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -234,80 +239,89 @@
   flex-shrink: 0;
 }
 
-.metric-icon-wrap.cold {
+.metric-icon.cold {
   background-color: var(--cold-soft);
   color: var(--cold);
 }
 
-.metric-icon-wrap.alert {
+.metric-icon.alert {
   background-color: var(--solar-soft);
   color: var(--solar);
 }
 
-.metric-icon-wrap.comfort {
+.metric-icon.comfort {
   background-color: var(--comfort-soft);
   color: var(--comfort);
 }
 
-/* Cost Breakdown Strip */
-.cost-breakdown-strip {
+/* Card 1: Cost Split Bar & Diurnal Curve */
+.cost-split-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   margin-top: 2px;
 }
 
-.cost-breakdown-bar {
+.cost-split-bar {
   display: flex;
-  height: 7px;
+  height: 6px;
   border-radius: var(--radius-full);
   overflow: hidden;
   background-color: var(--surface-2);
   gap: 2px;
 }
 
-.cost-segment.procurement {
+.split-fill.procurement {
   background-color: #3B82F6;
 }
 
-.cost-segment.airlift {
+.split-fill.airlift {
   background-color: #1E40AF;
 }
 
-.cost-legend-row {
+.cost-split-labels {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
   font-family: var(--font-body);
+  white-space: nowrap;
 }
 
-.cost-legend-item {
-  display: inline-flex;
+.curve-header-row {
+  display: flex;
   align-items: center;
-  gap: 5px;
-}
-
-.legend-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.legend-dot.procurement {
-  background-color: #3B82F6;
-}
-
-.legend-dot.airlift {
-  background-color: #1E40AF;
-}
-
-/* Diurnal Thermal Load Curve */
-.diurnal-curve-box {
-  position: relative;
-  height: 72px;
+  justify-content: space-between;
   margin-top: 4px;
+  gap: 8px;
+}
+
+.curve-header-title {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.segmented-control.compact {
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-2);
+}
+
+.segmented-control.compact .segmented-tab {
+  padding: 2px 7px;
+  font-size: 10px;
+}
+
+.diurnal-curve-container {
+  position: relative;
+  height: 60px;
+  margin-top: 2px;
 }
 
 .diurnal-curve-svg {
@@ -316,198 +330,221 @@
   overflow: visible;
 }
 
-.curve-annotation {
+.curve-badge {
   position: absolute;
-  top: 4px;
-  right: 6px;
-  display: flex;
+  top: 2px;
+  right: 4px;
+  display: inline-flex;
   align-items: center;
   gap: 5px;
   font-family: var(--font-body);
   font-size: 10.5px;
   font-weight: 600;
   color: var(--text-secondary);
-  background-color: rgba(255, 255, 255, 0.85);
-  padding: 2px 6px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 1px 6px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
+  white-space: nowrap;
 }
 
-.annotation-dot {
+.curve-badge-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background-color: #1E40AF;
 }
 
-/* Sub-Zero Spread Meter (Card 2) */
-.sector-temp-spread {
+/* Card 2: Mini Telemetry List */
+.mini-telemetry-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin: 4px 0;
+  gap: 5px;
+  background-color: var(--surface-2);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  margin: 2px 0;
 }
 
-.spread-label-row {
+.mini-telemetry-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 11.5px;
 }
 
-.spread-sub-label {
+.mini-telemetry-station {
   font-family: var(--font-body);
-  color: var(--text-muted);
-}
-
-.spread-range-val {
-  font-family: var(--font-mono);
-  font-weight: 600;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
-.temp-gradient-bar {
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(90deg, #0284C7 0%, #38BDF8 60%, #94A3B8 100%);
-  position: relative;
-}
-
-.marker-pin {
-  position: absolute;
-  top: -2px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #FFFFFF;
-  border: 2px solid #0284C7;
-}
-
-.pin-siachen { left: 5%; }
-.pin-pangong { left: 45%; }
-.pin-kargil { left: 85%; }
-
-.spread-markers-legend {
-  display: flex;
-  justify-content: space-between;
+.mini-telemetry-temp {
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
-/* Deficit Distribution Segmented Bar (Card 3) */
-.deficit-distribution-box {
+.mini-telemetry-temp.cold-critical {
+  color: #DC2626;
+}
+
+.mini-telemetry-temp.cold-elevated {
+  color: #D97706;
+}
+
+.mini-telemetry-temp.cold-moderate {
+  color: #0284C7;
+}
+
+/* Card 3: Deficit Breakdown Box */
+.deficit-breakdown-box {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
-.deficit-progress-bar {
+.deficit-bar-track {
   display: flex;
-  height: 7px;
+  height: 6px;
   border-radius: var(--radius-full);
   overflow: hidden;
   background-color: var(--surface-2);
   gap: 2px;
 }
 
-.deficit-seg.critical {
+.deficit-bar-segment.seg-critical {
   background-color: #DC2626;
 }
 
-.deficit-seg.elevated {
+.deficit-bar-segment.seg-elevated {
   background-color: #D97706;
 }
 
-.deficit-seg.monitored {
+.deficit-bar-segment.seg-monitored {
   background-color: #0284C7;
 }
 
-.deficit-counts-row {
+.deficit-legend-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
 }
 
-.deficit-count-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono);
+.deficit-legend-tag {
+  font-family: var(--font-body);
   font-size: 10.5px;
-  padding: 2px 7px;
+  font-weight: 600;
+  padding: 2px 6px;
   border-radius: var(--radius-sm);
   background-color: var(--surface-2);
-  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
-.deficit-count-pill .dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+.deficit-legend-tag.tag-critical {
+  color: #DC2626;
 }
 
-.deficit-count-pill.critical .dot { background-color: #DC2626; }
-.deficit-count-pill.elevated .dot { background-color: #D97706; }
-.deficit-count-pill.monitored .dot { background-color: #0284C7; }
+.deficit-legend-tag.tag-elevated {
+  color: #D97706;
+}
 
-/* Operational Impact Equivalents (Card 4) */
-.operational-impact-box {
-  display: flex;
+.deficit-legend-tag.tag-monitored {
+  color: #0284C7;
+}
+
+/* Card 4: Impact Duo Box */
+.impact-duo-box {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   background-color: var(--surface-2);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
-  margin: 4px 0;
+  padding: 8px 12px;
+  margin: 2px 0;
 }
 
-.impact-stat-item {
+.impact-duo-cell {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.impact-stat-num {
-  font-family: var(--font-mono);
-  font-size: 15px;
+.impact-duo-val {
+  font-family: var(--font-heading);
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
-.impact-stat-desc {
+.impact-duo-label {
   font-family: var(--font-body);
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
-.impact-divider {
+.impact-duo-divider {
   width: 1px;
-  height: 28px;
+  height: 24px;
   background-color: var(--border);
+  margin: 0 8px;
 }
 
+/* Card Footers */
 .metric-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid var(--border-subtle);
   gap: 8px;
 }
 
-.metric-trend-info {
-  font-family: var(--font-mono);
-  font-size: 11px;
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 10.5px;
   font-weight: 600;
-  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 
-/* ── 2. Middle Section: Sector Breakdown & Mountain Passes Monitor ────────── */
+.status-pill-cold {
+  background-color: var(--cold-soft);
+  color: var(--cold);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.status-pill-alert {
+  background-color: var(--solar-soft);
+  color: var(--solar);
+  border: 1px solid rgba(194, 65, 12, 0.2);
+}
+
+.status-pill-comfort {
+  background-color: var(--comfort-soft);
+  color: var(--comfort);
+  border: 1px solid rgba(21, 128, 61, 0.2);
+}
+
+.footer-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── 2. Middle Section: Sector Breakdown & Mountain Passes ────────────────── */
 .dashboard-middle-grid {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1.55fr 1fr;
   gap: var(--card-gap);
   align-items: stretch;
 }
@@ -518,21 +555,20 @@
   }
 }
 
-/* Sector Analytics Card */
 .sector-analytics-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 24px 26px;
+  padding: 22px 24px;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .card-kicker {
   font-family: var(--font-heading);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--brand-blue);
@@ -542,48 +578,30 @@
 
 .analytics-card-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .analytics-card-title {
   font-family: var(--font-heading);
-  font-size: 16.5px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 2px;
+  margin: 0;
 }
 
 .analytics-card-subtitle {
   font-family: var(--font-body);
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
 }
 
-.sector-tag-group {
-  display: flex;
-  gap: 6px;
-}
-
-.sector-pill-tag {
-  font-family: var(--font-body);
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  background-color: var(--surface-2);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-}
-
 .sector-cards-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 12px;
 }
 
 @media (max-width: 768px) {
@@ -596,10 +614,10 @@
   background-color: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   transition: all 0.15s ease;
 }
 
@@ -612,12 +630,12 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
 .sector-name {
   font-family: var(--font-heading);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
   display: block;
@@ -625,30 +643,31 @@
 
 .sector-count {
   font-family: var(--font-body);
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
 .sector-badge {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: var(--radius-sm);
   background-color: var(--surface-2);
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .sector-metrics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .sector-metric {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .sm-label {
@@ -657,13 +676,15 @@
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .sm-val {
   font-family: var(--font-mono);
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 400;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .sector-fuel-bar {
@@ -679,12 +700,12 @@
   border-radius: var(--radius-full);
 }
 
-/* Elevation Ranking Bar Gauge */
+/* Elevation Ranking */
 .elevation-ranking-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 14px;
+  gap: 8px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -710,15 +731,15 @@
 .elevation-bars-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .elevation-bar-row {
   display: grid;
-  grid-template-columns: 2.2fr 3fr 1fr;
+  grid-template-columns: 2fr 3fr 1fr;
   align-items: center;
   gap: 12px;
-  padding: 6px 8px;
+  padding: 5px 8px;
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -736,6 +757,7 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
+  min-width: 0;
 }
 
 .elevation-site-name .name {
@@ -750,12 +772,13 @@
 
 .elevation-site-name .alt {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .elevation-track-wrap {
-  height: 6px;
+  height: 5px;
   border-radius: var(--radius-full);
   background-color: var(--surface-2);
   overflow: hidden;
@@ -771,48 +794,41 @@
   text-align: right;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
-.cold-critical {
-  color: #DC2626;
-}
-
-.cold-elevated {
-  color: #D97706;
-}
-
-/* Strategic Mountain Passes Card */
+/* Strategic Mountain Passes */
 .passes-monitor-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 24px 26px;
+  padding: 22px 24px;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
 }
 
 .passes-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .passes-card-title {
   font-family: var(--font-heading);
-  font-size: 16.5px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 2px;
+  margin: 0;
 }
 
 .passes-card-subtitle {
   font-family: var(--font-body);
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
@@ -823,8 +839,8 @@
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 400;
   color: #059669;
   background-color: #F0FDF4;
   padding: 3px 8px;
@@ -843,17 +859,17 @@
 .passes-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .pass-item-card {
   background-color: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.15s ease;
 }
 
@@ -866,7 +882,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
 .pass-item-name-group {
@@ -877,22 +893,24 @@
 
 .pass-name {
   font-family: var(--font-heading);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .pass-alt {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .pass-status-badge {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
 }
@@ -919,16 +937,18 @@
   font-family: var(--font-body);
   font-size: 11px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .pass-item-telemetry {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding-top: 4px;
+  gap: 12px;
+  padding-top: 3px;
   border-top: 1px solid var(--border-subtle);
   font-family: var(--font-mono);
   font-size: 11px;
+  font-weight: 400;
   color: var(--text-secondary);
 }
 
@@ -936,19 +956,20 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
 }
 
 .pass-logistics-footnote {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 7px;
   background-color: var(--surface-2);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 8px 10px;
   font-family: var(--font-body);
   font-size: 11px;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .pass-logistics-footnote .alert-icon {
@@ -971,45 +992,45 @@
   }
 }
 
-/* Telemetry Table Card */
 .telemetry-table-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 26px 28px;
+  padding: 24px 26px;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  overflow: hidden;
 }
 
 .table-card-header {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .table-card-title {
   font-family: var(--font-heading);
-  font-size: 17.5px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 3px;
+  margin: 0;
 }
 
 .table-card-subtitle {
   font-family: var(--font-body);
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-secondary);
   margin: 0;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .table-controls-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -1017,12 +1038,12 @@
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 240px;
+  min-width: 250px;
 }
 
 .table-search-box .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   color: var(--text-muted);
   pointer-events: none;
 }
@@ -1030,7 +1051,7 @@
 .table-search-input {
   width: 100%;
   height: 36px;
-  padding: 0 12px 0 36px;
+  padding: 0 14px 0 46px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background-color: var(--surface-2);
@@ -1058,14 +1079,15 @@
 .table-filter-btn {
   background: transparent;
   border: none;
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-md);
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .table-filter-btn:hover {
@@ -1090,7 +1112,7 @@
 }
 
 .spacious-data-table th {
-  padding: 12px 14px;
+  padding: 10px 12px;
   font-family: var(--font-heading);
   font-size: 10.5px;
   font-weight: 700;
@@ -1102,11 +1124,12 @@
 }
 
 .spacious-data-table td {
-  padding: 14px 14px;
+  padding: 14px 12px;
   font-size: 13px;
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .clickable-row {
@@ -1133,22 +1156,25 @@
   font-weight: 600;
   font-size: 13px;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .post-sector {
   font-family: var(--font-body);
   font-size: 11px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .altitude-value {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-family: var(--font-mono);
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .altitude-value .alt-icon {
@@ -1158,10 +1184,10 @@
 .occupants-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-secondary);
   background-color: var(--surface-2);
   padding: 3px 8px;
@@ -1172,10 +1198,11 @@
 .temp-value-badge {
   display: inline-block;
   font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 12.5px;
-  padding: 3px 8px;
+  font-weight: 400;
+  font-size: 12px;
+  padding: 2px 7px;
   border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 
 .temp-critical {
@@ -1194,19 +1221,22 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
+  white-space: nowrap;
 }
 
 .fuel-value {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 400;
   font-size: 12.5px;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .fuel-cost-sub {
   font-family: var(--font-mono);
   font-size: 10.5px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .action-buttons-cell {
@@ -1221,7 +1251,7 @@
   border: none;
   color: var(--border-strong);
   cursor: pointer;
-  padding: 6px;
+  padding: 5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1245,13 +1275,14 @@
   background-color: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 4px 8px;
+  padding: 3px 8px;
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   color: var(--brand-blue);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .inspect-action-btn:hover {
@@ -1260,27 +1291,27 @@
   border-color: var(--brand-blue);
 }
 
-/* ── Interactive Post Inspector Card (Right Column) ──────────────────────── */
+/* ── Interactive Post Inspector Card ─────────────────────────────────────── */
 .post-inspector-card {
   background-color: #0F172A;
   color: #FFFFFF;
   border-radius: var(--radius-xl);
-  padding: 24px 24px;
+  padding: 22px 22px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 18px;
+  gap: 16px;
   box-shadow: var(--shadow-md);
   border: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
-  top: 24px;
+  top: 20px;
   align-self: flex-start;
 }
 
 .inspector-card-header {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .inspector-tag-row {
@@ -1291,14 +1322,14 @@
 
 .inspector-kicker {
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 400;
   letter-spacing: 0.08em;
   color: #38BDF8;
 }
 
 .inspector-live-tag {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
   font-weight: 600;
   color: #94A3B8;
@@ -1309,11 +1340,14 @@
 
 .inspector-title {
   font-family: var(--font-heading);
-  font-size: 17.5px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.25;
   color: #FFFFFF;
-  margin: 0;
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .inspector-meta-row {
@@ -1322,52 +1356,60 @@
   gap: 6px;
   font-family: var(--font-mono);
   font-size: 11px;
+  font-weight: 400;
   color: #94A3B8;
+  white-space: nowrap;
+}
+
+.meta-bullet {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* Simulation Comparison Matrix */
 .simulation-matrix {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   background-color: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
-  padding: 12px;
+  padding: 10px;
 }
 
 .matrix-column {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .matrix-column.baseline {
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  padding-right: 8px;
+  padding-right: 6px;
 }
 
 .matrix-col-header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .matrix-col-label {
   font-family: var(--font-heading);
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #94A3B8;
+  white-space: nowrap;
 }
 
 .matrix-badge {
   font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 600;
-  padding: 2px 5px;
+  font-size: 9px;
+  font-weight: 400;
+  padding: 1px 4px;
   border-radius: var(--radius-sm);
   display: inline-block;
+  white-space: nowrap;
 }
 
 .matrix-badge.uninsulated {
@@ -1390,14 +1432,16 @@
 
 .matrix-stat-title {
   font-family: var(--font-body);
-  font-size: 10.5px;
+  font-size: 10px;
   color: #94A3B8;
+  white-space: nowrap;
 }
 
 .matrix-stat-val {
   font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .matrix-stat-val.cold-neg {
@@ -1414,43 +1458,46 @@
 
 .matrix-stat-sub {
   font-family: var(--font-body);
-  font-size: 10px;
+  font-size: 9.5px;
   color: #64748B;
+  white-space: nowrap;
 }
 
 /* Recommended Envelope Specs Box */
 .envelope-spec-box {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .envelope-spec-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-family: var(--font-heading);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #38BDF8;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .envelope-spec-items {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .spec-item {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
-  gap: 8px;
+  font-size: 10.5px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .spec-label {
@@ -1461,12 +1508,12 @@
 .spec-val {
   font-family: var(--font-mono);
   color: #F1F5F9;
-  font-weight: 500;
+  font-weight: 400;
   text-align: right;
 }
 
 .inspector-action-row {
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .inspector-cta-btn {
@@ -1474,14 +1521,16 @@
   background-color: #FFFFFF;
   color: #0F172A;
   border-color: #FFFFFF;
+  font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 12.5px;
-  padding: 10px 14px;
+  font-size: 12px;
+  padding: 9px 12px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .inspector-cta-btn:hover {
@@ -1495,8 +1544,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  min-height: 420px;
+  gap: 14px;
+  min-height: 380px;
   background-color: var(--bg-card);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
@@ -1512,8 +1561,8 @@
 }
 
 .telemetry-spinner {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 3px solid var(--surface-2);
   border-top-color: var(--brand-blue);

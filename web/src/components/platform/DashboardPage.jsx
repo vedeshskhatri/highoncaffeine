@@ -13,27 +13,21 @@ import {
   Thermometer,
   Users,
   Fuel,
-  Compass,
   Search,
-  CheckCircle2,
-  TrendingDown,
-  Sun,
-  ShieldCheck,
   AlertTriangle,
-  Flame,
 } from 'lucide-react';
 import './DashboardPage.css';
 
-// Strategic Mountain Passes monitoring data (vital supply chain telemetry for high-altitude posts)
+// Strategic mountain passes that dictate high-altitude sortie logistics and fuel reserves
 const STRATEGIC_PASSES = [
   {
     name: 'Khardung La Pass',
     altitude_m: 5359,
     temp_c: -27,
     wind_kmh: 48,
-    status: 'Blizzard Warning',
+    status: 'Blizzard Advisory',
     statusClass: 'pass-status-alert',
-    route: 'Leh → Nubra & DBO Corridor',
+    route: 'Leh → Nubra & DBO',
   },
   {
     name: 'Chang La Pass',
@@ -42,7 +36,7 @@ const STRATEGIC_PASSES = [
     wind_kmh: 38,
     status: 'Sub-Zero Gale',
     statusClass: 'pass-status-caution',
-    route: 'Leh → Pangong & Tangtse Axis',
+    route: 'Leh → Pangong Axis',
   },
   {
     name: 'Zoji La Pass',
@@ -51,7 +45,7 @@ const STRATEGIC_PASSES = [
     wind_kmh: 28,
     status: 'Chains Mandatory',
     statusClass: 'pass-status-caution',
-    route: 'Srinagar → Dras & Kargil Supply Line',
+    route: 'Srinagar → Kargil Axis',
   },
   {
     name: 'Fotu La Pass',
@@ -60,7 +54,7 @@ const STRATEGIC_PASSES = [
     wind_kmh: 18,
     status: 'Transit Clear',
     statusClass: 'pass-status-clear',
-    route: 'Kargil → Leh Highway Corridor',
+    route: 'Kargil → Leh Highway',
   },
 ];
 
@@ -99,19 +93,20 @@ export default function DashboardPage() {
     setStarredSites((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Compile site list (fallback if all_evaluated_sites is missing)
+  // Compile list of evaluated sites
   const evaluatedSites = useMemo(() => {
     if (!summary) return [];
-    const list = summary.all_evaluated_sites || summary.worst_performing_sites || [];
-    return list;
+    return summary.all_evaluated_sites || summary.worst_performing_sites || [];
   }, [summary]);
 
   // Filtered sites for table
   const filteredSites = useMemo(() => {
     return evaluatedSites.filter((site) => {
+      const query = searchQuery.trim().toLowerCase();
       const matchesSearch =
-        site.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        site.district.toLowerCase().includes(searchQuery.toLowerCase());
+        query === '' ||
+        site.name.toLowerCase().includes(query) ||
+        site.district.toLowerCase().includes(query);
 
       if (!matchesSearch) return false;
 
@@ -128,7 +123,7 @@ export default function DashboardPage() {
     });
   }, [evaluatedSites, tableFilter, searchQuery]);
 
-  // Active selected site for preview
+  // Currently inspected site
   const activeSelectedSite = useMemo(() => {
     if (!selectedSiteId && evaluatedSites.length > 0) return evaluatedSites[0];
     return evaluatedSites.find((s) => s.id === selectedSiteId) || evaluatedSites[0];
@@ -157,11 +152,11 @@ export default function DashboardPage() {
   const costCr = (aggs.annual_cost_inr / 10000000.0).toFixed(2);
   const costLakhs = (aggs.annual_cost_inr / 100000.0).toFixed(1);
 
-  // Kerosene logistics transport cost factor: ~65% of delivered cost is high-altitude supply chain airlift
-  const fuelProcurementLakhs = (aggs.annual_cost_inr * 0.35 / 100000.0).toFixed(1);
-  const logisticsAirliftLakhs = (aggs.annual_cost_inr * 0.65 / 100000.0).toFixed(1);
+  // Kerosene logistics transport split
+  const fuelProcurementLakhs = ((aggs.annual_cost_inr * 0.35) / 100000.0).toFixed(1);
+  const logisticsAirliftLakhs = ((aggs.annual_cost_inr * 0.65) / 100000.0).toFixed(1);
 
-  // Severe vs moderate deficit breakdown
+  // Deficit classification counts
   const criticalCount = evaluatedSites.filter((s) => s.t_in_min_c < -10).length;
   const elevatedCount = evaluatedSites.filter((s) => s.t_in_min_c >= -10 && s.t_in_min_c < -5).length;
   const monitoredCount = evaluatedSites.filter((s) => s.t_in_min_c >= -5).length;
@@ -170,40 +165,43 @@ export default function DashboardPage() {
   const currentMinTemp = activeSelectedSite ? activeSelectedSite.t_in_min_c : -13.95;
   const projectedRetrofitTemp = Math.min(18.0, Number((currentMinTemp + 19.8).toFixed(1)));
   const currentFuel = activeSelectedSite ? activeSelectedSite.annual_fuel_litres : 460;
-  const projectedFuel = Math.round(currentFuel * 0.28); // 72% reduction via Trombe + Aerogel
+  const projectedFuel = Math.round(currentFuel * 0.28);
 
-  // Diurnal curve path variation based on timeFilter
+  // Sol-air diurnal demand curve variations
   const curvePaths = {
     '1W': {
-      d: 'M 0,65 Q 70,72 130,52 T 240,40 T 340,26 T 430,36 T 500,44 L 500,90 L 0,90 Z',
-      stroke: 'M 0,65 Q 70,72 130,52 T 240,40 T 340,26 T 430,36 T 500,44',
+      d: 'M 0,60 Q 70,68 130,48 T 240,36 T 340,22 T 430,32 T 500,40 L 500,80 L 0,80 Z',
+      stroke: 'M 0,60 Q 70,68 130,48 T 240,36 T 340,22 T 430,32 T 500,40',
       peakX: 340,
-      peakY: 26,
+      peakY: 22,
       label: 'Diurnal Sol-Air Peak (13:00)',
     },
     '1M': {
-      d: 'M 0,70 Q 80,75 140,56 T 250,44 T 350,30 T 440,38 T 500,48 L 500,90 L 0,90 Z',
-      stroke: 'M 0,70 Q 80,75 140,56 T 250,44 T 350,30 T 440,38 T 500,48',
+      d: 'M 0,64 Q 80,70 140,52 T 250,40 T 350,26 T 440,34 T 500,44 L 500,80 L 0,80 Z',
+      stroke: 'M 0,64 Q 80,70 140,52 T 250,40 T 350,26 T 440,34 T 500,44',
       peakX: 350,
-      peakY: 30,
-      label: 'Monthly Deficit Plateau',
+      peakY: 26,
+      label: 'Monthly Mean Demand',
     },
     '1Y': {
-      d: 'M 0,75 Q 90,80 150,62 T 260,48 T 360,34 T 450,42 T 500,52 L 500,90 L 0,90 Z',
-      stroke: 'M 0,75 Q 90,80 150,62 T 260,48 T 360,34 T 450,42 T 500,52',
+      d: 'M 0,68 Q 90,74 150,56 T 260,44 T 360,30 T 450,38 T 500,48 L 500,80 L 0,80 Z',
+      stroke: 'M 0,68 Q 90,74 150,56 T 260,44 T 360,30 T 450,38 T 500,48',
       peakX: 360,
-      peakY: 34,
+      peakY: 30,
       label: 'Winter Solstice Minimum',
     },
     ALL: {
-      d: 'M 0,62 Q 60,66 120,48 T 230,38 T 330,24 T 420,34 T 500,42 L 500,90 L 0,90 Z',
-      stroke: 'M 0,62 Q 60,66 120,48 T 230,38 T 330,24 T 420,34 T 500,42',
+      d: 'M 0,58 Q 60,62 120,44 T 230,34 T 330,20 T 420,30 T 500,38 L 500,80 L 0,80 Z',
+      stroke: 'M 0,58 Q 60,62 120,44 T 230,34 T 330,20 T 420,30 T 500,38',
       peakX: 330,
-      peakY: 24,
-      label: 'Annual Mean Exposure',
+      peakY: 20,
+      label: 'Multi-Year Baseline',
     },
   };
   const activeCurve = curvePaths[timeFilter] || curvePaths['1W'];
+
+  // Top evaluated sites for altitude distribution
+  const topElevationSites = evaluatedSites.slice(0, 5);
 
   return (
     <div className="dashboard-container">
@@ -212,54 +210,65 @@ export default function DashboardPage() {
         <div className="banner-left">
           <div className="banner-pulse-dot" />
           <div className="banner-text-group">
-            <span className="banner-title">
-              {estate} Operational Sector — High-Altitude Thermal Telemetry
-            </span>
+            <span className="banner-title">{estate} Frontier Sector Telemetry</span>
             <span className="banner-subtitle">
-              Active Monitoring: {summary.evaluated_sites} of {summary.total_sites} Outposts Evaluated • {aggs.total_occupants} Personnel Garrisoned
+              {summary.evaluated_sites} of {summary.total_sites} Outposts Evaluated • {aggs.total_occupants} Garrison Personnel
             </span>
           </div>
         </div>
 
         <div className="banner-right">
-          <div className="banner-badge-group">
-            <div className="banner-stat-chip">
-              <Thermometer size={13} className="banner-chip-icon cold" />
-              <span>Frontier Avg Min: <strong>{aggs.avg_t_min_c ?? -6.02} °C</strong></span>
-            </div>
-            <div className="banner-stat-chip">
-              <Fuel size={13} className="banner-chip-icon fuel" />
-              <span>Delivered Fuel: <strong>{(aggs.annual_fuel_litres || 0).toLocaleString()} L/yr</strong></span>
-            </div>
-            <button
-              type="button"
-              className="banner-refresh-btn"
-              onClick={fetchSummary}
-              title="Refresh live telemetry stream"
-            >
-              <RefreshCw size={13} />
-              <span>Sync</span>
-            </button>
+          <div className="banner-stat-chip">
+            <Thermometer size={13} className="banner-chip-icon cold" />
+            <span>Sector Avg Min: <strong>{aggs.avg_t_min_c ?? -6.02} °C</strong></span>
           </div>
+          <div className="banner-stat-chip">
+            <Fuel size={13} className="banner-chip-icon fuel" />
+            <span>Delivered Fuel: <strong>{(aggs.annual_fuel_litres || 0).toLocaleString()} L/yr</strong></span>
+          </div>
+          <button
+            type="button"
+            className="banner-refresh-btn"
+            onClick={fetchSummary}
+            title="Sync telemetry stream"
+          >
+            <RefreshCw size={13} />
+            <span>Sync</span>
+          </button>
         </div>
       </div>
 
-      {/* ── 1. Top Section: 4 Rich Diagnostic Metric Cards ───────────────── */}
+      {/* ── 1. Top Section: 4 Metric Cards ──────────────────────────────── */}
       <div className="metrics-grid">
-        {/* Metric Card 1: Estate Kerosene Cost Exposure */}
+        {/* Metric Card 1: Estate Kerosene Exposure */}
         <div className="metric-card metric-card-featured">
-          <div className="metric-card-top">
-            <div className="metric-header-group">
-              <span className="metric-category-label">ESTATE KEROSENE EXPOSURE</span>
-              <div className="metric-headline-row">
-                <h2 className="metric-headline-val">₹ {costCr} Cr</h2>
-                <span className="metric-sub-badge">₹{costLakhs} L Total</span>
-              </div>
-              <span className="metric-caption-text">
-                Annual high-altitude delivered fuel burden across {summary.evaluated_sites} posts
-              </span>
+          <div className="metric-card-top-bar">
+            <span className="metric-eyebrow">ESTATE KEROSENE EXPOSURE</span>
+          </div>
+
+          <div className="metric-headline-wrapper">
+            <span className="metric-primary-value">₹ {costCr} Cr</span>
+            <span className="metric-pill-sub">₹{costLakhs}L Total</span>
+          </div>
+
+          <span className="metric-desc">
+            Delivered annual logistics burden across {summary.evaluated_sites} monitored outposts
+          </span>
+
+          <div className="cost-split-container">
+            <div className="cost-split-bar">
+              <div className="split-fill procurement" style={{ width: '35%' }} />
+              <div className="split-fill airlift" style={{ width: '65%' }} />
             </div>
-            <div className="segmented-control">
+            <div className="cost-split-labels">
+              <span>Base Fuel: ₹{fuelProcurementLakhs}L (35%)</span>
+              <span>Airlift Supply: ₹{logisticsAirliftLakhs}L (65%)</span>
+            </div>
+          </div>
+
+          <div className="curve-header-row">
+            <span className="curve-header-title">Diurnal Sol-Air Curve</span>
+            <div className="segmented-control compact">
               {['1W', '1M', '1Y', 'ALL'].map((tf) => (
                 <button
                   key={tf}
@@ -273,30 +282,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Fuel Procurement vs Logistics Airlift Split Bar */}
-          <div className="cost-breakdown-strip">
-            <div className="cost-breakdown-bar">
-              <div className="cost-segment procurement" style={{ width: '35%' }} title="Direct Fuel Cost (35%)" />
-              <div className="cost-segment airlift" style={{ width: '65%' }} title="Helicopter & High-Pass Logistics (65%)" />
-            </div>
-            <div className="cost-legend-row">
-              <span className="cost-legend-item">
-                <span className="legend-dot procurement" />
-                Base Fuel: ₹{fuelProcurementLakhs} L (35%)
-              </span>
-              <span className="cost-legend-item">
-                <span className="legend-dot airlift" />
-                Airlift Logistics: ₹{logisticsAirliftLakhs} L (65%)
-              </span>
-            </div>
-          </div>
-
-          {/* Sol-Air Thermal Demand Curve */}
-          <div className="diurnal-curve-box">
-            <svg viewBox="0 0 500 90" className="diurnal-curve-svg" preserveAspectRatio="none">
+          <div className="diurnal-curve-container">
+            <svg viewBox="0 0 500 80" className="diurnal-curve-svg" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="thermalCurveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1E40AF" stopOpacity="0.14" />
+                  <stop offset="0%" stopColor="#1E40AF" stopOpacity="0.12" />
                   <stop offset="100%" stopColor="#1E40AF" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
@@ -311,224 +301,200 @@ export default function DashboardPage() {
               <circle
                 cx={activeCurve.peakX}
                 cy={activeCurve.peakY}
-                r="4.5"
+                r="4"
                 fill="#1E40AF"
                 stroke="#FFFFFF"
                 strokeWidth="2"
               />
             </svg>
-            <div className="curve-annotation">
-              <span className="annotation-dot" />
-              <span className="annotation-label">{activeCurve.label}</span>
+            <div className="curve-badge">
+              <span className="curve-badge-dot" />
+              <span>{activeCurve.label}</span>
             </div>
           </div>
         </div>
 
-        {/* Metric Card 2: Extreme Sub-Zero Peak */}
+        {/* Metric Card 2: Extreme Sub-Zero Minimum */}
         <div className="metric-card">
-          <div className="metric-card-top">
-            <div className="metric-header-group">
-              <span className="metric-category-label">EXTREME COLD PEAK</span>
-              <h2 className="metric-headline-val">-28.4 °C</h2>
-              <span className="metric-caption-text">Siachen Base Camp winter minimum</span>
+          <div className="metric-card-header">
+            <div className="metric-title-group">
+              <span className="metric-eyebrow">EXTREME COLD MINIMUM</span>
+              <span className="metric-primary-value">-28.4 °C</span>
+              <span className="metric-desc">Siachen Base Camp winter minimum</span>
             </div>
-            <div className="metric-icon-wrap cold">
+            <div className="metric-icon cold">
               <Snowflake size={18} />
             </div>
           </div>
 
-          {/* Sub-Zero Spread Meter */}
-          <div className="sector-temp-spread">
-            <div className="spread-label-row">
-              <span className="spread-sub-label">Frontier Temperature Range</span>
-              <span className="spread-range-val">-28.4°C to -5.1°C</span>
+          <div className="mini-telemetry-list">
+            <div className="mini-telemetry-row">
+              <span className="mini-telemetry-station">Siachen Glacier</span>
+              <span className="mini-telemetry-temp cold-critical">-28.4 °C</span>
             </div>
-            <div className="temp-gradient-bar">
-              <span className="marker-pin pin-siachen" title="Siachen -28.4°C" />
-              <span className="marker-pin pin-pangong" title="Pangong -13.9°C" />
-              <span className="marker-pin pin-kargil" title="Kargil -7.4°C" />
+            <div className="mini-telemetry-row">
+              <span className="mini-telemetry-station">Pangong Tso North</span>
+              <span className="mini-telemetry-temp cold-elevated">-14.0 °C</span>
             </div>
-            <div className="spread-markers-legend">
-              <span>Siachen (-28.4°)</span>
-              <span>Pangong (-14.0°)</span>
-              <span>Kargil (-7.4°)</span>
+            <div className="mini-telemetry-row">
+              <span className="mini-telemetry-station">Kargil Ridge Post</span>
+              <span className="mini-telemetry-temp cold-moderate">-7.4 °C</span>
             </div>
           </div>
 
           <div className="metric-card-footer">
-            <span className="status-badge status-badge-cold">
-              Sub-Zero Baseline
-            </span>
-            <span className="metric-trend-info">Sector Min: -34.2 °C</span>
+            <span className="status-pill status-pill-cold">Sub-Zero Baseline</span>
+            <span className="footer-meta">Avg Min: {aggs.avg_t_min_c ?? -6.02} °C</span>
           </div>
         </div>
 
-        {/* Metric Card 3: Deficit Outposts Count & Risk Classification */}
+        {/* Metric Card 3: Deficit Classification */}
         <div className="metric-card">
-          <div className="metric-card-top">
-            <div className="metric-header-group">
-              <span className="metric-category-label">HIGH DEFICIT POSTS</span>
-              <h2 className="metric-headline-val">{criticalCount} / {summary.evaluated_sites} Critical</h2>
-              <span className="metric-caption-text">Outposts with &gt;1,800 annual hours &lt; 18 °C</span>
+          <div className="metric-card-header">
+            <div className="metric-title-group">
+              <span className="metric-eyebrow">DEFICIT CLASSIFICATION</span>
+              <span className="metric-primary-value">{criticalCount} / {summary.evaluated_sites} Posts</span>
+              <span className="metric-desc">&gt;1,800 annual hours below 18 °C</span>
             </div>
-            <div className="metric-icon-wrap alert">
+            <div className="metric-icon alert">
               <ShieldAlert size={18} />
             </div>
           </div>
 
-          {/* Deficit Distribution Segmented Bar */}
-          <div className="deficit-distribution-box">
-            <div className="deficit-progress-bar">
+          <div className="deficit-breakdown-box">
+            <div className="deficit-bar-track">
               <div
-                className="deficit-seg critical"
+                className="deficit-bar-segment seg-critical"
                 style={{ width: `${(criticalCount / summary.evaluated_sites) * 100}%` }}
-                title={`${criticalCount} Critical Outposts (< -10°C)`}
               />
               <div
-                className="deficit-seg elevated"
+                className="deficit-bar-segment seg-elevated"
                 style={{ width: `${(elevatedCount / summary.evaluated_sites) * 100}%` }}
-                title={`${elevatedCount} Elevated Deficit Outposts`}
               />
               <div
-                className="deficit-seg monitored"
+                className="deficit-bar-segment seg-monitored"
                 style={{ width: `${(monitoredCount / summary.evaluated_sites) * 100}%` }}
-                title={`${monitoredCount} Monitored Outposts`}
               />
             </div>
-            <div className="deficit-counts-row">
-              <span className="deficit-count-pill critical">
-                <span className="dot" /> {criticalCount} Critical
-              </span>
-              <span className="deficit-count-pill elevated">
-                <span className="dot" /> {elevatedCount} Elevated
-              </span>
-              <span className="deficit-count-pill monitored">
-                <span className="dot" /> {monitoredCount} Monitored
-              </span>
+            <div className="deficit-legend-row">
+              <span className="deficit-legend-tag tag-critical">{criticalCount} Critical</span>
+              <span className="deficit-legend-tag tag-elevated">{elevatedCount} Elevated</span>
+              <span className="deficit-legend-tag tag-monitored">{monitoredCount} Monitored</span>
             </div>
           </div>
 
           <div className="metric-card-footer">
-            <span className="status-badge status-badge-solar">
-              Immediate Priority
-            </span>
-            <span className="metric-trend-info">{aggs.total_occupants} Troops Exposed</span>
+            <span className="status-pill status-pill-alert">Immediate Action</span>
+            <span className="footer-meta">{aggs.total_occupants} Personnel</span>
           </div>
         </div>
 
-        {/* Metric Card 4: Decarbonization & Avoided Emissions */}
+        {/* Metric Card 4: Carbon Avoidance */}
         <div className="metric-card">
-          <div className="metric-card-top">
-            <div className="metric-header-group">
-              <span className="metric-category-label">CARBON AVOIDANCE</span>
-              <h2 className="metric-headline-val">{aggs.annual_co2_tonnes || 8.7} t CO₂</h2>
-              <span className="metric-caption-text">Annual emission offset via passive solar</span>
+          <div className="metric-card-header">
+            <div className="metric-title-group">
+              <span className="metric-eyebrow">CARBON AVOIDANCE</span>
+              <span className="metric-primary-value">{aggs.annual_co2_tonnes || 8.7} t CO₂</span>
+              <span className="metric-desc">Annual emission offset via passive solar</span>
             </div>
-            <div className="metric-icon-wrap comfort">
+            <div className="metric-icon comfort">
               <Leaf size={18} />
             </div>
           </div>
 
-          {/* Operational Impact Equivalents */}
-          <div className="operational-impact-box">
-            <div className="impact-stat-item">
-              <span className="impact-stat-num">~508</span>
-              <span className="impact-stat-desc">Kerosene Cans Saved / yr</span>
+          <div className="impact-duo-box">
+            <div className="impact-duo-cell">
+              <span className="impact-duo-val">~508 Cans</span>
+              <span className="impact-duo-label">Kerosene offset / yr</span>
             </div>
-            <div className="impact-divider" />
-            <div className="impact-stat-item">
-              <span className="impact-stat-num">38</span>
-              <span className="impact-stat-desc">Helicopter Sorties Avoided</span>
+            <div className="impact-duo-divider" />
+            <div className="impact-duo-cell">
+              <span className="impact-duo-val">38 Sorties</span>
+              <span className="impact-duo-label">Helicopter flights saved</span>
             </div>
           </div>
 
           <div className="metric-card-footer">
-            <span className="status-badge status-badge-comfort">
-              ISO 52016 Verified
-            </span>
-            <span className="metric-trend-info">72% Solar Fraction Target</span>
+            <span className="status-pill status-pill-comfort">ISO 52016 Verified</span>
+            <span className="footer-meta">72% Solar Target</span>
           </div>
         </div>
       </div>
 
-      {/* ── 2. Middle Section: Sector Breakdown & Mountain Passes Monitor ── */}
+      {/* ── 2. Middle Section: Sector Breakdown & Mountain Passes ─────────── */}
       <div className="dashboard-middle-grid">
         {/* Left: Sector Thermal & Elevation Exposure */}
         <div className="sector-analytics-card">
           <div className="analytics-card-header">
             <div>
               <div className="card-kicker">SECTOR BREAKDOWN</div>
-              <h3 className="analytics-card-title">Frontier Sectors & Altitude Deficit Distribution</h3>
+              <h3 className="analytics-card-title">Frontier Sectors & Altitude Profile</h3>
               <p className="analytics-card-subtitle">
                 Logistics fuel burden and night temperature profiles across Leh and Kargil high-altitude sectors.
               </p>
             </div>
-            <div className="sector-tag-group">
-              <span className="sector-pill-tag">Leh Sector: 13 Sites</span>
-              <span className="sector-pill-tag">Kargil Sector: 6 Sites</span>
-            </div>
           </div>
 
           <div className="sector-cards-row">
-            {summary.district_exposure && summary.district_exposure
-              .filter((dist) => dist.annual_fuel_litres > 0 || dist.district === 'Leh' || dist.district === 'Kargil')
-              .map((dist) => (
-              <div key={dist.district} className="sector-summary-panel">
-                <div className="sector-panel-top">
-                  <div>
-                    <span className="sector-name">{dist.district} Frontier Sector</span>
-                    <span className="sector-count">{dist.sites_count} Monitored Outposts</span>
-                  </div>
-                  <div className="sector-badge">
-                    {dist.district === 'Leh' ? 'Eastern Ladakh' : 'Western Ladakh'}
-                  </div>
-                </div>
+            {summary.district_exposure &&
+              summary.district_exposure
+                .filter((dist) => dist.annual_fuel_litres > 0 || dist.district === 'Leh' || dist.district === 'Kargil')
+                .map((dist) => (
+                  <div key={dist.district} className="sector-summary-panel">
+                    <div className="sector-panel-top">
+                      <div>
+                        <span className="sector-name">{dist.district} Frontier Sector</span>
+                        <span className="sector-count">{dist.sites_count} Monitored Outposts</span>
+                      </div>
+                      <div className="sector-badge">
+                        {dist.district === 'Leh' ? 'Eastern Ladakh' : 'Western Ladakh'}
+                      </div>
+                    </div>
 
-                <div className="sector-metrics-grid">
-                  <div className="sector-metric">
-                    <span className="sm-label">ANNUAL KEROSENE</span>
-                    <span className="sm-val">{dist.annual_fuel_litres.toLocaleString()} L</span>
-                  </div>
-                  <div className="sector-metric">
-                    <span className="sm-label">DELIVERED COST</span>
-                    <span className="sm-val">₹ {(dist.annual_cost_inr / 100000).toFixed(1)} Lakhs</span>
-                  </div>
-                  <div className="sector-metric">
-                    <span className="sm-label">AIRLIFT EXPENSE</span>
-                    <span className="sm-val">₹ {((dist.annual_cost_inr * 0.65) / 100000).toFixed(1)} Lakhs</span>
-                  </div>
-                  <div className="sector-metric">
-                    <span className="sm-label">AVG ELEVATION</span>
-                    <span className="sm-val">{dist.district === 'Leh' ? '4,280 m' : '3,280 m'}</span>
-                  </div>
-                </div>
+                    <div className="sector-metrics-grid">
+                      <div className="sector-metric">
+                        <span className="sm-label">ANNUAL FUEL</span>
+                        <span className="sm-val">{dist.annual_fuel_litres.toLocaleString()} L</span>
+                      </div>
+                      <div className="sector-metric">
+                        <span className="sm-label">DELIVERED COST</span>
+                        <span className="sm-val">₹ {(dist.annual_cost_inr / 100000).toFixed(1)}L</span>
+                      </div>
+                      <div className="sector-metric">
+                        <span className="sm-label">AIRLIFT EXPENSE</span>
+                        <span className="sm-val">₹ {((dist.annual_cost_inr * 0.65) / 100000).toFixed(1)}L</span>
+                      </div>
+                      <div className="sector-metric">
+                        <span className="sm-label">AVG ELEVATION</span>
+                        <span className="sm-val">{dist.district === 'Leh' ? '4,280 m' : '3,280 m'}</span>
+                      </div>
+                    </div>
 
-                {/* Progress ratio */}
-                <div className="sector-fuel-bar">
-                  <div
-                    className="sector-fuel-fill"
-                    style={{
-                      width: `${(dist.annual_fuel_litres / (aggs.annual_fuel_litres || 1)) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+                    <div className="sector-fuel-bar">
+                      <div
+                        className="sector-fuel-fill"
+                        style={{
+                          width: `${(dist.annual_fuel_litres / (aggs.annual_fuel_litres || 1)) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
           </div>
 
-          {/* High-Altitude Elevation Bar Gauge */}
+          {/* Elevation ranking */}
           <div className="elevation-ranking-container">
             <div className="elevation-header">
-              <span className="elevation-title">Representative High-Altitude Forward Outposts (Elevation vs Night Min)</span>
+              <span className="elevation-title">Representative High-Altitude Outposts (Elevation vs Night Min)</span>
               <span className="elevation-note">ISO 52016 Sol-Air Evaluated</span>
             </div>
             <div className="elevation-bars-list">
-              {evaluatedSites.slice(0, 5).map((site) => (
+              {topElevationSites.map((site) => (
                 <div
                   key={site.id}
                   className={`elevation-bar-row ${selectedSiteId === site.id ? 'selected' : ''}`}
                   onClick={() => setSelectedSiteId(site.id)}
-                  title="Click to inspect outpost thermal profile"
+                  title="Click to preview outpost in inspector"
                 >
                   <div className="elevation-site-name">
                     <span className="name">{site.name}</span>
@@ -551,14 +517,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right: Strategic Mountain Passes & Weather Monitor */}
+        {/* Right: Strategic Mountain Passes */}
         <div className="passes-monitor-card">
           <div className="passes-card-header">
             <div>
               <div className="card-kicker">STRATEGIC AXIS MONITOR</div>
               <h3 className="passes-card-title">High-Altitude Mountain Passes</h3>
               <p className="passes-card-subtitle">
-                Corridor pass weather determines resupply sortie viability and fuel storage contingency.
+                Pass conditions determine resupply sortie viability and fuel storage contingency.
               </p>
             </div>
             <div className="pass-status-indicator">
@@ -601,14 +567,14 @@ export default function DashboardPage() {
 
           <div className="pass-logistics-footnote">
             <AlertTriangle size={13} className="alert-icon" />
-            <span>Pass snow blockages can delay fuel sorties by up to 14 days; passive solar retrofits provide autonomous thermal survival.</span>
+            <span>Pass snow blockages restrict fuel sorties by up to 14 days; passive solar retrofits provide autonomous thermal survival.</span>
           </div>
         </div>
       </div>
 
       {/* ── 3. Lower Section: Telemetry Table + Interactive Inspector ─────── */}
       <div className="dashboard-lower-grid">
-        {/* Left Side: Forward Posts Diagnostics Table */}
+        {/* Left: Forward Post Telemetry Table */}
         <div className="telemetry-table-card">
           <div className="table-card-header">
             <div>
@@ -619,13 +585,12 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Filter Tabs & Search Bar */}
             <div className="table-controls-row">
               <div className="table-search-box">
                 <Search size={14} className="search-icon" />
                 <input
                   type="text"
-                  placeholder="Filter posts or sector..."
+                  placeholder="Search by outpost or sector..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="table-search-input"
@@ -669,12 +634,12 @@ export default function DashboardPage() {
             <table className="spacious-data-table">
               <thead>
                 <tr>
-                  <th>POST & SECTOR</th>
-                  <th>ELEVATION</th>
-                  <th>GARRISON</th>
-                  <th>NIGHT MIN</th>
-                  <th>ANNUAL DEFICIT</th>
-                  <th>KEROSENE LOAD</th>
+                  <th style={{ width: '28%' }}>POST & SECTOR</th>
+                  <th style={{ width: '13%' }}>ELEVATION</th>
+                  <th style={{ width: '13%' }}>GARRISON</th>
+                  <th style={{ width: '12%' }}>NIGHT MIN</th>
+                  <th style={{ width: '16%' }}>ANNUAL DEFICIT</th>
+                  <th style={{ width: '18%' }}>KEROSENE LOAD</th>
                   <th style={{ textAlign: 'center' }}>ACTION</th>
                 </tr>
               </thead>
@@ -774,7 +739,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right Side: Interactive Post Thermal Inspector & Retrofit Simulator */}
+        {/* Right: Interactive Post Inspector */}
         <div className="post-inspector-card">
           <div className="inspector-card-header">
             <div className="inspector-tag-row">
@@ -786,14 +751,13 @@ export default function DashboardPage() {
             </h3>
             <div className="inspector-meta-row">
               <span>{activeSelectedSite?.district} Sector</span>
-              <span>•</span>
-              <span>{activeSelectedSite?.altitude_m || 4250} m Elevation</span>
-              <span>•</span>
-              <span>{activeSelectedSite?.occupants || 8} Garrison</span>
+              <span className="meta-bullet">•</span>
+              <span>{activeSelectedSite?.altitude_m || 4250} m ASL</span>
+              <span className="meta-bullet">•</span>
+              <span>{activeSelectedSite?.occupants || 8} Personnel</span>
             </div>
           </div>
 
-          {/* Simulation Comparison Matrix: Baseline vs Retrofit */}
           <div className="simulation-matrix">
             <div className="matrix-column baseline">
               <div className="matrix-col-header">
@@ -814,7 +778,7 @@ export default function DashboardPage() {
 
             <div className="matrix-column retrofit">
               <div className="matrix-col-header">
-                <span className="matrix-col-label">THERMA PASSIVE RETROFIT</span>
+                <span className="matrix-col-label">PASSIVE RETROFIT</span>
                 <span className="matrix-badge passive-opt">Trombe + Aerogel</span>
               </div>
               <div className="matrix-stat-group">
@@ -825,12 +789,11 @@ export default function DashboardPage() {
               <div className="matrix-stat-group">
                 <span className="matrix-stat-title">Projected Kerosene</span>
                 <span className="matrix-stat-val fuel-saved">{projectedFuel} L / yr</span>
-                <span className="matrix-stat-sub">-72% fuel burn saved</span>
+                <span className="matrix-stat-sub">-72% fuel saved</span>
               </div>
             </div>
           </div>
 
-          {/* Recommended Architectural Envelope Specs */}
           <div className="envelope-spec-box">
             <div className="envelope-spec-title">
               <Layers size={13} />
@@ -839,31 +802,30 @@ export default function DashboardPage() {
             <div className="envelope-spec-items">
               <div className="spec-item">
                 <span className="spec-label">Glazing:</span>
-                <span className="spec-val">Double Low-E Trombe Wall (180° South)</span>
+                <span className="spec-val">Double Low-E Trombe (180° South)</span>
               </div>
               <div className="spec-item">
                 <span className="spec-label">Thermal Mass:</span>
-                <span className="spec-val">400mm Granitic Stone Cavity</span>
+                <span className="spec-val">400mm Granitic Stone</span>
               </div>
               <div className="spec-item">
                 <span className="spec-label">Insulation:</span>
-                <span className="spec-val">100mm Aerogel Blanket (R: 6.8 m²K/W)</span>
+                <span className="spec-val">100mm Aerogel Blanket (R: 6.8)</span>
               </div>
               <div className="spec-item">
                 <span className="spec-label">Solar Fraction:</span>
-                <span className="spec-val">68% Sol-Air Heat Retention</span>
+                <span className="spec-val">68% Sol-Air Gain</span>
               </div>
             </div>
           </div>
 
-          {/* Primary Action Button */}
           <div className="inspector-action-row">
             <button
               type="button"
               className="btn-primary inspector-cta-btn"
               onClick={() => navigate(activeSelectedSite ? `/sites/${activeSelectedSite.id}` : '/sites')}
             >
-              <span>Launch Studio Canvas for this Post</span>
+              <span>Launch Studio Canvas</span>
               <ArrowRight size={14} />
             </button>
           </div>
