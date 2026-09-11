@@ -61,11 +61,20 @@ export default function MaterialSuggestionPanel({
     };
 
     try {
-      const resp = await fetch('http://127.0.0.1:8000/suggest-materials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      let resp;
+      try {
+        resp = await fetch('http://localhost:8000/api/suggest-materials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch {
+        resp = await fetch('http://127.0.0.1:8000/suggest-materials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (!resp.ok) {
         const errText = await resp.text();

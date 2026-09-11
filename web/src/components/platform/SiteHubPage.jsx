@@ -206,6 +206,32 @@ export default function SiteHubPage() {
               </div>
             </div>
 
+            {/* Dominant Thermal Bottleneck Callout */}
+            {(() => {
+              const entries = Object.entries(ev.heat_loss_breakdown_pct || {});
+              const dominant = entries.length > 0
+                ? entries.reduce((max, curr) => curr[1] > max[1] ? curr : max, ['walls', 0])
+                : ['walls', 0];
+              const dominantLabels = {
+                walls: 'Exterior Wall Conduction',
+                roof: 'Roof Thermal Transmission',
+                glazing: 'Window / Glazing Conduction',
+                sky_radiation: 'Nocturnal Sky Longwave Radiation',
+                infiltration: 'Infiltration Air Leakage',
+              };
+              return (
+                <div className="dominant-bottleneck-callout">
+                  <div className="bottleneck-tag-row">
+                    <span className="bottleneck-tag">PRIMARY THERMAL BOTTLENECK</span>
+                    <span className="bottleneck-pct mono font-bold">{dominant[1]}% of total loss</span>
+                  </div>
+                  <p className="bottleneck-statement">
+                    <strong>{dominantLabels[dominant[0]] || dominant[0]}</strong> is the primary driver of nocturnal heat loss at {site.name}. Prioritizing retrofits on this surface yields the highest thermal gain per rupee invested.
+                  </p>
+                </div>
+              );
+            })()}
+
             {/* Heat Loss Breakdown Bar */}
             <div className="heat-loss-section">
               <span className="section-subtitle">Heat Loss Breakdown (% of envelope losses)</span>

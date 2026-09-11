@@ -1,410 +1,1598 @@
-/* DashboardPage.css — Alpine Precision Engineering Dashboard */
+/* =====================================================================
+   THERMA — SCIENTIFIC THERMAL ENGINEERING CONSOLE (DashboardPage.css)
+   DRDO SIH PS 26051 | High-Altitude Precision Architecture
+   Clean, Disciplined, Human-Engineered Scientific Instrumentation Layout
+   ===================================================================== */
 
-.dashboard-container {
+.dashboard-console-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: 20px;
   width: 100%;
+  padding-bottom: 40px;
+  color: var(--text-primary, #0f172a);
 }
 
-/* ── 1. Top Section: Metrics Grid ────────────────────────────────────────── */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr;
-  gap: var(--card-gap);
-  align-items: stretch;
+/* ── Universal Utility & Telemetry Classes ────────────────────────────────── */
+.dashboard-console-wrapper .mono-num {
+  font-family: var(--font-mono, monospace);
+  font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
-@media (max-width: 1300px) {
-  .metrics-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+.dashboard-console-wrapper .cold-text {
+  color: #0284c7 !important;
 }
 
-@media (max-width: 768px) {
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
+.dashboard-console-wrapper .highlight-text {
+  color: #d97706 !important;
 }
 
-/* Base Metric Card */
-.metric-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 24px 26px;
+.dashboard-console-wrapper .loss-text {
+  color: #dc2626 !important;
+}
+
+.dashboard-console-wrapper .solar-text {
+  color: #c2410c !important;
+}
+
+.dashboard-console-wrapper .sky-text {
+  color: #0369a1 !important;
+}
+
+.dashboard-console-wrapper .pass-text {
+  color: #15803d !important;
+}
+
+.dashboard-console-wrapper .warn-text {
+  color: #b45309 !important;
+}
+
+.dashboard-console-wrapper .crit-text {
+  color: #dc2626 !important;
+}
+
+/* ── 1. Page Header & Operational Sector Brief ────────────────────────────── */
+.dashboard-page-header {
+  background-color: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 18px 24px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 16px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
-.metric-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
-}
-
-.metric-card-featured {
-  grid-column: span 1;
-  background-color: var(--bg-card);
-}
-
-.metric-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.metric-header-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.metric-category-label {
-  font-family: var(--font-heading);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.metric-headline-val {
-  font-family: var(--font-heading);
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.025em;
-  margin: 2px 0 0;
-  line-height: 1.1;
-}
-
-.metric-caption-text {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.4;
-  margin-top: 2px;
-}
-
-.metric-icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
+.header-meta-strip {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.metric-icon-wrap.cold {
-  background-color: var(--cold-soft);
-  color: var(--cold);
-}
-
-.metric-icon-wrap.alert {
-  background-color: var(--solar-soft);
-  color: var(--solar);
-}
-
-.metric-icon-wrap.comfort {
-  background-color: var(--comfort-soft);
-  color: var(--comfort);
-}
-
-.metric-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-subtle);
   gap: 8px;
-}
-
-.metric-trend-info {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-/* Diurnal Thermal Load Curve */
-.diurnal-curve-box {
-  position: relative;
-  height: 80px;
-  margin-top: 8px;
-}
-
-.diurnal-curve-svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.curve-annotation {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-muted);
-}
-
-.annotation-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #1E40AF;
-}
-
-/* ── 2. Lower Section: Telemetry Table + Studio Action Card ─────────────── */
-.dashboard-lower-grid {
-  display: grid;
-  grid-template-columns: 2.2fr 1fr;
-  gap: var(--card-gap);
-  align-items: stretch;
-}
-
-@media (max-width: 1200px) {
-  .dashboard-lower-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Telemetry Table Card */
-.telemetry-table-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 28px 30px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.table-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  color: var(--text-secondary, #475569);
   flex-wrap: wrap;
 }
 
-.table-card-title {
-  font-family: var(--font-heading);
-  font-size: 18px;
+.estate-tag {
+  color: var(--brand-blue, #1e40af);
   font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 4px;
 }
 
-.table-card-subtitle {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.5;
+.spec-tag {
+  color: var(--text-muted, #94a3b8);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
 }
 
-.table-viewport {
-  overflow-x: auto;
+.dot-divider {
+  color: var(--border-strong, #cbd5e1);
 }
 
-.spacious-data-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  text-align: left;
-}
-
-.spacious-data-table th {
-  padding: 12px 18px;
-  font-family: var(--font-heading);
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border);
-  background-color: transparent;
-  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 4px;
 }
 
-.spacious-data-table td {
-  padding: 16px 18px;
+.status-indicator.online {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+  animation: pulse-dot 2.2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.header-main-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.dashboard-page-title {
+  font-family: var(--font-heading, inherit);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.dashboard-page-subtitle {
   font-size: 13.5px;
-  border-bottom: 1px solid var(--border-subtle);
-  vertical-align: middle;
-  color: var(--text-primary);
+  color: var(--text-secondary, #475569);
+  margin: 0;
+  line-height: 1.45;
+  max-width: 680px;
 }
 
-.clickable-row {
+.header-location-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 280px;
+}
+
+.selector-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+  letter-spacing: 0.04em;
+}
+
+.selector-icon {
+  color: #0284c7;
+}
+
+.location-select {
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border-strong, #cbd5e1);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  outline: none;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
-.clickable-row:hover {
-  background-color: var(--bg-card-hover);
+.location-select:hover,
+.location-select:focus {
+  border-color: var(--brand-blue, #1e40af);
+  background-color: #ffffff;
 }
 
-.post-cell {
+/* Simulation Toolbar */
+.simulation-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border, #e2e8f0);
+  flex-wrap: wrap;
+}
+
+.toolbar-playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.toolbar-btn.primary {
+  background-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.toolbar-btn.primary:hover {
+  background-color: #1e40af;
+}
+
+.toolbar-btn.primary.running {
+  background-color: #dc2626;
+}
+
+.toolbar-btn.secondary {
+  background-color: var(--surface-2, #f1f5f9);
+  color: var(--text-secondary, #475569);
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.toolbar-btn.secondary:hover {
+  background-color: #ffffff;
+  color: var(--text-primary, #0f172a);
+  border-color: var(--border-strong, #cbd5e1);
+}
+
+.speed-selector {
+  display: inline-flex;
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.speed-option {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.speed-option.active {
+  background-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.toolbar-scrubber {
+  flex: 1;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.time-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.time-slider {
+  width: 100%;
+  accent-color: #1d4ed8;
+  cursor: pointer;
+  height: 5px;
+  background-color: #e2e8f0;
+  border-radius: 3px;
+}
+
+.time-tick-marks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-muted, #94a3b8);
+}
+
+.toolbar-extras {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.mode-pill {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #475569);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-pill.active {
+  background-color: #ffffff;
+  color: var(--text-primary, #0f172a);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.auto-rotation-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  cursor: pointer;
+}
+
+.auto-rotation-toggle input {
+  accent-color: #1d4ed8;
+}
+
+/* ── 2. Compact System KPI Metric Strip ──────────────────────────────────── */
+.dashboard-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.kpi-card {
+  background-color: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.kpi-card:hover {
+  border-color: var(--border-strong, #cbd5e1);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  background-color: #fafbfd;
+}
+
+.kpi-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kpi-number {
+  font-family: var(--font-mono, monospace);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  line-height: 1.2;
+}
+
+.kpi-unit {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+}
+
+.kpi-caption {
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: auto;
+}
+
+.status-badge-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.status-pill {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+}
+
+.status-pill.acceptable,
+.status-pill.pass {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.status-pill.warning {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.status-pill.critical,
+.status-pill.loss {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.status-pill.mini {
+  font-size: 8.5px;
+  padding: 1px 4px;
+}
+
+/* ── Generic Panel Container Styling ──────────────────────────────────────── */
+.dashboard-panel {
+  background-color: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  padding-bottom: 10px;
+}
+
+.panel-title {
+  font-family: var(--font-heading, inherit);
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.panel-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary, #475569);
+  margin: 2px 0 0 0;
+}
+
+/* Two Column Grid */
+.dashboard-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── 3. Main Hero: 24-Hour Diurnal Thermal Response ───────────────────────── */
+.chart-series-toggles {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.toggle-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-secondary, #475569);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-item input {
+  accent-color: #1d4ed8;
+}
+
+.color-indicator {
+  width: 12px;
+  height: 3px;
+  border-radius: 1px;
+}
+
+.outdoor-dot { background-color: #64748b; }
+.indoor-dot { background-color: #ea580c; }
+.operative-dot { background-color: #d97706; }
+.mrt-dot { background-color: #7c3aed; }
+.sky-dot { background-color: #0369a1; }
+
+.comfort-range-indicator {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  background-color: #ecfdf5;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #a7f3d0;
+}
+
+.chart-viewport {
+  width: 100%;
+  height: 280px;
+  background-color: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 8px;
+  position: relative;
+}
+
+.thermal-svg-plot {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-telemetry-readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 9px 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.readout-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+}
+
+.readout-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+}
+
+/* ── 4. Thermal Energy Balance & Heat Loss Breakdown ──────────────────────── */
+.energy-balance-flow {
+  display: grid;
+  grid-template-columns: 1fr auto 1.2fr;
+  gap: 14px;
+  align-items: center;
+  background-color: #fafbfd;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .energy-balance-flow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.flow-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flow-col-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: 2px;
+}
+
+.flow-card.gain {
+  background-color: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-left: 3px solid #ea580c;
+  border-radius: 4px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.post-name {
-  font-family: var(--font-heading);
+.flow-card-head {
+  font-size: 11px;
   font-weight: 600;
-  font-size: 13.5px;
-  color: var(--text-primary);
+  color: var(--text-primary, #0f172a);
 }
 
-.post-sector {
-  font-size: 11.5px;
-  color: var(--text-muted);
+.flow-card-num {
+  font-family: var(--font-mono, monospace);
+  font-size: 15px;
+  font-weight: 800;
+  color: #c2410c;
 }
 
-.temp-value {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 13.5px;
-  color: var(--text-primary);
+.flow-card-sub {
+  font-size: 9.5px;
+  color: var(--text-muted, #94a3b8);
 }
 
-.fuel-value {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.star-action-btn {
-  background: transparent;
-  border: none;
-  color: var(--border-strong);
-  cursor: pointer;
-  padding: 6px;
-  display: inline-flex;
-  align-items: center;
+.flow-center-zone {
+  display: flex;
   justify-content: center;
-  border-radius: var(--radius-sm);
+}
+
+.indoor-zone-card {
+  background-color: #ffffff;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  padding: 14px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.zone-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #1d4ed8;
+  letter-spacing: 0.04em;
+}
+
+.zone-temp {
+  font-family: var(--font-mono, monospace);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-primary, #0f172a);
+}
+
+.zone-net {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  color: #d97706;
+}
+
+.zone-eq {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.loss-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.loss-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-left: 3px solid #dc2626;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+}
+
+.loss-entry strong {
+  font-family: var(--font-mono, monospace);
+  color: #dc2626;
+}
+
+/* Heat Loss Bars */
+.heat-loss-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loss-bar-item {
+  background-color: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.star-action-btn:hover {
-  color: #D97706;
-  background-color: var(--surface-2);
+.loss-bar-item:hover {
+  border-color: var(--border-strong, #cbd5e1);
+  background-color: #fafbfd;
 }
 
-.star-action-btn.active {
-  color: #D97706;
-}
-
-/* Studio Callout Card */
-.studio-callout-card {
-  background-color: #0F172A;
-  color: #FFFFFF;
-  border-radius: var(--radius-xl);
-  padding: 30px 28px;
+.loss-bar-meta {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
 }
 
-.studio-callout-content {
+.loss-rank {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted, #94a3b8);
+  margin-right: 6px;
+}
+
+.loss-name {
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  flex: 1;
+}
+
+.loss-uval {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+  margin-right: 12px;
+}
+
+.loss-val {
+  font-family: var(--font-mono, monospace);
+  color: #dc2626;
+}
+
+.loss-track {
+  width: 100%;
+  height: 6px;
+  background-color: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.loss-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.loss-fill.rank-1 { background-color: #dc2626; }
+.loss-fill.rank-2 { background-color: #ea580c; }
+.loss-fill.rank-3 { background-color: #d97706; }
+.loss-fill.rank-4 { background-color: #2563eb; }
+.loss-fill.rank-5 { background-color: #4f46e5; }
+.loss-fill.rank-6 { background-color: #7c3aed; }
+
+/* ── 5. Thermal Diagnosis & Shelter Cross-Section ─────────────────────────── */
+.diagnosis-cards-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  position: relative;
-  z-index: 2;
+  gap: 12px;
 }
 
-.studio-tag {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #38BDF8;
+.diag-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
 }
 
-.studio-headline {
-  font-family: var(--font-heading);
-  font-size: 20px;
+.diag-kpi {
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.diag-kpi.primary {
+  border-color: rgba(220, 38, 38, 0.3);
+  background-color: #fef2f2;
+}
+
+.diag-lbl {
+  font-size: 9.5px;
   font-weight: 800;
-  line-height: 1.3;
-  color: #FFFFFF;
+  color: var(--text-muted, #94a3b8);
+  letter-spacing: 0.04em;
+}
+
+.diag-name {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+}
+
+.diag-pct {
+  font-size: 11px;
+  color: var(--text-secondary, #475569);
+}
+
+.diag-explanation-box,
+.diag-action-box {
+  background-color: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.diag-action-box {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+.diag-heading {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #94a3b8);
+}
+
+.diag-action-box .diag-heading {
+  color: #92400e;
+}
+
+.diag-explanation-box p,
+.diag-action-box p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #334155;
   margin: 0;
 }
 
-.studio-description {
-  font-size: 13px;
-  color: #94A3B8;
-  line-height: 1.55;
-  margin: 0;
+/* Shelter CAD SVG */
+.cross-section-container {
+  width: 100%;
+  background-color: #f8fafc;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 8px;
 }
 
-.studio-cta-btn {
-  align-self: flex-start;
-  margin-top: 8px;
-  background-color: #FFFFFF;
-  color: #0F172A;
-  border-color: #FFFFFF;
+.shelter-cad-svg {
+  width: 100%;
+  max-height: 320px;
+  display: block;
 }
 
-.studio-cta-btn:hover {
-  background-color: #F1F5F9;
-  border-color: #F1F5F9;
+.interactive-cad-component {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
 }
 
-.studio-blueprint-graphics {
-  position: absolute;
-  right: -15px;
-  bottom: -15px;
-  width: 170px;
+.interactive-cad-component:hover {
+  opacity: 0.85;
+  filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.4));
+}
+
+/* ── 6. Solar Analysis & Climate / Altitude Physics ───────────────────────── */
+.surface-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.surface-btn {
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border, #e2e8f0);
+  color: var(--text-secondary, #475569);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.surface-btn.active {
+  background-color: #c2410c;
+  color: #ffffff;
+  border-color: #c2410c;
+}
+
+.solar-chart-box {
   height: 140px;
-  pointer-events: none;
-  opacity: 0.45;
+  background-color: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 6px;
 }
 
-.blueprint-svg {
+.solar-svg-curve {
   width: 100%;
   height: 100%;
 }
 
-/* Loading States */
-.telemetry-loading-card {
+.solar-metric-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.metric-tile {
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+}
+
+.metric-tile.highlight {
+  border-color: #fdba74;
+  background-color: #fff7ed;
+  color: #c2410c;
+}
+
+.tile-lbl {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+  display: block;
+}
+
+/* Climate Severity & Altitude */
+.climate-altitude-container {
   display: flex;
   flex-direction: column;
+  gap: 14px;
+}
+
+.climate-gauges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gauge-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 85px;
+  gap: 10px;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  min-height: 380px;
-  background-color: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
+  font-size: 11.5px;
+}
+
+.gauge-name {
+  font-weight: 700;
+  color: var(--text-secondary, #475569);
+}
+
+.gauge-track {
+  height: 6px;
+  background-color: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.gauge-bar {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.gauge-bar.crit { background-color: #dc2626; }
+.gauge-bar.warn { background-color: #d97706; }
+.gauge-bar.info { background-color: #0284c7; }
+.gauge-bar.solar { background-color: #c2410c; }
+
+.gauge-val {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  text-align: right;
+  color: var(--text-primary, #0f172a);
+}
+
+.altitude-physics-box {
+  background-color: #fafbfd;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.altitude-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--text-secondary, #475569);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.physics-callout {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #1e40af;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 0;
+}
+
+/* ── 7. Area-Specific Material Recommendations Table ─────────────────────── */
+.recommendations-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+}
+
+.clean-engineering-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.clean-engineering-table th {
+  background-color: var(--surface-2, #f1f5f9);
+  color: var(--text-secondary, #475569);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  white-space: nowrap;
+}
+
+.clean-engineering-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-primary, #0f172a);
+}
+
+.clean-engineering-table tr:hover {
+  background-color: #fafbfd;
+}
+
+.rec-material-cell {
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.spec-sub-cell {
+  font-size: 11px;
+  color: var(--text-secondary, #475569);
+}
+
+.rationale-cell {
+  font-size: 11.5px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+/* Candidate Material Cards */
+.candidate-materials-section {
+  margin-top: 14px;
+}
+
+.section-subheading {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: 10px;
+}
+
+.materials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.material-suitability-card {
+  background-color: #fafbfd;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+}
+
+.mat-cat-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #1d4ed8;
+  text-transform: uppercase;
+}
+
+.mat-physics-props {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.mat-score-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.score-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 6px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-secondary, #475569);
+}
+
+.score-track {
+  height: 4px;
+  background-color: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background-color: #2563eb;
+  border-radius: 2px;
+}
+
+/* ── 8. Baseline vs Optimized Design & Morris Sensitivity ─────────────────── */
+.paired-comparison-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.paired-metric {
+  background-color: #fafbfd;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.paired-hdr {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+}
+
+.paired-delta {
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+}
+
+.paired-bar-container {
+  display: flex;
+  height: 7px;
+  gap: 4px;
+}
+
+.paired-bar.baseline {
+  background-color: #dc2626;
+  border-radius: 3px;
+}
+
+.paired-bar.optimized {
+  background-color: #15803d;
+  border-radius: 3px;
+}
+
+/* Morris Sensitivity */
+.sensitivity-rows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sens-item {
+  background-color: #fafbfd;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 5px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sens-meta-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+}
+
+.sens-rank-badge {
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  color: var(--text-muted, #94a3b8);
+  font-size: 10px;
+  margin-right: 6px;
+}
+
+.sens-label {
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  flex: 1;
+}
+
+.sens-val-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  color: #1d4ed8;
+}
+
+.sens-track-bar {
+  height: 5px;
+  background-color: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sens-fill-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+  border-radius: 2px;
+}
+
+/* ── 9. Multi-Site Frontier Outpost Benchmarks ────────────────────────────── */
+.frontier-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+}
+
+.clickable-rows tr {
+  cursor: pointer;
+}
+
+.active-outpost-row {
+  background-color: #eff6ff !important;
+  border-left: 3px solid #2563eb;
+}
+
+.active-pill {
+  font-size: 9px;
+  font-weight: 800;
+  background-color: #1d4ed8;
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+}
+
+.table-action-btn {
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border-strong, #cbd5e1);
+  color: var(--text-primary, #0f172a);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.table-action-btn:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
+}
+
+/* Validation Benchmarks */
+.validation-benchmarks-section {
+  margin-top: 14px;
+}
+
+.benchmarks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.benchmark-card {
+  background-color: #fafbfd;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.benchmark-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--text-primary, #0f172a);
+}
+
+.bench-status-badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.benchmark-loc {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.benchmark-metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.bench-box {
+  background-color: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.bench-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+  display: block;
+}
+
+.bench-val {
+  font-family: var(--font-mono, monospace);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
 }
 
-.telemetry-spinner {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 3px solid var(--surface-2);
-  border-top-color: var(--brand-blue);
-  animation: spin-anim 0.8s linear infinite;
+.bench-box.highlight .bench-val {
+  color: #1d4ed8;
 }
 
-@keyframes spin-anim {
-  100% { transform: rotate(360deg); }
+.benchmark-citation {
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* ── 10. Detailed 24-Hour Telemetry Log Table ─────────────────────────────── */
+.table-filter-box {
+  display: flex;
+  align-items: center;
+}
+
+.table-search-field {
+  background-color: #ffffff;
+  border: 1px solid var(--border-strong, #cbd5e1);
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  color: var(--text-primary, #0f172a);
+  outline: none;
+  width: 180px;
+}
+
+.table-search-field:focus {
+  border-color: #2563eb;
+}
+
+.telemetry-table-container {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+}
+
+.dense-table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--surface-2, #f1f5f9);
+  z-index: 2;
+}
+
+.dense-table tr {
+  cursor: pointer;
+}
+
+.selected-hour-row {
+  background-color: rgba(220, 38, 38, 0.08) !important;
+  font-weight: 700;
+}
+
+/* ── 11. Slide-Out Engineering Detail Drawer ──────────────────────────────── */
+.engineering-drawer {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 380px;
+  max-width: 90vw;
+  background-color: #ffffff;
+  border-left: 1px solid var(--border-strong, #cbd5e1);
+  z-index: 1000;
+  box-shadow: -8px 0 25px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  animation: slideDrawer 0.2s ease-out;
+}
+
+@keyframes slideDrawer {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.drawer-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.drawer-kicker {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #1d4ed8;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.drawer-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  margin: 2px 0 0 0;
+}
+
+.drawer-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.drawer-close-btn:hover {
+  color: var(--text-primary, #0f172a);
+  background-color: #f1f5f9;
+}
+
+.drawer-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.drawer-eval-box {
+  background-color: #fafbfd;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.eval-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+}
+
+.eval-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 20px;
+  font-weight: 800;
+  color: #0284c7;
+  margin-top: 4px;
+}
+
+.drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.section-lbl {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #94a3b8);
+}
+
+.drawer-desc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #334155;
+  margin: 0;
+}
+
+.drawer-actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border, #e2e8f0);
+}
+
+.drawer-btn {
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.drawer-btn.primary {
+  background-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.drawer-btn.primary:hover {
+  background-color: #1e40af;
+}
+
+.drawer-btn.secondary {
+  background-color: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border-strong, #cbd5e1);
+  color: var(--text-primary, #0f172a);
+}
+
+.drawer-btn.secondary:hover {
+  background-color: #e2e8f0;
 }

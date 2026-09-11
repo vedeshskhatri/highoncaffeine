@@ -1053,75 +1053,87 @@ export default function Shelter3DCanvas({
 
     const isExploded = viewMode === 'exploded';
 
-    const rawHotspots = isExploded ? [
-      {
-        id: 'layer-ext',
-        label: 'Layer 1: 300mm Mud Brick Wall',
-        sub: 'High Thermal Capacitance (1700 kg/m³)',
-        category: 'Thermal Mass',
-        pos: new THREE.Vector3(0, height_m * 0.6, -width_m / 2 - 1.8),
-        spec: getMaterialSpec(outerWallMat),
-        thickness_mm: Math.round(totalWallThickness * 0.65 * 1000),
-        rVal: '0.40',
-        uVal: '2.50',
+    // Dynamic Wall Hotspots (reflecting actual configured layers)
+    const wallSpots = isExploded
+      ? walls.map((w, idx) => {
+          const spec = getMaterialSpec(w.material);
+          const th_mm = Math.round((Number(w.thickness_m) || 0.1) * 1000);
+          const layerR = computeLayerR(w.material, w.thickness_m);
+          return {
+            id: `wall-layer-${idx}`,
+            label: `Layer ${idx + 1}: ${th_mm}mm ${spec.name}`,
+            sub: `${spec.role || spec.category} · R = ${layerR.toFixed(2)} m²K/W`,
+            category: spec.role || spec.category,
+            pos: new THREE.Vector3(0, height_m * 0.6, -width_m / 2 - 0.7 * (idx + 1)),
+            spec,
+            thickness_mm: th_mm,
+            rVal: layerR.toFixed(2),
+            uVal: layerR > 0 ? (1 / (layerR + 0.17)).toFixed(2) : '—',
+          };
+        })
+      : [
+          {
+            id: 'wall-assembly',
+            label: `Wall: ${getMaterialSpec(outerWallMat).name} (${Math.round(totalWallThickness * 1000)}mm)`,
+            sub: `${walls.length} Layers · U: ${wallUValue.toFixed(2)} W/m²K · R: ${(1 / (wallUValue || 1)).toFixed(2)} m²K/W`,
+            category: 'Envelope Assembly',
+            pos: new THREE.Vector3(length_m / 2, height_m * 0.6, width_m / 2),
+            spec: getMaterialSpec(outerWallMat),
+            thickness_mm: Math.round(totalWallThickness * 1000),
+            rVal: (1 / (wallUValue || 1)).toFixed(2),
+            uVal: wallUValue.toFixed(2),
+          },
+        ];
+
+    // Dynamic Glazing Hotspot
+    const primaryAperture = openings[0] || { facing: 'south', area_m2: 4.0, glazing: 'double_pane', night_shutter: true };
+    const glazingUg = primaryAperture.glazing === 'single_pane' ? 5.7 : primaryAperture.glazing === 'triple_pane' ? 1.4 : 2.8;
+    const glazingShgc = primaryAperture.glazing === 'single_pane' ? 0.82 : primaryAperture.glazing === 'triple_pane' ? 0.50 : 0.65;
+    const hasNightShutter = !!primaryAperture.night_shutter;
+    const glazingSpot = {
+      id: 'glazing',
+      label: `${primaryAperture.facing?.toUpperCase() || 'SOUTH'} Glazing (${primaryAperture.area_m2 || 4.0} m²)`,
+      sub: `${primaryAperture.glazing?.replace('_', ' ') || 'double pane'} (U=${glazingUg}) ${hasNightShutter ? '· Insulated Shutter' : ''}`,
+      category: 'Passive Solar Aperture',
+      pos: new THREE.Vector3(0, 1.2, width_m / 2 + 0.1),
+      spec: {
+        id: primaryAperture.glazing,
+        name: `${(primaryAperture.glazing || 'double_pane').replace('_', ' ')} Glazing Unit`,
+        category: 'Glazing',
+        role: 'Solar Direct Gain Collector',
+        k: (glazingUg * 0.024).toFixed(3),
+        rho: 2500,
+        cp: 840,
+        description: `High-transmission architectural glazing designed to admit low-angle winter solar radiation (SHGC=${glazingShgc}).`,
+        whyUse: hasNightShutter
+          ? 'Insulated night shutters deployed at sunset reduce night thermal loss by over 60%, maintaining diurnal solar gains.'
+          : 'Transmits peak direct normal irradiance at noon. Deploying night shutters is recommended to stop midnight freezing.',
+        standardsRef: 'CPWD ECBC 2017 / ASHRAE 90.1',
+        logistics: 'Framed hermetic insulated glass unit (IGU)',
       },
-      {
-        id: 'layer-eps',
-        label: 'Layer 2: 100mm Continuous EPS Core',
-        sub: 'Thermal Break Barrier (k = 0.038 W/m·K)',
-        category: 'Insulation',
-        pos: new THREE.Vector3(0, height_m * 0.6, -width_m / 2 - 0.7),
-        spec: getMaterialSpec('eps'),
-        thickness_mm: 100,
-        rVal: '2.63',
-        uVal: '0.38',
-      },
-      {
-        id: 'layer-rafters',
-        label: 'Roof: Exposed Talashing Rafters & Deck',
-        sub: 'Traditional Himalayan Poplar Beams + 150mm EPS',
-        category: 'Roof Assembly',
-        pos: new THREE.Vector3(-length_m / 4, height_m + 3.0, 0),
-        spec: getMaterialSpec('timber'),
-        thickness_mm: 250,
-        rVal: '3.95',
-        uVal: '0.25',
-      },
-    ] : [
-      {
-        id: 'wall',
-        label: `Wall: ${getMaterialSpec(outerWallMat).name}`,
-        sub: `${Math.round(totalWallThickness * 1000)}mm · U: ${wallUValue.toFixed(2)} W/m²K`,
-        category: 'Envelope',
-        pos: new THREE.Vector3(length_m / 2, height_m * 0.6, width_m / 2),
-        spec: getMaterialSpec(outerWallMat),
-        thickness_mm: Math.round(totalWallThickness * 1000),
-        rVal: (1 / wallUValue).toFixed(2),
-        uVal: wallUValue.toFixed(2),
-      },
-      {
-        id: 'glazing',
-        label: 'South Glazing (Direct Gain)',
-        sub: `${openings[0]?.area_m2 || 4.0} m² · ${openings[0]?.glazing?.replace('_', ' ') || 'double pane'}`,
-        category: 'Passive Solar',
-        pos: new THREE.Vector3(0, 1.2, width_m / 2 + 0.1),
-        spec: { name: 'Double Pane Low-E Glazing', category: 'Glazing', k: 1.0, rho: 2500, cp: 840 },
-        thickness_mm: '24 (4-16-4)',
-        rVal: '0.36',
-        uVal: '2.80',
-      },
-      {
-        id: 'roof',
-        label: `Roof: ${getMaterialSpec(roofMat).name}`,
-        sub: `${Math.round((roof[0]?.thickness_m || 0.15) * 1000)}mm ${snowCover ? '· Snow Cover' : ''}`,
-        category: 'Thermal Envelope',
-        pos: new THREE.Vector3(-length_m / 3, height_m + 0.4, -width_m / 4),
-        spec: getMaterialSpec(roofMat),
-        thickness_mm: Math.round((roof[0]?.thickness_m || 0.15) * 1000),
-        rVal: computeLayerR(roofMat, roof[0]?.thickness_m || 0.15).toFixed(2),
-        uVal: (1 / (computeLayerR(roofMat, roof[0]?.thickness_m || 0.15) + 0.17)).toFixed(2),
-      },
-    ];
+      thickness_mm: primaryAperture.glazing === 'single_pane' ? 6 : primaryAperture.glazing === 'triple_pane' ? 36 : 24,
+      rVal: (1 / glazingUg).toFixed(2),
+      uVal: glazingUg.toFixed(2),
+    };
+
+    // Dynamic Roof Hotspot
+    const roofThMm = Math.round((roof[0]?.thickness_m || 0.15) * 1000);
+    const roofSpec = getMaterialSpec(roofMat);
+    const roofR = computeLayerR(roofMat, roof[0]?.thickness_m || 0.15);
+    const roofU = (1 / (roofR + 0.17)).toFixed(2);
+    const roofSpot = {
+      id: 'roof',
+      label: `Roof: ${roofSpec.name} (${roofThMm}mm)`,
+      sub: `R: ${roofR.toFixed(2)} m²K/W · U: ${roofU} W/m²K ${snowCover ? '· High Snow Albedo' : ''}`,
+      category: 'Roof Assembly',
+      pos: new THREE.Vector3(-length_m / 4, height_m + (isExploded ? 3.0 : 0.4), isExploded ? 0 : -width_m / 4),
+      spec: roofSpec,
+      thickness_mm: roofThMm,
+      rVal: roofR.toFixed(2),
+      uVal: roofU,
+    };
+
+    const rawHotspots = [...wallSpots, glazingSpot, roofSpot];
 
     const projected = rawHotspots.map((hs) => {
       const v = hs.pos.clone();
@@ -1133,7 +1145,7 @@ export default function Shelter3DCanvas({
     });
 
     setPinPositions(projected);
-  }, [length_m, width_m, height_m, outerWallMat, totalWallThickness, wallUValue, openings, roofMat, roof, snowCover, viewMode]);
+  }, [length_m, width_m, height_m, outerWallMat, totalWallThickness, wallUValue, openings, roofMat, roof, snowCover, viewMode, walls]);
   updateProjectedPinsRef.current = updateProjectedPins;
 
   return (
@@ -1212,7 +1224,17 @@ export default function Shelter3DCanvas({
                       </button>
                     </div>
                     <p className="popover-desc">{pin.spec.description || pin.sub}</p>
-                    <div className="popover-grid">
+
+                    {pin.spec.whyUse && (
+                      <div style={{ marginTop: 6, padding: '6px 8px', background: '#F8FAFC', borderRadius: 4, borderLeft: '2px solid #1E40AF', fontSize: 11, color: '#334155' }}>
+                        <div style={{ fontWeight: 700, fontSize: 9.5, textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.04em' }}>
+                          Engineering Justification:
+                        </div>
+                        <div style={{ marginTop: 2, lineHeight: 1.4 }}>{pin.spec.whyUse}</div>
+                      </div>
+                    )}
+
+                    <div className="popover-grid" style={{ marginTop: 8 }}>
                       <div className="popover-stat">
                         <span className="popover-stat-label">Thickness</span>
                         <span className="popover-stat-val">{pin.thickness_mm} mm</span>
@@ -1230,6 +1252,13 @@ export default function Shelter3DCanvas({
                         <span className="popover-stat-val">{pin.uVal} W/m²·K</span>
                       </div>
                     </div>
+
+                    {pin.spec.standardsRef && (
+                      <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#64748B' }}>
+                        <span>Ref: {pin.spec.standardsRef}</span>
+                        <span>{pin.spec.logistics}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

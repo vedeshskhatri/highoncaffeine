@@ -62,8 +62,14 @@ def load_fallback_csv(csv_path: Path = FALLBACK_CSV_PATH) -> List[Dict[str, Any]
     return rows
 
 
-def fetch_open_meteo(lat: float, lon: float, date_str: str, hours: int = 24) -> List[Dict[str, Any]]:
-    """Fetch live weather from Open-Meteo API with cloud cover and realistic snow cover."""
+def fetch_open_meteo(
+    lat: float,
+    lon: float,
+    date_str: str,
+    hours: int = 24,
+    elevation: Optional[float] = None,
+) -> List[Dict[str, Any]]:
+    """Fetch live weather from Open-Meteo API with cloud cover, realistic snow cover, and target elevation downscaling."""
     today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     endpoint = "https://api.open-meteo.com/v1/forecast"
     if date_str < today_iso:
@@ -80,8 +86,10 @@ def fetch_open_meteo(lat: float, lon: float, date_str: str, hours: int = 24) -> 
         "end_date": date_str,
         "timezone": "UTC",
     }
+    if elevation is not None:
+        params["elevation"] = round(float(elevation), 1)
 
-    with httpx.Client(timeout=4.0) as client:
+    with httpx.Client(timeout=6.0) as client:
         resp = client.get(endpoint, params=params)
         resp.raise_for_status()
         data = resp.json()
@@ -121,11 +129,11 @@ def fetch_open_meteo(lat: float, lon: float, date_str: str, hours: int = 24) -> 
 
 
 def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, Any]]:
-    """Fetch satellite-derived meteorology from NASA POWER API including cloud amount."""
+    """Fetch satellite-derived meteorology from NASA POWER API including real DNI, DHI, and cloud amount."""
     clean_date = date_str.replace("-", "")
     endpoint = "https://power.larc.nasa.gov/api/temporal/hourly/point"
     params = {
-        "parameters": "T2M,ALLSKY_SFC_SW_DWN,WS10M,RH2M,CLOUD_AMT",
+        "parameters": "T2M,ALLSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DNI,ALLSKY_SFC_SW_DIFF,WS10M,RH2M,CLOUD_AMT",
         "community": "RE",
         "longitude": lon,
         "latitude": lat,
@@ -134,7 +142,7 @@ def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, An
         "format": "JSON",
     }
 
-    with httpx.Client(timeout=5.0) as client:
+    with httpx.Client(timeout=8.0) as client:
         resp = client.get(endpoint, params=params)
         resp.raise_for_status()
         data = resp.json()
@@ -142,6 +150,8 @@ def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, An
     props = data.get("properties", {}).get("parameter", {})
     t2m = props.get("T2M", {})
     sw_dwn = props.get("ALLSKY_SFC_SW_DWN", {})
+    sw_dni = props.get("ALLSKY_SFC_SW_DNI", {})
+    sw_diff = props.get("ALLSKY_SFC_SW_DIFF", {})
     ws10m = props.get("WS10M", {})
     rh2m = props.get("RH2M", {})
     cloud_amt = props.get("CLOUD_AMT", {})
@@ -150,8 +160,12 @@ def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, An
     rows = []
     for h, k in enumerate(hours_keys):
         ghi_val = float(sw_dwn.get(k, 0.0))
-        dni_val = max(0.0, ghi_val * 0.85) if ghi_val > 50.0 else 0.0
-        dhi_val = max(0.0, ghi_val * 0.15) if ghi_val > 0.0 else 0.0
+        if k in sw_dni and sw_dni.get(k) is not None:
+            dni_val = max(0.0, float(sw_dni.get(k, 0.0)))
+            dhi_val = max(0.0, float(sw_diff.get(k, 0.0)))
+        else:
+            dni_val = max(0.0, ghi_val * 0.85) if ghi_val > 50.0 else 0.0
+            dhi_val = max(0.0, ghi_val * 0.15) if ghi_val > 0.0 else 0.0
         t_val = float(t2m.get(k, -15.0))
         c_pct = float(cloud_amt.get(k, 0.0))
         c_frac = max(0.0, min(1.0, c_pct / 100.0))
@@ -165,7 +179,6 @@ def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, An
             "rh": float(rh2m.get(k, 30.0)),
             "snow_cover": 1 if t_val < -2.0 else 0,
             "cloud_cover": c_frac,
-            "cloud_fraction": c_frac,
         })
     return rows
 
@@ -620,9 +633,11 @@ def get_weather(
     mode: str = "typical_day",
     user_csv_id: Optional[str] = None,
     disable_network: bool = False,
+    elevation_m: Optional[float] = None,
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """
     Get weather implementing the exact fallback chain and weather modes.
+    Supports target elevation downscaling via Open-Meteo or ICAO standard atmosphere.
     Strictly scopes fallback CSV to Ladakh; non-Ladakh coordinates fail with 503 if network fails.
     """
     c_lat, c_lon = round_coords(lat, lon)
@@ -649,21 +664,23 @@ def get_weather(
         return rows, provenance
 
     # MODE: Typical day (fallback chain)
-    # 1. SQLite cache
-    cached = get_cached_weather(c_lat, c_lon, date_str)
-    if cached is not None:
-        return cached
+    # 1. SQLite cache (check if elevation was explicitly requested)
+    if elevation_m is None:
+        cached = get_cached_weather(c_lat, c_lon, date_str)
+        if cached is not None:
+            return cached
 
     # 2. Open-Meteo live
     if not disable_network:
         try:
-            rows = fetch_open_meteo(c_lat, c_lon, date_str)
+            rows = fetch_open_meteo(c_lat, c_lon, date_str, elevation=elevation_m)
             if len(rows) >= 24:
                 save_to_cache(c_lat, c_lon, date_str, rows, "open-meteo", now_iso)
                 provenance = {
                     "provider": "open-meteo",
                     "is_live": True,
                     "grid_note": None,
+                    "elevation_m": elevation_m,
                     "fetched_at": now_iso,
                 }
                 return rows, provenance
@@ -674,11 +691,26 @@ def get_weather(
         try:
             rows = fetch_nasa_power(c_lat, c_lon, date_str)
             if len(rows) >= 24:
+                # If target elevation differs from typical valley reanalysis grid (~1520m in Himalaya), apply ICAO lapse rate
+                if elevation_m is not None and abs(elevation_m - 1520.0) > 100.0 and (27.0 <= lat <= 30.0 and 80.0 <= lon <= 89.0):
+                    delta_z = elevation_m - 1520.0
+                    delta_t = -0.0065 * delta_z
+                    downscaled_rows = []
+                    for r in rows:
+                        rc = dict(r)
+                        rc["t_air"] = round(rc["t_air"] + delta_t, 1)
+                        downscaled_rows.append(rc)
+                    rows = downscaled_rows
+                    grid_note = f"{GRID_NOTE_NASA} (downscaled to {int(elevation_m)}m ASL via ICAO 6.5 K/km lapse rate)"
+                else:
+                    grid_note = GRID_NOTE_NASA
+
                 save_to_cache(c_lat, c_lon, date_str, rows, "nasa-power", now_iso)
                 provenance = {
                     "provider": "nasa-power",
                     "is_live": False,
-                    "grid_note": GRID_NOTE_NASA,
+                    "grid_note": grid_note,
+                    "elevation_m": elevation_m,
                     "fetched_at": now_iso,
                 }
                 return rows, provenance

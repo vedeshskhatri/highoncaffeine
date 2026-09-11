@@ -59,6 +59,7 @@ export default function InspectorPanel({
   onToggleCollapse,
 }) {
   const [activeTab, setActiveTab] = useState('properties');
+  const [envelopeSurface, setEnvelopeSurface] = useState('walls'); // 'walls' | 'roof' | 'floor'
   const [materials, setMaterials] = useState(FALLBACK_MATERIALS);
 
   // Fetch materials once from API or keep fallback
@@ -96,7 +97,15 @@ export default function InspectorPanel({
 
   const isP1 = request.weather.mode === 'design_winter_night';
   const wallU = computeTotalU(request?.envelope?.walls || []);
-  const floorArea = ((request?.geometry?.length_m || 6) * (request?.geometry?.width_m || 4)).toFixed(1);
+  const roofU = computeTotalU(request?.envelope?.roof || []);
+  const floorU = computeTotalU(request?.envelope?.floor || []);
+
+  const length_m = request?.geometry?.length_m || 6;
+  const width_m = request?.geometry?.width_m || 4;
+  const height_m = request?.geometry?.height_m || 2.6;
+  const floorArea = (length_m * width_m).toFixed(1);
+  const volume_m3 = (length_m * width_m * height_m).toFixed(1);
+  const envelopeArea = (2 * (length_m + width_m) * height_m + 2 * length_m * width_m).toFixed(1);
 
   return (
     <>
@@ -252,6 +261,40 @@ export default function InspectorPanel({
                     )}
                   </div>
                 </div>
+
+                {/* Quick Dimension Presets */}
+                <div className="dim-presets-row">
+                  {[
+                    { label: '4×6m Sentry', l: 6.0, w: 4.0, h: 2.6 },
+                    { label: '5×8m Bunk', l: 8.0, w: 5.0, h: 2.8 },
+                    { label: '6×10m HQ', l: 10.0, w: 6.0, h: 3.0 },
+                  ].map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      className="dim-preset-chip"
+                      onClick={() => setGeo({ length_m: p.l, width_m: p.w, height_m: p.h })}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Dimension Metrics Bar */}
+                <div className="dim-metrics-bar">
+                  <div className="dim-metric-item">
+                    <span className="dim-metric-label">Enclosed Vol</span>
+                    <span className="dim-metric-val">{volume_m3} m³</span>
+                  </div>
+                  <div className="dim-metric-item">
+                    <span className="dim-metric-label">Aspect Ratio</span>
+                    <span className="dim-metric-val">{(length_m / width_m).toFixed(2)}:1</span>
+                  </div>
+                  <div className="dim-metric-item">
+                    <span className="dim-metric-label">Surface Envelope</span>
+                    <span className="dim-metric-val">{envelopeArea} m²</span>
+                  </div>
+                </div>
               </div>
 
               {/* Compass & Orientation Card */}
@@ -280,69 +323,103 @@ export default function InspectorPanel({
               transition={{ duration: 0.15 }}
               style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
             >
-              {/* Thermal Summary Card */}
-              <div className="inspector-card" style={{ background: 'var(--surface-2)' }}>
-                <div className="card-title" style={{ margin: 0 }}>
-                  <span>Wall Thermal Transmittance</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)', fontWeight: 700 }}>
-                    U = {wallU.toFixed(2)} W/m²K
-                  </span>
-                </div>
-                <p style={{ margin: '4px 0 0 0', fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-secondary)' }}>
-                  Overall wall R-value: {(1 / (wallU || 1)).toFixed(2)} m²·K/W. Multi-layer resistance against extreme night temperatures.
-                </p>
+              {/* Surface Assembly Sub-tabs (Walls / Roof / Floor) */}
+              <div className="surface-selector-bar" role="tablist">
+                {[
+                  { id: 'walls', label: 'Walls Assembly', uVal: wallU },
+                  { id: 'roof',  label: 'Roof Assembly',  uVal: roofU },
+                  { id: 'floor', label: 'Floor Assembly', uVal: floorU },
+                ].map((s) => {
+                  const isSurfaceActive = envelopeSurface === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className={`surface-btn ${isSurfaceActive ? 'active' : ''}`}
+                      onClick={() => setEnvelopeSurface(s.id)}
+                    >
+                      <span>{s.label}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, opacity: 0.7, marginLeft: 4 }}>
+                        (U={s.uVal.toFixed(2)})
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Envelope Builders (Walls, Roof, Floor) */}
-              <div className="inspector-card">
-                <EnvelopeBuilder
-                  id="walls"
-                  label="Walls"
-                  layers={request.envelope.walls || []}
-                  materials={materials}
-                  errors={errors}
-                  errPrefix="envelope.walls"
-                  onChange={walls => setEnv({ walls })}
-                />
-              </div>
-
-              <div className="inspector-card">
-                <EnvelopeBuilder
-                  id="roof"
-                  label="Roof"
-                  layers={request.envelope.roof || []}
-                  materials={materials}
-                  errors={errors}
-                  errPrefix="envelope.roof"
-                  onChange={roof => setEnv({ roof })}
-                />
-                <div className="dim-field" style={{ marginTop: 8 }}>
-                  <label className="dim-label" htmlFor="field-emissivity">Roof Emissivity (0–1)</label>
-                  <input
-                    id="field-emissivity"
-                    className={`dim-input ${errors['envelope.roof_emissivity'] ? 'invalid' : ''}`}
-                    type="number"
-                    value={request.envelope.roof_emissivity}
-                    min={0} max={1} step={0.01}
-                    onChange={e => setEnv({ roof_emissivity: parseFloat(e.target.value) })}
+              {/* Active Surface Builder */}
+              {envelopeSurface === 'walls' && (
+                <div className="inspector-card">
+                  <EnvelopeBuilder
+                    id="walls"
+                    label="Walls"
+                    layers={request.envelope.walls || []}
+                    materials={materials}
+                    errors={errors}
+                    errPrefix="envelope.walls"
+                    onChange={walls => setEnv({ walls })}
                   />
-                  {fieldError(errors, 'envelope.roof_emissivity') && (
-                    <span className="inspector-error">{fieldError(errors, 'envelope.roof_emissivity')}</span>
-                  )}
                 </div>
-              </div>
+              )}
 
-              <div className="inspector-card">
-                <EnvelopeBuilder
-                  id="floor"
-                  label="Floor"
-                  layers={request.envelope.floor || []}
-                  materials={materials}
-                  errors={errors}
-                  errPrefix="envelope.floor"
-                  onChange={floor => setEnv({ floor })}
-                />
-              </div>
+              {envelopeSurface === 'roof' && (
+                <div className="inspector-card">
+                  <EnvelopeBuilder
+                    id="roof"
+                    label="Roof"
+                    layers={request.envelope.roof || []}
+                    materials={materials}
+                    errors={errors}
+                    errPrefix="envelope.roof"
+                    onChange={roof => setEnv({ roof })}
+                  />
+                  <div className="dim-field" style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label className="dim-label" htmlFor="field-emissivity">
+                        Roof Surface Emissivity (0–1)
+                      </label>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700 }}>
+                        ε = {request.envelope.roof_emissivity || 0.9}
+                      </span>
+                    </div>
+                    <input
+                      id="field-emissivity"
+                      type="range"
+                      min={0.1}
+                      max={1.0}
+                      step={0.01}
+                      value={request.envelope.roof_emissivity || 0.9}
+                      onChange={e => setEnv({ roof_emissivity: parseFloat(e.target.value) })}
+                      style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer', marginTop: 4 }}
+                    />
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                      Controls nocturnal radiative sky cooling to clear Himalayan winter atmosphere.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {envelopeSurface === 'floor' && (
+                <div className="inspector-card">
+                  <EnvelopeBuilder
+                    id="floor"
+                    label="Floor"
+                    layers={request.envelope.floor || []}
+                    materials={materials}
+                    errors={errors}
+                    errPrefix="envelope.floor"
+                    onChange={floor => setEnv({ floor })}
+                  />
+                  <div style={{ padding: '8px 10px', background: 'var(--surface-2)', borderRadius: 4, marginTop: 10, border: '1px solid var(--border)' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600, color: 'var(--text-primary)' }}>
+                      Permafrost Thermal Protection
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 10.5, color: 'var(--text-secondary)', marginTop: 2 }}>
+                      Rigid XPS under-slab insulation prevents foundation heat bleed into frozen subgrade, maintaining stable soil bearing capacity.
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 

@@ -90,35 +90,49 @@
 
 .validation-table th {
   text-align: left;
-  padding: var(--space-2);
-  background: var(--cream);
-  color: var(--espresso-70);
-  border-bottom: 2px solid var(--rule);
+  padding: 10px 14px;
+  background: var(--surface-2, var(--cream));
+  color: var(--text-secondary, var(--espresso-70));
+  border-bottom: 2px solid var(--border, var(--rule));
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .validation-table td {
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--rule);
-  color: var(--espresso);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border, var(--rule));
+  color: var(--text-primary, var(--espresso));
+  vertical-align: middle;
+}
+
+.validation-table td.mono {
+  white-space: nowrap;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+}
+
+.badge-pass,
+.badge-fail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .badge-pass {
-  background: var(--sage-soft);
-  color: var(--sage);
-  border: 1px solid var(--sage);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  background-color: var(--sage-soft, #ecfdf5);
+  color: var(--sage, #059669);
+  border: 1px solid var(--sage, #10b981);
 }
 
 .badge-fail {
-  background: var(--ice-soft);
-  color: var(--ice);
-  border: 1px solid var(--ice);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  background-color: var(--ice-soft, #fef2f2);
+  color: var(--ice, #dc2626);
+  border: 1px solid var(--ice, #ef4444);
 }

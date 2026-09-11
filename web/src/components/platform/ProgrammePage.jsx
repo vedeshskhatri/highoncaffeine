@@ -17,6 +17,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  CartesianGrid,
 } from 'recharts';
 import './ProgrammePage.css';
 
@@ -98,9 +99,13 @@ export default function ProgrammePage() {
       {/* 1. Header & Budget Allocation Controls */}
       <div className="programme-header">
         <div>
+          <div className="programme-tag-row">
+            <span className="drdo-section-badge">DRDO PS 26051 · PORTFOLIO OPTIMIZER</span>
+            <span className="programme-estate-tag mono">{estate.toUpperCase()} ESTATE</span>
+          </div>
           <h2 className="programme-title">Retrofit Programme Planner</h2>
           <p className="programme-subtitle">
-            Algorithmic portfolio allocation ranking interventions by kerosene litres avoided per rupee spent.
+            Algorithmic portfolio allocation ranking candidate envelope retrofits by avoided kerosene litres per rupee invested.
           </p>
         </div>
 
@@ -112,81 +117,110 @@ export default function ProgrammePage() {
         </div>
       </div>
 
-      {/* Budget Selector Card */}
+      {/* 1. Executive Budget Allocation Command Card */}
       <div className="budget-control-card">
         <div className="budget-control-left">
-          <span className="budget-control-label">SANCTIONED RETROFIT BUDGET</span>
+          <div className="budget-control-label-row">
+            <span className="budget-control-label">SANCTIONED RETROFIT ALLOCATION</span>
+            <span className="budget-status-pill">Active Financial Limit</span>
+          </div>
           <div className="budget-input-wrapper">
-            <span className="currency-prefix">₹</span>
-            <input
-              type="number"
-              step="100000"
-              className="budget-number-input mono"
-              value={budget}
-              onChange={e => setBudget(Number(e.target.value) || 0)}
-            />
-            <span className="budget-human-label">
-              (₹{(budget / 10000000.0).toFixed(2)} Crore)
-            </span>
+            <div className="budget-input-container">
+              <span className="currency-prefix">₹</span>
+              <input
+                type="number"
+                step="100000"
+                className="budget-number-input mono"
+                value={budget}
+                onChange={e => setBudget(Number(e.target.value) || 0)}
+              />
+            </div>
+            <div className="budget-human-badge mono">
+              ₹{(budget / 10000000.0).toFixed(2)} Crore
+            </div>
           </div>
         </div>
 
-        <div className="budget-preset-strip">
-          {PRESETS.map(p => (
-            <button
-              key={p.value}
-              type="button"
-              className={`preset-btn ${budget === p.value ? 'active' : ''}`}
-              onClick={() => setBudget(p.value)}
-            >
-              {p.label}
-            </button>
-          ))}
+        <div className="budget-preset-group">
+          <span className="preset-group-label">QUICK ALLOCATION SCENARIOS</span>
+          <div className="budget-preset-strip">
+            {PRESETS.map(p => (
+              <button
+                key={p.value}
+                type="button"
+                className={`preset-btn ${budget === p.value ? 'active' : ''}`}
+                onClick={() => setBudget(p.value)}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* 2. Executive Headline Banner */}
+      {/* 2. Executive Headline Briefing Card */}
       <div className="programme-headline-banner">
         <div className="headline-icon-box">
-          <TrendingUp size={22} />
+          <TrendingUp size={20} />
         </div>
         <div className="headline-text-content">
           <h3 className="headline-main-text">{programme?.headline}</h3>
-          <span className="headline-meta">
-            Coverage: {programme?.coverage_str} · Ranked greedily by litres saved per ₹1,000 capex
-          </span>
+          <div className="headline-meta-row">
+            <span className="headline-meta-item">
+              <strong>Coverage:</strong> {programme?.coverage_str}
+            </span>
+            <span className="meta-bullet">·</span>
+            <span className="headline-meta-item">
+              <strong>Algorithm:</strong> Greedy knapsack ranked by L / ₹1,000 capex
+            </span>
+            <span className="meta-bullet">·</span>
+            <span className="headline-meta-item mono text-comfort font-bold">
+              Payback Horizon: High Priority
+            </span>
+          </div>
         </div>
       </div>
 
       {/* 3. Cumulative Return Curve (Spend vs Fuel Avoided) */}
       <div className="programme-card">
         <div className="card-header-block">
-          <h3 className="card-title-text">Cumulative Return Curve (Spend vs Fuel Avoided)</h3>
-          <p className="card-sub-text">
-            Demonstrates the diminishing returns curve across candidate outposts. The vertical marker indicates the ₹{(budget / 100000.0).toFixed(0)} Lakh sanctioned limit.
-          </p>
+          <div className="card-header-titles">
+            <h3 className="card-title-text">Cumulative Return Curve (Spend vs Fuel Avoided)</h3>
+            <p className="card-sub-text">
+              Demonstrates the diminishing returns curve across candidate outposts. The vertical marker indicates the ₹{(budget / 100000.0).toFixed(0)} Lakh sanctioned limit.
+            </p>
+          </div>
+          <div className="chart-legend-chips mono">
+            <div className="legend-chip">
+              <span className="legend-line-sample" />
+              <span>Cumulative Fuel Saved (Litres/yr)</span>
+            </div>
+          </div>
         </div>
 
         <div className="cumulative-chart-wrapper">
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={320}>
             <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
               <defs>
                 <linearGradient id="curveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1E40AF" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#1E40AF" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="#1E40AF" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#1E40AF" stopOpacity={0.01} />
                 </linearGradient>
               </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
               <XAxis
                 dataKey="spend_lakh"
                 stroke="#64748B"
                 fontSize={12}
                 tickLine={false}
+                axisLine={{ stroke: '#E2E8F0' }}
                 tickFormatter={v => `₹${v}L`}
               />
               <YAxis
                 stroke="#64748B"
                 fontSize={12}
                 tickLine={false}
+                axisLine={{ stroke: '#E2E8F0' }}
                 tickFormatter={v => `${(v / 1000).toFixed(1)}k L`}
               />
               <Tooltip
@@ -201,13 +235,15 @@ export default function ProgrammePage() {
                   borderRadius: '10px',
                   boxShadow: '0 4px 16px rgba(15,23,42,0.08)',
                   fontSize: '12.5px',
+                  fontFamily: 'var(--font-body)',
                 }}
               />
               <ReferenceLine
                 x={budgetLakh}
                 stroke="#0F172A"
                 strokeDasharray="4 4"
-                label={{ value: 'Sanctioned Budget', fill: '#0F172A', fontSize: 11, position: 'top' }}
+                strokeWidth={1.5}
+                label={{ value: `Sanctioned Budget (₹${budgetLakh}L)`, fill: '#0F172A', fontSize: 11, position: 'top', fontWeight: 600 }}
               />
               <Area
                 type="monotone"
@@ -225,10 +261,12 @@ export default function ProgrammePage() {
       {/* 4. Ranked Programme Procurement Table */}
       <div className="programme-card">
         <div className="card-header-block">
-          <h3 className="card-title-text">Ranked Procurement Schedule</h3>
-          <p className="card-sub-text">
-            Ordered strictly by fuel savings efficiency. Interventions marked with a green badge fit within the available budget.
-          </p>
+          <div>
+            <h3 className="card-title-text">Ranked Procurement Schedule</h3>
+            <p className="card-sub-text">
+              Ordered strictly by fuel savings efficiency. Interventions marked with a green badge fit within the available sanctioned budget.
+            </p>
+          </div>
         </div>
 
         <div className="table-wrapper-spacious">
@@ -247,47 +285,70 @@ export default function ProgrammePage() {
               </tr>
             </thead>
             <tbody>
-              {programme?.items?.map(item => (
-                <tr
-                  key={`${item.site_id}-${item.rank}`}
-                  className={`clickable-row ${item.funded ? 'row-funded' : 'row-unfunded'}`}
-                  onClick={() => navigate(`/sites/${item.site_id}`)}
-                >
-                  <td className="mono rank-cell">#{item.rank}</td>
-                  <td>
-                    <div className="post-cell">
-                      <span className="post-name">{item.site_name}</span>
-                      <span className="post-sector">{item.district}</span>
-                    </div>
-                  </td>
-                  <td className="intervention-cell">{item.intervention}</td>
-                  <td className="mono">₹{item.cost_inr.toLocaleString()}</td>
-                  <td>
-                    <span className="estimate-chip">{item.cost_basis}</span>
-                  </td>
-                  <td className="mono fuel-cell">
-                    {item.litres_saved_per_year.toLocaleString()} L/yr
-                  </td>
-                  <td className="mono font-semibold">
-                    {item.litres_per_1000_inr.toFixed(2)}
-                  </td>
-                  <td className="mono text-muted">
-                    ₹{(item.cumulative_cost_inr / 100000.0).toFixed(2)} L
-                  </td>
-                  <td>
-                    {item.funded ? (
-                      <span className="status-badge status-badge-comfort">
-                        <CheckCircle2 size={12} />
-                        <span>Funded</span>
+              {programme?.items?.map(item => {
+                const maxLitres = 250;
+                const savingsPct = Math.min(100, Math.max(8, (item.litres_saved_per_year / maxLitres) * 100));
+
+                return (
+                  <tr
+                    key={`${item.site_id}-${item.rank}`}
+                    className={`clickable-row ${item.funded ? 'row-funded' : 'row-unfunded'}`}
+                    onClick={() => navigate(`/sites/${item.site_id}`)}
+                  >
+                    <td>
+                      <span className={`rank-badge-pill mono ${item.funded ? 'rank-funded' : 'rank-unfunded'}`}>
+                        #{item.rank}
                       </span>
-                    ) : (
-                      <span className="status-badge status-badge-neutral">
-                        <span>Above Budget</span>
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <div className="post-cell">
+                        <span className="post-name">{item.site_name}</span>
+                        <span className="post-sector">{item.district} Sector</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="intervention-cell">
+                        <span className="intervention-title">{item.intervention}</span>
+                      </div>
+                    </td>
+                    <td className="mono capex-cell">₹{item.cost_inr.toLocaleString()}</td>
+                    <td>
+                      <span className="basis-chip">{item.cost_basis}</span>
+                    </td>
+                    <td>
+                      <div className="fuel-saved-cell">
+                        <span className="mono fuel-num">{item.litres_saved_per_year.toLocaleString()} L/yr</span>
+                        <div className="fuel-mini-track">
+                          <div className="fuel-mini-fill" style={{ width: `${savingsPct}%` }} />
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="efficiency-cell">
+                        <span className="mono efficiency-val font-bold">
+                          {item.litres_per_1000_inr.toFixed(2)}
+                        </span>
+                        <span className="efficiency-unit">L/₹1k</span>
+                      </div>
+                    </td>
+                    <td className="mono text-muted">
+                      ₹{(item.cumulative_cost_inr / 100000.0).toFixed(2)} L
+                    </td>
+                    <td>
+                      {item.funded ? (
+                        <span className="status-badge-chip funded">
+                          <CheckCircle2 size={12} />
+                          <span>Funded</span>
+                        </span>
+                      ) : (
+                        <span className="status-badge-chip unfunded">
+                          <span>Above Budget</span>
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -1405,6 +1405,12 @@ def get_location_weather_endpoint(
     summary="Material Suggestion Engine (Phase M1)",
     description="Inverts optimizer to solve for material build-ups from target indoor and design outdoor temperatures.",
 )
+@app.post(
+    "/api/suggest-materials",
+    response_model=SuggestMaterialsResponse,
+    summary="Material Suggestion Engine (Phase M1) Alias",
+    include_in_schema=False,
+)
 def suggest_materials_endpoint(request: SuggestMaterialsRequest) -> SuggestMaterialsResponse:
     """
     Given a target indoor requirement and outdoor design condition,
@@ -1414,4 +1420,26 @@ def suggest_materials_endpoint(request: SuggestMaterialsRequest) -> SuggestMater
     from engine.material_suggestion import suggest_materials
     res = suggest_materials(request.model_dump())
     return SuggestMaterialsResponse(**res)
+
+
+@app.post(
+    "/diagnose",
+    summary="Instant Thermal Weakness Diagnosis",
+    description="Calculates component heat loss breakdown and identifies dominant envelope bottleneck.",
+)
+@app.post(
+    "/api/diagnose",
+    summary="Instant Thermal Weakness Diagnosis Alias",
+    include_in_schema=False,
+)
+def diagnose_endpoint(request: SimulateRequest):
+    sim_res = _run_simulation_internal(request)
+    if sim_res.get("refused"):
+        return {"refused": True, "refusal_reason": sim_res.get("refusal_reason")}
+    return {
+        "diagnosis": sim_res.get("diagnosis"),
+        "summary": sim_res.get("summary"),
+        "weather_provenance": sim_res.get("weather_provenance"),
+    }
+
 

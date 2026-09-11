@@ -29,6 +29,15 @@ import urllib.error
 
 import numpy as np
 
+# Compatibility alias for unpickling scikit-learn models across versions
+try:
+    import importlib
+    import sys
+    if "_loss" not in sys.modules:
+        sys.modules["_loss"] = importlib.import_module("sklearn._loss._loss")
+except Exception:
+    pass
+
 logger = logging.getLogger("therma.ml.inference")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -441,42 +450,45 @@ class ThermaInferenceEngine:
         """Format an authoritative DRDO/building-physics answer from predictions."""
         inp = data["resolved_parameters"]
         pred = data["predictions"]
-        recs = data["recommendations"]
+        recs = data.get("recommendations", [])
 
-        lines = [
-            f"### THERMA Machine Learning Surrogate Prediction",
-            f"**Site / Location**: `{inp['location']}` ({inp['region']}, Altitude: {inp['altitude_m']:.0f} m)",
-            f"**Outdoor Climate Condition**: `{inp['outdoor_temperature_C']:.1f} °C`",
-            f"**Envelope Configuration**: `{inp['wall_material']}` with `{inp['wall_insulation_thickness_m']*1000:.0f} mm` insulation, ACH: `{inp['ach']}`, Occupants: `{inp['occupants']}`",
-            "",
-            "#### Predicted Thermal & Comfort Metrics:",
-            f"- **Predicted Indoor Temperature ($T_{{in}}$)**: **`{pred['indoor_temperature_C']:.2f} °C`**",
-            f"- **Predicted Operative Temperature ($T_{{op}}$)**: **`{pred['operative_temperature_C']:.2f} °C`**",
-            f"- **Predicted Mean Radiant Temperature ($T_{{mrt}}$)**: **`{pred['mean_radiant_temperature_C']:.2f} °C`**",
-            f"- **Predicted Temperature Lift ($\Delta T$)**: **`+{pred['temperature_lift_C']:.2f} °C`** above ambient",
-            f"- **Dominant Heat Loss Bottleneck**: **`{pred['dominant_heat_loss'].upper()}`**",
-            f"- **Thermal Comfort Status**: **`{pred['comfort_status']}`**",
-            f"- **Thermal Risk Class**: **`{pred['thermal_risk_class']}`**",
-            f"- **Life Safety Status**: **`{pred['safety_status']}`** ({pred['safety_reason']})",
-            "",
-            "#### Predicted Heat Loss Flux Breakdown:",
-        ]
+        loc_name = inp.get("location", "Frontier Post").replace("_", " ")
+        region = inp.get("region", "Ladakh")
+        alt = inp.get("altitude_m", 3500)
+        t_out = inp.get("outdoor_temperature_C", -15.0)
+        t_in = pred.get("indoor_temperature_C", 0.0)
+        t_op = pred.get("operative_temperature_C", 0.0)
+        t_mrt = pred.get("mean_radiant_temperature_C", 0.0)
+        lift = pred.get("temperature_lift_C", 0.0)
+        bottleneck = pred.get("dominant_heat_loss", "sky").upper()
+        comfort = pred.get("comfort_status", "COLD")
+        safety = pred.get("safety_status", "FAIL")
+        safety_reason = pred.get("safety_reason", "Hypothermia risk without active heating")
+        wall = inp.get("wall_material", "stone_masonry").replace("_", " ").title()
+        ins_mm = inp.get("wall_insulation_thickness_m", 0.05) * 1000
+        ach = inp.get("ach", 0.5)
+        occupants = inp.get("occupants", 8)
 
         fluxes = pred.get("heat_loss_fluxes_W", {})
-        if fluxes:
-            for k, v in fluxes.items():
-                if k != "total_heat_loss_W":
-                    lines.append(f"- **{k.replace('_', ' ').title()}**: `{v:.1f} W`")
-            if "total_heat_loss_W" in fluxes:
-                lines.append(f"- **Total Heat Balance Loss**: **`{fluxes['total_heat_loss_W']:.1f} W`**")
+        total_loss = fluxes.get("total_heat_loss_W", 3000.0)
+        dominant_loss_val = fluxes.get(f"{bottleneck.lower()}_conduction_W", fluxes.get("sky_longwave_loss_W", 0.0))
+        dominant_share_pct = (dominant_loss_val / total_loss * 100.0) if total_loss > 0 else 0.0
 
-        if recs:
-            lines.append("")
-            lines.append("#### Engineering Recommendations:")
-            for r in recs:
-                lines.append(f"1. {r}")
+        p1 = (
+            f"Under design outdoor ambient conditions of {t_out:.1f} °C at {loc_name} ({region}, {alt:.0f} m AMSL), "
+            f"the simulated {wall} shelter envelope ({ins_mm:.0f} mm insulation, infiltration rate {ach} ACH, {occupants} occupants) "
+            f"maintains a stabilized indoor air temperature of {t_in:.2f} °C, delivering a passive thermal lift of +{lift:.2f} °C."
+        )
 
-        return "\n".join(lines)
+        p2 = (
+            f"Thermal comfort assessment resolves to operative temperature Top of {t_op:.2f} °C (mean radiant temperature {t_mrt:.2f} °C), "
+            f"categorizing the shelter in the {comfort} thermal comfort regime. "
+            f"Total envelope heat dissipation is {total_loss:,.1f} W, with {bottleneck} loss serving as the primary thermodynamic bottleneck "
+            f"at {dominant_loss_val:,.1f} W ({dominant_share_pct:.1f}% of total flux). "
+            f"Life safety verification evaluates to {safety} — {safety_reason}."
+        )
+
+        return f"{p1}\n\n{p2}"
 
     def _synthesize_with_ollama(self, question: str, data: Dict[str, Any]) -> Optional[str]:
         """Synthesize natural response via Ollama strictly grounded in predictions."""

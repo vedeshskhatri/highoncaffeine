@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import { Plane, Calendar, Fuel, AlertCircle, HelpCircle, ArrowRight } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Plane, Calendar, Fuel, AlertCircle, HelpCircle, ArrowRight, ShieldCheck, Radio, Navigation } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 import './ForecastPage.css';
 
 export default function ForecastPage() {
@@ -23,7 +23,12 @@ export default function ForecastPage() {
   }, [estate]);
 
   if (loading) {
-    return <div className="loading-state">Projecting seasonal helicopter sorties & fuel logistics...</div>;
+    return (
+      <div className="forecast-loading-state">
+        <div className="telemetry-spinner" />
+        <span>Projecting seasonal military helicopter sorties & forward fuel logistics...</span>
+      </div>
+    );
   }
 
   if (!forecast) {
@@ -37,72 +42,140 @@ export default function ForecastPage() {
       {/* 1. Header */}
       <div className="forecast-header">
         <div>
+          <div className="forecast-tag-row">
+            <span className="drdo-section-badge">DRDO PS 26051 · AVIATION LOGISTICS</span>
+            <span className="forecast-estate-tag mono">{estate.toUpperCase()} THEATRE</span>
+          </div>
           <h2 className="forecast-title">Seasonal Kerosene Demand & Sortie Logistics</h2>
           <p className="forecast-subtitle">
-            Converting predicted thermal deficit into military helicopter sorties ({estate} Estate).
+            Algorithmic translation of building-physics thermal deficits into military helicopter replenishment sorties.
           </p>
         </div>
       </div>
 
-      {/* 2. Sourced / Estimate Assumption Banner per Correction 1 */}
-      <div className="sortie-assumption-card">
-        <div className="assumption-header">
-          <Plane size={18} className="text-orange" />
-          <span className="assumption-title">Aviation Logistics Payload Assumption</span>
-          <span className="estimate-chip mono">[{sCfg.basis}]</span>
+      {/* 2. Sourced / Estimate Aviation Logistics Specification Card */}
+      <div className="sortie-spec-card">
+        <div className="sortie-spec-header">
+          <div className="sortie-spec-title-box">
+            <div className="spec-icon-box">
+              <Plane size={18} />
+            </div>
+            <div>
+              <div className="sortie-spec-title-row">
+                <h3 className="sortie-spec-title">Aviation Logistics Payload Specification</h3>
+                <span className="basis-chip mono">[{sCfg.basis.toUpperCase()}]</span>
+              </div>
+              <p className="sortie-spec-note">{sCfg.note}</p>
+            </div>
+          </div>
         </div>
-        <p className="assumption-note">{sCfg.note}</p>
-        <span className="assumption-footer">
-          Aircraft Profile: {sCfg.aircraft_candidates?.join(', ')} · 1 Sortie ≈ {sCfg.litres_per_sortie} L delivered
-        </span>
+
+        <div className="sortie-parameters-grid">
+          <div className="sortie-param-item">
+            <span className="param-k">AIRCRAFT FLEET</span>
+            <span className="param-v">{sCfg.aircraft_candidates?.join(', ')}</span>
+          </div>
+          <div className="sortie-param-item">
+            <span className="param-k">USEFUL PAYLOAD PER SORTIE</span>
+            <span className="param-v mono">{sCfg.litres_per_sortie} Litres (~360 kg)</span>
+          </div>
+          <div className="sortie-param-item">
+            <span className="param-k">OPERATING DENSITY ALTITUDE</span>
+            <span className="param-v mono">3,500–4,800 m AMSL</span>
+          </div>
+          <div className="sortie-param-item">
+            <span className="param-k">FORWARD SORTIE BASING</span>
+            <span className="param-v">AFS Leh / Thoise (Nubra)</span>
+          </div>
+        </div>
       </div>
 
-      {/* 3. Headline Logistics Metrics */}
+      {/* 3. Headline Logistics KPI Metrics Grid */}
       <div className="logistics-metrics-grid">
         <div className="logistics-card">
-          <span className="logistics-label">TOTAL ANNUAL SORTIES</span>
-          <div className="logistics-val mono text-orange">
-            {forecast.total_annual_sorties} sorties
+          <div className="logistics-card-header">
+            <span className="logistics-label">TOTAL ANNUAL SORTIES</span>
+            <Navigation size={14} className="text-secondary" />
+          </div>
+          <div className="logistics-val mono">
+            {forecast.total_annual_sorties} <span className="val-unit">sorties</span>
           </div>
           <span className="logistics-meta">Coverage: {forecast.coverage_str}</span>
         </div>
 
         <div className="logistics-card">
-          <span className="logistics-label">ANNUAL KEROSENE DEMAND</span>
-          <div className="logistics-val mono">
-            {forecast.total_annual_litres.toLocaleString()} Litres
+          <div className="logistics-card-header">
+            <span className="logistics-label">ANNUAL KEROSENE REPLENISHMENT</span>
+            <Fuel size={14} className="text-secondary" />
           </div>
-          <span className="logistics-meta">To maintain indoor health thresholds</span>
+          <div className="logistics-val mono">
+            {forecast.total_annual_litres.toLocaleString()} <span className="val-unit">Litres</span>
+          </div>
+          <span className="logistics-meta">To maintain indoor health thresholds (+10°C)</span>
         </div>
 
         <div className="logistics-card">
-          <span className="logistics-label">PEAK WINTER MONTH (JAN)</span>
-          <div className="logistics-val mono text-ice">
-            {forecast.monthly?.find(m => m.month === 'Jan')?.sorties || '—'} sorties
+          <div className="logistics-card-header">
+            <span className="logistics-label">PEAK WINTER MONTH (JANUARY)</span>
+            <Calendar size={14} className="text-secondary" />
           </div>
-          <span className="logistics-meta">Heaviest snow corridor constraint</span>
+          <div className="logistics-val mono text-solar">
+            {forecast.monthly?.find(m => m.month === 'Jan')?.sorties || '—'} <span className="val-unit">sorties</span>
+          </div>
+          <span className="logistics-meta">Severe mountain pass snow closure constraint</span>
         </div>
       </div>
 
       {/* 4. Monthly Sortie & Fuel Distribution Chart */}
       <div className="forecast-chart-card">
-        <h3 className="card-heading">Projected Monthly Helicopter Sorties</h3>
-        <span className="card-sub">
-          Shows severe winter concentration (Oct–Apr); summer sorties drop to baseline surveillance.
-        </span>
+        <div className="card-header-block">
+          <div>
+            <h3 className="card-title-text">Projected Monthly Helicopter Sortie Schedule</h3>
+            <p className="card-sub-text">
+              Displays severe winter concentration (Nov–Apr) when high-altitude mountain passes are closed by heavy snowfall.
+            </p>
+          </div>
+          <div className="chart-legend-chips mono">
+            <div className="legend-chip">
+              <span className="legend-bar-sample high" />
+              <span>Peak Winter (&gt;2 Sorties)</span>
+            </div>
+            <div className="legend-chip">
+              <span className="legend-bar-sample normal" />
+              <span>Baseline Surveillance</span>
+            </div>
+          </div>
+        </div>
 
         <div className="chart-wrapper">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={forecast.monthly} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
-              <XAxis dataKey="month" stroke="var(--espresso-70)" fontSize={12} />
-              <YAxis stroke="var(--espresso-70)" fontSize={11} tickFormatter={v => `${v} sorties`} />
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={forecast.monthly} margin={{ top: 20, right: 20, left: 10, bottom: 15 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+              <XAxis dataKey="month" stroke="#64748B" fontSize={12} tickLine={false} axisLine={{ stroke: '#E2E8F0' }} />
+              <YAxis
+                stroke="#64748B"
+                fontSize={11}
+                tickLine={false}
+                axisLine={{ stroke: '#E2E8F0' }}
+                tickFormatter={v => `${v} sorties`}
+              />
               <Tooltip
-                formatter={(val) => [`${val} Sorties`, 'Helicopter Missions']}
-                contentStyle={{ backgroundColor: 'var(--cream)', borderColor: 'var(--rule)' }}
+                formatter={(val) => [`${val} Sorties`, 'Military Flight Missions']}
+                contentStyle={{
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#E2E8F0',
+                  borderRadius: '10px',
+                  boxShadow: '0 4px 16px rgba(15,23,42,0.08)',
+                  fontSize: '12.5px',
+                  fontFamily: 'var(--font-body)',
+                }}
               />
               <Bar dataKey="sorties" radius={[4, 4, 0, 0]}>
                 {forecast.monthly?.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.sorties > 4.0 ? 'var(--orange)' : 'var(--ice)'} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.sorties >= 1.5 ? '#1E40AF' : '#94A3B8'}
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -112,29 +185,66 @@ export default function ForecastPage() {
 
       {/* 5. Outpost Breakdown Table */}
       <div className="forecast-table-card">
-        <h3 className="card-heading">Sortie Requirements by Outpost</h3>
-        <table className="forecast-table">
-          <thead>
-            <tr>
-              <th>Post Name</th>
-              <th>District</th>
-              <th>Annual Kerosene</th>
-              <th>Projected Sorties</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {forecast.site_monthly_breakdown?.map(s => (
-              <tr key={s.site_id} onClick={() => navigate(`/sites/${s.site_id}`)}>
-                <td className="site-name-cell font-bold">{s.site_name}</td>
-                <td>{s.district}</td>
-                <td className="mono">{s.annual_litres.toLocaleString()} L</td>
-                <td className="mono text-orange font-bold">{s.annual_sorties} sorties</td>
-                <td className="arrow-cell"><ArrowRight size={14} /></td>
+        <div className="card-header-block">
+          <div>
+            <h3 className="card-title-text">Sortie Requirements by Frontier Outpost</h3>
+            <p className="card-sub-text">
+              Breakdown of annual kerosene volume and corresponding helicopter flight missions per monitored post.
+            </p>
+          </div>
+          <span className="table-count-badge mono">{forecast.site_monthly_breakdown?.length || 0} Outposts Evaluated</span>
+        </div>
+
+        <div className="table-wrapper-spacious">
+          <table className="spacious-data-table">
+            <thead>
+              <tr>
+                <th>POST NAME</th>
+                <th>DEFENSE SECTOR</th>
+                <th>ANNUAL KEROSENE DEMAND</th>
+                <th>PROJECTED ANNUAL SORTIES</th>
+                <th>SORTIE LOAD BAR</th>
+                <th>ACTION</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {forecast.site_monthly_breakdown?.map(s => {
+                const maxSorties = 2.5;
+                const sortiePct = Math.min(100, Math.max(10, (s.annual_sorties / maxSorties) * 100));
+
+                return (
+                  <tr key={s.site_id} className="clickable-row" onClick={() => navigate(`/sites/${s.site_id}`)}>
+                    <td>
+                      <span className="post-name font-bold">{s.site_name}</span>
+                    </td>
+                    <td>
+                      <span className="post-sector">{s.district} Sector</span>
+                    </td>
+                    <td className="mono fuel-cell">
+                      {s.annual_litres.toLocaleString()} L
+                    </td>
+                    <td>
+                      <span className="mono sortie-badge-num font-bold">
+                        {s.annual_sorties} sorties
+                      </span>
+                    </td>
+                    <td>
+                      <div className="sortie-mini-track">
+                        <div className="sortie-mini-fill" style={{ width: `${sortiePct}%` }} />
+                      </div>
+                    </td>
+                    <td className="arrow-cell">
+                      <span className="post-link-btn">
+                        <span>Details</span>
+                        <ArrowRight size={13} />
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

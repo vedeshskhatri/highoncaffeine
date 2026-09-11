@@ -4,6 +4,7 @@ Owner: Vedesh
 Conforms to:
 - PRD functional requirement FR-M1 (Material Suggestion)
 - brain/06_PHYSICS_SPEC.md (ISO 52016-1 transient solver, backup heat sizing)
+- brain/05_DATA_SOURCES.md (Section 1 Open-Meteo & NASA POWER, Section 6 Kerosene 37.0 MJ/L)
 - brain/00_MASTER_RULES.md (Rule R1: citations, Rule R8: honest negative results)
 """
 
@@ -15,7 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from api.weather import generate_or_get_worst_night_profile
+from api.weather import generate_or_get_worst_night_profile, get_weather
 from engine.impact import backup_heat_sizing, kerosene_litres
 from engine.materials import load as load_materials
 from engine.optimizer import compute_design_cost, design_to_dict
@@ -33,15 +34,18 @@ def generate_candidate_variants(
     max_cost_inr: Optional[float] = None,
     heater_type: str = "none",
     materials_db: Optional[Any] = None,
+    regime: str = "heating",
 ) -> List[Design]:
     """Generate a structured, diverse set of realistic passive envelope build-ups.
 
-    Explores:
-    - Wall structures: Mud brick, rammed earth, stone masonry (local), and PUF sandwich (non-local).
-    - Insulation: EPS board, mineral rockwool, straw bale (0 to 150 mm).
-    - Roof: CGI sheet or concrete with high-performance insulation & low-e coating.
-    - Floor: Stone slab or concrete with underfloor insulation.
-    - Solar aperture: 2.0m² to 8.0m² south glazing with double/triple glass and night shutters.
+    Args:
+        geometry: Shelter length, width, height [m].
+        occupancy: Occupancy count and metabolic rate.
+        locally_available_only: If True, restrict to regional Ladakh materials.
+        max_cost_inr: Optional budget constraint.
+        heater_type: Heater type for safety verification.
+        materials_db: Material properties database.
+        regime: 'heating' (cold climate) or 'cooling' (hot/overheating climate).
     """
     if materials_db is None:
         materials_db = load_materials()
@@ -52,60 +56,83 @@ def generate_candidate_variants(
 
     candidates: List[Design] = []
 
-    # 1. Structural wall material options
-    if locally_available_only:
+    if regime == "cooling":
+        # HOT / OVERHEATING REGIME (e.g. Chennai in May, Jaisalmer in May)
+        # Physics: High thermal mass for diurnal damping, no external insulation blanket (avoids heat trapping),
+        # minimal shaded glazing (eliminates greenhouse solar cooking), high cross-ventilation, cool reflective roof.
         structural_options = [
-            ("mud_brick", 0.30),
             ("rammed_earth", 0.30),
-            ("stone_masonry", 0.35),
-        ]
-    else:
-        structural_options = [
             ("mud_brick", 0.30),
             ("stone_masonry", 0.35),
-            ("pu_sandwich_panel", 0.10),
-            ("prefab_sandwich", 0.10),
+        ]
+        insul_options = [
+            (None, 0.0),
+        ]
+        roof_options = [
+            (("concrete", 0.15), (None, 0.0), 0.90),
+            (("concrete", 0.15), ("rockwool", 0.05), 0.90),
+            (("dense_concrete", 0.15), (None, 0.0), 0.90),
+            (("dense_concrete", 0.15), ("rockwool", 0.05), 0.90),
+        ]
+        floor_options = [
+            (("stone_floor", 0.15), (None, 0.0)),
+        ]
+        glazing_options = [
+            ("double_glass", 1.5, False),
+            ("double_glass", 2.0, False),
+            ("single_glass", 1.5, False),
+        ]
+        ach_options = [1.5, 2.0]
+
+    else:
+        # COLD / HEATING REGIME (e.g. Leh, Siachen, high alpine winter)
+        # Physics: Heavy thermal mass + external insulation (50mm–150mm EPS/Rockwool) + south solar aperture + night shutters.
+        if locally_available_only:
+            structural_options = [
+                ("mud_brick", 0.30),
+                ("rammed_earth", 0.30),
+                ("stone_masonry", 0.35),
+            ]
+        else:
+            structural_options = [
+                ("mud_brick", 0.30),
+                ("stone_masonry", 0.35),
+                ("pu_sandwich_panel", 0.10),
+                ("prefab_sandwich", 0.10),
+            ]
+
+        insul_options = [
+            (None, 0.0),
+            ("eps_board", 0.05),
+            ("eps_board", 0.10),
+            ("rockwool", 0.10),
         ]
 
-    # 2. Wall insulation options (None, 50mm, 100mm, 150mm)
-    insul_options = [
-        (None, 0.0),
-        ("eps_board", 0.05),
-        ("eps_board", 0.10),
-        ("rockwool", 0.10),
-    ]
+        roof_options = [
+            (("cgi_sheet", 0.002), ("rockwool", 0.10), 0.25),
+            (("concrete", 0.15), ("eps_board", 0.10), 0.90),
+        ]
 
-    # 3. Roof insulation options (CGI sheet or concrete + insulation)
-    roof_options = [
-        (("cgi_sheet", 0.002), ("rockwool", 0.10), 0.25),
-        (("concrete", 0.15), ("eps_board", 0.10), 0.90),
-    ]
+        floor_options = [
+            (("stone_floor", 0.15), (None, 0.0)),
+            (("stone_floor", 0.15), ("eps_board", 0.05)),
+        ]
 
-    # 4. Floor options
-    floor_options = [
-        (("stone_floor", 0.15), ("eps_board", 0.0)),
-        (("stone_floor", 0.15), ("eps_board", 0.05)),
-    ]
+        glazing_options = [
+            ("double_glass", 4.0, False),
+            ("double_glass_night_shutter", 4.0, True),
+            ("triple_pane", 6.0, True),
+        ]
 
-    # 5. Glazing options (south facing)
-    glazing_options = [
-        ("double_glass", 4.0, False),
-        ("double_glass_night_shutter", 4.0, True),
-        ("triple_pane", 6.0, True),
-    ]
-
-    # 6. Infiltration ACH
-    ach_options = [0.35]
+        ach_options = [0.35]
 
     for struct_mat, struct_th in structural_options:
         is_sandwich = "sandwich" in struct_mat
 
         for insul_mat, insul_th in insul_options:
-            # Sandwich panels already contain thermal insulation
             if is_sandwich and insul_th > 0.0:
                 continue
 
-            # Build wall layers
             wall_layers = [Layer(material_id=struct_mat, thickness_m=struct_th)]
             if insul_mat and insul_th > 0.0:
                 wall_layers.append(Layer(material_id=insul_mat, thickness_m=insul_th))
@@ -113,13 +140,13 @@ def generate_candidate_variants(
             for r_spec in roof_options:
                 r_base, r_insul, r_emiss = r_spec
                 roof_layers = [Layer(material_id=r_base[0], thickness_m=r_base[1])]
-                if r_insul[1] > 0.0:
+                if r_insul and r_insul[0] and r_insul[1] > 0.0:
                     roof_layers.append(Layer(material_id=r_insul[0], thickness_m=r_insul[1]))
 
                 for f_spec in floor_options:
                     f_base, f_insul = f_spec
                     floor_layers = [Layer(material_id=f_base[0], thickness_m=f_base[1])]
-                    if f_insul[1] > 0.0:
+                    if f_insul and f_insul[0] and f_insul[1] > 0.0:
                         floor_layers.append(Layer(material_id=f_insul[0], thickness_m=f_insul[1]))
 
                     for glaze_id, glaze_area, night_shutter in glazing_options:
@@ -145,20 +172,17 @@ def generate_candidate_variants(
                                 height_m=height_m,
                             )
 
-                            # Budget filter
                             if max_cost_inr is not None:
                                 cost = compute_design_cost(cand, materials_db)
                                 if cost > max_cost_inr:
                                     continue
 
-                            # Safety interlock filter
                             safety_res = check_safety(cand, heater_type=heater_type)
                             if safety_res.refused:
                                 continue
 
                             candidates.append(cand)
 
-    # Subsample if combinatorial expansion is very large (keep diverse sample)
     if len(candidates) > 600:
         rng = np.random.default_rng(seed=42)
         idx = rng.choice(len(candidates), size=600, replace=False)
@@ -183,7 +207,7 @@ def compute_envelope_conductance(design: Design, materials_db: Any) -> float:
     ua_total = 0.0
 
     # Walls
-    r_walls = 0.13 + 0.04  # R_si + R_se
+    r_walls = 0.13 + 0.04
     for lyr in design.walls:
         mat = materials_db[lyr.material_id]
         if mat.k and mat.k > 0:
@@ -215,7 +239,7 @@ def compute_envelope_conductance(design: Design, materials_db: Any) -> float:
     return ua_total
 
 
-def compute_backup_heat_for_design(
+def compute_backup_conditioning_for_design(
     design: Design,
     weather_series: List[Dict[str, Any]],
     hourly_t_in_c: np.ndarray,
@@ -223,41 +247,82 @@ def compute_backup_heat_for_design(
     altitude_m: float,
     materials_db: Any,
     occupancy_w: float = 400.0,
+    regime: str = "heating",
 ) -> Dict[str, Any]:
-    """Compute required backup heat and fuel using real physical conductance and solar gains."""
-    # Altitude-corrected air density using ideal gas law at target temperature
+    """Compute required backup thermal conditioning (heating or cooling) using real physical conductance."""
     rho_alt = air_density(altitude_m, 273.15 + target_indoor_c)
     volume_m3 = design.length_m * design.width_m * design.height_m
     k_inf = (rho_alt * volume_m3 * design.ach / 3600.0) * CP_AIR
     ua_env = compute_envelope_conductance(design, materials_db)
     k_total = ua_env + k_inf
 
-    # Calculate hourly deficits
-    deficit_w_series: List[float] = []
-    for h in range(24):
-        t_out = float(weather_series[h]["t_air"])
-        t_in = float(hourly_t_in_c[h])
+    if regime == "heating":
+        deficit_w_series: List[float] = []
+        for h in range(24):
+            t_out = float(weather_series[h]["t_air"])
+            t_in = float(hourly_t_in_c[h])
 
-        if t_in < target_indoor_c:
-            # Heat loss if held at target
-            q_loss = k_total * (target_indoor_c - t_out)
-            # Solar gain through glazing
-            ghi = float(weather_series[h]["ghi"])
-            solar_gain = 0.0
-            for op in design.openings:
-                mat = materials_db.get(op.glazing_id)
-                g_val = getattr(mat, "g_value", 0.70) or 0.70
-                solar_gain += op.area_m2 * float(g_val) * (ghi * 0.8)  # realistic transmission
+            if t_in < target_indoor_c:
+                q_loss = k_total * (target_indoor_c - t_out)
+                ghi = float(weather_series[h]["ghi"])
+                solar_gain = 0.0
+                for op in design.openings:
+                    mat = materials_db.get(op.glazing_id)
+                    g_val = getattr(mat, "g_value", 0.70) or 0.70
+                    solar_gain += op.area_m2 * float(g_val) * (ghi * 0.8)
 
-            net_deficit = max(0.0, q_loss - solar_gain - occupancy_w)
-            deficit_w_series.append(net_deficit)
-        else:
-            deficit_w_series.append(0.0)
+                net_deficit = max(0.0, q_loss - solar_gain - occupancy_w)
+                deficit_w_series.append(net_deficit)
+            else:
+                deficit_w_series.append(0.0)
 
-    return backup_heat_sizing(deficit_w_series, dt_s=3600.0, efficiency=0.85)
+        # 37.0 MJ/L kerosene standard per brain/05_DATA_SOURCES.md Section 6 & engine/impact.py
+        return backup_heat_sizing(deficit_w_series, dt_s=3600.0, efficiency=0.85)
+
+    else:
+        # COOLING REGIME
+        cooling_w_series: List[float] = []
+        for h in range(24):
+            t_out = float(weather_series[h]["t_air"])
+            t_in = float(hourly_t_in_c[h])
+
+            if t_in > target_indoor_c:
+                q_conductive = k_total * max(0.0, t_out - target_indoor_c)
+                ghi = float(weather_series[h]["ghi"])
+                solar_gain = 0.0
+                for op in design.openings:
+                    mat = materials_db.get(op.glazing_id)
+                    g_val = getattr(mat, "g_value", 0.76) or 0.76
+                    solar_gain += op.area_m2 * float(g_val) * (ghi * 0.5)
+
+                q_cool_net = q_conductive + solar_gain + occupancy_w
+                cooling_w_series.append(q_cool_net)
+            else:
+                cooling_w_series.append(0.0)
+
+        peak_kw = float(np.max(cooling_w_series)) / 1000.0 if cooling_w_series else 0.0
+        hours = float(np.count_nonzero(np.array(cooling_w_series) > 10.0))
+        total_kwh_th = float(np.sum(cooling_w_series)) / 1000.0
+        # AC electrical consumption at seasonal COP = 3.0
+        ac_kwh_elec = round(total_kwh_th / 3.0, 2)
+
+        return {
+            "peak_kw": round(peak_kw, 2),
+            "hours": hours,
+            "kerosene_litres_per_night": 0.0,
+            "cooling_kwh_electrical": ac_kwh_elec,
+            "conditioning_type": "active_cooling",
+        }
 
 
-def explain_buildup(design: Design, achieved_min: float, target_c: float, materials_db: Any) -> str:
+def explain_buildup(
+    design: Design,
+    achieved_min: float,
+    achieved_max: float,
+    target_c: float,
+    materials_db: Any,
+    regime: str = "heating",
+) -> str:
     """Generate a deterministic engineering explanation for this build-up."""
     wall_primary = materials_db[design.walls[0].material_id].name
     has_insul = len(design.walls) > 1 and design.walls[1].thickness_m > 0
@@ -265,19 +330,34 @@ def explain_buildup(design: Design, achieved_min: float, target_c: float, materi
     glaze = design.openings[0]
     glaze_name = materials_db[glaze.glazing_id].name
 
-    if achieved_min >= target_c:
-        return (
-            f"Passive thermal compliance achieved ({achieved_min:+.1f} °C min). "
-            f"Heavy {wall_primary} provides thermal mass damping; exterior {insul_desc} prevents conductive collapse; "
-            f"{glaze.area_m2:.1f} m² {glaze_name} captures essential daytime solar gain."
-        )
+    if regime == "cooling":
+        if achieved_max <= target_c:
+            return (
+                f"Passive cooling compliance achieved ({achieved_max:.1f} °C max). "
+                f"High-mass {wall_primary} absorbs daytime heat wave; shaded glazing eliminates solar gain; "
+                f"cross-ventilation ({design.ach} ACH) and high-emissivity concrete roof dump heat during cool night hours."
+            )
+        else:
+            gap = achieved_max - target_c
+            return (
+                f"Optimized passive envelope holds indoor temperature to {achieved_max:.1f} °C max ({gap:.1f} °C above target). "
+                f"Heavy {wall_primary} without insulation traps dampens outdoor peak, avoiding heat entrapment "
+                f"and substantially reducing active cooling / air conditioning tonnage."
+            )
     else:
-        gap = target_c - achieved_min
-        return (
-            f"Optimized passive envelope reaches {achieved_min:+.1f} °C min ({gap:.1f} °C below target). "
-            f"High-mass {wall_primary} paired with {insul_desc} minimizes heat flux, "
-            f"dramatically reducing the required supplementary heating capacity."
-        )
+        if achieved_min >= target_c:
+            return (
+                f"Passive thermal compliance achieved ({achieved_min:+.1f} °C min). "
+                f"Heavy {wall_primary} provides thermal mass damping; exterior {insul_desc} prevents conductive collapse; "
+                f"{glaze.area_m2:.1f} m² {glaze_name} captures essential daytime solar gain."
+            )
+        else:
+            gap = target_c - achieved_min
+            return (
+                f"Optimized passive envelope reaches {achieved_min:+.1f} °C min ({gap:.1f} °C below target). "
+                f"High-mass {wall_primary} paired with {insul_desc} minimizes heat flux, "
+                f"dramatically reducing the required supplementary heating capacity."
+            )
 
 
 def suggest_materials(
@@ -292,6 +372,9 @@ def suggest_materials(
     max_cost_inr: Optional[float] = None,
     locally_available_only: Optional[bool] = None,
     heater_type: Optional[str] = None,
+    date: Optional[str] = None,
+    month: Optional[int] = None,
+    weather_mode: Optional[str] = None,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """Solve for optimal material combinations meeting user-stated thermal requirements.
@@ -299,17 +382,20 @@ def suggest_materials(
     Args:
         request: Optional dictionary with request parameters.
         target_indoor_c: Target indoor temperature [°C].
-        design_outdoor_c: Design outdoor ambient temperature [°C].
-        use_site_p1: Whether to evaluate against the site's real P1 design winter night.
+        design_outdoor_c: Design outdoor ambient temperature [°C]. If omitted, uses real site weather.
+        use_site_p1: Whether to evaluate against the site's NASA POWER P1 winter night.
         location: Dict with lat, lon, altitude_m.
         geometry: Dict with length_m, width_m, height_m.
         occupancy: Dict with people, watts_per_person.
         max_cost_inr: Maximum budget constraint in INR.
         locally_available_only: If True, restricts materials to local sources.
         heater_type: Type of auxiliary heater if specified.
+        date: ISO weather date YYYY-MM-DD (e.g. '2024-05-15' for May, '2024-01-15' for January).
+        month: Optional integer month (1 to 12).
+        weather_mode: 'typical_day' or 'design_winter_night'.
 
     Returns:
-        Structured response with top 3 specification cards and backup heat assessment.
+        Structured response with top 3 specification cards and backup conditioning assessment.
     """
     req: Dict[str, Any] = dict(request) if request is not None else {}
     if target_indoor_c is not None:
@@ -330,6 +416,12 @@ def suggest_materials(
         req["locally_available_only"] = locally_available_only
     if heater_type is not None:
         req["heater_type"] = heater_type
+    if date is not None:
+        req["date"] = date
+    if month is not None:
+        req["month"] = month
+    if weather_mode is not None:
+        req["weather_mode"] = weather_mode
     req.update({k: v for k, v in kwargs.items() if v is not None})
     request = req
 
@@ -345,7 +437,12 @@ def suggest_materials(
     loc = request.get("location", {})
     lat = float(loc.get("lat", 34.1526))
     lon = float(loc.get("lon", 77.5771))
-    altitude_m = float(loc.get("altitude_m", 3500.0))
+    if "altitude_m" in loc and loc["altitude_m"] is not None:
+        altitude_m = float(loc["altitude_m"])
+    else:
+        from api.location import resolve_elevation
+        res_alt, _ = resolve_elevation(lat, lon)
+        altitude_m = float(res_alt) if res_alt is not None else 3500.0
 
     geom = request.get("geometry", {})
     length_m = float(geom.get("length_m", 6.0))
@@ -363,12 +460,27 @@ def suggest_materials(
     locally_available_only = bool(request.get("locally_available_only", True))
     heater_type = str(request.get("heater_type", "none"))
 
-    # 1. Weather setup: real NASA POWER P1 profile for this location
-    base_rows, meta = generate_or_get_worst_night_profile(lat, lon)
-    p1_min_site = float(meta.get("p1_daily_min_c", -25.0))
+    # Date resolution
+    date_str = request.get("date") or request.get("date_str")
+    req_month = request.get("month")
+    if date_str is None:
+        if req_month is not None:
+            date_str = f"2024-{int(req_month):02d}-15"
+        else:
+            date_str = "2024-01-15"
+
+    weather_mode_req = str(request.get("weather_mode", "typical_day"))
+
+    # 1. Weather Setup: Real physics and meteorology
+    if use_site_p1 or weather_mode_req == "design_winter_night":
+        base_rows, meta = generate_or_get_worst_night_profile(lat, lon)
+        site_outdoor_min = float(meta.get("p1_daily_min_c", -25.0))
+    else:
+        base_rows, _ = get_weather(lat, lon, date_str, mode="typical_day", elevation_m=altitude_m)
+        site_outdoor_min = float(min(r["t_air"] for r in base_rows))
 
     if design_outdoor_c is not None and not use_site_p1:
-        # User specified design outdoor temperature: shift diurnal curve so min equals design_outdoor_c
+        # Explicit user outdoor design temperature: shift diurnal curve so min equals design_outdoor_c
         current_min = min(r["t_air"] for r in base_rows)
         shift = design_outdoor_c - current_min
         weather_rows = []
@@ -378,11 +490,20 @@ def suggest_materials(
             weather_rows.append(r_copy)
         effective_outdoor_min = design_outdoor_c
     else:
-        # Use site's real P1 design winter night
+        # True site weather reached directly from live satellite/reanalysis
         weather_rows = base_rows
-        effective_outdoor_min = p1_min_site
+        effective_outdoor_min = site_outdoor_min
 
-    # 2. Generate candidate design envelope variants
+    # Climate regime determination: Heating vs Cooling
+    t_out_arr = np.array([r["t_air"] for r in weather_rows])
+    mean_t_out = float(np.mean(t_out_arr))
+    min_t_out = float(np.min(t_out_arr))
+    max_t_out = float(np.max(t_out_arr))
+
+    is_cooling_regime = (mean_t_out >= target_indoor_c) or (min_t_out >= target_indoor_c)
+    regime = "cooling" if is_cooling_regime else "heating"
+
+    # 2. Generate candidate design envelope variants for this regime
     candidates = generate_candidate_variants(
         geometry={"length_m": length_m, "width_m": width_m, "height_m": height_m},
         occupancy={"people": people, "watts_per_person": w_person},
@@ -390,6 +511,7 @@ def suggest_materials(
         max_cost_inr=max_cost_inr,
         heater_type=heater_type,
         materials_db=materials_db,
+        regime=regime,
     )
 
     if not candidates:
@@ -397,6 +519,7 @@ def suggest_materials(
             "target_indoor_c": target_indoor_c,
             "design_outdoor_c": effective_outdoor_min,
             "target_met": False,
+            "all_met_passively": False,
             "status_message": "No candidate designs met the budget or safety constraints.",
             "best_achieved_min_c": None,
             "evaluated_count": 0,
@@ -411,6 +534,8 @@ def suggest_materials(
         "altitude_m": altitude_m,
         "lat": lat,
         "lon": lon,
+        "date": date_str,
+        "timezone": 0.0,
         "occupancy": {"people": people, "watts_per_person": w_person},
     }
 
@@ -425,6 +550,11 @@ def suggest_materials(
         t_mean = float(np.mean(t_col))
         cost = compute_design_cost(cand, materials_db)
 
+        if regime == "heating":
+            meets = (t_min >= target_indoor_c)
+        else:
+            meets = (t_max <= target_indoor_c)
+
         candidate_scores.append({
             "design": cand,
             "hourly_t_in": t_col,
@@ -432,7 +562,7 @@ def suggest_materials(
             "t_max": t_max,
             "t_mean": t_mean,
             "cost": cost,
-            "meets_target": (t_min >= target_indoor_c),
+            "meets_target": meets,
         })
 
     # 4. Filter and select top 3 distinct recommendations
@@ -440,15 +570,15 @@ def suggest_materials(
     target_met = len(passing) > 0
 
     if target_met:
-        # Sort passing designs by lowest cost first
         passing.sort(key=lambda x: x["cost"])
         pool = passing
     else:
-        # None meet target: sort by highest minimum temperature first (best-effort passive performance)
-        candidate_scores.sort(key=lambda x: (-x["t_min"], x["cost"]))
+        if regime == "heating":
+            candidate_scores.sort(key=lambda x: (-x["t_min"], x["cost"]))
+        else:
+            candidate_scores.sort(key=lambda x: (x["t_max"], x["cost"]))
         pool = candidate_scores
 
-    # Select top 3 with distinct primary wall structural materials
     selected = []
     seen_mats = set()
     for item in pool:
@@ -459,7 +589,6 @@ def suggest_materials(
         if len(selected) == 3:
             break
 
-    # Fill remaining slots if fewer than 3 distinct materials exist
     if len(selected) < 3:
         for item in pool:
             if item not in selected:
@@ -467,9 +596,9 @@ def suggest_materials(
             if len(selected) == 3:
                 break
 
-    # 5. Format recommendation specification cards
     best_achieved_min = selected[0]["t_min"] if selected else -99.0
 
+    # 5. Format recommendation specification cards
     recommendations: List[Dict[str, Any]] = []
     for rank_idx, item in enumerate(selected, 1):
         des: Design = item["design"]
@@ -479,7 +608,7 @@ def suggest_materials(
         cost = item["cost"]
         meets = item["meets_target"]
 
-        backup_heat = compute_backup_heat_for_design(
+        conditioning = compute_backup_conditioning_for_design(
             design=des,
             weather_series=weather_rows,
             hourly_t_in_c=item["hourly_t_in"],
@@ -487,21 +616,29 @@ def suggest_materials(
             altitude_m=altitude_m,
             materials_db=materials_db,
             occupancy_w=occupancy_w,
+            regime=regime,
         )
 
-        gap_c = max(0.0, target_indoor_c - t_min)
+        if regime == "heating":
+            gap_c = max(0.0, target_indoor_c - t_min)
+            summary_note = (
+                f"{conditioning.get('peak_kw', 0.0):.1f} kW of backup heat for "
+                f"{conditioning.get('hours', 0.0):.1f} hours, about "
+                f"{conditioning.get('kerosene_litres_per_night', 0.0):.1f} L of kerosene per night."
+            )
+        else:
+            gap_c = max(0.0, t_max - target_indoor_c)
+            summary_note = (
+                f"{conditioning.get('peak_kw', 0.0):.1f} kW of active cooling (air conditioning) for "
+                f"{conditioning.get('hours', 0.0):.1f} hours ({conditioning.get('cooling_kwh_electrical', 0.0):.1f} kWh elec/day)."
+            )
 
-        # Enriched backup heat
-        enriched_backup_heat = dict(backup_heat)
-        enriched_backup_heat.update({
-            "required_kw": backup_heat.get("peak_kw", 0.0),
-            "operating_hours_per_night": backup_heat.get("hours", 0.0),
-            "kerosene_liters_per_night": backup_heat.get("kerosene_litres_per_night", 0.0),
-            "summary_note": (
-                f"{backup_heat.get('peak_kw', 0.0):.1f} kW of backup heat for "
-                f"{backup_heat.get('hours', 0.0):.1f} hours, about "
-                f"{backup_heat.get('kerosene_litres_per_night', 0.0):.1f} L of kerosene per night."
-            ),
+        enriched_conditioning = dict(conditioning)
+        enriched_conditioning.update({
+            "required_kw": conditioning.get("peak_kw", 0.0),
+            "operating_hours_per_night": conditioning.get("hours", 0.0),
+            "kerosene_liters_per_night": conditioning.get("kerosene_litres_per_night", 0.0),
+            "summary_note": summary_note,
         })
 
         # Build-up details
@@ -555,20 +692,31 @@ def suggest_materials(
 
         glaze_op = des.openings[0]
         glaze_mat = materials_db[glaze_op.glazing_id]
+        # Precise ISO 52016 / ISO 6946 effective U-values
+        u_day = float(glaze_mat.u_value or 2.8)
+        if glaze_op.night_shutter:
+            # Deployable night shutter adds R = 0.55 m2K/W (ISO 6946:2017)
+            u_night = round(1.0 / (1.0 / u_day + 0.55), 2)
+        else:
+            u_night = u_day
+
         glazing_details = {
             "glazing_id": glaze_op.glazing_id,
             "name": glaze_mat.name,
             "south_area_m2": glaze_op.area_m2,
-            "u_value": glaze_mat.u_value,
-            "u_value_day": glaze_mat.u_value,
+            "u_value": u_night,
+            "u_value_day": u_day,
+            "u_value_night": u_night,
             "g_value": glaze_mat.g_value,
             "night_shutter": glaze_op.night_shutter,
-            "source": glaze_mat.source or "ISO 52016-1:2017",
+            "source": "ISO 52016-1:2017 Table B.14 & ISO 6946:2017",
         }
 
         title_parts = [materials_db[des.walls[0].material_id].name]
         if len(des.walls) > 1 and des.walls[1].thickness_m > 0:
             title_parts.append(f"{int(des.walls[1].thickness_m * 1000)}mm {materials_db[des.walls[1].material_id].name}")
+        elif regime == "cooling":
+            title_parts.append("uninsulated (diurnal mass damp)")
         title_str = " + ".join(title_parts)
 
         primary_wall_name = materials_db[des.walls[0].material_id].name
@@ -586,7 +734,7 @@ def suggest_materials(
             "cost_inr": round(cost, 0),
             "estimated_cost_inr": round(cost, 0),
             "cost_formatted": f"₹{int(round(cost)):,}",
-            "backup_heat": enriched_backup_heat,
+            "backup_heat": enriched_conditioning,
             "buildup": {
                 "walls": wall_details,
                 "roof": roof_details,
@@ -596,30 +744,49 @@ def suggest_materials(
                 "roof_emissivity": des.roof_emissivity,
             },
             "design_payload": design_to_dict(des),
-            "explanation": explain_buildup(des, t_min, target_indoor_c, materials_db),
+            "explanation": explain_buildup(des, t_min, t_max, target_indoor_c, materials_db, regime=regime),
         }
         recommendations.append(rec)
 
-    # Status message (rule R8: honest negative results)
     best_rec = recommendations[0] if recommendations else None
-    if target_met:
-        status_message = (
-            f"Passive envelope solutions found! "
-            f"The top-ranked build-up achieves {best_rec['achieved_min_c']:+.1f} °C min "
-            f"at {effective_outdoor_min:+.1f} °C outdoor ambient for {best_rec['cost_formatted']}."
-        )
+    if regime == "heating":
+        if target_met:
+            status_message = (
+                f"Passive envelope solutions found! "
+                f"The top-ranked build-up achieves {best_rec['achieved_min_c']:+.1f} °C min "
+                f"at {effective_outdoor_min:+.1f} °C outdoor ambient for {best_rec['cost_formatted']}."
+            )
+        else:
+            b_cond = best_rec["backup_heat"]
+            status_message = (
+                f"The best passive design reaches {best_rec['achieved_min_c']:+.1f} °C. "
+                f"The remaining {best_rec['gap_c']:.1f} °C requires {b_cond['peak_kw']:.1f} kW of backup heat "
+                f"for {b_cond['hours']:.1f} hours, about {b_cond['kerosene_litres_per_night']:.1f} L of kerosene per night."
+            )
     else:
-        b_heat = best_rec["backup_heat"]
-        status_message = (
-            f"The best passive design reaches {best_rec['achieved_min_c']:+.1f} °C. "
-            f"The remaining {best_rec['gap_c']:.1f} °C requires {b_heat['peak_kw']:.1f} kW of backup heat "
-            f"for {b_heat['hours']:.1f} hours, about {b_heat['kerosene_litres_per_night']:.1f} L of kerosene per night."
-        )
+        if target_met:
+            status_message = (
+                f"Passive cooling solutions found! "
+                f"The top-ranked build-up holds interior to {best_rec['achieved_max_c']:.1f} °C max "
+                f"during {max_t_out:.1f} °C ambient for {best_rec['cost_formatted']}."
+            )
+        else:
+            b_cond = best_rec["backup_heat"]
+            status_message = (
+                f"The best passive cooling design holds {best_rec['achieved_max_c']:.1f} °C max. "
+                f"The remaining {best_rec['gap_c']:.1f} °C requires {b_cond['peak_kw']:.1f} kW of active cooling "
+                f"(air conditioning) for {b_cond['hours']:.1f} hours."
+            )
 
     return {
         "target_indoor_c": target_indoor_c,
         "design_outdoor_c": effective_outdoor_min,
         "use_site_p1": use_site_p1,
+        "site_weather": {
+            "t_min_c": round(min_t_out, 1),
+            "t_max_c": round(max_t_out, 1),
+            "altitude_m": altitude_m,
+        },
         "target_met": target_met,
         "all_met_passively": target_met,
         "status_message": status_message,
@@ -627,4 +794,5 @@ def suggest_materials(
         "evaluated_count": len(candidates),
         "elapsed_s": round(time.time() - t_start, 3),
         "recommendations": recommendations,
+        "regime": regime,
     }

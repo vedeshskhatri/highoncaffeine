@@ -228,6 +228,7 @@ class HeatLossBreakdownSchema(BaseModel):
 
 
 class BackupHeatSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
     peak_kw: float
     hours: float
     kerosene_litres_per_night: float
@@ -765,13 +766,6 @@ class BuildupSpecificationSchema(BaseModel):
     glazing: GlazingBuildupSchema
     ach: float
     roof_emissivity: float
-
-
-class BackupHeatSchema(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    peak_kw: float
-    hours: float
-    kerosene_litres_per_night: float
 
 
 class MaterialRecommendationSchema(BaseModel):

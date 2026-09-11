@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowRight, 
+  Shield,
   ShieldAlert, 
   Sun, 
   Cpu, 
@@ -20,28 +21,28 @@ export default function LandingPage() {
       {/* Top Editorial Nav */}
       <header className="editorial-nav">
         <Link to="/" className="editorial-brand">
+          <div className="brand-shield-box">
+            <Shield size={16} />
+          </div>
           <span className="editorial-logo">THERMA</span>
-          <span className="editorial-badge">DRDO PS 26051</span>
+          <div className="brand-thermometer-sticker" title="High-Altitude Thermal Monitor">
+            <img
+              src="/thermometer_sticker.png"
+              alt="Thermometer Sticker"
+              className="thermometer-sticker-img"
+            />
+          </div>
         </Link>
-        <nav className="editorial-nav-links">
-          <Link to="/dashboard" className="editorial-nav-link">Estate Dashboard</Link>
-          <Link to="/sites" className="editorial-nav-link">Post Registry</Link>
-          <Link to="/programme" className="editorial-nav-link">Retrofit Planner</Link>
-          <Link to="/method" className="editorial-nav-link">Physics & Standard</Link>
-          <Link to="/validation" className="editorial-nav-link">Empirical Trials</Link>
+        <div className="editorial-nav-links">
           <Link to="/dashboard" className="editorial-nav-cta">
             <span>Enter Platform</span>
             <ArrowRight size={14} />
           </Link>
-        </nav>
+        </div>
       </header>
 
       {/* Main Editorial Hero */}
       <section className="editorial-hero">
-        <div className="editorial-tag">
-          SIH 2026 Grand Final · Extreme Cold Passive Solar Shelter Management
-        </div>
-
         <h1 className="editorial-hero-title">
           It costs <em>₹2,400</em> to deliver one litre of kerosene to Siachen.
         </h1>
@@ -57,9 +58,6 @@ export default function LandingPage() {
           </Link>
           <Link to="/sites/site_siachen_base/design" className="btn-secondary-editorial">
             <span>Launch Interactive Shelter Studio</span>
-          </Link>
-          <Link to="/programme" className="btn-secondary-editorial">
-            <span>View ₹2.0 Cr Retrofit Programme</span>
           </Link>
         </div>
       </section>
@@ -154,7 +152,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="editorial-footer">
         <div className="editorial-footer-inner">
-          <div>THERMA Platform · SIH 2026 Problem Statement 26051 · DRDO DIHAR Leh Field Reference</div>
+          <div>THERMA Platform · High-Altitude Solar Shelter Thermal Comfort Engineering</div>
           <div>Autonomous Engineering Systems · Defence & Humanitarian Thermal Architecture</div>
         </div>
       </footer>
