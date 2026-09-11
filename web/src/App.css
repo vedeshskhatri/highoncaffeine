@@ -181,6 +181,43 @@
   transform: translateY(-1px);
 }
 
+.topbar-demo-btn {
+  height: 34px;
+  padding: 0 14px;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent, #38bdf8);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-full);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topbar-demo-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.topbar-demo-btn.active {
+  background: #38bdf8;
+  color: #0b0f17;
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.topbar-demo-btn .demo-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+
 /* ─── Studio Body ───────────────────────────────────────────────────────── */
 .app-body {
   display: flex;

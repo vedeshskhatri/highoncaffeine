@@ -132,8 +132,38 @@ export default function SimulateCanvas({ result, request }) {
       flexDirection: 'column',
       gap: 'var(--space-3)',
     }}>
+      {/* 0. Demo Fixture Data In Use Indicator */}
+      {(data?._stub || !result) && (
+        <AnimatedPanel delay={0}>
+          <div
+            id="fixture-data-in-use-indicator"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 16px',
+              borderRadius: 'var(--radius-md, 8px)',
+              background: 'rgba(245, 158, 11, 0.15)',
+              border: '1px solid rgba(245, 158, 11, 0.5)',
+              color: '#fbbf24',
+              fontSize: 'var(--text-caption-size, 12px)',
+              fontWeight: 600,
+              fontFamily: 'var(--font-mono, monospace)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '14px' }}>⚠️</span>
+              <span>[DEMO FIXTURE DATA IN USE] — REPOSITORY APPROVED FIXTURE</span>
+            </div>
+            <span style={{ opacity: 0.8, fontSize: '11px', fontWeight: 400 }}>
+              Output is loaded from verified repository benchmark fixture.
+            </span>
+          </div>
+        </AnimatedPanel>
+      )}
+
       {/* 1. Weather Provenance Banner */}
-      <AnimatedPanel delay={0}>
+      <AnimatedPanel delay={0.03}>
         <WeatherProvenanceBanner provenance={data.weather_provenance} />
       </AnimatedPanel>
 

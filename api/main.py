@@ -43,6 +43,8 @@ from api.schemas import (
     DataProvenanceResponse,
     EngineeringReportRequest,
     EngineeringReportResponse,
+    ScenarioItemSchema,
+    ScenarioLibraryResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -1053,4 +1055,19 @@ def annual_scan(request: AnnualScanRequest) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/scenarios", response_model=ScenarioLibraryResponse)
+def get_scenarios_endpoint() -> ScenarioLibraryResponse:
+    """
+    Retrieve standardized predefined scenarios built strictly from valid repository data.
+    """
+    from engine.scenarios import get_all_scenarios
+    scenarios = get_all_scenarios()
+    return ScenarioLibraryResponse(
+        scenarios=scenarios,
+        total=len(scenarios),
+        stub=False,
+    )
+
 

@@ -633,5 +633,35 @@ class EngineeringReportRequest(BaseModel):
     context: Optional[Dict[str, Any]] = Field(default=None, description="Optional optimizer, retrofit, or diagnosis context")
 
 
+# ─── Phase 11: Scenario Library Schemas ──────────────────────────────────────────
+
+class WeatherSourceSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    provider: str = Field(..., description="Authoritative weather provider name")
+    mode: str = Field(..., description="Weather driving mode")
+    date: str = Field(..., description="Target ISO date")
+    grid_note: Optional[str] = Field(default=None, description="Spatial resolution / grid cell note")
+
+
+class ScenarioItemSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(..., description="Unique scenario identifier")
+    title: str = Field(..., description="Human-readable scenario title")
+    concept: str = Field(..., description="One of: cold_high_altitude, hot_dry, warm_humid, existing_retrofit")
+    description: str = Field(..., description="Detailed engineering context and conditions")
+    purpose: str = Field(..., description="Evaluation and design purpose")
+    input_configuration: SimulateRequest = Field(..., description="Complete valid simulation configuration")
+    weather_source: WeatherSourceSchema = Field(..., description="Authoritative meteorological provenance")
+    expected_demonstration_capability: str = Field(..., description="Qualitative demonstration capability without invented numerical claims")
+
+
+class ScenarioLibraryResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    scenarios: List[ScenarioItemSchema] = Field(..., description="List of standardized repository scenarios")
+    total: int = Field(..., description="Total count of available scenarios")
+    stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
+
+
+
 
 
