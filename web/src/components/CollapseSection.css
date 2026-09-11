@@ -1,0 +1,205 @@
+/* CollapseSection.css — Full-bleed midnight espresso section */
+
+.collapse-section {
+  background: var(--espresso);
+  color: var(--cream);
+  padding: var(--space-7) var(--space-4);
+  border-top: var(--border-width) solid var(--rule);
+  border-bottom: var(--border-width) solid var(--rule);
+}
+
+.collapse-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: center;
+}
+
+@media (min-width: 960px) {
+  .collapse-inner {
+    grid-template-columns: 1fr 1.2fr;
+  }
+}
+
+.collapse-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--orange);
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-2);
+}
+
+.collapse-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-lh);
+  font-weight: 700;
+  color: var(--cream);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.collapse-accent {
+  color: var(--ice);
+}
+
+.collapse-text {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--espresso-40);
+  margin-bottom: var(--space-5);
+}
+
+.collapse-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-3);
+}
+
+.metric-box {
+  background: var(--espresso-70);
+  border: 1px solid var(--espresso-40);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.metric-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--cream-2);
+}
+
+.metric-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+/* Chart Container */
+.collapse-chart-container {
+  background: var(--espresso-70);
+  border: 1px solid var(--espresso-40);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--espresso-40);
+}
+
+.chart-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--cream);
+}
+
+.chart-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--espresso-40);
+}
+
+.collapse-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.grid-line {
+  stroke: var(--espresso-40);
+  stroke-dasharray: 2 4;
+  stroke-width: 0.5;
+}
+
+.zero-line {
+  stroke: var(--ice);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.ref-label {
+  fill: var(--ice);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.axis-label {
+  fill: var(--espresso-40);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-anchor: end;
+}
+
+.hour-label {
+  text-anchor: middle;
+}
+
+/* Self-drawing SVG line */
+.collapse-path {
+  fill: none;
+  stroke: var(--ice);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.collapse-path.drawn {
+  stroke-dashoffset: 0;
+}
+
+/* Marker callout */
+.marker-group {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.5s ease 1.8s, transform 0.5s ease 1.8s;
+}
+
+.marker-group.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.min-circle {
+  fill: var(--orange);
+}
+
+.min-circle-pulse {
+  fill: var(--orange-soft);
+  opacity: 0.5;
+}
+
+.callout-line {
+  stroke: var(--orange);
+  stroke-width: 1.5;
+}
+
+.callout-bg {
+  fill: var(--espresso);
+  stroke: var(--orange);
+  stroke-width: 1;
+}
+
+.callout-text {
+  fill: var(--cream);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-anchor: middle;
+}

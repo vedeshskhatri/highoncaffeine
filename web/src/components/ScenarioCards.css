@@ -1,0 +1,125 @@
+/* ScenarioCards.css — Three Scenario Modes styling */
+
+.scenario-section {
+  margin-bottom: var(--space-6);
+}
+
+.scenario-header {
+  margin-bottom: var(--space-4);
+}
+
+.scenario-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--orange);
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: var(--space-1);
+}
+
+.scenario-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-title-size);
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.scenario-intro {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--espresso-70);
+  margin: 0;
+  max-width: 720px;
+}
+
+.scenario-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-3);
+}
+
+.scenario-card {
+  background: var(--cream-2);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  position: relative;
+}
+
+.scenario-card:hover {
+  border-color: var(--orange-soft);
+  background: var(--cream);
+}
+
+.scenario-card.active {
+  border-color: var(--orange);
+  background: var(--cream);
+  box-shadow: 0 0 0 1px var(--orange);
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title-badge {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--espresso);
+  letter-spacing: 0.05em;
+}
+
+.active-pill {
+  font-size: 10px;
+  background: var(--orange);
+  color: var(--cream);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.card-tagline {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--espresso-40);
+}
+
+.card-question-box {
+  background: var(--cream-2);
+  border-left: 3px solid var(--orange);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  margin: var(--space-1) 0;
+}
+
+.q-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--espresso-40);
+  display: block;
+}
+
+.q-text {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--espresso);
+}
+
+.card-note {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--espresso-70);
+  margin: 0;
+  flex-grow: 1;
+}

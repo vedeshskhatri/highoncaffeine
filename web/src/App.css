@@ -267,3 +267,70 @@
     transform: translateX(0);
   }
 }
+
+/* ─── Footer Components (from origin) ───────────────────────────────────── */
+.product-app-shell {
+  background: var(--cream);
+  min-height: 100vh;
+  color: var(--espresso);
+  display: flex;
+  flex-direction: column;
+}
+
+.site-footer {
+  background: var(--cream-2);
+  border-top: var(--border-width) solid var(--rule);
+  padding: var(--space-5) var(--space-4);
+}
+
+.footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.footer-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footer-logo {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--espresso);
+}
+
+.footer-desc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--espresso-40);
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.footer-link-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--espresso-70);
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.footer-link-btn:hover {
+  color: var(--orange);
+}

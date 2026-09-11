@@ -1,0 +1,217 @@
+/* ElevationCrossSection.css — Elevation graphics & drop zones */
+
+.elevation-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.elevation-canvas-box {
+  background: var(--cream-2);
+  border: var(--border-width) solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.canvas-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+}
+
+.canvas-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--espresso);
+  letter-spacing: 0.05em;
+}
+
+.telemetry-badge {
+  font-size: 11px;
+  color: var(--espresso-70);
+  background: var(--cream);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+}
+
+.shelter-elevation-svg {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--rule);
+  transition: background-color 0.3s ease;
+}
+
+.svg-ground-text {
+  font-size: 10px;
+  fill: var(--espresso-40);
+}
+
+.svg-layer-label {
+  font-size: 10px;
+  fill: var(--espresso);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.svg-window-label {
+  font-size: 10px;
+  fill: var(--ice);
+}
+
+.svg-air-title {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--espresso-40);
+  letter-spacing: 0.08em;
+}
+
+.svg-air-temp {
+  font-size: 26px;
+  font-weight: 700;
+  fill: var(--espresso);
+}
+
+.sun-glyph {
+  transition: transform 0.3s ease;
+}
+
+.sun-text {
+  font-size: 9px;
+  fill: var(--orange);
+  font-weight: 600;
+}
+
+.flux-text {
+  font-size: 9px;
+  fill: var(--ice);
+}
+
+/* Drop Zones Grid */
+.drop-zones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-3);
+}
+
+.drop-zone-card {
+  background: var(--cream-2);
+  border: 1.5px dashed var(--rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  transition: all 0.15s ease;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+}
+
+.drop-zone-card.drag-over {
+  border-color: var(--orange);
+  background: var(--orange-soft);
+}
+
+.zone-header {
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: var(--border-width) solid var(--rule);
+}
+
+.zone-name {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--espresso);
+  display: block;
+}
+
+.zone-dir {
+  font-size: 10px;
+  color: var(--espresso-40);
+  display: block;
+}
+
+.empty-zone-notice {
+  font-size: 11px;
+  color: var(--espresso-40);
+  font-style: italic;
+  text-align: center;
+  margin: auto 0;
+}
+
+.layers-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.layer-item {
+  background: var(--cream);
+  border: var(--border-width) solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  cursor: grab;
+  user-select: none;
+}
+
+.layer-item:hover {
+  border-color: var(--orange);
+}
+
+.layer-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.layer-pos {
+  font-size: 10px;
+  color: var(--espresso-40);
+  background: var(--cream-2);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.layer-name {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--espresso);
+  flex-grow: 1;
+}
+
+.layer-remove-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--espresso-40);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.layer-remove-btn:hover {
+  color: var(--ice);
+}
+
+.thickness-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.th-label {
+  font-size: 11px;
+  color: var(--espresso-70);
+  min-width: 50px;
+}
+
+.thickness-slider {
+  flex-grow: 1;
+  accent-color: var(--orange);
+  height: 4px;
+}

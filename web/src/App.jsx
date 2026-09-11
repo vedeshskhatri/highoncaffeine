@@ -3,9 +3,10 @@
  * Inspired by contemporary architectural 3D CAD design tools ("hut.").
  */
 import { useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Play, SlidersHorizontal } from 'lucide-react';
 import './App.css';
+import TokensPage from './TokensPage';
 import DesignCanvas from './components/DesignCanvas';
 import SimulateCanvas from './components/SimulateCanvas';
 import OptimizeCanvas from './components/OptimizeCanvas';
@@ -55,6 +56,13 @@ const INITIAL_SIMULATE_REQUEST = {
 };
 
 export default function App() {
+  // Check if viewing /tokens
+  const viewTokens =
+    typeof window !== 'undefined' &&
+    (window.location.pathname === '/tokens' ||
+      window.location.search.includes('view=tokens') ||
+      window.location.hash === '#tokens');
+
   const [currentStep, setCurrentStep] = useState('design');
   const [simulateRequest, setSimulateRequest] = useState(INITIAL_SIMULATE_REQUEST);
   const [gridNote, setGridNote] = useState(null);
@@ -97,6 +105,10 @@ export default function App() {
     }
     setCurrentStep('simulate');
   }, [simulateRequest]);
+
+  if (viewTokens) {
+    return <TokensPage />;
+  }
 
   const floorArea = (simulateRequest.geometry.length_m * simulateRequest.geometry.width_m).toFixed(1);
 

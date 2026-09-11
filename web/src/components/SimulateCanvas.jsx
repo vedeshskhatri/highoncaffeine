@@ -24,6 +24,7 @@ import {
   SpecSheetCopy,
   WeatherProvenanceBanner,
   RefusalCard,
+  ThermalDiagnosisPanel,
 } from './results';
 
 // Realistic sample simulation result when testing offline or before first execution
@@ -175,6 +176,13 @@ export default function SimulateCanvas({ result, request }) {
 
       {/* 6. Heat Loss Breakdown */}
       <HeatLossBreakdown heat_loss_kwh={data.summary?.heat_loss_kwh} />
+
+      {/* 6b. Thermal Diagnosis & Bottleneck Analysis */}
+      <ThermalDiagnosisPanel
+        diagnosis={data.diagnosis}
+        summary={data.summary}
+        request={request}
+      />
 
       {/* 7. Validation & Export (Wrapped Section) */}
       <div style={{

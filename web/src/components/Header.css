@@ -1,0 +1,98 @@
+/* Header.css — Header styling with strict tokens */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--cream);
+  border-bottom: var(--border-width) solid var(--rule);
+  backdrop-filter: blur(8px);
+}
+
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo-group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--espresso);
+}
+
+.logo-mark {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: var(--espresso);
+}
+
+.logo-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--espresso-40);
+  border: 1px solid var(--rule);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--cream-2);
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: var(--text-label-size);
+  font-weight: 500;
+  color: var(--espresso-70);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.nav-link:hover {
+  color: var(--orange);
+}
+
+.header-cta {
+  background: var(--orange);
+  color: var(--cream);
+  border: none;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.header-cta:hover {
+  opacity: 0.92;
+}
+
+@media (max-width: 640px) {
+  .logo-badge {
+    display: none;
+  }
+  .nav-link {
+    display: none;
+  }
+  .nav-tokens {
+    display: inline-block;
+  }
+}

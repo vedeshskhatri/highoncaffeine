@@ -1,0 +1,104 @@
+/* HeroSection.css — Editorial Hero styling */
+
+.hero-section {
+  background: var(--cream);
+  padding: var(--space-7) var(--space-4) var(--space-6);
+  border-bottom: var(--border-width) solid var(--rule);
+}
+
+.hero-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.eyebrow-rule {
+  width: 32px;
+  height: 2px;
+  background: var(--orange);
+}
+
+.eyebrow-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--espresso-40);
+  letter-spacing: 0.08em;
+}
+
+.hero-headline {
+  font-family: var(--font-heading);
+  font-size: var(--text-hero-size);
+  line-height: var(--text-hero-lh);
+  letter-spacing: var(--text-hero-tracking);
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0 0 var(--space-4) 0;
+  max-width: 960px;
+}
+
+.hero-subhead {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--espresso-70);
+  max-width: 780px;
+  margin: 0 0 var(--space-5) 0;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.hero-cta-btn {
+  background: var(--orange);
+  color: var(--cream);
+  border: none;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  padding: 14px 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.hero-cta-btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.hero-stats {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid var(--rule);
+  padding-left: var(--space-3);
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--espresso);
+}
+
+.stat-label {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--espresso-40);
+}
