@@ -1,0 +1,4 @@
+/* App.css — intentionally empty.
+ * All styles live in tokens.css or component-specific .css files.
+ * This file is kept to avoid a broken import in main.jsx.
+ */
