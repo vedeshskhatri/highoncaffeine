@@ -3,38 +3,58 @@
  * Strictly conforms to tokens.css — zero new hex colors.
  */
 
-.command-bar-container {
+/* Persistent docked command bar strip below topbar */
+.app-command-strip {
+  position: fixed;
+  top: 54px;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: var(--surface-1);
+  border-bottom: var(--border-width) solid var(--border);
   display: flex;
-  flex-direction: column;
-  position: relative;
-  width: 100%;
-  max-width: 440px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  gap: var(--space-3);
+  z-index: 95;
+  box-shadow: 0 1px 2px rgba(32, 15, 7, 0.03);
+  box-sizing: border-box;
   font-family: var(--font-mono);
 }
 
-/* Prompt + Input row */
-.command-bar-row {
+.command-bar-form {
+  flex: 1;
+  max-width: 680px;
+  display: flex;
+  align-items: center;
+}
+
+/* Prompt + Input container */
+.command-bar-main {
+  width: 100%;
   display: flex;
   align-items: center;
   background: var(--surface-2);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0 var(--space-2);
-  height: 32px;
+  height: 26px;
   gap: 6px;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.command-bar-row:focus-within {
+.command-bar-main:focus-within {
   border-color: var(--border-strong);
   background: var(--surface-1);
+  box-shadow: 0 0 0 1px var(--border-strong);
 }
 
 /* Terminal prompt character */
 .command-bar-prompt {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent);
   user-select: none;
@@ -49,9 +69,9 @@
   outline: none;
   background: transparent;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-primary);
-  line-height: 1.4;
+  line-height: 1.3;
   padding: 0;
 }
 
@@ -63,72 +83,44 @@
 /* Kbd hint / execute glyph */
 .command-bar-kbd {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-muted);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 1px 4px;
+  padding: 0 4px;
   user-select: none;
   line-height: 1.2;
 }
 
-/* Unrecognized command: muted-red border flash + subtle instrument shake */
-@keyframes cmd-shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-3px); }
-  40% { transform: translateX(3px); }
-  60% { transform: translateX(-2px); }
-  80% { transform: translateX(2px); }
+/* Right feedback section */
+.command-bar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  max-width: 50%;
 }
 
-.command-bar-row.shake {
-  border-color: var(--danger) !important;
-  animation: cmd-shake 320ms ease-in-out;
-  box-shadow: 0 0 0 1px var(--danger);
-}
-
-/* Successful command: sage pulse */
-@keyframes cmd-pulse {
-  0% {
-    box-shadow: 0 0 0 2px var(--comfort);
-    border-color: var(--comfort);
-  }
-  100% {
-    box-shadow: 0 0 0 0 transparent;
-    border-color: var(--border);
-  }
-}
-
-.command-bar-row.success-pulse {
-  animation: cmd-pulse 360ms ease-out;
-}
-
-/* One-line inline result readout under the bar */
 .command-bar-feedback {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.35;
-  box-shadow: var(--shadow-sm);
-  z-index: 120;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   display: flex;
   align-items: center;
   gap: 6px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.3;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: cmd-fade-in 150ms ease-out;
 }
 
-.command-bar-feedback.idle {
-  background: var(--surface-1);
-  color: var(--text-muted);
-  border-color: var(--border);
+@keyframes cmd-fade-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .command-bar-feedback.success {
@@ -149,4 +141,45 @@
   border-radius: 50%;
   background: currentColor;
   flex-shrink: 0;
+}
+
+.command-bar-idle-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+
+/* Unrecognized command: muted-red border flash + subtle instrument shake */
+@keyframes cmd-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+.command-bar-main.shake {
+  border-color: var(--danger) !important;
+  animation: cmd-shake 320ms ease-in-out;
+  box-shadow: 0 0 0 1px var(--danger);
+}
+
+/* Successful command: sage pulse */
+@keyframes cmd-pulse {
+  0% {
+    box-shadow: 0 0 0 2px var(--comfort);
+    border-color: var(--comfort);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    border-color: var(--border);
+  }
+}
+
+.command-bar-main.success-pulse {
+  animation: cmd-pulse 360ms ease-out;
 }

@@ -26,6 +26,21 @@ export default function CommandBar({ context = {}, onCommand }) {
     };
   }, []);
 
+  // Global hotkey: press '/' to focus command bar when not inside another input
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if (e.key === '/' && document.activeElement !== inputRef.current) {
+        const tagName = document.activeElement?.tagName?.toLowerCase();
+        if (tagName !== 'input' && tagName !== 'textarea' && !document.activeElement?.isContentEditable) {
+          e.preventDefault();
+          inputRef.current?.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
     const raw = query.trim();
@@ -67,11 +82,11 @@ export default function CommandBar({ context = {}, onCommand }) {
       // Reset animation state after ~380ms
       setTimeout(() => setAnimating(null), 380);
 
-      // Auto-hide feedback after 5 seconds
+      // Auto-hide feedback after 6 seconds
       timerRef.current = setTimeout(() => {
         setFeedback('');
         setStatus('idle');
-      }, 5000);
+      }, 6000);
     } else {
       // 2. Unrecognized / Ambiguous command
       setStatus('error');
@@ -97,10 +112,10 @@ export default function CommandBar({ context = {}, onCommand }) {
   };
 
   return (
-    <div className="command-bar-container" role="search" aria-label="Terminal command bar">
+    <div className="app-command-strip" role="search" aria-label="Terminal command bar">
       <form onSubmit={handleSubmit} className="command-bar-form">
         <div
-          className={`command-bar-row ${
+          className={`command-bar-main ${
             animating === 'shake' ? 'shake' : animating === 'pulse' ? 'success-pulse' : ''
           }`}
         >
@@ -113,7 +128,7 @@ export default function CommandBar({ context = {}, onCommand }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="simulate Kargil with stone walls · go to optimize"
+            placeholder="simulate Kargil with stone walls · go to optimize · compare mud brick vs eps · show validation"
             autoComplete="off"
             spellCheck="false"
             aria-label="Type command"
@@ -122,17 +137,23 @@ export default function CommandBar({ context = {}, onCommand }) {
         </div>
       </form>
 
-      {feedback && (
-        <div
-          className={`command-bar-feedback ${status}`}
-          role="status"
-          aria-live="polite"
-          title={feedback}
-        >
-          <span className="command-bar-feedback-dot" aria-hidden="true" />
-          <span>{feedback}</span>
-        </div>
-      )}
+      <div className="command-bar-right">
+        {feedback ? (
+          <div
+            className={`command-bar-feedback ${status}`}
+            role="status"
+            aria-live="polite"
+            title={feedback}
+          >
+            <span className="command-bar-feedback-dot" aria-hidden="true" />
+            <span>{feedback}</span>
+          </div>
+        ) : (
+          <span className="command-bar-idle-hint">
+            field console <kbd className="command-bar-kbd">/</kbd>
+          </span>
+        )}
+      </div>
     </div>
   );
 }

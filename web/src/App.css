@@ -65,6 +65,8 @@
   font-size: 12px;
   color: var(--text-primary);
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .config-name {
@@ -79,17 +81,6 @@
   font-family: var(--font-mono);
   color: var(--text-secondary);
   font-size: 11px;
-}
-
-/* ─── Center Command Bar Dock ────────────────────────────────────────── */
-.topbar-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  margin: 0 var(--space-3);
-  position: relative;
-  min-width: 260px;
-  max-width: 480px;
 }
 
 @keyframes instrument-pulse-kf {
@@ -247,8 +238,8 @@
 /* ─── Studio Body ───────────────────────────────────────────────────────── */
 .app-body {
   display: flex;
-  height: calc(100vh - 54px);
-  margin-top: 54px;
+  height: calc(100vh - 90px);
+  margin-top: 90px;
   overflow: hidden;
   background: var(--canvas-bg);
 }
@@ -318,7 +309,7 @@
 
   .inspector-panel {
     position: fixed;
-    top: 54px;
+    top: 90px;
     bottom: 0;
     right: 0;
     width: 360px;

@@ -217,14 +217,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* ── Center Terminal Command Bar ─────────────────────────────── */}
-        <div className="topbar-center">
-          <CommandBar
-            context={{ sitePresets: SITE_PRESETS, materialIds: FALLBACK_MATERIALS }}
-            onCommand={handleCommand}
-          />
-        </div>
-
         <div className="topbar-right">
           {/* Step Pill Rail */}
           <nav className="step-rail" aria-label="Application steps">
@@ -278,6 +270,12 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {/* ── 1b. Persistent Docked Command Bar (Field Instrument) ────────── */}
+      <CommandBar
+        context={{ sitePresets: SITE_PRESETS, materialIds: FALLBACK_MATERIALS }}
+        onCommand={handleCommand}
+      />
 
       {/* ── 2. Studio Body ─────────────────────────────────────────────── */}
       <div className="app-body">
