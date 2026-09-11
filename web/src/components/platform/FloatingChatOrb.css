@@ -7,21 +7,18 @@
   touch-action: none;
 }
 
-/* Pristine White Circular Floating Orb Button */
+/* Hollow Floating Orb — Pure Transparent WebGL Canvas */
 .floating-orb-button {
   position: relative;
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  padding: 3px;
-  background: #ffffff;
-  border: 2px solid #e2e8f0;
-  box-shadow: 
-    0 10px 25px -4px rgba(0, 0, 0, 0.12),
-    0 4px 10px -2px rgba(0, 0, 0, 0.05),
-    0 0 0 1px rgba(0, 0, 0, 0.03);
+  width: 76px;
+  height: 76px;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   cursor: grab;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,41 +26,32 @@
 
 .floating-orb-button:active {
   cursor: grabbing;
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 
 .floating-orb-button:hover {
-  border-color: #cbd5e1;
-  box-shadow: 
-    0 14px 30px -4px rgba(0, 0, 0, 0.16),
-    0 6px 14px -2px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
+  transform: scale(1.06);
 }
 
 .floating-orb-button.voice-active {
-  border-color: #10b981;
-  box-shadow: 
-    0 10px 25px -4px rgba(16, 185, 129, 0.3),
-    0 0 0 3px rgba(16, 185, 129, 0.15);
   animation: orb-voice-pulse 1.8s infinite ease-in-out;
 }
 
 @keyframes orb-voice-pulse {
   0%, 100% {
-    box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.3), 0 0 0 3px rgba(16, 185, 129, 0.15);
+    filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.5));
   }
   50% {
-    box-shadow: 0 12px 30px -4px rgba(16, 185, 129, 0.5), 0 0 0 5px rgba(16, 185, 129, 0.25);
+    filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.85));
   }
 }
 
 .floating-orb-canvas-container {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  overflow: hidden;
   position: relative;
-  background: transparent;
+  background: transparent !important;
+  overflow: visible;
 }
 
 .floating-orb-status-dot {
@@ -78,30 +66,6 @@
 @keyframes status-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.85); }
-}
-
-.floating-orb-tooltip {
-  position: absolute;
-  right: calc(100% + 12px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  padding: 6px 10px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.floating-orb-button:hover .floating-orb-tooltip {
-  opacity: 1;
-  transform: translateY(-50%) translateX(-2px);
 }
 
 /* Pristine White Chat Panel Window */

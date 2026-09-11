@@ -538,17 +538,6 @@ export default function FloatingChatOrb() {
                 maxHoverIntensity={0.85}
               />
             </div>
-
-            {/* Tooltip on Hover (hidden when open) */}
-            {!isOpen && (
-              <div className="floating-orb-tooltip">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles size={12} className="text-sky-600" />
-                  <span>THERMA Assistant</span>
-                  <span className="text-slate-400 font-mono text-[9px]">• Drag anywhere</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </motion.div>
