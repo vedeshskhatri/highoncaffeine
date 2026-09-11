@@ -103,8 +103,8 @@ const DEFAULT_SIMULATE_RESULT = {
 export default function SimulateCanvas({ result, request }) {
   // Use active simulation result or fallback sample
   const data = result || DEFAULT_SIMULATE_RESULT;
-
   const isRefused = !!data.refused;
+  const dateStr = request?.weather?.date || '2026-01-15';
 
   if (isRefused) {
     return (
@@ -127,27 +127,83 @@ export default function SimulateCanvas({ result, request }) {
       {/* 1. Weather Provenance Banner */}
       <WeatherProvenanceBanner provenance={data.weather_provenance} />
 
-      {/* 2. Four Headline Metric Cards */}
+      {/* 2. MetricCards section with section label row above */}
+      <div style={{
+        fontFamily: 'var(--font-body)',
+        fontSize: 'var(--text-caption-size)',
+        lineHeight: 'var(--text-caption-lh)',
+        color: 'var(--text-muted)',
+      }}>
+        Simulation results — {dateStr}
+      </div>
       <MetricCards summary={data.summary} />
 
-      {/* 3. Primary Diurnal Temperature Chart */}
-      <TempChart series={data.series} />
+      {/* 3. Primary Diurnal Temperature Chart (VISUAL ANCHOR) */}
+      <div
+        className="temp-chart-anchor"
+        style={{
+          borderLeft: '3px solid var(--accent)',
+          borderRadius: 'var(--radius-md)',
+        }}
+      >
+        <style>{`
+          .temp-chart-anchor > div {
+            border-left: none !important;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+          }
+        `}</style>
+        <TempChart series={data.series} />
+      </div>
 
-      {/* 4. Delta Ambient Chart (PS Requirement 3) */}
-      <DeltaAmbientChart series={data.series} />
+      {/* 4. Single horizontal rule between TempChart and DeltaAmbientChart */}
+      <hr style={{ border: 'none', borderTop: 'var(--border-width) solid var(--border)', margin: 0 }} />
 
-      {/* 5. Heat Loss Breakdown */}
+      {/* 5. Delta Ambient Chart (PS Requirement 3) with prominent label */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+        <div style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--text-caption-size)',
+          lineHeight: 'var(--text-caption-lh)',
+          color: 'var(--text-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+        }}>
+          PS Requirement 3 — Heat flow across ΔT (indoor − ambient)
+        </div>
+        <DeltaAmbientChart series={data.series} />
+      </div>
+
+      {/* 6. Heat Loss Breakdown */}
       <HeatLossBreakdown heat_loss_kwh={data.summary?.heat_loss_kwh} />
 
-      {/* 6. Validation vs Field Trials Panel */}
-      <ValidationPanel initialExpanded={true} />
+      {/* 7. Validation & Export (Wrapped Section) */}
+      <div style={{
+        borderTop: 'var(--border-width) solid var(--border)',
+        paddingTop: 'var(--space-3)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--space-3)',
+      }}>
+        <div style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: 'var(--text-caption-size)',
+          lineHeight: 'var(--text-caption-lh)',
+          color: 'var(--text-muted)',
+        }}>
+          Validation &amp; Export
+        </div>
 
-      {/* 7. Engineering Spec Sheet Export */}
-      <SpecSheetCopy
-        request={request}
-        summary={data.summary}
-        provenance={data.weather_provenance}
-      />
+        {/* Validation vs Field Trials Panel */}
+        <ValidationPanel initialExpanded={true} />
+
+        {/* Engineering Spec Sheet Export */}
+        <SpecSheetCopy
+          request={request}
+          summary={data.summary}
+          provenance={data.weather_provenance}
+        />
+      </div>
     </div>
   );
 }
