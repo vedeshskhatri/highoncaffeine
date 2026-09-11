@@ -80,9 +80,26 @@
   --space-4: 24px;
 
   /* ─────────────────────────────────────────
-     BORDERS & RADIUS
+     BORDERS, SHADOWS & RADIUS
      ───────────────────────────────────────── */
   --radius-sm: 4px;
-  --radius-md: 6px;    /* max per spec: 4–6 px */
-  --border-width: 1px; /* hairline borders, no shadows */
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px; /* Floating pill controls */
+  --border-width: 1px;
+
+  /* Architectural Canvas & Floating Glass */
+  --canvas-bg: #F8F5EE;
+  --canvas-grid: rgba(196, 173, 142, 0.22);
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-bg-hover: rgba(255, 255, 255, 0.96);
+  --glass-border: rgba(229, 213, 188, 0.85);
+
+  /* Shadows for floating CAD pills & inspector */
+  --shadow-sm: 0 1px 3px rgba(32, 15, 7, 0.06), 0 1px 2px rgba(32, 15, 7, 0.04);
+  --shadow-md: 0 4px 14px rgba(32, 15, 7, 0.08), 0 2px 5px rgba(32, 15, 7, 0.04);
+  --shadow-lg: 0 12px 30px rgba(32, 15, 7, 0.12), 0 4px 8px rgba(32, 15, 7, 0.06);
+  --shadow-floating: 0 8px 24px -4px rgba(32, 15, 7, 0.12), 0 4px 10px -2px rgba(32, 15, 7, 0.06);
 }
+
