@@ -37,6 +37,8 @@ Phase-by-phase Antigravity prompts, one file per person.
 | `AMAN_PHASES.md` | A0 materials · A1 physics constants · A2 sanity tests · A3 **validation (Gate 3)** · A4 safety+impact+retrofit |
 | `ARYAN_PHASES.md` | R0 **API stubs (unblocks Swapnil)** · R1 database · R2 weather · R3 worst-night+CSV · R4 results components |
 | `SWAPNIL_PHASES.md` | S0 **tokens (blocks everyone)** · S1 shell · S2 inputs · S3 cross-section · S4 charts |
+| `VRITIKA_PHASES.md` | VR0 material research · VR1 validation sources · VR2 cost data + ACH floor · VR3 **source audit before freeze** |
+| `SURBHI_PHASES.md` | SU0 slides 1/2/6 · SU1 Q&A drilling · SU2 demo ops + backup · SU3 slides 3-5 + README + user test |
 
 **Paste one phase at a time.** Wait for the phase report. Read sections 4, 6 and 9 yourself before pasting the next one.
 
@@ -54,6 +56,9 @@ Phase-by-phase Antigravity prompts, one file per person.
 Vedesh V0 (contract)  ->  Aryan R0 (stubs)  ->  Swapnil S0..S4
                       ->  Vedesh V1..V5     ->  Aman A3 (GATE 3)  ->  Vedesh V6
                       ->  Aman A0, A1       ->  (feeds V3, V4)
+
+Vritika VR0/VR1/VR2 run in parallel from hour zero and feed Aman A0/A1/A4.
+Surbhi SU0/SU1 run in parallel from hour zero; SU2/SU3 need a running build.
 ```
 
 Nothing is built on top of an unvalidated engine. Gate 3 first.
