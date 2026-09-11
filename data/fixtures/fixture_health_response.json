@@ -1,0 +1,7 @@
+{
+  "_stub": true,
+  "ok": true,
+  "db": true,
+  "weather_cache_rows": 8760,
+  "offline_capable": true
+}

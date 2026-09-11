@@ -1,0 +1,47 @@
+{
+  "_stub": true,
+  "method": "morris",
+  "runs": 240,
+  "levers": [
+    {
+      "parameter": "night_shutter",
+      "label": "Night shutters",
+      "effect_c": 6.1,
+      "rank": 1,
+      "cost_inr": 500.0,
+      "cost_basis": "estimate",
+      "install_note": "local craftsman, 1 day",
+      "derived_note": null
+    },
+    {
+      "parameter": "roof_emissivity",
+      "label": "Low-e roof coating (e=0.25)",
+      "effect_c": 3.8,
+      "rank": 2,
+      "cost_inr": 4200.0,
+      "cost_basis": "sourced",
+      "install_note": "brush application, 2 coats",
+      "derived_note": null
+    },
+    {
+      "parameter": "south_glazing_area",
+      "label": "South glazing +2.0 m2",
+      "effect_c": 2.9,
+      "rank": 3,
+      "cost_inr": 12000.0,
+      "cost_basis": "sourced",
+      "install_note": "timber frame, double pane",
+      "derived_note": null
+    },
+    {
+      "parameter": "wall_thickness",
+      "label": "Stone wall +100 mm",
+      "effect_c": 0.4,
+      "rank": 4,
+      "cost_inr": 38000.0,
+      "cost_basis": "sourced",
+      "install_note": null,
+      "derived_note": "+11.8 t per structure"
+    }
+  ]
+}

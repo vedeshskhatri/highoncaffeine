@@ -1,0 +1,89 @@
+{
+  "_stub": true,
+  "evaluated": 3000,
+  "refused_unsafe": 412,
+  "elapsed_s": 4.1,
+  "baseline": {
+    "comfort_hours_ratio": 0.21,
+    "t_in_min_c": 3.1,
+    "cost_inr": 180000.0
+  },
+  "pareto": [
+    {
+      "design_id": "d_0412",
+      "comfort_hours_ratio": 0.86,
+      "cost_inr": 318000.0,
+      "t_in_min_c": 17.2
+    },
+    {
+      "design_id": "d_1098",
+      "comfort_hours_ratio": 0.75,
+      "cost_inr": 240000.0,
+      "t_in_min_c": 14.8
+    },
+    {
+      "design_id": "d_2841",
+      "comfort_hours_ratio": 0.62,
+      "cost_inr": 195000.0,
+      "t_in_min_c": 11.5
+    }
+  ],
+  "top": [
+    {
+      "rank": 1,
+      "design_id": "d_0412",
+      "design": {
+        "walls": [
+          { "material": "mud_brick", "thickness_m": 0.30 },
+          { "material": "eps", "thickness_m": 0.05 }
+        ],
+        "roof": [
+          { "material": "concrete", "thickness_m": 0.15 }
+        ],
+        "floor": [
+          { "material": "concrete", "thickness_m": 0.10 }
+        ],
+        "roof_emissivity": 0.25,
+        "orientation_deg": 180.0,
+        "openings": [
+          { "facing": "south", "area_m2": 5.5, "glazing": "double_pane", "night_shutter": true }
+        ],
+        "ventilation": { "ach": 0.6, "heater_type": "none" }
+      },
+      "summary": {
+        "t_in_min_c": 17.2,
+        "t_in_min_hour": 6,
+        "t_in_max_c": 21.8,
+        "comfort_hours_ratio": 0.86,
+        "hours_below_health_threshold": 3,
+        "solar_gain_kwh": 26.4,
+        "heat_loss_kwh": {
+          "walls": 5.2,
+          "roof": 3.8,
+          "glazing": 4.1,
+          "infiltration": 3.9,
+          "sky_radiation": 2.4
+        },
+        "backup_heat": {
+          "peak_kw": 0.2,
+          "hours": 1.5,
+          "kerosene_litres_per_night": 0.1
+        },
+        "impact": {
+          "kerosene_litres_per_year": 130.0,
+          "cost_inr_per_year": 312000.0,
+          "co2_kg_per_year": 325.0,
+          "payback_years": 2.4
+        },
+        "freeze_risk": []
+      },
+      "why": "South glazing raised to 5.5 m2 and night shutters added. Overnight minimum rises 14.1 C versus baseline; shutters contribute 6.1 C of that.",
+      "delta_vs_baseline": {
+        "t_in_min_c": 14.1,
+        "comfort_hours_ratio": 0.65,
+        "cost_inr": 138000.0,
+        "kerosene_litres_per_year": -1180.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "_stub": true,
+  "materials": [
+    {
+      "id": "mud_brick",
+      "name": "Mud brick (adobe)",
+      "category": "structural",
+      "k": 0.75,
+      "rho": 1700.0,
+      "cp": 880.0,
+      "cost_per_m3": 2400.0,
+      "cost_basis": "sourced",
+      "locally_available": true,
+      "source": "ASHRAE HoF 2021 Ch.26 Tbl 1"
+    },
+    {
+      "id": "rammed_earth",
+      "name": "Rammed earth",
+      "category": "structural",
+      "k": 1.10,
+      "rho": 1900.0,
+      "cp": 840.0,
+      "cost_per_m3": 2100.0,
+      "cost_basis": "sourced",
+      "locally_available": true,
+      "source": "ASHRAE HoF 2021 Ch.26 Tbl 1"
+    },
+    {
+      "id": "eps",
+      "name": "Expanded polystyrene (EPS)",
+      "category": "insulation",
+      "k": 0.038,
+      "rho": 25.0,
+      "cp": 1400.0,
+      "cost_per_m3": 4500.0,
+      "cost_basis": "sourced",
+      "locally_available": true,
+      "source": "ASHRAE HoF 2021 Ch.26 Tbl 1"
+    },
+    {
+      "id": "rockwool",
+      "name": "Stone wool / Rockwool",
+      "category": "insulation",
+      "k": 0.040,
+      "rho": 40.0,
+      "cp": 840.0,
+      "cost_per_m3": 6000.0,
+      "cost_basis": "sourced",
+      "locally_available": false,
+      "source": "ASHRAE HoF 2021 Ch.26 Tbl 1"
+    },
+    {
+      "id": "concrete",
+      "name": "Heavyweight concrete",
+      "category": "mass",
+      "k": 1.75,
+      "rho": 2300.0,
+      "cp": 1000.0,
+      "cost_per_m3": 5500.0,
+      "cost_basis": "sourced",
+      "locally_available": true,
+      "source": "ASHRAE HoF 2021 Ch.26 Tbl 1"
+    },
+    {
+      "id": "double_pane",
+      "name": "Double glazing (4-12-4 air)",
+      "category": "glazing",
+      "k": 0.0,
+      "rho": 2500.0,
+      "cp": 840.0,
+      "cost_per_m3": null,
+      "cost_basis": "estimate",
+      "locally_available": true,
+      "source": "ISO 52016-1:2017 Table B.14"
+    }
+  ]
+}

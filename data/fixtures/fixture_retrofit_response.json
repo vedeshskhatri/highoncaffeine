@@ -1,0 +1,40 @@
+{
+  "_stub": true,
+  "baseline": {
+    "t_in_min_c": 3.1,
+    "hours_below_health_threshold": 17
+  },
+  "interventions": [
+    {
+      "rank": 1,
+      "label": "Night shutters, south windows",
+      "delta_t_min_c": 6.1,
+      "cost_inr": 500.0,
+      "degrees_per_1000_inr": 12.2,
+      "cost_basis": "estimate",
+      "cumulative_cost_inr": 500.0,
+      "cumulative_t_min_c": 9.2
+    },
+    {
+      "rank": 2,
+      "label": "Low-e coating on roof exterior (e=0.25)",
+      "delta_t_min_c": 3.8,
+      "cost_inr": 4200.0,
+      "degrees_per_1000_inr": 0.905,
+      "cost_basis": "sourced",
+      "cumulative_cost_inr": 4700.0,
+      "cumulative_t_min_c": 13.0
+    },
+    {
+      "rank": 3,
+      "label": "50 mm EPS external insulation on north wall",
+      "delta_t_min_c": 2.4,
+      "cost_inr": 8500.0,
+      "degrees_per_1000_inr": 0.282,
+      "cost_basis": "sourced",
+      "cumulative_cost_inr": 13200.0,
+      "cumulative_t_min_c": 15.4
+    }
+  ],
+  "within_budget_count": 3
+}
