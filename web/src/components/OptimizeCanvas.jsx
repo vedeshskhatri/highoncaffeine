@@ -83,8 +83,40 @@ export default function OptimizeCanvas({ result, request }) {
     { hour: 23, t_in: 17.9 },
   ];
 
-  const handleTriggerReoptimize = () => {
+  const handleTriggerReoptimize = async () => {
     setIsRunning(true);
+    try {
+      const resp = await fetch('http://localhost:8000/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: request?.location || { lat: 34.1526, lon: 77.5771, altitude_m: 3500 },
+          weather: request?.weather || { mode: 'typical_day', date: '2026-01-15', hours: 24 },
+          baseline: request,
+          search: {
+            orientation_deg: { min: 90.0, max: 270.0 },
+            south_glazing_m2: { min: 1.5, max: 6.0 },
+            insulation_mm: { min: 0.0, max: 100.0 },
+            roof_emissivity: [0.25, 0.90],
+            night_shutter: [true, false],
+            ach: { min: 0.35, max: 1.20 },
+          },
+          constraints: {
+            locally_available_only: true,
+            heater_type: request?.ventilation?.heater_type || 'none',
+          },
+          n_samples: 3000,
+        }),
+      });
+      if (resp.ok) {
+        const optData = await resp.json();
+        if (optData?.top && optData.top.length > 0) {
+          setSelectedDesign(optData.top[0]);
+        }
+      }
+    } catch (e) {
+      console.warn('Live backend optimize failed, using client defaults:', e);
+    }
   };
 
   const handleOptimizationComplete = () => {

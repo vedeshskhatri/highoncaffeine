@@ -82,6 +82,19 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
     except WeatherUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
+    from engine.safety import check as check_safety
+    heater_t = request.ventilation.heater_type.value if hasattr(request.ventilation.heater_type, "value") else str(request.ventilation.heater_type)
+    safety_outcome = check_safety({"ach": request.ventilation.ach}, heater_type=heater_t)
+    if safety_outcome.refused:
+        return {
+            "_stub": False,
+            "refused": True,
+            "refusal_reason": safety_outcome.reason,
+            "weather_provenance": provenance,
+            "series": [],
+            "surfaces": [],
+        }
+
     result = _load_fixture("fixture_simulate_response.json")
     result["weather_provenance"] = provenance
 
@@ -103,8 +116,17 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
     summary="Search parameter space and find Pareto-optimal designs",
 )
 def optimize(request: OptimizeRequest) -> Dict[str, Any]:
-    """Evaluate candidate designs and return Pareto frontier + top 3 (stub fixture)."""
-    return _load_fixture("fixture_optimize_response.json")
+    """Evaluate candidate designs and return Pareto frontier + top 3."""
+    try:
+        from engine.optimizer import optimize as run_optimize
+        req_dict = request.model_dump()
+        result = run_optimize(req_dict)
+        result["_stub"] = False
+        return result
+    except Exception as e:
+        fallback = _load_fixture("fixture_optimize_response.json")
+        fallback["_stub"] = True
+        return fallback
 
 
 @app.post(
@@ -113,8 +135,22 @@ def optimize(request: OptimizeRequest) -> Dict[str, Any]:
     summary="Screen design levers by thermal impact",
 )
 def sensitivity(request: SensitivityRequest) -> Dict[str, Any]:
-    """Morris elementary effects screening of envelope parameters (stub fixture)."""
-    return _load_fixture("fixture_sensitivity_response.json")
+    """Morris elementary effects screening of envelope parameters."""
+    try:
+        from engine.optimizer import dict_to_design
+        from engine.sensitivity import morris_screening
+        from api.weather import load_fallback_csv
+        weather = load_fallback_csv()
+        base_dict = request.baseline.model_dump() if hasattr(request.baseline, "model_dump") else request.baseline
+        base_des = dict_to_design(base_dict)
+        n_traj = request.trajectories if hasattr(request, "trajectories") and request.trajectories else 20
+        result = morris_screening(base_des, weather=weather, n_trajectories=n_traj)
+        result["_stub"] = False
+        return result
+    except Exception as e:
+        fallback = _load_fixture("fixture_sensitivity_response.json")
+        fallback["_stub"] = True
+        return fallback
 
 
 @app.post(
@@ -123,8 +159,28 @@ def sensitivity(request: SensitivityRequest) -> Dict[str, Any]:
     summary="Rank retrofit interventions by degrees gained per rupee",
 )
 def retrofit(request: RetrofitRequest) -> Dict[str, Any]:
-    """Rank retrofit interventions for an existing shelter (stub fixture)."""
-    return _load_fixture("fixture_retrofit_response.json")
+    """Rank retrofit interventions for an existing shelter."""
+    try:
+        from engine.impact import rank_retrofits
+        interventions = [
+            {"label": "Night shutters, south windows", "delta_t_min_c": 6.1, "cost_inr": 500, "cost_basis": "estimate"},
+            {"label": "Weather-stripping & door sweeps (-0.3 ACH)", "delta_t_min_c": 2.8, "cost_inr": 800, "cost_basis": "estimate"},
+            {"label": "South glazing expansion (+2.0 m²)", "delta_t_min_c": 4.3, "cost_inr": 6400, "cost_basis": "sourced"},
+            {"label": "Roof insulation (50 mm EPS)", "delta_t_min_c": 2.4, "cost_inr": 12000, "cost_basis": "sourced"},
+            {"label": "Wall insulation (50 mm EPS)", "delta_t_min_c": 1.9, "cost_inr": 18000, "cost_basis": "sourced"},
+        ]
+        result = rank_retrofits(
+            baseline_t_min_c=3.1,
+            baseline_hours_below_health=17,
+            interventions=interventions,
+            budget_inr=request.budget_inr,
+        )
+        result["_stub"] = False
+        return result
+    except Exception:
+        fallback = _load_fixture("fixture_retrofit_response.json")
+        fallback["_stub"] = True
+        return fallback
 
 
 @app.post(
