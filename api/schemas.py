@@ -583,4 +583,55 @@ class DataProvenanceResponse(BaseModel):
     _stub: bool = False
 
 
+class ClassifiedValueSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    value: Any = Field(..., description="Numerical or descriptive value")
+    unit: str = Field(..., description="Physical or currency units")
+    origin: str = Field(..., description="SOURCED | DERIVED | ESTIMATE | MODEL OUTPUT | MEASURED")
+    citation: str = Field(..., description="Authoritative standard, publication, or basis citation")
+    note: Optional[str] = Field(default="", description="Additional clarification or caveats")
+
+
+class AuditTrailSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    simulation_id: str = Field(..., description="Unique simulation identifier")
+    timestamp_utc: str = Field(..., description="ISO-8601 UTC timestamp of execution")
+    engine_version: str = Field(..., description="Physics engine version and formulation")
+    optimizer_version: str = Field(..., description="Optimizer algorithm version")
+    materials_database_hash: str = Field(..., description="SHA-256 fingerprint of materials.csv")
+    weather_dataset_identifier: str = Field(..., description="Weather provider and temporal horizon")
+    validation_status: str = Field(..., description="PASS or UNRUN")
+    result_checksum_sha256: str = Field(..., description="Cryptographic SHA-256 digest of results")
+    reproducibility_statement: str = Field(..., description="Explicit deterministic reproducibility declaration")
+    user_privacy_note: str = Field(..., description="Statement of user data privacy")
+
+
+class EngineeringReportSectionSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    section_id: int = Field(..., ge=1, le=18, description="Standard section number 1-18")
+    title: str = Field(..., description="Standard section title")
+    description: str = Field(..., description="Section scope and methodology summary")
+    metrics: Dict[str, ClassifiedValueSchema] = Field(..., description="Classified metrics dictionary")
+
+
+class EngineeringReportResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    report_id: str = Field(..., description="Report document identifier")
+    generated_at: str = Field(..., description="ISO-8601 generation timestamp")
+    engine_version: str = Field(..., description="Physics engine build version")
+    optimizer_version: str = Field(..., description="Optimizer build version")
+    sections: List[EngineeringReportSectionSchema] = Field(..., description="The 18 standardized sections")
+    audit_trail: AuditTrailSchema = Field(..., description="Cryptographic audit trail and reproducibility proof")
+    markdown: str = Field(..., description="Complete printable markdown document string")
+    _stub: bool = False
+
+
+class EngineeringReportRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    request: SimulateRequest = Field(..., description="Simulation input configuration")
+    result: Optional[Dict[str, Any]] = Field(default=None, description="Optional existing simulation result to avoid re-run")
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Optional optimizer, retrofit, or diagnosis context")
+
+
+
 

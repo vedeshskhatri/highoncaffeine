@@ -41,6 +41,8 @@ from api.schemas import (
     AnnualScanRequest,
     AnnualScanResponse,
     DataProvenanceResponse,
+    EngineeringReportRequest,
+    EngineeringReportResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -924,6 +926,39 @@ def get_data_provenance() -> Dict[str, Any]:
     registry = get_full_provenance_registry()
     registry["_stub"] = False
     return registry
+
+
+# ---------------------------------------------------------------------------
+# POST /report — Reproducible 18-Section Engineering Specification & Audit
+# ---------------------------------------------------------------------------
+
+@app.post(
+    "/report",
+    response_model=EngineeringReportResponse,
+    summary="Generate a reproducible 18-section engineering report with audit trail",
+)
+def generate_report(payload: EngineeringReportRequest) -> Dict[str, Any]:
+    """
+    Generates an authoritative, reproducible 18-section engineering specification report.
+    Guarantees:
+      - 18 standardized sections
+      - Every number classified as SOURCED, DERIVED, ESTIMATE, MODEL OUTPUT, or MEASURED
+      - Model outputs are never called 'measured'
+      - Cryptographic audit trail with simulation ID, materials database hash,
+        weather dataset ID, engine version, validation status, and SHA-256 result checksum.
+    """
+    from engine.report import generate_engineering_report
+    sim_result = payload.result
+    if not sim_result:
+        sim_result = _simulate_internal(payload.request)
+
+    report_dict = generate_engineering_report(
+        request=payload.request.model_dump(),
+        result=sim_result,
+        context=payload.context,
+    )
+    return report_dict
+
 
 
 

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import EngineeringReportModal from './EngineeringReportModal';
+
 
 /**
  * SpecSheetCopy.jsx — Single-click clipboard export of engineering specification.
@@ -75,23 +77,49 @@ export default function SpecSheetCopy({ request, summary, provenance }) {
     }
   };
 
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
   return (
-    <div className="flex items-center gap-3">
-      <button
-        type="button"
-        onClick={handleCopy}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md font-body text-label font-medium transition-colors"
-        style={{
-          backgroundColor: copied ? 'var(--comfort)' : 'var(--accent)',
-          color: 'var(--bg-base)',
-        }}
-        title="Copy engineering spec sheet to clipboard"
-      >
-        <span>{copied ? '✓ Copied to Clipboard' : '📋 Copy Spec Sheet'}</span>
-      </button>
-      <span className="font-body text-caption text-text-muted hidden sm:inline">
-        Plain-text clipboard copy per DRDO spec format
-      </span>
-    </div>
+    <>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setIsReportOpen(true)}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md font-body text-label font-semibold transition-all shadow-sm"
+          style={{
+            backgroundColor: 'var(--color-primary, #2563eb)',
+            color: '#ffffff',
+          }}
+          title="Open Full 18-Section Engineering Specification & Reproducibility Audit"
+        >
+          <span>📜 Full Engineering Report (18-Section)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md font-body text-label font-medium transition-colors border"
+          style={{
+            backgroundColor: copied ? 'var(--comfort, #10b981)' : 'var(--surface-2, #1e293b)',
+            color: copied ? '#ffffff' : 'var(--text-primary, #f8fafc)',
+            borderColor: 'var(--border, #334155)',
+          }}
+          title="Copy plain engineering summary to clipboard"
+        >
+          <span>{copied ? '✓ Copied Summary' : '📋 Copy Summary'}</span>
+        </button>
+        <span className="font-body text-caption text-text-muted hidden sm:inline">
+          Full 18-section reproducible specification &amp; SHA-256 audit digest
+        </span>
+      </div>
+
+      <EngineeringReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        request={request}
+        result={{ summary, weather_provenance: provenance }}
+      />
+    </>
   );
 }
+

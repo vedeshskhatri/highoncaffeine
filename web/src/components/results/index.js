@@ -10,3 +10,5 @@ export { default as WhatIfPanel } from './WhatIfPanel';
 export { default as DesignComparisonPanel } from './DesignComparisonPanel';
 export { default as AnnualComfortHeatmap } from './AnnualComfortHeatmap';
 export { default as DesignDoctorPanel } from './DesignDoctorPanel';
+export { default as EngineeringReportModal } from './EngineeringReportModal';
+
