@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS weather_cache (
   wind       REAL,               -- m/s
   rh         REAL,               -- %
   snow_cover INTEGER,            -- 0/1
+  cloud_cover REAL DEFAULT 0.0,  -- 0-1 or %
   provider   TEXT,               -- 'open-meteo' | 'nasa-power' | 'user-csv' | 'fallback'
   fetched_at TEXT,
   PRIMARY KEY (lat, lon, date, hour)
