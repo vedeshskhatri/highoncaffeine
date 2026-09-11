@@ -60,3 +60,10 @@ Architectural decision record. Append-only. Each entry states what, why, alterna
 ### D14 — Provisional colour palette
 **Why:** the team palette had not arrived at spec time.
 **Consequence:** no component hardcodes a colour. All colours resolve through `tokens.css`, so the swap is one file. Semantic discipline (red = below health threshold, green = comfort, amber = estimate) must survive the swap.
+
+### D15 — Single-branch trunk workflow
+**Decision:** one `main` branch, direct pushes, no PRs, push at end of every phase.
+**Why:** four to six people on a compressed timeline; branch and PR overhead cost more coordination time than the review catches, and merge conflicts across six long-lived branches at hour 20 is a worse failure than a briefly broken main. Contribution is still individually attributed because everyone pushes their own commits.
+**Alternatives:** feature branches with PR review (rejected: overhead), one person merging everything (rejected: explicitly penalised by the evaluation criteria).
+**Consequence:** no review gate, so pull-rebase-test-push discipline is mandatory and a broken main is everyone's emergency. CI moves from pre-merge to post-push.
+

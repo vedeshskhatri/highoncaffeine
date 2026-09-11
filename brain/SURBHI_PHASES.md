@@ -12,6 +12,8 @@ leave the screenshot slides for last. Phase SU0 is written accordingly.
 
 Paste one phase at a time. Emit the phase report at the end of each.
 
+**Phase report note:** Section 2 (FILES TOUCHED) must include the commit hash that was pushed to `main` (`Pushed commit: <hash>`).
+
 ---
 
 ## PHASE SU0 — The deck, slides 1, 2 and 6
@@ -88,7 +90,9 @@ CONSTRAINTS
 - Do not write slides 3-5 yet. They need screenshots.
 - Do not invent a figure to fill a gap.
 
-OUTPUT: PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 8 lists every TODO figure with who owes it to you.
 ```
 
@@ -152,7 +156,9 @@ CONSTRAINTS
 - Do not let anyone memorise a script. They need to understand it, because the
   follow-up question is where scripts break.
 
-OUTPUT: PHASE REPORT. Save the bank to /docs/qa-bank.md.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Save the bank to /docs/qa-bank.md.
 Section 9 must name anyone still not fluent on their assigned category.
 ```
 
@@ -210,7 +216,9 @@ CONSTRAINTS
 - Do not rehearse with mock data if real data is available.
 - Do not let a beat be narrated by someone who has not practised it.
 
-OUTPUT: PHASE REPORT. Section 9 must state what could still go wrong on the day
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 9 must state what could still go wrong on the day
 and what the response is for each. Be pessimistic here — that is the job.
 ```
 
@@ -280,7 +288,9 @@ CONSTRAINTS
 - Do not help the user during the test. The hesitation is the data.
 - Do not claim a user-test figure you did not measure.
 
-OUTPUT: PHASE REPORT. Section 8 lists every UI issue the user test surfaced,
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 8 lists every UI issue the user test surfaced,
 assigned to Swapnil. Section 10 is NO until the README setup has been verified
 from a clean clone by someone who did not write it.
 ```

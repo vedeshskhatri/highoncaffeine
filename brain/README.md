@@ -20,7 +20,7 @@ SIH 2026 · PS 26051 · DRDO · Software Based Model Development for Design of A
 | `09_ERROR_HANDLING.md` | Exceptions, fallback chain, what not to do | any code |
 | `10_VALIDATION.md` | **Gate 3.** Targets, ordering requirement, debug order, sanity tests | validation work |
 | `11_OPTIMIZER_SPEC.md` | Search, Pareto, Morris, retrofit ranking | optimizer work |
-| `12_GITHUB_ACTIONS.md` | Branching, commits, CI | from day one |
+| `12_GITHUB_ACTIONS.md` | Single branch, commits, CI | from day one |
 | `13_TESTING.md` | Test files, the three that matter, manual checks | test work |
 | `14_DEMO_CHECKLIST.md` | Pre-flight, the eight beats, cut rules, Nepal guidance | before the demo |
 | `15_MICROTASKS.md` | Flat checklist across all phases | progress tracking |
@@ -61,6 +61,7 @@ Vritika VR0/VR1/VR2 run in parallel from hour zero and feed Aman A0/A1/A4.
 Surbhi SU0/SU1 run in parallel from hour zero; SU2/SU3 need a running build.
 ```
 
+All work proceeds directly on `main` (single-branch policy); every phase ends with `git pull --rebase origin main`, tests, and push.
 Nothing is built on top of an unvalidated engine. Gate 3 first.
 
 ## Provisional items

@@ -21,6 +21,7 @@ Format:
 [2026-09-11 11:38] AMAN A2 — 10 physics sanity tests implemented, 15 passed, 2 skipped pending V5
 [2026-09-11 11:41] AMAN A3 — Gate 3 validation passed: V1, V2, V3, V4 within tolerance, Ordering check Trombe (16.29) > DG (15.01) PASS
 [2026-09-11 11:42] AMAN A4 — safety interlock (0.35 ACH combustion floor), kerosene/CO2 impact translation, and retrofit ranking complete
+[2026-09-11 12:15] SPEC — moved to single-branch trunk workflow; all branch and PR references removed from brain files (see 17_DECISIONS D15)
 ```
 
 ---

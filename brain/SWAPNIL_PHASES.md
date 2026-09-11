@@ -7,6 +7,8 @@ You also remain the **physics voice in Q&A** — you wrote the original thermal
 blueprint. That does not transfer just because the code did. Keep reading
 `brain/06_PHYSICS_SPEC.md` between phases.
 
+**Phase report note:** Section 2 (FILES TOUCHED) must include the commit hash that was pushed to `main` (`Pushed commit: <hash>`).
+
 ---
 
 ## PHASE S0 — Design tokens (DO THIS BEFORE ANY COMPONENT EXISTS)
@@ -58,7 +60,9 @@ CONSTRAINTS
 - The palette is PROVISIONAL. Structure everything so that replacing the values
   in tokens.css is the ONLY change needed when the real palette arrives.
 
-OUTPUT: PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 8 must state: "Aryan and I are unblocked on components" or what is missing.
 ```
 
@@ -100,7 +104,9 @@ CONSTRAINTS
 - No state management library.
 - All colour and spacing through tokens.
 
-OUTPUT: PHASE REPORT, all ten sections.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT, all ten sections.
 ```
 
 ---
@@ -145,7 +151,9 @@ CONSTRAINTS
 - If you need a field that is not in the contract, STOP and report it as a
   blocker for Vedesh. Do not edit the contract.
 
-OUTPUT: PHASE REPORT. Section 4 includes the actual request body from (c).
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 includes the actual request body from (c).
 ```
 
 ---
@@ -190,7 +198,9 @@ CONSTRAINTS
 - No hardcoded colours.
 - No animation — this redraws constantly and animation would make it feel laggy.
 
-OUTPUT: PHASE REPORT with screenshots. Section 4 must state the actual
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT with screenshots. Section 4 must state the actual
 thickness ratios from (a).
 ```
 
@@ -256,6 +266,8 @@ CONSTRAINTS
 - Never render undefined or NaN — show an em dash.
 - Do not add a charting library beyond Recharts.
 
-OUTPUT: PHASE REPORT with screenshots. Section 9 must state honestly which
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT with screenshots. Section 9 must state honestly which
 components you tested with real backend data versus fixtures.
 ```

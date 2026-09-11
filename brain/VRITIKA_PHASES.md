@@ -16,6 +16,8 @@ smaller sourced library beats a larger invented one.
 
 Paste one phase at a time. Emit the phase report at the end of each.
 
+**Phase report note:** Section 2 (FILES TOUCHED) must include the commit hash that was pushed to `main` (`Pushed commit: <hash>`).
+
 ---
 
 ## PHASE VR0 — Material property research
@@ -95,7 +97,9 @@ CONSTRAINTS
 - Do not touch /engine, /api, /web.
 - Do not fill in a value you could not source, under any circumstances.
 
-OUTPUT: PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 6 is the core of this report — it IS the deliverable.
 Section 8 lists every material you could not source.
 ```
@@ -170,7 +174,9 @@ CONSTRAINTS
 - Never present secondary as primary.
 - Never adjust a published figure.
 
-OUTPUT: PHASE REPORT. Section 9 must state honestly which citations you verified
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 9 must state honestly which citations you verified
 by reading the actual source versus which you took from a secondhand reference.
 That distinction is the entire point of this phase.
 ```
@@ -251,7 +257,9 @@ CONSTRAINTS
 - Do not fabricate a citation.
 - Do not guess a safety threshold.
 
-OUTPUT: PHASE REPORT. Section 7 must state how many values ended up as
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 7 must state how many values ended up as
 "estimate" and why. A high estimate count is not a failure — hiding it is.
 ```
 
@@ -307,7 +315,9 @@ CONSTRAINTS
 - Do not fix findings yourself. Log them and assign them to the owner.
 - Do not accept "it's computed" without knowing what it was computed FROM.
 
-OUTPUT: PHASE REPORT. Section 4 is the trace table. Section 8 lists every
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 is the trace table. Section 8 lists every
 untraceable number as a blocker with an owner. Section 10 is NO while any
 untraceable number remains on screen.
 ```

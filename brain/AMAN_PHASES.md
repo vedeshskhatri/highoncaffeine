@@ -6,6 +6,8 @@ Paste one phase at a time. Verify the report yourself before moving on.
 
 **The single most important rule for you: Rule R1, never invent a number.** More of your work than anyone else's consists of putting numbers into the system. Every one needs a source.
 
+**Phase report note:** Section 2 (FILES TOUCHED) must include the commit hash that was pushed to `main` (`Pushed commit: <hash>`).
+
 ---
 
 ## PHASE A0 — Materials library with enforced sourcing
@@ -55,7 +57,9 @@ CONSTRAINTS
 - Do not touch /engine/solver.py, /api, /web.
 - Do not put physical constants here — those go in physics_constants.py in A1.
 
-OUTPUT: PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 6 is the most important section of this report. Every material property
 must appear there with its source. If any row says "assumed" or "typical",
 that is a rule violation and you must flag it in section 7.
@@ -120,7 +124,9 @@ CONSTRAINTS
 - No invented coefficients anywhere. NotImplementedError is the correct output
   when you lack a source.
 
-OUTPUT: PHASE REPORT. Section 6 must list EVERY constant and coefficient with
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 6 must list EVERY constant and coefficient with
 its source. Section 8 must list anything you could not source.
 ```
 
@@ -170,7 +176,9 @@ CONSTRAINTS
 - Do not weaken an assertion to get green. A weakened test is worse than a
   failing one because it hides the problem permanently.
 
-OUTPUT: PHASE REPORT. Section 4 is the verbatim pytest output. Section 8 lists
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 is the verbatim pytest output. Section 8 lists
 every failure as a blocker assigned to whoever owns that code.
 ```
 
@@ -226,7 +234,9 @@ CONSTRAINTS
 - Do not adjust a tolerance to make something pass.
 - Do not skip a scenario because it is inconvenient.
 
-OUTPUT: PHASE REPORT. Section 4 is the verbatim validation output including the
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 is the verbatim validation output including the
 ordering line. Section 9 must state honestly what you did NOT verify — for
 example, you have not validated against any measurement you took yourself.
 Section 10 is NO unless all four targets AND the ordering check pass.
@@ -296,6 +306,8 @@ CONSTRAINTS
 - Do not label an estimate as sourced. This is the highest-risk item in the
   whole build for our credibility.
 
-OUTPUT: PHASE REPORT. Section 6 lists every factor with its source.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 6 lists every factor with its source.
 Section 7 states how many values ended up as "estimate" and why.
 ```

@@ -110,6 +110,7 @@ Every phase ends by emitting exactly this block. Fill every section. Do not omit
 - …
 
 ### 2. FILES TOUCHED
+Pushed commit: `<hash>`
 | File | Created/Modified | Lines | Purpose |
 |---|---|---|---|
 
@@ -159,19 +160,29 @@ A phase is done when **all** of these hold:
 2. Every new function has a docstring stating units on inputs and outputs
 3. No `TODO` left that blocks the next phase (non-blocking TODOs are fine and must be listed)
 4. Phase report emitted, all ten sections filled
-5. Committed on your own branch with a message referencing the phase (`V2: multi-layer wall discretisation`)
+5. Committed AND PUSHED to `main` with a message referencing the phase (`V2: multi-layer wall discretisation`)
 6. Verification commands were actually run and actual output pasted — not described
+7. `git pull --rebase origin main` was run before pushing, and `main` is green after the push
 
 ---
 
 ## 6. Git rules
 
-- `main` is protected. Nobody pushes directly.
-- Branch naming: `feat/<name>-p<phase>` e.g. `feat/vedesh-p2`
-- One PR per phase. Reviewed by one other person. Rotate reviewers.
-- Commit small and often. A single 2,000-line commit at hour 20 is a scoring deduction and a review impossibility.
-- Pair work uses `Co-authored-by:` trailers.
-- **Everyone must have real commits.** The contribution graph is visible and is scored.
+- There is ONE branch: `main`. No other branch is ever created.
+- Nobody creates a branch. Nobody opens a pull request. Nobody forks.
+- Every agent commits and pushes DIRECTLY to `main`.
+- Push at the END OF EVERY PHASE, without exception. A phase is not complete until its work is pushed to `main`.
+- Before every push, in this order:
+    1. `git pull --rebase origin main`
+    2. resolve any conflict — never force-push, never `git push -f`
+    3. run the tests that exist for your area
+    4. `git push origin main`
+- Because there is no PR review, a broken `main` blocks the whole team. Do not push code that does not run. If your work is incomplete at the end of a phase, push it in a state that IMPORTS and RUNS, with unfinished functions raising NotImplementedError — never a broken import and never a syntax error.
+- Commit message format is unchanged: `<AGENT><PHASE>: <what>` (e.g. `V2: multi-layer wall discretisation with Fourier sizing`).
+- Commit small and often within a phase. Push at least once per phase.
+- Pair work still uses `Co-authored-by:` trailers.
+- Every team member must have their own commits. The contribution graph is scored. Nobody commits on behalf of anyone else.
+- Ownership boundaries from section 3 STILL APPLY. A single branch does not mean shared ownership. Editing someone else's files is still a rule violation — it is now just easier to do by accident, so be more careful, not less.
 
 ---
 

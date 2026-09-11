@@ -5,6 +5,8 @@ Swapnil is blocked until your stubs exist. Get them done fast and ugly.
 
 From R4 you switch to frontend and own the results canvas.
 
+**Phase report note:** Section 2 (FILES TOUCHED) must include the commit hash that was pushed to `main` (`Pushed commit: <hash>`).
+
 ---
 
 ## PHASE R0 — FastAPI stubs (UNBLOCKS SWAPNIL — do this first and fast)
@@ -63,7 +65,9 @@ CONSTRAINTS
   contradictory, report it as a blocker — do not resolve it yourself.
 - Do not touch /engine or /web.
 
-OUTPUT: PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT per brain/00_MASTER_RULES.md section 4, all ten sections.
 Section 8 must state explicitly: "Swapnil is unblocked" or what is still missing.
 ```
 
@@ -104,7 +108,9 @@ CONSTRAINTS
 - No ORM. Not SQLAlchemy, not Prisma, not anything.
 - Do not hand-edit the .db file — it is always rebuilt from the CSV.
 
-OUTPUT: PHASE REPORT, all ten sections.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT, all ten sections.
 ```
 
 ---
@@ -156,7 +162,9 @@ CONSTRAINTS
 - Never return weather without provenance.
 - Do not invent a fallback dataset.
 
-OUTPUT: PHASE REPORT. Section 4 must include the actual offline test from (c) —
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 must include the actual offline test from (c) —
 this is a scored requirement and it must be genuinely verified, not assumed.
 ```
 
@@ -216,7 +224,9 @@ CONSTRAINTS
 - grid_note must be in the API response, not only in the DB.
 - Never fail-fast on CSV errors.
 
-OUTPUT: PHASE REPORT. Section 5 must state exactly what diurnal shape you used
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 5 must state exactly what diurnal shape you used
 to synthesise the profile and why. That is a modelling assumption a judge could
 reasonably ask about.
 ```
@@ -261,7 +271,7 @@ and will be swapped in one file.
 VERIFICATION — paste or describe with screenshots:
   a. Every component rendered against real API data.
   b. Search the codebase for hardcoded hex colours in your files.
-     Paste the search result. EXPECTED: zero matches.
+  Paste the search result. EXPECTED: zero matches.
   c. Trigger a refusal (0.3 ACH + unflued heater). Confirm RefusalCard renders
      and does not look like an error state.
   d. Trigger the fallback weather path. Confirm the banner appears.
@@ -274,5 +284,7 @@ CONSTRAINTS
 - No hardcoded colours, ever.
 - Never render undefined or NaN — show an em dash.
 
-OUTPUT: PHASE REPORT. Section 4 must include the hex-search result from (b).
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 must include the hex-search result from (b).
 ```

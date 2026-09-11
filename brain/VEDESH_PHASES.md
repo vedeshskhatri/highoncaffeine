@@ -4,6 +4,8 @@
 
 **If a report is missing sections, or section 6 contains a value with source "assumed" or "typical", send it back before proceeding.** That is a Rule R1 violation and it is exactly the failure this whole structure exists to catch.
 
+**Phase report note:** Section 2 (FILES TOUCHED) must include the commit hash that was pushed to `main` (`Pushed commit: <hash>`).
+
 ---
 
 ## PHASE V0 — Repository skeleton and frozen contract
@@ -53,6 +55,7 @@ CONSTRAINTS
 - Do not modify brain/07_API_CONTRACT.md.
 
 OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
 Emit the PHASE REPORT block exactly as defined in brain/00_MASTER_RULES.md section 4.
 All ten sections. In section 5 justify your MAX_NODES choice with the arithmetic.
 ```
@@ -100,7 +103,9 @@ CONSTRAINTS
 - Do not invent any material value.
 - Do not edit files outside /engine.
 
-OUTPUT: PHASE REPORT, all ten sections. Section 9 must honestly list what you did
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT, all ten sections. Section 9 must honestly list what you did
 not verify — for example, you have not verified behaviour with real weather.
 ```
 
@@ -143,7 +148,9 @@ CONSTRAINTS
 - Do not add solar or radiation yet.
 - Do not change the timestep to make something work.
 
-OUTPUT: PHASE REPORT. In section 4 include the actual node counts. In section 5
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. In section 4 include the actual node counts. In section 5
 state any assumption about how area is apportioned across nodes.
 ```
 
@@ -187,7 +194,9 @@ CONSTRAINTS
 - Do not implement sky radiation yet — that is V4.
 - Do not inline any constant that belongs in physics_constants.py.
 
-OUTPUT: PHASE REPORT. Section 6 must list every numeric constant you used and
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 6 must list every numeric constant you used and
 where it came from. Any row sourced "assumed" is a rule violation — flag it.
 ```
 
@@ -235,7 +244,9 @@ CONSTRAINTS
 - If the overnight drop does not steepen, the term is wrong or F_sky is wrong.
   Do not move on.
 
-OUTPUT: PHASE REPORT. Section 4 must contain actual numbers for (a) and (b),
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 must contain actual numbers for (a) and (b),
 not descriptions. Section 10 is NO unless both directions are correct.
 ```
 
@@ -278,7 +289,9 @@ CONSTRAINTS
 - If (a) or (c) fail, this phase is NOT done regardless of everything else.
 - Do not start the optimizer until both pass.
 
-OUTPUT: PHASE REPORT. Section 4 must contain the actual max-difference figures
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 must contain the actual max-difference figures
 and the actual timing. Section 10 is NO unless (a) < 1e-9 and (c) is exact.
 ```
 
@@ -332,6 +345,8 @@ CONSTRAINTS
 - Never return a design the safety filter refused.
 - n_samples reported must be the number ACTUALLY evaluated.
 
-OUTPUT: PHASE REPORT. Section 4 includes actual figures for every check above.
+OUTPUT
+Before emitting the report: git pull --rebase origin main, run your tests, then push to main. State the pushed commit hash in section 2 of the report.
+PHASE REPORT. Section 4 includes actual figures for every check above.
 Section 9 must state explicitly whether you verified (b) by hand or assumed it.
 ```

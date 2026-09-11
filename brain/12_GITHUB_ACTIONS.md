@@ -1,16 +1,22 @@
 # 12 — GIT AND CI
 
-## 1. Branching
+## 1. Single branch
 
-```
-main                    protected, PR-only
-feat/vedesh-p0 ... p6
-feat/aman-p0   ... p4
-feat/aryan-p0  ... p4
-feat/swapnil-p0 ... p4
-```
-
-One branch per phase. One PR per phase. Reviewed by one other person. **Rotate reviewers** — Vedesh should not be the only approver.
+- There is ONE branch: `main`. No other branch is ever created.
+- Nobody creates a branch. Nobody opens a pull request. Nobody forks.
+- Every agent commits and pushes DIRECTLY to `main`.
+- Push at the END OF EVERY PHASE, without exception. A phase is not complete until its work is pushed to `main`.
+- Before every push, in this order:
+    1. `git pull --rebase origin main`
+    2. resolve any conflict — never force-push, never `git push -f`
+    3. run the tests that exist for your area
+    4. `git push origin main`
+- Because there is no PR review, a broken `main` blocks the whole team. Do not push code that does not run. If your work is incomplete at the end of a phase, push it in a state that IMPORTS and RUNS, with unfinished functions raising NotImplementedError — never a broken import and never a syntax error.
+- Commit message format is unchanged: `<AGENT><PHASE>: <what>` (e.g. `V2: multi-layer wall discretisation with Fourier sizing`).
+- Commit small and often within a phase. Push at least once per phase.
+- Pair work still uses `Co-authored-by:` trailers.
+- Every team member must have their own commits. The contribution graph is scored. Nobody commits on behalf of anyone else.
+- Ownership boundaries from 00_MASTER_RULES.md section 3 STILL APPLY. A single branch does not mean shared ownership. Editing someone else's files is still a rule violation — it is now just easier to do by accident, so be more careful, not less.
 
 ## 2. Commit messages
 
@@ -23,7 +29,7 @@ R2: Open-Meteo fetch with SQLite cache and offline fallback
 S0: design tokens, Montserrat/DM Sans/JetBrains Mono wired
 ```
 
-Small and often. A single 2,000-line commit at hour 20 is a review impossibility and a scoring deduction.
+Small and often within a phase. Push at least once per phase. A single 2,000-line commit at hour 20 is a scoring deduction.
 
 Pair work uses `Co-authored-by: Name <email>` trailers.
 
@@ -39,7 +45,7 @@ If the distribution is wildly lopsided, that is a problem to fix before submissi
 
 ## 4. CI — deliberately minimal
 
-`.github/workflows/ci.yml`, runs on PR to main:
+`.github/workflows/ci.yml`, runs on push to main:
 
 ```yaml
 - python -m pytest tests/ -v
@@ -49,7 +55,7 @@ If the distribution is wildly lopsided, that is a problem to fix before submissi
 
 Nothing else. No linting gates, no coverage thresholds, no deployment. CI exists to stop a broken engine reaching main, not to be impressive.
 
-**If `validation.run --check` fails, the PR does not merge.** That is the whole point of having CI on this project.
+Because CI runs after the push rather than before the merge, a red CI means someone must fix `main` immediately — it is now everyone's problem, not one PR author's. If `validation.run --check` fails, `main` is broken and must be fixed immediately.
 
 ## 5. What is committed
 
