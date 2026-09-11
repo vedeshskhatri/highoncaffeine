@@ -30,6 +30,13 @@ Format:
 [2026-09-11 15:05] FEATURE 1 — Gagge two-node occupant thermoregulation model in engine/thermoregulation.py, wired into POST /simulate via occupant_model flag, PhysiologicalRiskPanel added to results UI
 [2026-09-11 15:06] FEATURE 2 — Multi-post forward forecast early warning in engine/forecast_watch.py, POST /forecast_watch endpoint added with forecast_watch_cache SQLite persistence and WatchView UI component
 [2026-09-11 15:15] VEDESH P0 — Platform backend asset management: schema extension (5 tables), 07A contract proposal, seed of 12 real evaluated sites (11 Ladakh + 1 Nepal Relief), estate aggregation with exact hand reconciliation, sortie estimation config, programme planner, alerts, and tests
+[2026-09-11 15:20] VEDESH P1 — Platform shell, navigation, CommandPalette (Cmd+K), SidebarNav, TopBar, and tokens integration
+[2026-09-11 15:25] VEDESH P2 — Site Registry & Post Hub: sortable sites table, custom SVG Himalayan pin-drop map, CSV import with multi-column error modal, Open-Meteo weather strip, heat loss breakdown, and /sites/:id/design handoff
+[2026-09-11 15:28] VEDESH P3 — Estate Dashboard: aggregate strip with explicit coverage declaration ("across N of M sites"), Recharts district fuel exposure, temperature band distribution, worst-performing posts ranking
+[2026-09-11 15:29] VEDESH P4 — Programme Planner: capital budget optimization, cumulative return curve with budget cutoff, ranked procurement table, CSV export
+[2026-09-11 15:30] VEDESH P5 — Cold Snap Alerts: live Open-Meteo forecast scanning, severity tiers with estimate chips, occupant risk counts, acknowledge workflow
+[2026-09-11 15:30] VEDESH P6 — Design Library: versioned standard drawings (Rapid Glamping, DIHAR Trombe), side-by-side comparison, and one-click site rollout with automatic re-evaluation
+[2026-09-11 15:38] VEDESH P7 — Static & Ancillary Platform Pages: Editorial Engineering landing page (/), Seasonal Sortie Forecast (/forecast), Materials Availability (/materials), Formal Submission Pack Report (/reports/:id), Physics Formulation & Standards (/method), Empirical Validation Suite (/validation), and React Router wiring
 ```
 
 ---

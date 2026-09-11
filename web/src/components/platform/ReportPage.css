@@ -1,0 +1,252 @@
+.report-pack-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.report-actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.print-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background-color: var(--espresso);
+  color: var(--cream);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.print-btn:hover {
+  opacity: 0.9;
+}
+
+/* Formal Document Sheet */
+.submission-pack-document {
+  background-color: white;
+  border: 1px solid var(--rule);
+  padding: 48px 56px;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(32, 15, 7, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  color: #111;
+  font-family: var(--font-body);
+}
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid #111;
+  padding-bottom: 20px;
+  gap: 24px;
+}
+
+.doc-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.doc-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doc-stamp {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  background-color: #111;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+}
+
+.doc-ps {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #555;
+}
+
+.doc-main-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  margin: 4px 0 0 0;
+  letter-spacing: -0.01em;
+}
+
+.doc-subtitle {
+  font-size: 13px;
+  color: #444;
+}
+
+.doc-ref-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #555;
+}
+
+.doc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.doc-section-heading {
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #111;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 6px;
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.doc-table th {
+  background-color: #f4f4f4;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  color: #333;
+}
+
+.doc-table td {
+  padding: 9px 12px;
+  border: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+.doc-k {
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #555;
+  width: 22%;
+}
+
+.doc-v {
+  color: #111;
+}
+
+.doc-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.doc-metric-box {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doc-metric-k {
+  font-size: 10.5px;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.doc-metric-v {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+}
+
+.doc-metric-note {
+  font-size: 10.5px;
+  color: #777;
+}
+
+.doc-narrative {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #333;
+  margin: 0;
+}
+
+.doc-signature-strip {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.sig-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 260px;
+}
+
+.sig-label {
+  font-size: 11px;
+  color: #666;
+}
+
+.sig-line {
+  font-weight: 700;
+  font-size: 13px;
+  padding-top: 30px;
+  border-bottom: 1px solid #111;
+}
+
+.sig-date {
+  font-size: 11px;
+  color: #777;
+  padding-top: 4px;
+}
+
+/* Print CSS */
+@media print {
+  body {
+    background: white !important;
+  }
+  .no-print,
+  .platform-sidebar,
+  .platform-topbar {
+    display: none !important;
+  }
+  .platform-main-viewport {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .submission-pack-document {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}

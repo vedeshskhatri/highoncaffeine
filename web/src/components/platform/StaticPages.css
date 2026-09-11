@@ -1,0 +1,124 @@
+/* StaticPages.css — Methodology and Validation page styling */
+
+.static-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.static-header {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: var(--space-3);
+}
+
+.static-title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--espresso);
+  margin-bottom: var(--space-1);
+}
+
+.static-subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--espresso-70);
+  line-height: 1.5;
+}
+
+.static-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.static-card h2.section-title {
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--espresso);
+  margin-bottom: var(--space-1);
+}
+
+.static-card p {
+  font-size: 0.9rem;
+  color: var(--espresso-70);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.static-card ul {
+  margin: 0;
+  padding-left: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.9rem;
+  color: var(--espresso-70);
+}
+
+.math-block {
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.85rem;
+  color: var(--espresso);
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.cite-sub {
+  font-size: 0.8rem;
+  color: var(--espresso-40);
+  font-style: italic;
+}
+
+/* Validation table */
+.validation-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: var(--space-2);
+}
+
+.validation-table th {
+  text-align: left;
+  padding: var(--space-2);
+  background: var(--cream);
+  color: var(--espresso-70);
+  border-bottom: 2px solid var(--rule);
+  font-weight: 600;
+}
+
+.validation-table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+  color: var(--espresso);
+}
+
+.badge-pass {
+  background: var(--sage-soft);
+  color: var(--sage);
+  border: 1px solid var(--sage);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-fail {
+  background: var(--ice-soft);
+  color: var(--ice);
+  border: 1px solid var(--ice);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
