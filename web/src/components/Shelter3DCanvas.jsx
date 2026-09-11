@@ -3,18 +3,19 @@
  * Powered by Three.js & GSAP.
  *
  * Features:
- *   - Parametric 3D building with authentic procedural PBR textures (Adobe, Stone, Timber, EPS, Snow, Concrete)
- *   - Architectural details: exposed timber rafters (Talashing), stone plinth, window mullions, night shutter, airlock vestibule
- *   - Multi-layer exploded view with individual material layer separation & 3D HUD callouts
- *   - Atmospheric Himalayan panorama: snow-capped mountain ridges, sky dome, and contoured plateau terrain
- *   - 3D celestial solar diurnal arc with hourly tick nodes
- *   - Integrated interactive SolarController: time scrubbing (06h-18h), 24h diurnal transit play, live telemetry
- *   - 360° turntable orbit with compass orientation and camera presets
+ *   - Multi-Biome procedural environments (Glacial Alpine, High Cold Plateau, Forested Valley, Arid Desert, Plains)
+ *   - Passive Solar Architecture: Pitched solar shed roof, south Trombe mass wall, mullioned glazing,
+ *     arctic airlock vestibule, rooftop solar PV array, stainless chimney, and chamfered stone plinth.
+ *   - Multi-layer exploded view with individual material layer separation & 3D HUD callouts.
+ *   - Dynamic astronomical celestial solar diurnal arc with live latitude & altitude scaling.
+ *   - 3D Dimension measurement lines and volumetric solar rays.
+ *   - 4 View Modes: Solid Architectural, Exploded Assembly, Thermal Heatmap, and Structural Framing.
+ *   - 360° turntable orbit with compass orientation and camera presets.
  */
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { Compass, Eye, Maximize2, Layers, X, Mountain, Grid, Sun, Flame, Sparkles } from 'lucide-react';
+import { Compass, Eye, Maximize2, Layers, X, Mountain, Grid, Sun, Flame, Sparkles, Box, Wind } from 'lucide-react';
 import { getMaterialSpec, computeLayerR, computeTotalU } from './materialsData';
 import {
   getAdobeTexture,
@@ -23,11 +24,15 @@ import {
   getEpsTexture,
   getSnowTexture,
   getConcreteTexture,
+  getMetalSeamRoofTexture,
+  getSolarPanelTexture,
 } from './threeUtils/proceduralTextures';
 import {
+  detectBiome,
+  getBiomeMeta,
   createSkyDome,
-  createHimalayanMountains,
-  createPlateauGround,
+  createDynamicMountains,
+  createDynamicGround,
   createCelestialSolarArc,
 } from './threeUtils/himalayanEnvironment';
 import SolarController, { computeSolarPosition } from './SolarController';
@@ -35,10 +40,11 @@ import './Shelter3DCanvas.css';
 
 export default function Shelter3DCanvas({
   request,
-  viewMode = 'solid', // 'solid' | 'exploded' | 'thermal'
+  viewMode = 'solid', // 'solid' | 'exploded' | 'thermal' | 'framing'
   showDimensions = true,
   showSolarRays = true,
   snowCover = true,
+  activeSiteName = null,
   onHotspotSelect,
 }) {
   const containerRef = useRef(null);
@@ -50,12 +56,16 @@ export default function Shelter3DCanvas({
   const rendererRef = useRef(null);
   const animFrameIdRef = useRef(null);
   const shelterGroupRef = useRef(null);
+  const framingGroupRef = useRef(null);
+  const dimensionGroupRef = useRef(null);
   const explodedLayersRef = useRef([]);
   const explodedPartsRef = useRef(null);
   const prevExplodedRef = useRef(viewMode === 'exploded');
   const updateProjectedPinsRef = useRef(null);
   const sunLightRef = useRef(null);
   const sunGroupRef = useRef(null);
+  const hemiLightRef = useRef(null);
+  const ambientLightRef = useRef(null);
   const solarRayMeshRef = useRef(null);
   const solarArcGroupRef = useRef(null);
   const himalayanEnvRef = useRef(null);
@@ -75,12 +85,22 @@ export default function Shelter3DCanvas({
   const [azimuthDeg, setAzimuthDeg] = useState(45);
   const [selectedPin, setSelectedPin] = useState(null);
   const [pinPositions, setPinPositions] = useState([]);
-  const [explodedTags, setExplodedTags] = useState([]);
+  const [dimensionBadges, setDimensionBadges] = useState([]);
 
   // Solar & Environment UI States
   const [solarHour, setSolarHour] = useState(12.0);
   const [season, setSeason] = useState('winter');
   const [envMode, setEnvMode] = useState('himalayas'); // 'himalayas' | 'studio'
+
+  // Location & Biome reactivity
+  const lat = request?.location?.lat ?? 34.1526;
+  const lon = request?.location?.lon ?? 77.5771;
+  const altitude_m = request?.location?.altitude_m ?? 3500;
+  const biome = useMemo(
+    () => detectBiome(request?.location, activeSiteName),
+    [request?.location?.lat, request?.location?.lon, request?.location?.altitude_m, activeSiteName]
+  );
+  const biomeMeta = useMemo(() => getBiomeMeta(biome), [biome]);
 
   // Extract geometry & envelope props safely
   const length_m = request?.geometry?.length_m ?? 6.0;
@@ -102,9 +122,10 @@ export default function Shelter3DCanvas({
 
   const isThermal = viewMode === 'thermal';
   const isExploded = viewMode === 'exploded';
+  const isFraming = viewMode === 'framing';
 
   /* ─────────────────────────────────────────────────────────────────────────
-     1. THREE.JS SCENE & ENVIRONMENT INITIALIZATION
+     1. THREE.JS SCENE INITIALIZATION
      ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     const container = containerRef.current;
@@ -117,8 +138,8 @@ export default function Shelter3DCanvas({
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // Atmospheric Fog
-    scene.fog = new THREE.FogExp2(0xE8EDF2, 0.012);
+    // Atmospheric Fog (initialized with current biome parameters)
+    scene.fog = new THREE.FogExp2(biomeMeta.fogColor, biomeMeta.fogDensity);
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 150);
     cameraRef.current = camera;
@@ -136,14 +157,16 @@ export default function Shelter3DCanvas({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     // ── Lighting ──
-    const ambientLight = new THREE.AmbientLight(0xfff5e6, 0.95);
+    const ambientLight = new THREE.AmbientLight(biomeMeta.lightColor, 0.95);
     scene.add(ambientLight);
+    ambientLightRef.current = ambientLight;
 
-    const hemiLight = new THREE.HemisphereLight(0xeef6fb, 0x6e5d48, 0.7);
+    const hemiLight = new THREE.HemisphereLight(biomeMeta.hemiSky, biomeMeta.hemiGround, 0.75);
     hemiLight.position.set(0, 30, 0);
     scene.add(hemiLight);
+    hemiLightRef.current = hemiLight;
 
-    // Directional Sun Light (High-altitude winter sun)
+    // Directional Sun Light
     const sunLight = new THREE.DirectionalLight(0xfff1db, 2.2);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
@@ -158,19 +181,18 @@ export default function Shelter3DCanvas({
     scene.add(sunLight);
     sunLightRef.current = sunLight;
 
-    // Soft Rim Light from North for edge definition
+    // Soft Rim Light for clean architectural edge silhouette
     const rimLight = new THREE.DirectionalLight(0x89b6e8, 0.6);
     rimLight.position.set(0, 12, -16);
     scene.add(rimLight);
 
-    // ── Sun Visual Glyph (Luminous core + corona ring) ──
+    // ── Sun Visual Glyph ──
     const sunGroup = new THREE.Group();
     const coreGeo = new THREE.SphereGeometry(0.55, 24, 24);
     const coreMat = new THREE.MeshBasicMaterial({ color: 0xFFA044 });
     const sunCore = new THREE.Mesh(coreGeo, coreMat);
     sunGroup.add(sunCore);
 
-    // Corona Ring
     const coronaGeo = new THREE.RingGeometry(0.65, 0.95, 32);
     const coronaMat = new THREE.MeshBasicMaterial({
       color: 0xF77331,
@@ -184,19 +206,13 @@ export default function Shelter3DCanvas({
     scene.add(sunGroup);
     sunGroupRef.current = sunGroup;
 
-    // ── Himalayan Panorama Environment ──
+    // ── Environment Group ──
     const envGroup = new THREE.Group();
-    envGroup.name = 'himalayan-environment';
-    const sky = createSkyDome();
-    const mountains = createHimalayanMountains();
-    const plateau = createPlateauGround();
-    envGroup.add(sky);
-    envGroup.add(mountains);
-    envGroup.add(plateau);
+    envGroup.name = 'dynamic-environment';
     scene.add(envGroup);
     himalayanEnvRef.current = envGroup;
 
-    // Ground Shadow Receiver (for studio mode or fine shadow catch)
+    // Ground Shadow Receiver
     const shadowPlaneGeo = new THREE.PlaneGeometry(36, 36);
     const shadowPlaneMat = new THREE.ShadowMaterial({ opacity: 0.24 });
     const shadowPlane = new THREE.Mesh(shadowPlaneGeo, shadowPlaneMat);
@@ -205,7 +221,7 @@ export default function Shelter3DCanvas({
     shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
 
-    // ── Circular 360° Turntable Ring & Compass ──
+    // ── Circular Turntable Ring & Compass ──
     const turntableGroup = new THREE.Group();
     const ringRadius = 6.6;
     const ringGeo = new THREE.RingGeometry(ringRadius - 0.03, ringRadius + 0.03, 64);
@@ -220,7 +236,7 @@ export default function Shelter3DCanvas({
     ringMesh.position.y = 0.03;
     turntableGroup.add(ringMesh);
 
-    // Cardinal Orientation Ticks (N, E, S, W)
+    // Cardinal Orientation Ticks
     for (let deg = 0; deg < 360; deg += 15) {
       const rad = (deg * Math.PI) / 180;
       const isCardinal = deg % 90 === 0;
@@ -240,10 +256,14 @@ export default function Shelter3DCanvas({
     }
     scene.add(turntableGroup);
 
-    // Initial Camera position
+    // Dimension Group for 3D measurement lines
+    const dimGroup = new THREE.Group();
+    dimGroup.name = 'dimension-lines';
+    scene.add(dimGroup);
+    dimensionGroupRef.current = dimGroup;
+
     updateCameraPosition();
 
-    // Resize observer
     const handleResize = () => {
       if (!container || !renderer || !camera) return;
       const w = container.clientWidth;
@@ -256,7 +276,6 @@ export default function Shelter3DCanvas({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
 
-    // Render loop
     const renderLoop = () => {
       animFrameIdRef.current = requestAnimationFrame(renderLoop);
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
@@ -266,8 +285,6 @@ export default function Shelter3DCanvas({
         rendererRef.current.render(sceneRef.current, cameraRef.current);
         if (updateProjectedPinsRef.current) {
           updateProjectedPinsRef.current();
-        } else {
-          updateProjectedPins();
         }
       }
     };
@@ -280,25 +297,54 @@ export default function Shelter3DCanvas({
     };
   }, []);
 
-  // Toggle Environment Mode (Himalayas vs Studio Grid)
+  /* ─────────────────────────────────────────────────────────────────────────
+     2. DYNAMIC PROCEDURAL BIOME ENVIRONMENT REBUILD
+     ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
-    if (!himalayanEnvRef.current) return;
-    himalayanEnvRef.current.visible = envMode === 'himalayas';
-    if (sceneRef.current) {
-      sceneRef.current.fog = envMode === 'himalayas'
-        ? new THREE.FogExp2(0xE8EDF2, 0.012)
-        : null;
+    const scene = sceneRef.current;
+    const envGroup = himalayanEnvRef.current;
+    if (!scene || !envGroup) return;
+
+    // Clear existing environment children
+    while (envGroup.children.length > 0) {
+      const child = envGroup.children[0];
+      envGroup.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+        else child.material.dispose();
+      }
     }
-  }, [envMode]);
+
+    if (envMode === 'himalayas') {
+      const sky = createSkyDome(biome);
+      const mountains = createDynamicMountains(biome);
+      const ground = createDynamicGround(biome, snowCover);
+      envGroup.add(sky);
+      envGroup.add(mountains);
+      envGroup.add(ground);
+
+      if (scene.fog) {
+        scene.fog.color.setHex(biomeMeta.fogColor);
+        scene.fog.density = biomeMeta.fogDensity;
+      }
+      if (ambientLightRef.current) {
+        ambientLightRef.current.color.setHex(biomeMeta.lightColor);
+      }
+      if (hemiLightRef.current) {
+        hemiLightRef.current.color.setHex(biomeMeta.hemiSky);
+        hemiLightRef.current.groundColor.setHex(biomeMeta.hemiGround);
+      }
+    }
+  }, [biome, biomeMeta, snowCover, envMode]);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     2. REBUILD 3D ARCHITECTURAL SHELTER (PROCEDURAL TEXTURES & DETAILS)
+     3. HIGH-END PASSIVE SOLAR ARCHITECTURAL SHELTER MODEL
      ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
 
-    // Clean up old shelter group
     if (shelterGroupRef.current) {
       scene.remove(shelterGroupRef.current);
       shelterGroupRef.current.traverse((child) => {
@@ -314,19 +360,21 @@ export default function Shelter3DCanvas({
     shelterGroupRef.current = shelter;
     explodedLayersRef.current = [];
 
-    const l = length_m; // X dimension
-    const w = width_m;  // Z dimension
-    const h = height_m; // Y dimension
+    const l = length_m;
+    const w = width_m;
+    const h = height_m;
 
-    // Textures
+    // Authentic Procedural Textures
     const adobeTex = getAdobeTexture();
     const stoneTex = getStoneTexture();
     const timberTex = getTimberTexture();
     const epsTex = getEpsTexture();
     const snowTex = getSnowTexture();
     const concreteTex = getConcreteTexture();
+    const metalRoofTex = getMetalSeamRoofTexture();
+    const solarPvTex = getSolarPanelTexture();
 
-    // PBR Material generator with authentic procedural maps
+    // Material generator
     const createMat = (type, thermalColor, roughness = 0.85, metalness = 0.05) => {
       if (isThermal && thermalColor) {
         return new THREE.MeshStandardMaterial({
@@ -335,45 +383,34 @@ export default function Shelter3DCanvas({
           metalness: 0.1,
         });
       }
+      if (isFraming) {
+        return new THREE.MeshStandardMaterial({
+          color: 0xE2E8F0,
+          transparent: true,
+          opacity: 0.22,
+          wireframe: false,
+          roughness: 0.8,
+        });
+      }
 
       switch (type) {
         case 'adobe':
-          return new THREE.MeshStandardMaterial({
-            map: adobeTex,
-            roughness: 0.92,
-            metalness: 0.02,
-          });
+          return new THREE.MeshStandardMaterial({ map: adobeTex, roughness: 0.92, metalness: 0.02 });
         case 'stone':
-          return new THREE.MeshStandardMaterial({
-            map: stoneTex,
-            roughness: 0.88,
-            metalness: 0.08,
-          });
+          return new THREE.MeshStandardMaterial({ map: stoneTex, roughness: 0.88, metalness: 0.08 });
         case 'timber':
-          return new THREE.MeshStandardMaterial({
-            map: timberTex,
-            roughness: 0.65,
-            metalness: 0.04,
-          });
+          return new THREE.MeshStandardMaterial({ map: timberTex, roughness: 0.65, metalness: 0.04 });
         case 'eps':
-          return new THREE.MeshStandardMaterial({
-            map: epsTex,
-            roughness: 0.55,
-            metalness: 0.0,
-          });
+          return new THREE.MeshStandardMaterial({ map: epsTex, roughness: 0.55, metalness: 0.0 });
+        case 'metal_roof':
+          return new THREE.MeshStandardMaterial({ map: metalRoofTex, roughness: 0.52, metalness: 0.25 });
+        case 'solar_pv':
+          return new THREE.MeshStandardMaterial({ map: solarPvTex, roughness: 0.25, metalness: 0.65 });
         case 'snow':
-          return new THREE.MeshStandardMaterial({
-            map: snowTex,
-            roughness: 0.82,
-            metalness: 0.05,
-          });
+          return new THREE.MeshStandardMaterial({ map: snowTex, roughness: 0.82, metalness: 0.05 });
         case 'concrete':
         default:
-          return new THREE.MeshStandardMaterial({
-            map: concreteTex,
-            roughness: 0.8,
-            metalness: 0.1,
-          });
+          return new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, metalness: 0.1 });
       }
     };
 
@@ -381,12 +418,16 @@ export default function Shelter3DCanvas({
     const wallExteriorMat = createMat(wallTexType, 0xF97316);
     const wallInsulationMat = createMat('eps', 0xEAB308);
     const wallInteriorMat = createMat('adobe', 0x22C55E);
-    const timberMat = createMat('timber', 0xB45309);
+    const timberMat = isFraming
+      ? new THREE.MeshStandardMaterial({ color: 0xD97706, roughness: 0.6 })
+      : createMat('timber', 0xB45309);
     const stonePlinthMat = createMat('stone', 0x475569);
     const concreteFloorMat = createMat('concrete', 0x15803D);
+    const metalRoofMat = createMat('metal_roof', 0x38BDF8);
+    const solarPvMat = createMat('solar_pv', 0x0EA5E9);
 
     // ── 1. Chamfered Foundation Plinth ──
-    const plinthThick = 0.28;
+    const plinthThick = 0.32;
     const plinthGeo = new THREE.BoxGeometry(l + 0.6, plinthThick, w + 0.6);
     const plinthMesh = new THREE.Mesh(plinthGeo, stonePlinthMat);
     plinthMesh.position.set(0, plinthThick / 2, 0);
@@ -394,7 +435,7 @@ export default function Shelter3DCanvas({
     plinthMesh.castShadow = true;
     shelter.add(plinthMesh);
 
-    // ── 2. Thermal Mass Floor Slab & Timber Interior Deck ──
+    // ── 2. Thermal Mass Floor Slab & Interior Flooring ──
     const floorSlabThick = 0.22;
     const floorGeo = new THREE.BoxGeometry(l + 0.2, floorSlabThick, w + 0.2);
     const floorMesh = new THREE.Mesh(floorGeo, concreteFloorMat);
@@ -403,22 +444,22 @@ export default function Shelter3DCanvas({
     floorMesh.castShadow = true;
     shelter.add(floorMesh);
 
-    // Interior timber finish visible through window
+    // Interior timber finish
     const timberFloorGeo = new THREE.BoxGeometry(l - 0.2, 0.02, w - 0.2);
     const timberFloorMesh = new THREE.Mesh(timberFloorGeo, timberMat);
     timberFloorMesh.position.set(0, plinthThick + floorSlabThick + 0.01, 0);
     timberFloorMesh.receiveShadow = true;
     shelter.add(timberFloorMesh);
 
-    // ── 3. Multi-Layer Wall Assemblies (Exterior, EPS Core, Interior) ──
+    // ── 3. Multi-Layer Wall Assemblies ──
     const totalWallThick = Math.max(0.25, totalWallThickness);
-    const extThick = totalWallThick * 0.65;  // 65% outer mass
-    const coreThick = totalWallThick * 0.25; // 25% EPS core
-    const intThick = totalWallThick * 0.10;  // 10% interior finish
+    const extThick = totalWallThick * 0.65;
+    const coreThick = totalWallThick * 0.25;
+    const intThick = totalWallThick * 0.10;
     const wallBaseY = plinthThick + floorSlabThick + h / 2;
 
-    // Corner Stone / Timber Quoins for architectural authenticity
-    const quoinSize = totalWallThick * 1.1;
+    // Corner Stone Quoins / Posts
+    const quoinSize = totalWallThick * 1.12;
     const quoinGeo = new THREE.BoxGeometry(quoinSize, h, quoinSize);
     const corners = [
       { x: -l / 2 + quoinSize / 2, z: -w / 2 + quoinSize / 2 },
@@ -426,7 +467,7 @@ export default function Shelter3DCanvas({
       { x: -l / 2 + quoinSize / 2, z:  w / 2 - quoinSize / 2 },
       { x:  l / 2 - quoinSize / 2, z:  w / 2 - quoinSize / 2 },
     ];
-    corners.forEach(c => {
+    corners.forEach((c) => {
       const qMesh = new THREE.Mesh(quoinGeo, stonePlinthMat);
       qMesh.position.set(c.x, wallBaseY, c.z);
       qMesh.castShadow = true;
@@ -434,11 +475,10 @@ export default function Shelter3DCanvas({
       shelter.add(qMesh);
     });
 
-    // ── A. North Wall (Cold exterior facade: Deep blue in thermal) ──
+    // ── A. North Wall (Cold Shaded Facade) ──
     const northGroup = new THREE.Group();
     northGroup.position.set(0, wallBaseY, -w / 2 + totalWallThick / 2);
 
-    // Exterior Mud Brick Layer
     const northExtGeo = new THREE.BoxGeometry(l, h, extThick);
     const northExt = new THREE.Mesh(northExtGeo, wallExteriorMat);
     northExt.position.z = -coreThick / 2 - intThick / 2;
@@ -446,21 +486,25 @@ export default function Shelter3DCanvas({
     northExt.receiveShadow = true;
     northGroup.add(northExt);
 
-    // Core EPS Insulation Layer
     const northCoreGeo = new THREE.BoxGeometry(l, h, coreThick);
     const northCore = new THREE.Mesh(northCoreGeo, wallInsulationMat);
     northCore.position.z = 0;
     northGroup.add(northCore);
 
-    // Interior Plaster Layer
     const northIntGeo = new THREE.BoxGeometry(l, h, intThick);
     const northInt = new THREE.Mesh(northIntGeo, wallInteriorMat);
     northInt.position.z = coreThick / 2 + intThick / 2;
     northGroup.add(northInt);
 
+    // Small High-Level Transom Ventilation Lintel on North
+    const ventTransomGeo = new THREE.BoxGeometry(0.8, 0.22, extThick * 1.05);
+    const ventTransom = new THREE.Mesh(ventTransomGeo, timberMat);
+    ventTransom.position.set(0, h * 0.35, -coreThick / 2 - intThick / 2);
+    northGroup.add(ventTransom);
+
     shelter.add(northGroup);
 
-    // ── B. East & West Side Walls with Vestibule Airlock Door on East ──
+    // ── B. East Facade with Protruding Arctic Airlock Vestibule ──
     const sideWallLen = w - totalWallThick * 2;
     const eastGroup = new THREE.Group();
     eastGroup.position.set(-l / 2 + totalWallThick / 2, wallBaseY, 0);
@@ -476,22 +520,47 @@ export default function Shelter3DCanvas({
     const eastCore = new THREE.Mesh(eastCoreGeo, wallInsulationMat);
     eastGroup.add(eastCore);
 
-    // Mountain Entry Airlock Doorway on East Facade
-    const doorWidth = 0.95;
-    const doorHeight = 1.95;
-    const doorFrameGeo = new THREE.BoxGeometry(extThick * 1.15, doorHeight + 0.1, doorWidth + 0.1);
-    const doorFrame = new THREE.Mesh(doorFrameGeo, timberMat);
-    doorFrame.position.set(-coreThick / 2 - intThick / 2, -h / 2 + doorHeight / 2 + 0.05, 0.4);
-    eastGroup.add(doorFrame);
+    // Protruding Arctic Airlock Vestibule Mudroom
+    const vestibuleDepth = 1.35;
+    const vestibuleWidth = 1.45;
+    const vestibuleHeight = h * 0.88;
+    const vestibuleGroup = new THREE.Group();
+    vestibuleGroup.position.set(-extThick / 2 - vestibuleDepth / 2, -h / 2 + vestibuleHeight / 2, 0.3);
 
-    const doorLeafGeo = new THREE.BoxGeometry(0.06, doorHeight, doorWidth);
-    const doorLeaf = new THREE.Mesh(doorLeafGeo, timberMat);
-    doorLeaf.position.set(-coreThick / 2 - intThick / 2 - 0.02, -h / 2 + doorHeight / 2 + 0.05, 0.4);
-    eastGroup.add(doorLeaf);
+    const vestWallGeo = new THREE.BoxGeometry(vestibuleDepth, vestibuleHeight, vestibuleWidth);
+    const vestWallMesh = new THREE.Mesh(vestWallGeo, wallExteriorMat);
+    vestWallMesh.castShadow = true;
+    vestWallMesh.receiveShadow = true;
+    vestibuleGroup.add(vestWallMesh);
 
+    // Vestibule Pitched Canopy Hood
+    const canopyGeo = new THREE.BoxGeometry(vestibuleDepth + 0.25, 0.08, vestibuleWidth + 0.25);
+    const canopyMesh = new THREE.Mesh(canopyGeo, metalRoofMat);
+    canopyMesh.position.set(0, vestibuleHeight / 2 + 0.04, 0);
+    canopyMesh.rotation.z = -0.12; // Shed water/snow away
+    canopyMesh.castShadow = true;
+    vestibuleGroup.add(canopyMesh);
+
+    // Heavy Mountain Entry Door
+    const doorW = 0.92;
+    const doorH = 1.95;
+    const doorGeo = new THREE.BoxGeometry(0.08, doorH, doorW);
+    const doorMesh = new THREE.Mesh(doorGeo, timberMat);
+    doorMesh.position.set(-vestibuleDepth / 2 - 0.04, -vestibuleHeight / 2 + doorH / 2, 0);
+    doorMesh.castShadow = true;
+    vestibuleGroup.add(doorMesh);
+
+    // Stainless Steel Hardware Handle
+    const handleGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.35, 8);
+    const handleMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E1, metalness: 0.9, roughness: 0.2 });
+    const handleMesh = new THREE.Mesh(handleGeo, handleMat);
+    handleMesh.position.set(-vestibuleDepth / 2 - 0.1, -vestibuleHeight / 2 + doorH / 2, doorW * 0.35);
+    vestibuleGroup.add(handleMesh);
+
+    eastGroup.add(vestibuleGroup);
     shelter.add(eastGroup);
 
-    // West Wall
+    // ── C. West Wall (Heavy Sheltered Wall) ──
     const westGroup = new THREE.Group();
     westGroup.position.set(l / 2 - totalWallThick / 2, wallBaseY, 0);
 
@@ -505,16 +574,16 @@ export default function Shelter3DCanvas({
     westGroup.add(westCore);
     shelter.add(westGroup);
 
-    // ── C. South Wall with Solar Glazing Aperture (+Z South) ──
+    // ── D. South Facade with Trombe Mass Wall & Glazed Solar Aperture ──
     const southGroup = new THREE.Group();
     southGroup.position.set(0, wallBaseY, w / 2 - totalWallThick / 2);
 
     const southOpening = openings.find(o => o.facing === 'south') || { area_m2: 4.0, glazing: 'double_pane', night_shutter: true };
-    const winWidth = Math.min(l * 0.76, Math.max(1.6, Math.sqrt(southOpening.area_m2 * 1.5)));
-    const winHeight = Math.min(h * 0.75, southOpening.area_m2 / winWidth);
+    const winWidth = Math.min(l * 0.78, Math.max(1.8, Math.sqrt(southOpening.area_m2 * 1.45)));
+    const winHeight = Math.min(h * 0.76, southOpening.area_m2 / winWidth);
     const winYOffset = -h / 2 + winHeight / 2 + 0.35;
 
-    // Left and right south wall piers
+    // Structural Side Piers
     const pierWidth = Math.max(0.2, (l - winWidth) / 2);
     const pierGeo = new THREE.BoxGeometry(pierWidth, h, totalWallThick);
     const leftPier = new THREE.Mesh(pierGeo, wallExteriorMat);
@@ -529,9 +598,9 @@ export default function Shelter3DCanvas({
     rightPier.receiveShadow = true;
     southGroup.add(rightPier);
 
-    // Heavy Timber Lintel above window
+    // Heavy Timber Lintel
     const lintelHeight = h - (winHeight + 0.35);
-    if (lintelHeight > 0.1) {
+    if (lintelHeight > 0.08) {
       const lintelGeo = new THREE.BoxGeometry(winWidth, lintelHeight, totalWallThick * 1.05);
       const lintel = new THREE.Mesh(lintelGeo, timberMat);
       lintel.position.set(0, h / 2 - lintelHeight / 2, 0);
@@ -539,115 +608,177 @@ export default function Shelter3DCanvas({
       southGroup.add(lintel);
     }
 
-    // Architectural Timber Window Frame with Mullion & Sill
-    const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, totalWallThick * 0.5);
+    // Trombe Mass Absorber Wall (Set behind glazing cavity)
+    const trombeThick = 0.22;
+    const trombeGeo = new THREE.BoxGeometry(winWidth * 0.96, winHeight * 0.94, trombeThick);
+    const trombeMat = isThermal
+      ? new THREE.MeshStandardMaterial({ color: 0xEF4444, roughness: 0.3 }) // Sizzling hot thermal absorber
+      : new THREE.MeshStandardMaterial({ color: 0x2A2421, roughness: 0.95 }); // Matte solar black absorber
+    const trombeMesh = new THREE.Mesh(trombeGeo, trombeMat);
+    trombeMesh.position.set(0, winYOffset, -totalWallThick * 0.25);
+    southGroup.add(trombeMesh);
+
+    // Trombe Air Circulation Vents (Upper & Lower registers)
+    const ventGeo = new THREE.BoxGeometry(0.35, 0.12, trombeThick * 1.05);
+    const ventMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7, roughness: 0.3 });
+    const topVent1 = new THREE.Mesh(ventGeo, ventMat);
+    topVent1.position.set(-winWidth * 0.28, winYOffset + winHeight * 0.38, -totalWallThick * 0.25);
+    const topVent2 = new THREE.Mesh(ventGeo, ventMat);
+    topVent2.position.set(winWidth * 0.28, winYOffset + winHeight * 0.38, -totalWallThick * 0.25);
+    const btmVent1 = new THREE.Mesh(ventGeo, ventMat);
+    btmVent1.position.set(-winWidth * 0.28, winYOffset - winHeight * 0.38, -totalWallThick * 0.25);
+    const btmVent2 = new THREE.Mesh(ventGeo, ventMat);
+    btmVent2.position.set(winWidth * 0.28, winYOffset - winHeight * 0.38, -totalWallThick * 0.25);
+    southGroup.add(topVent1);
+    southGroup.add(topVent2);
+    southGroup.add(btmVent1);
+    southGroup.add(btmVent2);
+
+    // Architectural Window Framing with Mullions & Jambs
+    const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, 0.12);
     const frameMesh = new THREE.Mesh(frameGeo, timberMat);
-    frameMesh.position.set(0, winYOffset, 0);
+    frameMesh.position.set(0, winYOffset, totalWallThick * 0.42);
     southGroup.add(frameMesh);
 
-    // Timber Mullion Divider (Vertical split)
-    const mullionGeo = new THREE.BoxGeometry(0.08, winHeight, totalWallThick * 0.55);
+    // Vertical Central Mullion
+    const mullionGeo = new THREE.BoxGeometry(0.08, winHeight, 0.14);
     const mullion = new THREE.Mesh(mullionGeo, timberMat);
-    mullion.position.set(0, winYOffset, 0.01);
+    mullion.position.set(0, winYOffset, totalWallThick * 0.42);
     southGroup.add(mullion);
 
     // Projecting Timber Window Sill
-    const sillGeo = new THREE.BoxGeometry(winWidth + 0.15, 0.08, totalWallThick * 0.7);
+    const sillGeo = new THREE.BoxGeometry(winWidth + 0.2, 0.08, 0.22);
     const sill = new THREE.Mesh(sillGeo, timberMat);
-    sill.position.set(0, winYOffset - winHeight / 2 - 0.04, 0.05);
+    sill.position.set(0, winYOffset - winHeight / 2 - 0.04, totalWallThick * 0.45);
     sill.castShadow = true;
     southGroup.add(sill);
 
-    // High-Spec Glass Panes (Double Pane Low-E)
-    const glassGeo = new THREE.BoxGeometry(winWidth - 0.12, winHeight - 0.12, 0.025);
+    // High-Spec Reflective Glazing Panes
+    const glassGeo = new THREE.BoxGeometry(winWidth - 0.14, winHeight - 0.14, 0.02);
     const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0x8cc4db,
+      color: isThermal ? 0xF59E0B : 0x8cc4db,
       transparent: true,
-      opacity: isThermal ? 0.85 : 0.42,
-      roughness: 0.1,
-      transmission: isThermal ? 0.0 : 0.88,
+      opacity: isThermal ? 0.85 : 0.45,
+      roughness: 0.08,
+      transmission: isThermal ? 0.0 : 0.86,
       ior: 1.52,
-      reflectivity: 0.85,
+      reflectivity: 0.9,
     });
-    if (isThermal) glassMat.color.setHex(0xF59E0B);
     const glassMesh = new THREE.Mesh(glassGeo, glassMat);
-    glassMesh.position.set(0, winYOffset, 0);
+    glassMesh.position.set(0, winYOffset, totalWallThick * 0.42);
     southGroup.add(glassMesh);
 
-    // Operable Timber Night Shutter with Louver Slats
-    const shutterGroup = new THREE.Group();
-    shutterGroup.position.set(0, winYOffset, -totalWallThick * 0.25);
+    // Operable Insulated Night Shutter Assembly
+    if (southOpening.night_shutter) {
+      const shutterLeafGeo = new THREE.BoxGeometry(winWidth * 0.46, winHeight - 0.1, 0.04);
+      const shutterLeft = new THREE.Mesh(shutterLeafGeo, timberMat);
+      shutterLeft.position.set(-winWidth * 0.24, winYOffset, totalWallThick * 0.32);
+      const shutterRight = new THREE.Mesh(shutterLeafGeo, timberMat);
+      shutterRight.position.set(winWidth * 0.24, winYOffset, totalWallThick * 0.32);
+      southGroup.add(shutterLeft);
+      southGroup.add(shutterRight);
+    }
 
-    const shutterLeafGeo = new THREE.BoxGeometry(winWidth * 0.48, winHeight - 0.1, 0.04);
-    const shutterLeft = new THREE.Mesh(shutterLeafGeo, timberMat);
-    shutterLeft.position.set(-winWidth * 0.24, 0, 0);
-    shutterGroup.add(shutterLeft);
-
-    const shutterRight = new THREE.Mesh(shutterLeafGeo, timberMat);
-    shutterRight.position.set(winWidth * 0.24, 0, 0);
-    shutterGroup.add(shutterRight);
-
-    southGroup.add(shutterGroup);
     shelter.add(southGroup);
 
-    // ── 4. Detailed Roof Assembly with Exposed Timber Rafters (Talashing) ──
+    // ── 4. Pitched Solar Shed Roof (11° Monoslope Angled Roof with South Overhang) ──
     const roofGroup = new THREE.Group();
-    const roofOverhang = 0.52;
-    const roofLen = l + roofOverhang * 2;
-    const roofWid = w + roofOverhang * 2;
+    const southOverhang = 0.65; // Extended south overhang for solar shading
+    const northOverhang = 0.35;
+    const sideOverhang = 0.42;
+
+    const roofLen = l + sideOverhang * 2;
+    const roofWid = w + southOverhang + northOverhang;
     const roofBaseY = plinthThick + floorSlabThick + h;
+    const roofPitchRad = 0.16; // ~9.2 degrees pitch sloping down to North
 
-    roofGroup.position.set(0, roofBaseY, 0);
+    roofGroup.position.set(0, roofBaseY, (southOverhang - northOverhang) / 2);
 
-    // Structural Exposed Timber Rafters (Talashing beams extending under eaves)
+    // Timber Rafters & Purlins
     const rafterCount = Math.max(6, Math.round(l / 0.65));
-    const rafterGeo = new THREE.BoxGeometry(0.12, 0.16, roofWid - 0.1);
+    const rafterGeo = new THREE.BoxGeometry(0.12, 0.16, roofWid - 0.05);
     for (let i = 0; i < rafterCount; i++) {
-      const rx = -l / 2 - roofOverhang * 0.7 + (i / (rafterCount - 1)) * (roofLen - roofOverhang * 0.6);
+      const rx = -l / 2 - sideOverhang * 0.6 + (i / (rafterCount - 1)) * (roofLen - sideOverhang * 0.5);
       const rafter = new THREE.Mesh(rafterGeo, timberMat);
-      rafter.position.set(rx, 0.08, 0);
+      rafter.position.set(rx, 0.1, 0);
+      rafter.rotation.x = roofPitchRad;
       rafter.castShadow = true;
       roofGroup.add(rafter);
     }
 
-    // Ceiling Timber Plank Decking
-    const deckGeo = new THREE.BoxGeometry(roofLen - 0.05, 0.04, roofWid - 0.05);
+    // Structural Decking
+    const deckGeo = new THREE.BoxGeometry(roofLen - 0.04, 0.04, roofWid - 0.04);
     const deckMesh = new THREE.Mesh(deckGeo, timberMat);
-    deckMesh.position.set(0, 0.18, 0);
+    deckMesh.position.set(0, 0.2, 0);
+    deckMesh.rotation.x = roofPitchRad;
     deckMesh.castShadow = true;
     roofGroup.add(deckMesh);
 
-    // Continuous Roof EPS Insulation Board
-    const roofInsulGeo = new THREE.BoxGeometry(roofLen, 0.15, roofWid);
+    // Continuous XPS/EPS Insulation Board
+    const roofInsulGeo = new THREE.BoxGeometry(roofLen, 0.14, roofWid);
     const roofInsulMesh = new THREE.Mesh(roofInsulGeo, wallInsulationMat);
-    roofInsulMesh.position.set(0, 0.28, 0);
+    roofInsulMesh.position.set(0, 0.29, 0);
+    roofInsulMesh.rotation.x = roofPitchRad;
     roofGroup.add(roofInsulMesh);
 
-    // Perimeter Timber Fascia Trim
-    const fasciaThick = 0.04;
-    const fasciaHeight = 0.32;
-    const fasciaFrontGeo = new THREE.BoxGeometry(roofLen, fasciaHeight, fasciaThick);
-    const fasciaFront = new THREE.Mesh(fasciaFrontGeo, timberMat);
-    fasciaFront.position.set(0, 0.2, roofWid / 2);
-    roofGroup.add(fasciaFront);
+    // Weatherproof Standing-Seam Alpine Metal Roof
+    const metalRoofGeo = new THREE.BoxGeometry(roofLen + 0.04, 0.06, roofWid + 0.04);
+    const metalRoofMesh = new THREE.Mesh(metalRoofGeo, metalRoofMat);
+    metalRoofMesh.position.set(0, 0.39, 0);
+    metalRoofMesh.rotation.x = roofPitchRad;
+    metalRoofMesh.castShadow = true;
+    metalRoofMesh.receiveShadow = true;
+    roofGroup.add(metalRoofMesh);
 
-    const fasciaBack = new THREE.Mesh(fasciaFrontGeo, timberMat);
-    fasciaBack.position.set(0, 0.2, -roofWid / 2);
-    roofGroup.add(fasciaBack);
+    // Snow retention guards along southern lower edge
+    const guardBarGeo = new THREE.BoxGeometry(roofLen - 0.2, 0.06, 0.04);
+    const guardBar = new THREE.Mesh(guardBarGeo, new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 }));
+    guardBar.position.set(0, 0.44, roofWid / 2 - 0.1);
+    guardBar.rotation.x = roofPitchRad;
+    roofGroup.add(guardBar);
 
-    // Weatherproof Roof Deck / Concrete Screed
-    const screedGeo = new THREE.BoxGeometry(roofLen - 0.04, 0.06, roofWid - 0.04);
-    const screedMesh = new THREE.Mesh(screedGeo, concreteFloorMat);
-    screedMesh.position.set(0, 0.38, 0);
-    screedMesh.receiveShadow = true;
-    roofGroup.add(screedMesh);
+    // Rooftop Photovoltaic (PV) Solar Array (2 heavy solar panels)
+    const pvGroup = new THREE.Group();
+    const pvPanelGeo = new THREE.BoxGeometry(1.65, 0.05, 1.0);
+    const pv1 = new THREE.Mesh(pvPanelGeo, solarPvMat);
+    pv1.position.set(-1.0, 0.48, 0.2);
+    pv1.rotation.x = roofPitchRad + 0.15; // Tilted toward optimal winter angle
+    pv1.castShadow = true;
+    pvGroup.add(pv1);
 
-    // Himalayan Crystalline Snow Blanket on Roof
+    const pv2 = new THREE.Mesh(pvPanelGeo, solarPvMat);
+    pv2.position.set(1.0, 0.48, 0.2);
+    pv2.rotation.x = roofPitchRad + 0.15;
+    pv2.castShadow = true;
+    pvGroup.add(pv2);
+    roofGroup.add(pvGroup);
+
+    // Stainless Steel Insulated Stove Chimney Pipe with Cowl
+    const chimneyGroup = new THREE.Group();
+    chimneyGroup.position.set(l * 0.28, 0.38, -w * 0.25);
+
+    const pipeGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.4, 16);
+    const pipeMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E1, metalness: 0.92, roughness: 0.15 });
+    const pipe = new THREE.Mesh(pipeGeo, pipeMat);
+    pipe.position.y = 0.7;
+    pipe.castShadow = true;
+    chimneyGroup.add(pipe);
+
+    // Conical Rain Cowl
+    const cowlGeo = new THREE.ConeGeometry(0.24, 0.16, 16);
+    const cowl = new THREE.Mesh(cowlGeo, pipeMat);
+    cowl.position.y = 1.45;
+    cowl.castShadow = true;
+    chimneyGroup.add(cowl);
+    roofGroup.add(chimneyGroup);
+
+    // Crystalline Snow Blanket on Roof when enabled
     let snowMeshRef = null;
     if (snowCover) {
       const snowGeo = new THREE.BoxGeometry(roofLen, 0.12, roofWid);
       const snowMesh = new THREE.Mesh(snowGeo, createMat('snow', null));
       snowMesh.position.set(0, 0.46, 0);
+      snowMesh.rotation.x = roofPitchRad;
       snowMesh.receiveShadow = true;
       snowMesh.castShadow = true;
       roofGroup.add(snowMesh);
@@ -656,7 +787,33 @@ export default function Shelter3DCanvas({
 
     shelter.add(roofGroup);
 
-    // Save references to components and coordinate anchors for exploded transitions
+    // ── 5. Structural Framing Mode (When viewMode === 'framing') ──
+    if (isFraming) {
+      const framingGroup = new THREE.Group();
+      framingGroup.name = 'structural-framing';
+
+      // Perimeter Timber Studs every 0.6m
+      const studCountX = Math.round(l / 0.6);
+      const studGeo = new THREE.BoxGeometry(0.08, h, 0.12);
+
+      for (let i = 0; i <= studCountX; i++) {
+        const sx = -l / 2 + (i / studCountX) * l;
+        // North wall studs
+        const studN = new THREE.Mesh(studGeo, timberMat);
+        studN.position.set(sx, wallBaseY, -w / 2 + totalWallThick / 2);
+        framingGroup.add(studN);
+
+        // South wall studs (avoid window opening)
+        if (Math.abs(sx) > winWidth / 2) {
+          const studS = new THREE.Mesh(studGeo, timberMat);
+          studS.position.set(sx, wallBaseY, w / 2 - totalWallThick / 2);
+          framingGroup.add(studS);
+        }
+      }
+      shelter.add(framingGroup);
+    }
+
+    // Save exploded parts for GSAP transitions
     explodedPartsRef.current = {
       roofGroup,
       snowMeshRef,
@@ -675,32 +832,31 @@ export default function Shelter3DCanvas({
         westX: l / 2 - totalWallThick / 2,
       },
       exploded: {
-        roofY: roofBaseY + 2.4,
-        snowY: 1.2,
-        northZ: -w / 2 - 1.4,
-        northExtZ: -0.6,
-        southZ: w / 2 + 1.4,
-        eastX: -l / 2 - 1.4,
-        westX: l / 2 + 1.4,
+        roofY: roofBaseY + 2.5,
+        snowY: 1.3,
+        northZ: -w / 2 - 1.5,
+        northExtZ: -0.7,
+        southZ: w / 2 + 1.5,
+        eastX: -l / 2 - 1.5,
+        westX: l / 2 + 1.5,
       },
     };
 
-    // If rebuilding while in exploded mode, position meshes at their exploded offsets
     if (isExploded) {
-      roofGroup.position.y = roofBaseY + 2.4;
-      if (snowMeshRef) snowMeshRef.position.y = 1.2;
-      northGroup.position.z = -w / 2 - 1.4;
-      northExt.position.z = -0.6;
-      southGroup.position.z = w / 2 + 1.4;
-      eastGroup.position.x = -l / 2 - 1.4;
-      westGroup.position.x = l / 2 + 1.4;
+      roofGroup.position.y = roofBaseY + 2.5;
+      if (snowMeshRef) snowMeshRef.position.y = 1.3;
+      northGroup.position.z = -w / 2 - 1.5;
+      northExt.position.z = -0.7;
+      southGroup.position.z = w / 2 + 1.5;
+      eastGroup.position.x = -l / 2 - 1.5;
+      westGroup.position.x = l / 2 + 1.5;
     }
 
     scene.add(shelter);
-  }, [length_m, width_m, height_m, walls, roof, floor, openings, isThermal, snowCover, outerWallMat]);
+  }, [length_m, width_m, height_m, walls, roof, floor, openings, isThermal, isFraming, snowCover, outerWallMat]);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     2B. EXPLODED VIEW EXPANSION & CLOSING ANIMATIONS (GSAP)
+     3B. EXPLODED VIEW EXPANSION & CLOSING (GSAP)
      ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     const parts = explodedPartsRef.current;
@@ -711,7 +867,6 @@ export default function Shelter3DCanvas({
 
     const { roofGroup, snowMeshRef, northGroup, northExt, southGroup, eastGroup, westGroup, base, exploded } = parts;
 
-    // Halt any active tweens on shelter elements to avoid conflicts
     gsap.killTweensOf([
       roofGroup.position,
       northGroup.position,
@@ -723,56 +878,42 @@ export default function Shelter3DCanvas({
     if (snowMeshRef) gsap.killTweensOf(snowMeshRef.position);
 
     if (isExploded) {
-      // ── Opening Animation (Preserved exactly as configured) ──
       gsap.to(roofGroup.position, { y: exploded.roofY, duration: 0.9, ease: 'power3.out' });
-      if (snowMeshRef) {
-        gsap.to(snowMeshRef.position, { y: exploded.snowY, duration: 1.1, ease: 'power3.out' });
-      }
-
+      if (snowMeshRef) gsap.to(snowMeshRef.position, { y: exploded.snowY, duration: 1.1, ease: 'power3.out' });
       gsap.to(northGroup.position, { z: exploded.northZ, duration: 0.9, ease: 'power3.out' });
       gsap.to(northExt.position, { z: exploded.northExtZ, duration: 1.0, ease: 'power3.out' });
-
       gsap.to(southGroup.position, { z: exploded.southZ, duration: 0.9, ease: 'power3.out' });
-
       gsap.to(eastGroup.position, { x: exploded.eastX, duration: 0.9, ease: 'power3.out' });
       gsap.to(westGroup.position, { x:  exploded.westX, duration: 0.9, ease: 'power3.out' });
     } else {
-      // ── Closing Animation (Smooth return back into solid envelope) ──
       gsap.to(roofGroup.position, { y: base.roofY, duration: 0.9, ease: 'power3.out' });
-      if (snowMeshRef) {
-        gsap.to(snowMeshRef.position, { y: base.snowY, duration: 0.9, ease: 'power3.out' });
-      }
-
+      if (snowMeshRef) gsap.to(snowMeshRef.position, { y: base.snowY, duration: 0.9, ease: 'power3.out' });
       gsap.to(northGroup.position, { z: base.northZ, duration: 0.9, ease: 'power3.out' });
       gsap.to(northExt.position, { z: base.northExtZ, duration: 0.9, ease: 'power3.out' });
-
       gsap.to(southGroup.position, { z: base.southZ, duration: 0.9, ease: 'power3.out' });
-
       gsap.to(eastGroup.position, { x: base.eastX, duration: 0.9, ease: 'power3.out' });
       gsap.to(westGroup.position, { x:  base.westX, duration: 0.9, ease: 'power3.out' });
     }
   }, [isExploded]);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     3. 3D CELESTIAL SUN PATH & DIURNAL SOLAR POSITIONING
+     4. CELESTIAL SUN PATH & DIURNAL SOLAR POSITIONING
      ───────────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
 
-    // Remove old solar arc
     if (solarArcGroupRef.current) {
       scene.remove(solarArcGroupRef.current);
     }
 
     if (showSolarRays) {
-      const arc = createCelestialSolarArc(season, orientation_deg);
+      const arc = createCelestialSolarArc(season, orientation_deg, lat, altitude_m);
       scene.add(arc);
       solarArcGroupRef.current = arc;
     }
 
-    // Compute sun coordinates from real astronomical telemetry
-    const solarPos = computeSolarPosition(solarHour, season, orientation_deg);
+    const solarPos = computeSolarPosition(solarHour, season, orientation_deg, lat, altitude_m);
     const sunDist = 13.5;
 
     let sunX = 0;
@@ -786,7 +927,6 @@ export default function Shelter3DCanvas({
       sunY = sunDist * Math.sin(altRad);
       sunZ = sunDist * Math.cos(altRad) * Math.cos(azRad);
     } else {
-      // Night / Sub-horizon
       sunY = -2;
     }
 
@@ -800,14 +940,13 @@ export default function Shelter3DCanvas({
       sunGroupRef.current.visible = solarPos.isDay;
     }
 
-    // ── Volumetric Sun Shaft & Interior Floor Solar Patch ──
+    // Volumetric Sun Shaft & Floor Solar Patch
     if (showSolarRays && solarPos.isDay && sceneRef.current) {
       if (solarRayMeshRef.current) sceneRef.current.remove(solarRayMeshRef.current);
 
       const rayGroup = new THREE.Group();
       rayGroup.name = 'solar-beam-shaft';
 
-      // 1. Direct beam dashed centerline
       const rayPoints = [
         new THREE.Vector3(sunX * 0.95, sunY * 0.95, sunZ * 0.95),
         new THREE.Vector3(0, 1.4, width_m / 2),
@@ -825,118 +964,18 @@ export default function Shelter3DCanvas({
       rayLine.computeLineDistances();
       rayGroup.add(rayLine);
 
-      // 2. Window Aperture coordinates (South window: width ~2.2m, height ~1.3m, center Y ~1.3m)
-      const winW = 2.0;
-      const winH = 1.3;
-      const winY = 1.35;
-      const winZ = width_m / 2;
-      const floorY = 0.51; // Floor slab top surface
-
-      const wCorners = [
-        new THREE.Vector3(-winW / 2, winY + winH / 2, winZ),
-        new THREE.Vector3( winW / 2, winY + winH / 2, winZ),
-        new THREE.Vector3( winW / 2, winY - winH / 2, winZ),
-        new THREE.Vector3(-winW / 2, winY - winH / 2, winZ),
-      ];
-
-      // Ray-plane intersection from Sun to floor for each window corner
-      const fCorners = [];
-      const sunVec = new THREE.Vector3(sunX, sunY, sunZ);
-
-      wCorners.forEach((wc) => {
-        const dir = new THREE.Vector3().subVectors(wc, sunVec).normalize();
-        if (dir.y < -0.01) {
-          const t = (floorY - sunVec.y) / dir.y;
-          const hit = new THREE.Vector3().copy(sunVec).addScaledVector(dir, t);
-          // Clamp within interior floor bounds
-          hit.x = Math.max(-length_m / 2 + 0.2, Math.min(length_m / 2 - 0.2, hit.x));
-          hit.z = Math.max(-width_m / 2 + 0.2, Math.min(width_m / 2 - 0.1, hit.z));
-          fCorners.push(hit);
-        } else {
-          fCorners.push(new THREE.Vector3(wc.x * 0.8, floorY, 0));
-        }
+      // Floor illuminated solar patch
+      const patchGeo = new THREE.PlaneGeometry(2.4, 1.8);
+      const patchMat = new THREE.MeshBasicMaterial({
+        color: 0xFDBA74,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide,
       });
-
-      if (fCorners.length === 4) {
-        // Floor Illuminated Solar Patch Mesh
-        const patchGeo = new THREE.BufferGeometry();
-        const patchVerts = [
-          fCorners[0].x, fCorners[0].y + 0.005, fCorners[0].z,
-          fCorners[1].x, fCorners[1].y + 0.005, fCorners[1].z,
-          fCorners[2].x, fCorners[2].y + 0.005, fCorners[2].z,
-
-          fCorners[0].x, fCorners[0].y + 0.005, fCorners[0].z,
-          fCorners[2].x, fCorners[2].y + 0.005, fCorners[2].z,
-          fCorners[3].x, fCorners[3].y + 0.005, fCorners[3].z,
-        ];
-        patchGeo.setAttribute('position', new THREE.Float32BufferAttribute(patchVerts, 3));
-        patchGeo.computeVertexNormals();
-
-        const patchMat = new THREE.MeshBasicMaterial({
-          color: 0xFDBA74,
-          transparent: true,
-          opacity: Math.min(0.75, (solarPos.dni_wm2 / 1000) * 0.85),
-          side: THREE.DoubleSide,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        });
-        const patchMesh = new THREE.Mesh(patchGeo, patchMat);
-        rayGroup.add(patchMesh);
-
-        // Volumetric Shaft Frustum
-        const shaftGeo = new THREE.BufferGeometry();
-        const shaftVerts = [
-          // Left Side
-          wCorners[0].x, wCorners[0].y, wCorners[0].z,
-          fCorners[0].x, fCorners[0].y, fCorners[0].z,
-          fCorners[3].x, fCorners[3].y, fCorners[3].z,
-
-          wCorners[0].x, wCorners[0].y, wCorners[0].z,
-          fCorners[3].x, fCorners[3].y, fCorners[3].z,
-          wCorners[3].x, wCorners[3].y, wCorners[3].z,
-
-          // Right Side
-          wCorners[1].x, wCorners[1].y, wCorners[1].z,
-          fCorners[1].x, fCorners[1].y, fCorners[1].z,
-          fCorners[2].x, fCorners[2].y, fCorners[2].z,
-
-          wCorners[1].x, wCorners[1].y, wCorners[1].z,
-          fCorners[2].x, fCorners[2].y, fCorners[2].z,
-          wCorners[2].x, wCorners[2].y, wCorners[2].z,
-
-          // Top Face
-          wCorners[0].x, wCorners[0].y, wCorners[0].z,
-          wCorners[1].x, wCorners[1].y, wCorners[1].z,
-          fCorners[1].x, fCorners[1].y, fCorners[1].z,
-
-          wCorners[0].x, wCorners[0].y, wCorners[0].z,
-          fCorners[1].x, fCorners[1].y, fCorners[1].z,
-          fCorners[0].x, fCorners[0].y, fCorners[0].z,
-
-          // Bottom Face
-          wCorners[3].x, wCorners[3].y, wCorners[3].z,
-          wCorners[2].x, wCorners[2].y, wCorners[2].z,
-          fCorners[2].x, fCorners[2].y, fCorners[2].z,
-
-          wCorners[3].x, wCorners[3].y, wCorners[3].z,
-          fCorners[2].x, fCorners[2].y, fCorners[2].z,
-          fCorners[3].x, fCorners[3].y, fCorners[3].z,
-        ];
-
-        shaftGeo.setAttribute('position', new THREE.Float32BufferAttribute(shaftVerts, 3));
-        shaftGeo.computeVertexNormals();
-
-        const shaftMat = new THREE.MeshBasicMaterial({
-          color: 0xFDBA74,
-          transparent: true,
-          opacity: Math.min(0.18, (solarPos.dni_wm2 / 1000) * 0.22),
-          side: THREE.DoubleSide,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-        });
-        const shaftMesh = new THREE.Mesh(shaftGeo, shaftMat);
-        rayGroup.add(shaftMesh);
-      }
+      const patchMesh = new THREE.Mesh(patchGeo, patchMat);
+      patchMesh.rotation.x = -Math.PI / 2;
+      patchMesh.position.set(0, 0.55, width_m * 0.15);
+      rayGroup.add(patchMesh);
 
       sceneRef.current.add(rayGroup);
       solarRayMeshRef.current = rayGroup;
@@ -944,10 +983,61 @@ export default function Shelter3DCanvas({
       sceneRef.current.remove(solarRayMeshRef.current);
       solarRayMeshRef.current = null;
     }
-  }, [solarHour, season, orientation_deg, showSolarRays, width_m, length_m]);
+  }, [solarHour, season, orientation_deg, showSolarRays, width_m, length_m, lat, altitude_m]);
 
   /* ─────────────────────────────────────────────────────────────────────────
-     4. ORBIT CONTROLS & CAMERA PRESETS
+     5. 3D MEASUREMENT DIMENSION LINES
+     ───────────────────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    const dimGroup = dimensionGroupRef.current;
+    if (!dimGroup) return;
+
+    while (dimGroup.children.length > 0) {
+      const child = dimGroup.children[0];
+      dimGroup.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    }
+
+    if (!showDimensions) {
+      setDimensionBadges([]);
+      return;
+    }
+
+    const l = length_m;
+    const w = width_m;
+    const h = height_m;
+    const offset = 0.8;
+
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xC2410C, linewidth: 2, transparent: true, opacity: 0.85 });
+
+    // Length dimension (along front south X)
+    const lenPoints = [
+      new THREE.Vector3(-l / 2, 0.05, w / 2 + offset),
+      new THREE.Vector3( l / 2, 0.05, w / 2 + offset),
+    ];
+    const lenLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(lenPoints), lineMat);
+    dimGroup.add(lenLine);
+
+    // Width dimension (along east Z)
+    const widPoints = [
+      new THREE.Vector3(-l / 2 - offset, 0.05, -w / 2),
+      new THREE.Vector3(-l / 2 - offset, 0.05,  w / 2),
+    ];
+    const widLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(widPoints), lineMat);
+    dimGroup.add(widLine);
+
+    // Height dimension (vertical corner Y)
+    const hPoints = [
+      new THREE.Vector3(-l / 2 - offset, 0.05, -w / 2),
+      new THREE.Vector3(-l / 2 - offset, 0.05 + h, -w / 2),
+    ];
+    const hLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(hPoints), lineMat);
+    dimGroup.add(hLine);
+  }, [length_m, width_m, height_m, showDimensions]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     6. ORBIT CONTROLS & CAMERA PRESETS
      ───────────────────────────────────────────────────────────────────────── */
   const updateCameraPosition = useCallback(() => {
     if (!cameraRef.current) return;
@@ -1041,7 +1131,7 @@ export default function Shelter3DCanvas({
   };
 
   /* ─────────────────────────────────────────────────────────────────────────
-     5. 3D TO SCREEN HOTSPOT PROJECTION
+     7. 3D TO SCREEN HOTSPOT PROJECTION
      ───────────────────────────────────────────────────────────────────────── */
   const updateProjectedPins = useCallback(() => {
     const camera = cameraRef.current;
@@ -1051,89 +1141,55 @@ export default function Shelter3DCanvas({
     const w = container.clientWidth;
     const h = container.clientHeight;
 
-    const isExploded = viewMode === 'exploded';
-
-    // Dynamic Wall Hotspots (reflecting actual configured layers)
-    const wallSpots = isExploded
-      ? walls.map((w, idx) => {
-          const spec = getMaterialSpec(w.material);
-          const th_mm = Math.round((Number(w.thickness_m) || 0.1) * 1000);
-          const layerR = computeLayerR(w.material, w.thickness_m);
-          return {
-            id: `wall-layer-${idx}`,
-            label: `Layer ${idx + 1}: ${th_mm}mm ${spec.name}`,
-            sub: `${spec.role || spec.category} · R = ${layerR.toFixed(2)} m²K/W`,
-            category: spec.role || spec.category,
-            pos: new THREE.Vector3(0, height_m * 0.6, -width_m / 2 - 0.7 * (idx + 1)),
-            spec,
-            thickness_mm: th_mm,
-            rVal: layerR.toFixed(2),
-            uVal: layerR > 0 ? (1 / (layerR + 0.17)).toFixed(2) : '—',
-          };
-        })
-      : [
-          {
-            id: 'wall-assembly',
-            label: `Wall: ${getMaterialSpec(outerWallMat).name} (${Math.round(totalWallThickness * 1000)}mm)`,
-            sub: `${walls.length} Layers · U: ${wallUValue.toFixed(2)} W/m²K · R: ${(1 / (wallUValue || 1)).toFixed(2)} m²K/W`,
-            category: 'Envelope Assembly',
-            pos: new THREE.Vector3(length_m / 2, height_m * 0.6, width_m / 2),
-            spec: getMaterialSpec(outerWallMat),
-            thickness_mm: Math.round(totalWallThickness * 1000),
-            rVal: (1 / (wallUValue || 1)).toFixed(2),
-            uVal: wallUValue.toFixed(2),
-          },
-        ];
-
-    // Dynamic Glazing Hotspot
+    // 1. Hotspots
     const primaryAperture = openings[0] || { facing: 'south', area_m2: 4.0, glazing: 'double_pane', night_shutter: true };
-    const glazingUg = primaryAperture.glazing === 'single_pane' ? 5.7 : primaryAperture.glazing === 'triple_pane' ? 1.4 : 2.8;
-    const glazingShgc = primaryAperture.glazing === 'single_pane' ? 0.82 : primaryAperture.glazing === 'triple_pane' ? 0.50 : 0.65;
-    const hasNightShutter = !!primaryAperture.night_shutter;
-    const glazingSpot = {
-      id: 'glazing',
-      label: `${primaryAperture.facing?.toUpperCase() || 'SOUTH'} Glazing (${primaryAperture.area_m2 || 4.0} m²)`,
-      sub: `${primaryAperture.glazing?.replace('_', ' ') || 'double pane'} (U=${glazingUg}) ${hasNightShutter ? '· Insulated Shutter' : ''}`,
-      category: 'Passive Solar Aperture',
-      pos: new THREE.Vector3(0, 1.2, width_m / 2 + 0.1),
-      spec: {
-        id: primaryAperture.glazing,
-        name: `${(primaryAperture.glazing || 'double_pane').replace('_', ' ')} Glazing Unit`,
-        category: 'Glazing',
-        role: 'Solar Direct Gain Collector',
-        k: (glazingUg * 0.024).toFixed(3),
-        rho: 2500,
-        cp: 840,
-        description: `High-transmission architectural glazing designed to admit low-angle winter solar radiation (SHGC=${glazingShgc}).`,
-        whyUse: hasNightShutter
-          ? 'Insulated night shutters deployed at sunset reduce night thermal loss by over 60%, maintaining diurnal solar gains.'
-          : 'Transmits peak direct normal irradiance at noon. Deploying night shutters is recommended to stop midnight freezing.',
-        standardsRef: 'CPWD ECBC 2017 / ASHRAE 90.1',
-        logistics: 'Framed hermetic insulated glass unit (IGU)',
+    const rawHotspots = [
+      {
+        id: 'trombe-wall',
+        label: 'Trombe Mass Wall',
+        sub: 'Passive Solar Heat Storage & Air Convection Vents',
+        category: 'Solar Heating',
+        pos: new THREE.Vector3(0, height_m * 0.5, width_m / 2 + 0.1),
+        spec: {
+          name: 'South-Facing Trombe Mass Wall',
+          description: 'High-density earthen absorber storage wall located behind high-transmission double glazing. Absorbs solar radiation and circulates warm air into living quarters via thermo-siphonic convection.',
+          whyUse: 'Delivers 45-60% of winter space heating passively, eliminating fuel combustion dependencies.',
+          rVal: '0.85',
+          uVal: '1.18',
+          thickness_mm: 220,
+        },
       },
-      thickness_mm: primaryAperture.glazing === 'single_pane' ? 6 : primaryAperture.glazing === 'triple_pane' ? 36 : 24,
-      rVal: (1 / glazingUg).toFixed(2),
-      uVal: glazingUg.toFixed(2),
-    };
-
-    // Dynamic Roof Hotspot
-    const roofThMm = Math.round((roof[0]?.thickness_m || 0.15) * 1000);
-    const roofSpec = getMaterialSpec(roofMat);
-    const roofR = computeLayerR(roofMat, roof[0]?.thickness_m || 0.15);
-    const roofU = (1 / (roofR + 0.17)).toFixed(2);
-    const roofSpot = {
-      id: 'roof',
-      label: `Roof: ${roofSpec.name} (${roofThMm}mm)`,
-      sub: `R: ${roofR.toFixed(2)} m²K/W · U: ${roofU} W/m²K ${snowCover ? '· High Snow Albedo' : ''}`,
-      category: 'Roof Assembly',
-      pos: new THREE.Vector3(-length_m / 4, height_m + (isExploded ? 3.0 : 0.4), isExploded ? 0 : -width_m / 4),
-      spec: roofSpec,
-      thickness_mm: roofThMm,
-      rVal: roofR.toFixed(2),
-      uVal: roofU,
-    };
-
-    const rawHotspots = [...wallSpots, glazingSpot, roofSpot];
+      {
+        id: 'solar-roof',
+        label: 'Monoslope Shed Roof (11°)',
+        sub: 'Standing-Seam Metal & 140mm Continuous Insulation',
+        category: 'Envelope',
+        pos: new THREE.Vector3(-length_m / 4, height_m + 0.5, 0),
+        spec: {
+          name: 'Insulated Alpine Shed Roof',
+          description: 'Pitched at 11° to shed heavy snowdrifts and optimize solar PV collector incidence. Extended 650mm south overhang prevents summer overheating while admitting low winter sun.',
+          whyUse: 'Sub-zero Himalayan winter design prevents structural snow overloading and thermal bridging.',
+          rVal: '4.20',
+          uVal: '0.24',
+          thickness_mm: 200,
+        },
+      },
+      {
+        id: 'airlock-vestibule',
+        label: 'Arctic Airlock Vestibule',
+        sub: 'Weather-Lock Mudroom Entrance',
+        category: 'Infiltration Control',
+        pos: new THREE.Vector3(-length_m / 2 - 0.7, 1.2, 0.3),
+        spec: {
+          name: 'Arctic Entry Airlock Porch',
+          description: 'Dual-door airlock foyer that eliminates cold wind gusts and air infiltration when occupants enter or exit during high-wind blizzard conditions.',
+          whyUse: 'Reduces building ACH infiltration losses by over 70% in high-altitude gale conditions.',
+          rVal: '3.10',
+          uVal: '0.32',
+          thickness_mm: 120,
+        },
+      },
+    ];
 
     const projected = rawHotspots.map((hs) => {
       const v = hs.pos.clone();
@@ -1143,9 +1199,43 @@ export default function Shelter3DCanvas({
       const isVisible = v.z < 1.0;
       return { ...hs, screenX: x, screenY: y, isVisible };
     });
-
     setPinPositions(projected);
-  }, [length_m, width_m, height_m, outerWallMat, totalWallThickness, wallUValue, openings, roofMat, roof, snowCover, viewMode, walls]);
+
+    // 2. 3D Dimension Badges
+    if (showDimensions) {
+      const dBadges = [
+        {
+          id: 'dim-len',
+          label: `${length_m.toFixed(1)}m L`,
+          pos: new THREE.Vector3(0, 0.05, width_m / 2 + 0.8),
+        },
+        {
+          id: 'dim-wid',
+          label: `${width_m.toFixed(1)}m W`,
+          pos: new THREE.Vector3(-length_m / 2 - 0.8, 0.05, 0),
+        },
+        {
+          id: 'dim-hgt',
+          label: `${height_m.toFixed(1)}m H`,
+          pos: new THREE.Vector3(-length_m / 2 - 0.8, height_m / 2, -width_m / 2),
+        },
+      ];
+
+      const projDim = dBadges.map((b) => {
+        const v = b.pos.clone();
+        v.project(camera);
+        return {
+          ...b,
+          screenX: ((v.x + 1) / 2) * w,
+          screenY: ((-v.y + 1) / 2) * h,
+          isVisible: v.z < 1.0,
+        };
+      });
+      setDimensionBadges(projDim);
+    } else {
+      setDimensionBadges([]);
+    }
+  }, [length_m, width_m, height_m, openings, showDimensions]);
   updateProjectedPinsRef.current = updateProjectedPins;
 
   return (
@@ -1158,13 +1248,10 @@ export default function Shelter3DCanvas({
       onMouseLeave={handleMouseUp}
       onWheel={handleWheel}
     >
-      {/* Studio CAD Grid Texture (active in studio mode) */}
       <div className={`shelter-3d-grid-bg ${envMode === 'studio' ? 'visible' : ''}`} />
-
-      {/* WebGL Canvas */}
       <canvas className="shelter-3d-canvas" ref={canvasRef} />
 
-      {/* Interactive Floating Solar Controller Station */}
+      {/* Floating Solar Controller Station */}
       {showSolarRays && (
         <SolarController
           solarHour={solarHour}
@@ -1173,8 +1260,41 @@ export default function Shelter3DCanvas({
           onSeasonChange={setSeason}
           orientationDeg={orientation_deg}
           southGlazingArea={openings[0]?.area_m2 || 4.0}
+          lat={lat}
+          altitude_m={altitude_m}
         />
       )}
+
+      {/* 3D Measurement Dimension Badges */}
+      {showDimensions &&
+        dimensionBadges.map(
+          (b) =>
+            b.isVisible && (
+              <div
+                key={b.id}
+                className="dimension-badge-3d"
+                style={{
+                  position: 'absolute',
+                  left: b.screenX,
+                  top: b.screenY,
+                  transform: 'translate(-50%, -50%)',
+                  background: 'rgba(15, 23, 42, 0.85)',
+                  color: '#ffffff',
+                  padding: '2px 7px',
+                  borderRadius: 4,
+                  fontSize: 10.5,
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontWeight: 600,
+                  pointerEvents: 'none',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  zIndex: 15,
+                }}
+              >
+                {b.label}
+              </div>
+            )
+        )}
 
       {/* Hotspots Overlay */}
       <div className="hotspot-layer">
@@ -1194,7 +1314,6 @@ export default function Shelter3DCanvas({
                 <span className="hotspot-dot" />
                 <span className="hotspot-label">{pin.label}</span>
 
-                {/* Popover Card */}
                 {selectedPin?.id === pin.id && (
                   <div className="hotspot-popover" onClick={(e) => e.stopPropagation()}>
                     <div className="popover-header">
@@ -1213,52 +1332,31 @@ export default function Shelter3DCanvas({
                           cursor: 'pointer',
                           color: 'var(--text-muted)',
                           padding: 2,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 4,
                         }}
-                        aria-label="Close details"
+                        aria-label="Close"
                       >
                         <X size={14} />
                       </button>
                     </div>
-                    <p className="popover-desc">{pin.spec.description || pin.sub}</p>
-
+                    <p className="popover-desc">{pin.spec.description}</p>
                     {pin.spec.whyUse && (
-                      <div style={{ marginTop: 6, padding: '6px 8px', background: '#F8FAFC', borderRadius: 4, borderLeft: '2px solid #1E40AF', fontSize: 11, color: '#334155' }}>
-                        <div style={{ fontWeight: 700, fontSize: 9.5, textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.04em' }}>
-                          Engineering Justification:
+                      <div style={{ marginTop: 6, padding: '6px 8px', background: '#F8FAFC', borderRadius: 4, borderLeft: '2px solid #C2410C', fontSize: 11, color: '#334155' }}>
+                        <div style={{ fontWeight: 700, fontSize: 9, textTransform: 'uppercase', color: '#64748B' }}>
+                          Engineering Intent:
                         </div>
                         <div style={{ marginTop: 2, lineHeight: 1.4 }}>{pin.spec.whyUse}</div>
                       </div>
                     )}
-
                     <div className="popover-grid" style={{ marginTop: 8 }}>
                       <div className="popover-stat">
                         <span className="popover-stat-label">Thickness</span>
-                        <span className="popover-stat-val">{pin.thickness_mm} mm</span>
-                      </div>
-                      <div className="popover-stat">
-                        <span className="popover-stat-label">Thermal Cond (k)</span>
-                        <span className="popover-stat-val">{pin.spec.k ?? '—'} W/m·K</span>
+                        <span className="popover-stat-val">{pin.spec.thickness_mm} mm</span>
                       </div>
                       <div className="popover-stat">
                         <span className="popover-stat-label">R-Value</span>
-                        <span className="popover-stat-val">{pin.rVal} m²·K/W</span>
-                      </div>
-                      <div className="popover-stat">
-                        <span className="popover-stat-label">U-Value</span>
-                        <span className="popover-stat-val">{pin.uVal} W/m²·K</span>
+                        <span className="popover-stat-val">{pin.spec.rVal} m²K/W</span>
                       </div>
                     </div>
-
-                    {pin.spec.standardsRef && (
-                      <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 9.5, color: '#64748B' }}>
-                        <span>Ref: {pin.spec.standardsRef}</span>
-                        <span>{pin.spec.logistics}</span>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -1266,34 +1364,34 @@ export default function Shelter3DCanvas({
         )}
       </div>
 
-      {/* Bottom Bar: Turntable Badge + Environment Switcher */}
+      {/* Bottom Bar: Turntable Badge + Biome Selector */}
       <div className="shelter-bottom-controls">
         <div className="turntable-badge" title="Turntable Azimuth Angle">
           <Compass className="turntable-badge-icon" />
           <span>360° Orbit · {azimuthDeg}° Azimuth</span>
         </div>
 
-        {/* Environment Panorama Toggle */}
+        {/* Dynamic Biome Badge Toggle */}
         <button
           className="env-toggle-chip"
           onClick={() => setEnvMode(envMode === 'himalayas' ? 'studio' : 'himalayas')}
-          title={envMode === 'himalayas' ? 'Switch to Studio CAD Grid' : 'Switch to Himalayan Panorama'}
+          title={envMode === 'himalayas' ? 'Switch to Studio CAD Grid' : `Biome: ${biomeMeta.label}`}
         >
           {envMode === 'himalayas' ? (
             <>
-              <Mountain size={13} style={{ color: 'var(--ice)' }} />
-              <span>Ladakh Range</span>
+              <Mountain size={13} style={{ color: 'var(--solar, #C2410C)' }} />
+              <span>{biomeMeta.label} ({altitude_m}m)</span>
             </>
           ) : (
             <>
-              <Grid size={13} style={{ color: 'var(--espresso-40)' }} />
-              <span>Studio Grid</span>
+              <Grid size={13} style={{ color: 'var(--text-secondary)' }} />
+              <span>Studio CAD Grid</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Thermal Heatmap Gradient Scale HUD */}
+      {/* Thermal Heatmap Gradient Scale */}
       {isThermal && (
         <div className="thermal-heatmap-hud">
           <div className="thermal-hud-header">
@@ -1313,24 +1411,6 @@ export default function Shelter3DCanvas({
               <span>+24°C</span>
             </div>
           </div>
-          <div className="thermal-surface-readouts">
-            <div className="surface-readout-item hot">
-              <span className="surface-name">South Glazing / Trombe</span>
-              <span className="surface-temp">+21.4 °C</span>
-            </div>
-            <div className="surface-readout-item comfort">
-              <span className="surface-name">Internal Mass Floor</span>
-              <span className="surface-temp">+17.2 °C</span>
-            </div>
-            <div className="surface-readout-item cold">
-              <span className="surface-name">North Shaded Wall</span>
-              <span className="surface-temp">-11.8 °C</span>
-            </div>
-            <div className="surface-readout-item extreme">
-              <span className="surface-name">Snow-Covered Roof</span>
-              <span className="surface-temp">-15.6 °C</span>
-            </div>
-          </div>
         </div>
       )}
 
@@ -1338,18 +1418,18 @@ export default function Shelter3DCanvas({
       {isExploded && (
         <div className="exploded-view-hud">
           <div className="exploded-hud-title">
-            <Layers size={13} style={{ color: 'var(--accent)' }} />
-            <span>Envelope Exploded Layer Studio</span>
+            <Layers size={13} style={{ color: 'var(--solar, #C2410C)' }} />
+            <span>Assembly Exploded View</span>
           </div>
           <div className="exploded-hud-layers">
             <div className="exploded-hud-chip"><span className="dot mass" /> 1. Heavy Mud Brick Mass</div>
             <div className="exploded-hud-chip"><span className="dot eps" /> 2. 100mm Continuous EPS Core</div>
-            <div className="exploded-hud-chip"><span className="dot timber" /> 3. Poplar Talashing Rafters</div>
+            <div className="exploded-hud-chip"><span className="dot timber" /> 3. Structural Timber Rafters</div>
           </div>
         </div>
       )}
 
-      {/* View Presets Bar */}
+      {/* Camera Presets Bar */}
       <div className="view-presets-bar">
         <button
           className={`preset-chip ${activePreset === 'iso' ? 'active' : ''}`}
@@ -1361,7 +1441,7 @@ export default function Shelter3DCanvas({
         <button
           className={`preset-chip ${activePreset === 'south' ? 'active' : ''}`}
           onClick={() => setPresetView('south')}
-          title="South Solar Aperture"
+          title="South Solar Aperture & Trombe Wall"
         >
           South Glazing
         </button>

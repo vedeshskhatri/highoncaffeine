@@ -122,6 +122,7 @@ export default function DesignCanvas({
               showDimensions={showDimensions}
               showSolarRays={showSolarRays}
               snowCover={snowCover}
+              activeSiteName={activeSiteName}
             />
           </motion.div>
         ) : (

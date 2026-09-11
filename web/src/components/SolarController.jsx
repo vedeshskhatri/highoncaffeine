@@ -20,17 +20,55 @@ import {
 import './SolarController.css';
 
 export const SEASONS = {
-  winter: { name: 'Winter Solstice (Dec 21)', maxAlt: 32.4, peakDni: 920, sunrise: 7.2, sunset: 17.1 },
-  equinox: { name: 'Spring Equinox (Mar 21)', maxAlt: 55.8, peakDni: 1040, sunrise: 6.2, sunset: 18.2 },
-  summer: { name: 'Summer Solstice (Jun 21)', maxAlt: 79.2, peakDni: 1080, sunrise: 5.3, sunset: 19.4 },
+  winter: { name: 'Winter Solstice (Dec 21)', declinationDeg: -23.44 },
+  equinox: { name: 'Spring Equinox (Mar 21)', declinationDeg: 0.0 },
+  summer: { name: 'Summer Solstice (Jun 21)', declinationDeg: 23.44 },
 };
 
 /**
- * Computes solar altitude, azimuth, and direct beam radiation for high-altitude Leh (34.15° N, 3500m)
+ * Derives solar parameters dynamically based on season, latitude, and altitude
  */
-export function computeSolarPosition(hourFloat, seasonKey = 'winter', orientationDeg = 180) {
-  const season = SEASONS[seasonKey] || SEASONS.winter;
-  const { maxAlt, sunrise, sunset, peakDni } = season;
+export function getSeasonSolarParams(seasonKey = 'winter', lat = 34.1526, altitude_m = 3500) {
+  const dec = seasonKey === 'summer' ? 23.44 : (seasonKey === 'equinox' ? 0.0 : -23.44);
+  const latRad = (lat * Math.PI) / 180;
+  const decRad = (dec * Math.PI) / 180;
+
+  // Max solar noon altitude angle: 90 - lat + dec
+  const maxAlt = Math.max(5, Math.min(89, 90 - lat + dec));
+
+  // Hour angle at sunrise/sunset: cos(omega0) = -tan(lat)*tan(dec)
+  const cosOmega0 = Math.max(-1, Math.min(1, -Math.tan(latRad) * Math.tan(decRad)));
+  const omega0 = Math.acos(cosOmega0);
+  const halfDayHours = (omega0 * 12) / Math.PI;
+
+  const sunrise = Math.max(4.5, Math.min(8.5, 12 - halfDayHours));
+  const sunset = Math.max(15.5, Math.min(19.5, 12 + halfDayHours));
+
+  // High altitude increases clear-sky peak DNI due to reduced optical air mass
+  const baseDni = seasonKey === 'summer' ? 1040 : (seasonKey === 'equinox' ? 980 : 880);
+  const altBoost = Math.max(0, Math.min(260, (altitude_m / 1000) * 45));
+  const peakDni = Math.round(baseDni + altBoost);
+
+  return {
+    maxAlt: parseFloat(maxAlt.toFixed(1)),
+    sunrise: parseFloat(sunrise.toFixed(1)),
+    sunset: parseFloat(sunset.toFixed(1)),
+    peakDni,
+    declinationDeg: dec,
+  };
+}
+
+/**
+ * Computes solar altitude, azimuth, and direct beam radiation dynamically for any location
+ */
+export function computeSolarPosition(
+  hourFloat,
+  seasonKey = 'winter',
+  orientationDeg = 180,
+  lat = 34.1526,
+  altitude_m = 3500
+) {
+  const { maxAlt, sunrise, sunset, peakDni } = getSeasonSolarParams(seasonKey, lat, altitude_m);
 
   const isDay = hourFloat >= sunrise && hourFloat <= sunset;
   if (!isDay) {
@@ -40,6 +78,10 @@ export function computeSolarPosition(hourFloat, seasonKey = 'winter', orientatio
       dni_wm2: 0,
       apertureGainKw: 0,
       isDay: false,
+      maxAlt,
+      sunrise,
+      sunset,
+      peakDni,
     };
   }
 
@@ -47,12 +89,12 @@ export function computeSolarPosition(hourFloat, seasonKey = 'winter', orientatio
   const dayProgress = (hourFloat - sunrise) / (sunset - sunrise); // 0 to 1
   const altitudeDeg = Math.max(0, Math.sin(dayProgress * Math.PI) * maxAlt);
 
-  // Azimuth tracks from East (approx 120° in winter) through South (180°) to West (approx 240°)
-  const azimuthSpan = seasonKey === 'summer' ? 220 : 120;
+  // Azimuth tracks from East through South to West
+  const azimuthSpan = seasonKey === 'summer' ? Math.min(240, 150 + (90 - lat) * 1.2) : 120;
   const startAz = 180 - azimuthSpan / 2;
   const azimuthDeg = startAz + dayProgress * azimuthSpan;
 
-  // Clear-sky high-altitude DNI (W/m²) scaled by optical air mass
+  // Clear-sky DNI scaled by optical air mass
   const altRad = (altitudeDeg * Math.PI) / 180;
   const dni_wm2 = Math.round(peakDni * Math.pow(Math.sin(altRad), 0.65));
 
@@ -67,6 +109,10 @@ export function computeSolarPosition(hourFloat, seasonKey = 'winter', orientatio
     dni_wm2,
     apertureGainKw: parseFloat(apertureGainKw),
     isDay: true,
+    maxAlt,
+    sunrise,
+    sunset,
+    peakDni,
   };
 }
 
@@ -77,9 +123,11 @@ export default function SolarController({
   onSeasonChange,
   orientationDeg = 180,
   southGlazingArea = 4.0,
+  lat = 34.1526,
+  altitude_m = 3500,
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false); // Collapsed by default so it never blocks 3D view
   const animFrameRef = useRef(null);
   const lastTimeRef = useRef(performance.now());
 
@@ -115,7 +163,7 @@ export default function SolarController({
     };
   }, [isPlaying, solarHour, onHourChange]);
 
-  const telemetry = computeSolarPosition(solarHour, season, orientationDeg);
+  const telemetry = computeSolarPosition(solarHour, season, orientationDeg, lat, altitude_m);
 
   // Format hour into HH:MM AM/PM
   const formatTime = (h) => {

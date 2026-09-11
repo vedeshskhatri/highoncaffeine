@@ -52,25 +52,33 @@
   box-shadow: 0 1px 4px rgba(32, 15, 7, 0.2);
 }
 
-/* Top-left Zoom & Navigation Controls */
+/* Top-right Zoom & Navigation Controls (docked cleanly beside 2D/3D toggle) */
 .viewport-zoom-pill {
   position: absolute;
   top: 16px;
-  left: 16px;
+  right: 104px;
   display: flex;
   align-items: center;
   gap: 2px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(232, 220, 196, 0.85);
-  border-radius: var(--radius-sm);
-  padding: 3px 5px;
-  box-shadow: 0 4px 16px rgba(32, 15, 7, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: var(--radius-sm, 6px);
+  padding: 3px 6px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   z-index: 30;
 }
 
-.zoom-tool-btn {
+.canvas-area.inspector-collapsed .viewport-zoom-pill {
+  right: 140px;
+}
+
+/* Left Floating Tool Rail (comfortably clear of top telemetry banner) */
+.cad-tool-rail {
+  position: absolute;
+  top: 96px;
+  left: 16px;
   background: none;
   border: none;
   width: 26px;

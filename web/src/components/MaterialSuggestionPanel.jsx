@@ -115,8 +115,8 @@ export default function MaterialSuggestionPanel({
       {
         facing: 'south',
         area_m2: request?.openings?.[0]?.area_m2 || 4.0,
-        glazing: b.glazing.glazing_type,
-        night_shutter: Boolean(b.glazing.night_shutter),
+        glazing: b?.glazing?.glazing_id || b?.glazing?.glazing_type || 'double_pane',
+        night_shutter: Boolean(b?.glazing?.night_shutter),
       },
     ];
 
@@ -352,8 +352,10 @@ export default function MaterialSuggestionPanel({
                               </div>
                             ))}
                             <div className="ms-layer-chip accent">
-                              <span className="ms-chip-name">{b.glazing.glazing_type.replace('_', ' ')}</span>
-                              {b.glazing.night_shutter && (
+                              <span className="ms-chip-name">
+                                {b?.glazing?.name || (b?.glazing?.glazing_id || b?.glazing?.glazing_type || 'double_pane').replace(/_/g, ' ')}
+                              </span>
+                              {b?.glazing?.night_shutter && (
                                 <span className="ms-chip-shutter">+ Night Shutter</span>
                               )}
                             </div>

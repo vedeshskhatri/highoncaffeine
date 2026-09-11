@@ -278,3 +278,107 @@ export function getConcreteTexture() {
   textureCache.set('concrete', texture);
   return texture;
 }
+
+/**
+ * Procedural Standing-Seam Alpine Metal Roof Texture
+ */
+export function getMetalSeamRoofTexture() {
+  if (textureCache.has('metal_roof')) return textureCache.get('metal_roof');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Alpine charcoal coated galvanized sheet
+  ctx.fillStyle = '#3E4651';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Vertical standing seams every 64px
+  for (let x = 0; x < 512; x += 64) {
+    // Left highlight
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.fillRect(x, 0, 2, 512);
+
+    // Dark seam rib
+    ctx.fillStyle = '#23282F';
+    ctx.fillRect(x + 2, 0, 4, 512);
+
+    // Cast seam shadow
+    ctx.fillStyle = 'rgba(15, 18, 22, 0.4)';
+    ctx.fillRect(x + 6, 0, 6, 512);
+  }
+
+  // Subtle metallic stipple
+  for (let i = 0; i < 400; i++) {
+    const rx = Math.random() * 512;
+    const ry = Math.random() * 512;
+    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)';
+    ctx.fillRect(rx, ry, 1.5, 1.5);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  textureCache.set('metal_roof', texture);
+  return texture;
+}
+
+/**
+ * Procedural Photovoltaic Solar Panel Texture
+ */
+export function getSolarPanelTexture() {
+  if (textureCache.has('solar_pv')) return textureCache.get('solar_pv');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Deep monocrystalline navy
+  ctx.fillStyle = '#10223B';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Solar cell grid (4x4 cells)
+  const cellSize = 64;
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const x = c * cellSize + 2;
+      const y = r * cellSize + 2;
+      const w = cellSize - 4;
+      const h = cellSize - 4;
+
+      ctx.fillStyle = '#163152';
+      ctx.fillRect(x, y, w, h);
+
+      // Silver busbars
+      ctx.strokeStyle = '#94A3B8';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.33, y);
+      ctx.lineTo(x + w * 0.33, y + h);
+      ctx.moveTo(x + w * 0.66, y);
+      ctx.lineTo(x + w * 0.66, y + h);
+      ctx.stroke();
+
+      // Fine grid fingers
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+      for (let fy = y + 8; fy < y + h; fy += 10) {
+        ctx.beginPath();
+        ctx.moveTo(x, fy);
+        ctx.lineTo(x + w, fy);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Outer panel border
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(0, 0, 256, 256);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  textureCache.set('solar_pv', texture);
+  return texture;
+}
