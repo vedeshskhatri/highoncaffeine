@@ -1,0 +1,627 @@
+/* CpwdPage.css — THERMA Platform CPWD Knowledge & Estimation Console */
+
+.cpwd-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 1. Header */
+.cpwd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.cpwd-title-group {
+  max-width: 650px;
+}
+
+.cpwd-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background-color: var(--orange-soft);
+  color: var(--orange);
+  margin-bottom: 8px;
+}
+
+.cpwd-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0 0 6px 0;
+  line-height: 1.2;
+}
+
+.cpwd-subtitle {
+  font-size: 14px;
+  color: var(--espresso-70);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cpwd-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  border: 1px solid var(--rule);
+  background-color: var(--cream-2);
+}
+
+.status-pill.online {
+  background-color: var(--sage-soft);
+  color: var(--sage);
+  border-color: rgba(74, 124, 89, 0.3);
+}
+
+.status-pill.offline {
+  background-color: #FEF3C7;
+  color: #92400E;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* 2. Navigation Tabs */
+.cpwd-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 2px solid var(--rule);
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.cpwd-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--espresso-70);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.cpwd-tab-btn:hover {
+  color: var(--espresso);
+  background-color: rgba(247, 115, 49, 0.05);
+}
+
+.cpwd-tab-btn.active {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+}
+
+/* 3. Panel Cards */
+.cpwd-card {
+  background-color: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(32, 15, 7, 0.04);
+}
+
+/* Search Bar Strip */
+.cpwd-search-strip {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.cpwd-input-box {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+}
+
+.cpwd-input-box input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background-color: white;
+  color: var(--espresso);
+  transition: border-color 0.15s ease;
+}
+
+.cpwd-input-box input:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px var(--orange-soft);
+}
+
+.cpwd-input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--espresso-40);
+}
+
+.cpwd-select {
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background-color: white;
+  color: var(--espresso);
+  cursor: pointer;
+}
+
+.cpwd-btn-primary {
+  padding: 10px 20px;
+  background-color: var(--orange);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.cpwd-btn-primary:hover {
+  background-color: #E25E1D;
+}
+
+.cpwd-btn-secondary {
+  padding: 8px 14px;
+  background-color: var(--cream-2);
+  color: var(--espresso);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.12s ease;
+}
+
+.cpwd-btn-secondary:hover {
+  background-color: var(--orange-soft);
+  border-color: var(--orange);
+}
+
+/* Prompt chips */
+.prompt-chips-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--espresso-40);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.prompt-chips-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.prompt-chip {
+  background-color: var(--cream-2);
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  color: var(--espresso);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-body);
+}
+
+.prompt-chip:hover {
+  background-color: var(--orange-soft);
+  border-color: var(--orange);
+  color: var(--espresso);
+}
+
+/* AI Answer Box */
+.ai-response-box {
+  background-color: white;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.ai-response-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 14px;
+}
+
+.badge-grounded {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--sage-soft);
+  color: var(--sage);
+}
+
+.badge-method {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--espresso-40);
+}
+
+.ai-answer-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--espresso);
+  white-space: pre-line;
+}
+
+/* Citations strip */
+.citations-container {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.citations-title {
+  font-family: var(--font-heading);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--espresso-40);
+  margin-bottom: 8px;
+}
+
+.citations-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.citation-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--cream-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--espresso);
+}
+
+.citation-pill strong {
+  color: var(--orange);
+}
+
+/* Tables */
+.cpwd-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.cpwd-data-table th {
+  padding: 10px 12px;
+  background-color: var(--cream-2);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--espresso-70);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.cpwd-data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: middle;
+}
+
+.cpwd-data-table tr:hover {
+  background-color: rgba(247, 115, 49, 0.03);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.rate-badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--espresso);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-badge.increased {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+}
+
+.status-badge.decreased {
+  background-color: var(--sage-soft);
+  color: var(--sage);
+}
+
+.status-badge.unchanged {
+  background-color: var(--cream-2);
+  color: var(--espresso-40);
+}
+
+/* Comparison Metric Cards */
+.metric-cards-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.metric-stat-card {
+  background-color: white;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.metric-stat-label {
+  font-size: 11.5px;
+  font-family: var(--font-heading);
+  color: var(--espresso-40);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.metric-stat-value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--espresso);
+}
+
+/* BOQ Grand Total Strip */
+.boq-summary-card {
+  background-color: var(--espresso);
+  color: var(--cream);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.boq-total-amount {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+/* 4. Thermal Prediction Metrics & Flux Breakdown */
+.thermal-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.thermal-metric-tile {
+  background-color: var(--cream-1, #f8fafc);
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.thermal-metric-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--espresso-70, #64748b);
+  font-family: var(--font-heading);
+}
+
+.thermal-metric-value {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--espresso, #1e293b);
+}
+
+.thermal-metric-sub {
+  font-size: 11.5px;
+  color: var(--espresso-70, #64748b);
+}
+
+.thermal-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  width: fit-content;
+}
+
+.thermal-badge.cold {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.thermal-badge.comfort {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
+.thermal-badge.warm {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.thermal-badge.pass {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
+.thermal-badge.refused {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.thermal-badge.elevated {
+  background-color: #fff7ed;
+  color: #c2410c;
+}
+
+.thermal-badge.low {
+  background-color: #f0fdf4;
+  color: #15803d;
+}
+
+/* Flux Breakdown Bars */
+.flux-breakdown-section {
+  margin: 18px 0;
+  padding: 14px 16px;
+  background-color: var(--cream-1, #f8fafc);
+  border: 1px solid var(--rule, #e2e8f0);
+  border-radius: 8px;
+}
+
+.flux-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--espresso-70, #64748b);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.flux-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+}
+
+.flux-row-label {
+  width: 150px;
+  font-weight: 500;
+  color: var(--espresso, #334155);
+}
+
+.flux-row-track {
+  flex: 1;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.flux-row-fill {
+  height: 100%;
+  background-color: var(--orange, #f97316);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.flux-row-val {
+  width: 80px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--espresso, #1e293b);
+}
+
+/* Recommendations List */
+.thermal-recs-list {
+  margin: 14px 0 0 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--espresso, #334155);
+}
+
+.thermal-recs-list li {
+  margin-bottom: 6px;
+}
+

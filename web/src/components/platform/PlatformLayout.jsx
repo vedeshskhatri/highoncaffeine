@@ -15,6 +15,7 @@ const PAGE_TITLES = {
   '/materials': 'Materials & Regional Supply Realities',
   '/method': 'Methodology & Standards Specification',
   '/validation': 'Empirical Model Benchmark & Verification',
+  '/cpwd': 'CPWD Schedule of Rates & AI Knowledge Engine',
 };
 
 export default function PlatformLayout() {

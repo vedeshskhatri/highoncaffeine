@@ -1,0 +1,8 @@
+file,rows,columns
+master_timeseries.csv,120000,59
+design_parameters.csv,5000,28
+locations.csv,39,7
+materials.csv,8,6
+train.csv,84000,59
+validation.csv,18000,59
+test.csv,18000,59

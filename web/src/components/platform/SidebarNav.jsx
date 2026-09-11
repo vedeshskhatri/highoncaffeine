@@ -12,6 +12,8 @@ import {
   BookOpen,
   Award,
   Globe2,
+  Calculator,
+  Brain,
 } from 'lucide-react';
 import './SidebarNav.css';
 
@@ -21,12 +23,15 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
     { to: '/sites', label: 'Site Registry & Map', icon: MapPin },
     { to: '/programme', label: 'Programme Planner', icon: TrendingUp },
     { to: '/alerts', label: 'Cold Snap Alerts', icon: AlertTriangle, badge: alertsCount },
+    { to: '/cpwd', label: 'Thermal AI Assistant', icon: Brain },
     { to: '/library', label: 'Design Library', icon: Layers },
+
     { to: '/forecast', label: 'Sortie Logistics', icon: Plane },
     { to: '/materials', label: 'Materials Catalog', icon: Boxes },
     { to: '/method', label: 'Method & Physics', icon: BookOpen },
     { to: '/validation', label: 'Empirical Checks', icon: Award },
   ];
+
 
   return (
     <aside className="platform-sidebar" aria-label="Platform Sidebar">

@@ -56,6 +56,8 @@ from engine.what_if import (
     compare_simulations,
 )
 from api.platform import router as platform_router
+from api.cpwd.router import router as cpwd_router
+from api.ml_router import router as ml_router
 
 app = FastAPI(
     title="THERMA API",
@@ -65,6 +67,12 @@ app = FastAPI(
 
 # Mount Platform Asset Management router (Phase P0 per 07A proposal)
 app.include_router(platform_router)
+
+# Mount CPWD AI Knowledge System router
+app.include_router(cpwd_router)
+
+# Mount ML Surrogate Prediction & Q&A router
+app.include_router(ml_router)
 
 # Enable CORS for Vite frontend
 app.add_middleware(

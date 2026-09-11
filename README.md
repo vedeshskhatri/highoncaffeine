@@ -1483,5 +1483,87 @@ By replacing crude intuition and sea-level software with high-altitude barometri
 
 ---
 
+# 43. LOCAL CPWD AI SETUP
+
+THERMA incorporates a grounded, 100% local CPWD Delhi Schedule of Rates (DSR), Analysis of Rates (DAR), and Specifications Knowledge & Estimation System powered by **Ollama** and **SQLite + FTS5 + Vector Retrieval**.
+
+The system strictly adheres to the official CPWD source documents (2016, 2018, 2020 PDFs and 2025 structured data), guarantees zero hallucinations, isolates rates by edition year, provides exact page citations, and computes all arithmetic (Quantity × Rate and % Rate Changes) deterministically in Python backend code.
+
+### 1. Prerequisites & Dependencies
+Ensure Python 3.9+ virtual environment is active and dependencies are installed:
+```bash
+# In highoncaffeine root
+.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install pypdf
+```
+
+### 2. Ollama Local Setup
+Ollama serves as the local offline LLM inference engine without sending documents to cloud APIs:
+```bash
+# 1. Install Ollama (macOS)
+brew install ollama
+
+# 2. Start local Ollama daemon
+ollama serve
+
+# 3. Pull recommended chat and embedding models
+ollama pull llama3.2
+ollama pull nomic-embed-text
+```
+
+*Note: If Ollama is offline or models are not yet pulled, the system runs in high-reliability deterministic mode without crashing, serving exact database lookups, deterministic math, and citations.*
+
+### 3. Environment Variables (Optional Config)
+```bash
+export OLLAMA_BASE_URL="http://localhost:11434"
+export OLLAMA_CHAT_MODEL="llama3.2"
+export OLLAMA_EMBED_MODEL="nomic-embed-text"
+export OLLAMA_TEMPERATURE="0.0"
+```
+
+### 4. PDF & CSV Ingestion Pipeline
+To ingest and index the CPWD DSR/DAR/Specifications documents from the dataset directory (`/Users/cooldude69/Desktop/dataset`):
+```bash
+# Ingest 2016, 2018, 2020 PDFs and 2025 CSV
+.venv/bin/python -m api.cpwd.ingest
+```
+Expected output:
+```text
+Executing CPWD Ingestion Pipeline...
+{
+  "documents_processed": 4,
+  "total_pages_processed": 1686,
+  "items_extracted": 4154,
+  "rates_extracted": 4154,
+  "labour_records": 71,
+  "material_records": 1866,
+  "plant_records": 943,
+  "specification_records": 64,
+  "analysis_records": 3060,
+  "chunks_indexed": 2008,
+  "duration_seconds": 6.1
+}
+```
+
+### 5. Running the Application
+```bash
+# Terminal 1 — Start FastAPI Backend
+.venv/bin/uvicorn api.main:app --port 8000 --reload
+
+# Terminal 2 — Start Vite React Frontend
+cd web
+npm run dev
+```
+Open **`http://localhost:5173/cpwd`** or click **CPWD Rates & AI** in the platform sidebar.
+
+### 6. Running Automated Tests
+Run the 15 dedicated CPWD AI tests covering exact code retrieval, year differentiation, rate arithmetic, citations, and hallucination interlocks:
+```bash
+.venv/bin/pytest tests/test_cpwd_ai.py -v
+```
+
+---
+
 *Authored by Team HighOnCaffeine for the Smart India Hackathon 2026 Grand Finale.*  
 *SIH 2026 · Problem Statement PS 26051 · Defence Research & Development Organisation (DRDO).*
+

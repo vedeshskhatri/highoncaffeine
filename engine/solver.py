@@ -489,14 +489,121 @@ def run_single(
         if is_retained_period:
             t_out_c = float(t_out - 273.15)
             t_in_c = float(t_in - 273.15)
-            hourly_results.append({
+
+            entry: Dict[str, Any] = {
                 "hour": hour_of_day,
                 "t_out_c": t_out_c,
                 "t_in_c": t_in_c,
                 "delta_ambient": t_in_c - t_out_c,
                 "solar_gain_w": round(float(q_solar_glazing_hour), 1),
                 "heating_demand_w": round(float(max(0.0, (15.0 - t_in_c) * 50.0)), 1),
-            })
+            }
+
+            if opts.get("detailed_hourly", False):
+                # Detailed heat loss components [W]
+                q_loss_walls_w = 0.0
+                q_loss_roof_w = 0.0
+                q_loss_floor_w = 0.0
+                q_solar_walls_w = 0.0
+                q_solar_roof_w = 0.0
+
+                wall_temps = []
+                wall_areas = []
+                roof_temp_c = t_in_c
+                floor_temp_c = t_in_c
+
+                for s_idx, surf in enumerate(active_surfaces):
+                    t_nodes = surface_node_temps[s_idx]
+                    t_s_c = float(t_nodes[-1] - 273.15)
+                    flux_w = max(0.0, float(surf.K_int * (t_in - t_nodes[-1])))
+                    sol_w = float(last_q_solar_abs.get(surf.name, 0.0))
+
+                    if "wall" in surf.name:
+                        q_loss_walls_w += flux_w
+                        q_solar_walls_w += sol_w
+                        wall_temps.append(t_s_c)
+                        wall_areas.append(surf.net_area_m2)
+                    elif surf.name == "roof":
+                        q_loss_roof_w += flux_w
+                        q_solar_roof_w += sol_w
+                        roof_temp_c = t_s_c
+                    elif surf.name == "floor":
+                        q_loss_floor_w += flux_w
+                        floor_temp_c = t_s_c
+
+                # Area-weighted inner wall surface temperature
+                if sum(wall_areas) > 0:
+                    wall_temp_c = sum(t * a for t, a in zip(wall_temps, wall_areas)) / sum(wall_areas)
+                else:
+                    wall_temp_c = t_in_c
+
+                # Glazing inner surface temperature approximation
+                glazing_tot_area = sum(g["area_m2"] for g in glazing_info)
+                if glazing_tot_area > 0 and k_glazing_hour > 0:
+                    u_eff_mean = k_glazing_hour / glazing_tot_area
+                    # R_si = 0.13 -> h_si ~ 7.69 W/m2K
+                    t_glazing_c = t_in_c - (u_eff_mean * 0.13) * (t_in_c - t_out_c)
+                else:
+                    t_glazing_c = t_in_c
+
+                q_loss_glazing_w = max(0.0, float(k_glazing_hour * (t_in - t_out)))
+                q_loss_inf_w = max(0.0, float(k_inf * (t_in - t_out)))
+
+                # Mean radiant temperature (area-weighted across internal envelope surfaces)
+                total_int_area = sum(wall_areas) + (roof_area if "roof_area" in locals() else design.length_m * design.width_m) + (design.length_m * design.width_m) + glazing_tot_area
+                area_roof_m2 = design.length_m * design.width_m
+                area_floor_m2 = design.length_m * design.width_m
+
+                t_mrt_c = (
+                    (wall_temp_c * sum(wall_areas))
+                    + (roof_temp_c * area_roof_m2)
+                    + (floor_temp_c * area_floor_m2)
+                    + (t_glazing_c * glazing_tot_area)
+                ) / max(1.0, (sum(wall_areas) + area_roof_m2 + area_floor_m2 + glazing_tot_area))
+
+                t_op_c = 0.5 * t_in_c + 0.5 * t_mrt_c
+
+                # Sky longwave loss
+                # Effective sky loss decoupled from conduction
+                delta_t_sky = max(0.0, t_out - t_nodes[0])
+                q_loss_sky_w = float(min(q_loss_roof_w, ua_roof * delta_t_sky))
+
+                total_loss_w = q_loss_walls_w + q_loss_roof_w + q_loss_floor_w + q_loss_glazing_w + q_loss_inf_w + q_loss_sky_w
+                total_gain_w = float(q_solar_glazing_hour) + float(q_internal_w)
+                net_heat_balance_w = total_gain_w - total_loss_w
+
+                # South vertical wall solar incidence
+                cos_th_south = physics_constants_db.incidence_cosine(alpha_s, 90.0, gamma_s, 180.0)
+                cos_clamped = max(0.0, min(1.0, cos_th_south))
+                inc_deg = math.degrees(math.acos(cos_clamped))
+                i_south = float(surface_i_total.get("south_wall", 0.0))
+
+                entry.update({
+                    "mean_radiant_temperature_C": round(t_mrt_c, 2),
+                    "operative_temperature_C": round(t_op_c, 2),
+                    "wall_conduction_W": round(q_loss_walls_w, 1),
+                    "roof_conduction_W": round(q_loss_roof_w, 1),
+                    "floor_conduction_W": round(q_loss_floor_w, 1),
+                    "glazing_conduction_W": round(q_loss_glazing_w, 1),
+                    "infiltration_heat_loss_W": round(q_loss_inf_w, 1),
+                    "sky_longwave_loss_W": round(q_loss_sky_w, 1),
+                    "wall_solar_gain_W": round(q_solar_walls_w, 1),
+                    "roof_solar_gain_W": round(q_solar_roof_w, 1),
+                    "glazing_solar_gain_W": round(float(q_solar_glazing_hour), 1),
+                    "internal_gain_W": round(float(q_internal_w), 1),
+                    "passive_solar_gain_W": round(float(q_solar_glazing_hour), 1),
+                    "total_heat_loss_W": round(total_loss_w, 1),
+                    "net_heat_balance_W": round(net_heat_balance_w, 1),
+                    "wall_surface_temperature_C": round(wall_temp_c, 2),
+                    "roof_surface_temperature_C": round(roof_temp_c, 2),
+                    "floor_surface_temperature_C": round(floor_temp_c, 2),
+                    "glazing_surface_temperature_C": round(t_glazing_c, 2),
+                    "surface_incidence_deg": round(inc_deg, 2),
+                    "south_surface_irradiance_W_m2": round(i_south, 1),
+                    "sky_temperature_C": round(float(t_sky_k - 273.15), 2),
+                })
+
+            hourly_results.append(entry)
 
     j_to_kwh = 1.0 / 3.6e6
     loss_kwh_walls = round(loss_joules_walls * j_to_kwh, 3)

@@ -31,6 +31,9 @@ wheels/
 # Data cache (keep therma.db & materials.csv)
 /data/weather_cache/
 *.tmp
+# Large uncompressed timeseries files (>100MB exceeds GitHub push limit; use .gz or splits)
+data/ml/*timeseries.csv
+
 
 # Node / Frontend
 node_modules/

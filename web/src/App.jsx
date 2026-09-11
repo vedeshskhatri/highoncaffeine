@@ -18,10 +18,10 @@ import { SITE_PRESETS, FALLBACK_MATERIALS } from './lib/presets';
 import DemoModeController from './components/DemoModeController';
 
 const STEPS = [
-  { id: 'design',   label: 'Design Studio', number: 1 },
-  { id: 'simulate', label: 'Simulation',    number: 2 },
-  { id: 'optimize', label: 'Optimization',  number: 3 },
-  { id: 'watch',    label: 'Forecast Watch', number: 4 },
+  { id: 'design', label: 'Design Studio', number: 1 },
+  { id: 'simulate', label: 'Simulation', number: 2 },
+  { id: 'optimize', label: 'Optimization', number: 3 },
+  { id: 'watch', label: 'Forecast Watch', number: 4 },
 ];
 
 const INITIAL_SIMULATE_REQUEST = {
@@ -45,9 +45,9 @@ const INITIAL_SIMULATE_REQUEST = {
   envelope: {
     walls: [
       { material: 'mud_brick', thickness_m: 0.30 },
-      { material: 'eps',       thickness_m: 0.05 },
+      { material: 'eps', thickness_m: 0.05 },
     ],
-    roof:  [{ material: 'concrete', thickness_m: 0.15 }],
+    roof: [{ material: 'concrete', thickness_m: 0.15 }],
     floor: [{ material: 'concrete', thickness_m: 0.10 }],
     roof_emissivity: 0.90,
   },
@@ -55,10 +55,10 @@ const INITIAL_SIMULATE_REQUEST = {
     { facing: 'south', area_m2: 4.0, glazing: 'double_pane', night_shutter: false },
   ],
   ventilation: { ach: 0.6, heater_type: 'none' },
-  occupancy:   { people: 8, watts_per_person: 100 },
-  ground:      { snow_cover: true, albedo: null },
-  comfort:     { model: 'imac', health_threshold_c: 18.0 },
-  simulation:  { timestep_s: 60, spinup_days: 3 },
+  occupancy: { people: 8, watts_per_person: 100 },
+  ground: { snow_cover: true, albedo: null },
+  comfort: { model: 'imac', health_threshold_c: 18.0 },
+  simulation: { timestep_s: 60, spinup_days: 3 },
 };
 
 export default function App() {
