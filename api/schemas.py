@@ -215,6 +215,8 @@ class SeriesItemSchema(BaseModel):
     delta_ambient: float
     t_in_lo: float
     t_in_hi: float
+    solar_gain_w: Optional[float] = None
+    heating_demand_w: Optional[float] = None
 
 
 class HeatLossBreakdownSchema(BaseModel):
@@ -348,6 +350,12 @@ class SensitivityLeverSchema(BaseModel):
     cost_basis: str
     install_note: Optional[str] = None
     derived_note: Optional[str] = None
+    # Morris elementary effects scientific visualization fields
+    mu_star: Optional[float] = None
+    mu: Optional[float] = None
+    sigma: Optional[float] = None
+    direction: Optional[str] = None
+    uncertainty: Optional[float] = None
 
 
 class SensitivityResponse(BaseModel):
@@ -356,6 +364,7 @@ class SensitivityResponse(BaseModel):
     method: str
     runs: int
     levers: List[SensitivityLeverSchema]
+    notice: Optional[str] = None
 
 
 class RetrofitInterventionSchema(BaseModel):
@@ -435,17 +444,27 @@ class ValidationScenarioSchema(BaseModel):
     model_max_c: float
     pass_: bool = Field(..., alias="pass", serialization_alias="pass")
     source: str
+    # Scientific visualization & reporting fields per brain/10_VALIDATION.md
+    error_c: Optional[float] = None
+    tolerance: Optional[str] = None
+    reference_str: Optional[str] = None
+    model_str: Optional[str] = None
+    provenance: Optional[str] = None
 
 
 class ValidationOrderingCheckSchema(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     trombe_above_direct_gain: bool
     pass_: bool = Field(..., alias="pass", serialization_alias="pass")
+    trombe_mean: Optional[float] = None
+    direct_gain_mean: Optional[float] = None
 
 
 class ValidationResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
+    validation_run: bool = True
+    status: Optional[str] = "Validated"
     scenarios: List[ValidationScenarioSchema]
     ordering_check: ValidationOrderingCheckSchema
 

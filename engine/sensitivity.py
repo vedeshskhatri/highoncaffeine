@@ -281,18 +281,32 @@ def morris_screening(
     t_min_per_design = np.min(batch_results, axis=0)  # shape (N_total,)
 
     # Compute Elementary Effects for each parameter
-    elementary_effects: Dict[int, List[float]] = {i: [] for i in range(k)}
+    signed_elementary_effects: Dict[int, List[float]] = {i: [] for i in range(k)}
+    abs_elementary_effects: Dict[int, List[float]] = {i: [] for i in range(k)}
+
     for prev_ptr, curr_ptr, p_idx, d_norm in step_meta:
         delta_t_min = float(t_min_per_design[curr_ptr] - t_min_per_design[prev_ptr])
-        # Absolute effect in degrees C
-        ee = abs(delta_t_min)
-        elementary_effects[p_idx].append(ee)
+        # Signed effect for parameter increase: if d_norm < 0, reverse sign
+        signed_ee = delta_t_min if d_norm > 0 else -delta_t_min
+        signed_elementary_effects[p_idx].append(signed_ee)
+        abs_elementary_effects[p_idx].append(abs(delta_t_min))
 
-    # Summarize mu* (mean absolute effect) and rank
+    # Summarize mu* (mean absolute effect), mu (direction), sigma (uncertainty) and rank
     lever_scores = []
     for i, p_name in enumerate(param_names):
-        effects = elementary_effects[i]
-        mu_star = float(np.mean(effects)) if effects else 0.0
+        abs_effects = abs_elementary_effects[i]
+        signed_effects = signed_elementary_effects[i]
+        mu_star = float(np.mean(abs_effects)) if abs_effects else 0.0
+        mu_signed = float(np.mean(signed_effects)) if signed_effects else 0.0
+        sigma = float(np.std(signed_effects)) if len(signed_effects) > 1 else 0.0
+
+        if mu_signed > 0.05:
+            direction = "warming"
+        elif mu_signed < -0.05:
+            direction = "cooling"
+        else:
+            direction = "neutral"
+
         meta = LEVER_METADATA.get(p_name, {
             "label": p_name.replace("_", " ").title(),
             "cost_inr": 1000.0,
@@ -303,14 +317,19 @@ def morris_screening(
         lever_scores.append({
             "parameter": p_name,
             "label": meta["label"],
-            "effect_c": round(mu_star, 1),
+            "effect_c": round(mu_star, 2),
+            "mu_star": round(mu_star, 2),
+            "mu": round(mu_signed, 2),
+            "sigma": round(sigma, 2),
+            "uncertainty": round(sigma, 2),
+            "direction": direction,
             "cost_inr": meta["cost_inr"],
             "cost_basis": meta["cost_basis"],
             "install_note": meta["install_note"],
             "derived_note": meta["derived_note"],
         })
 
-    # Sort descending by effect_c
+    # Sort descending by effect_c (mu*)
     lever_scores.sort(key=lambda item: item["effect_c"], reverse=True)
 
     # Assign 1-indexed ranks
@@ -321,4 +340,8 @@ def morris_screening(
         "method": "morris",
         "runs": len(trajectory_designs),
         "levers": lever_scores,
+        "notice": (
+            "Morris elementary effects screening measures total sensitivity and non-linear interactions across the parameter space. "
+            "It identifies primary thermal drivers without claiming direct proportional causation beyond tested envelope bounds."
+        ),
     }

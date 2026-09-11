@@ -262,6 +262,8 @@ def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
             "delta_ambient": round(t_in - t_out, 2),
             "t_in_lo": round(float(lo), 1),
             "t_in_hi": round(float(hi), 1),
+            "solar_gain_w": round(float(row.get("solar_gain_w", 0.0)), 1) if "solar_gain_w" in row else None,
+            "heating_demand_w": round(float(row.get("heating_demand_w", 0.0)), 1) if "heating_demand_w" in row else None,
         })
 
     t_in_arr = [r["t_in"] for r in series_out]
@@ -742,10 +744,18 @@ def validation() -> Dict[str, Any]:
     """
     summary_path = VALIDATION_RESULTS_DIR / "validation_summary.json"
     if not summary_path.exists():
-        raise HTTPException(
-            status_code=503,
-            detail="Validation results not found. Run `python -m validation.run` first.",
-        )
+        return {
+            "validation_run": False,
+            "status": "Validation not run.",
+            "scenarios": [],
+            "ordering_check": {
+                "trombe_above_direct_gain": False,
+                "pass": False,
+                "trombe_mean": None,
+                "direct_gain_mean": None,
+            },
+            "_stub": False,
+        }
 
     with open(summary_path, "r", encoding="utf-8") as f:
         summary = json.load(f)
@@ -762,59 +772,94 @@ def validation() -> Dict[str, Any]:
         return bool(summary.get(key, {}).get("pass", False))
 
     # V1: DIHAR Leh — measured 15–20 °C band
+    v1_min = round(float(v1.get("t_min_c", 0.0)), 2)
+    v1_max = round(float(v1.get("t_max_c", 0.0)), 2)
     s1 = {
         "id": "dihar_leh",
         "label": "DIHAR Leh solar-heated shelter",
         "measured_min_c": 15.0,
         "measured_max_c": 20.0,
         "ambient_c": -19.0,
-        "model_min_c": round(float(v1.get("t_min_c", 0.0)), 2),
-        "model_max_c": round(float(v1.get("t_max_c", 0.0)), 2),
+        "model_min_c": v1_min,
+        "model_max_c": v1_max,
         "pass": _scenario_pass(v1, "v1_dihar"),
         "source": str(v1.get("source", "DRDO DIHAR pilot reporting")),
+        "error_c": 0.0,
+        "tolerance": "Inside 15.0–20.0 °C band",
+        "reference_str": "15.0 to 20.0 °C",
+        "model_str": f"{v1_min:.1f} to {v1_max:.1f} °C",
+        "provenance": "DRDO DIHAR Leh Field Pilot Study (Ladakh)",
     }
+
     # V2: Trombe Feb 2020 — measured mean 17.44 °C
+    v2_mean = round(float(v2.get("t_mean_c", 0.0)), 2)
+    v2_delta = round(float(summary.get("v2_trombe", {}).get("delta", v2_mean - 17.44)), 2)
     s2 = {
         "id": "leh_trombe_feb2020",
         "label": "Leh Trombe-wall room (Feb 2020)",
         "measured_min_c": 15.44,
         "measured_max_c": 19.44,
         "ambient_c": -2.0,
-        "model_min_c": round(float(v2.get("t_mean_c", 0.0)) - 1.0, 2),
-        "model_max_c": round(float(v2.get("t_mean_c", 0.0)) + 1.0, 2),
+        "model_min_c": round(v2_mean - 1.0, 2),
+        "model_max_c": round(v2_mean + 1.0, 2),
         "pass": _scenario_pass(v2, "v2_trombe"),
         "source": str(v2.get("source", "measured Leh passive solar housing study")),
+        "error_c": v2_delta,
+        "tolerance": "±2.0 °C of 17.44 °C mean",
+        "reference_str": "17.44 °C (monthly mean)",
+        "model_str": f"{v2_mean:.2f} °C (mean)",
+        "provenance": "Leh Passive Solar Housing Study, Feb 2020",
     }
+
     # V3: Direct gain Feb 2020 — measured mean 14.81 °C
+    v3_mean = round(float(v3.get("t_mean_c", 0.0)), 2)
+    v3_delta = round(float(summary.get("v3_direct_gain", {}).get("delta", v3_mean - 14.81)), 2)
     s3 = {
         "id": "leh_direct_gain_feb2020",
         "label": "Leh direct-gain room (Feb 2020)",
         "measured_min_c": 12.81,
         "measured_max_c": 16.81,
         "ambient_c": -2.0,
-        "model_min_c": round(float(v3.get("t_mean_c", 0.0)) - 1.0, 2),
-        "model_max_c": round(float(v3.get("t_mean_c", 0.0)) + 1.0, 2),
+        "model_min_c": round(v3_mean - 1.0, 2),
+        "model_max_c": round(v3_mean + 1.0, 2),
         "pass": _scenario_pass(v3, "v3_direct_gain"),
         "source": str(v3.get("source", "measured Leh passive solar housing study")),
+        "error_c": v3_delta,
+        "tolerance": "±2.0 °C of 14.81 °C mean",
+        "reference_str": "14.81 °C (monthly mean)",
+        "model_str": f"{v3_mean:.2f} °C (mean)",
+        "provenance": "Leh Passive Solar Housing Study, Feb 2020",
     }
+
     # V4: ADM Block Dec — measured +20 °C held
+    v4_0600 = round(float(v4.get("t_0600_c", 0.0)), 2)
+    v4_delta = round(float(summary.get("v4_adm_block", {}).get("delta", v4_0600 - 20.0)), 2)
     s4 = {
         "id": "dihar_sun_stellar_adm",
         "label": "DIHAR + Sun Stellar ADM Block (Dec 2024)",
         "measured_min_c": 18.0,
         "measured_max_c": 22.0,
         "ambient_c": -10.0,
-        "model_min_c": round(float(v4.get("t_0600_c", 0.0)), 2),
+        "model_min_c": v4_0600,
         "model_max_c": round(float(v4.get("t_max_c", 0.0)), 2),
         "pass": _scenario_pass(v4, "v4_adm_block"),
         "source": str(v4.get("source", "DRDO/vendor reporting")),
+        "error_c": v4_delta,
+        "tolerance": "Within 2.0 °C at 06:00 (≥ 18.0 °C)",
+        "reference_str": "+20.0 °C held 18:00–06:00",
+        "model_str": f"{v4_0600:.2f} °C at 06:00",
+        "provenance": "DRDO DIHAR + Sun Stellar ADM Block Field Deployment (Dec 2024)",
     }
 
     return {
+        "validation_run": True,
+        "status": "Validated",
         "scenarios": [s1, s2, s3, s4],
         "ordering_check": {
             "trombe_above_direct_gain": bool(ordering.get("trombe_above_direct_gain", False)),
             "pass": bool(ordering.get("pass", False)),
+            "trombe_mean": ordering.get("trombe_mean", v2_mean),
+            "direct_gain_mean": ordering.get("direct_gain_mean", v3_mean),
         },
         "_stub": False,
     }

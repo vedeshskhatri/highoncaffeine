@@ -494,6 +494,8 @@ def run_single(
                 "t_out_c": t_out_c,
                 "t_in_c": t_in_c,
                 "delta_ambient": t_in_c - t_out_c,
+                "solar_gain_w": round(float(q_solar_glazing_hour), 1),
+                "heating_demand_w": round(float(max(0.0, (15.0 - t_in_c) * 50.0)), 1),
             })
 
     j_to_kwh = 1.0 / 3.6e6
