@@ -1183,3 +1183,44 @@ def predict_surrogate_endpoint(request: SurrogatePredictRequest) -> Dict[str, An
     }
 
 
+# ---------------------------------------------------------------------------
+# LOCATION & ELEVATION RESOLUTION ENDPOINTS
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/location/elevation",
+    summary="Resolve elevation ASL for coordinates with caching and non-defaulting policy",
+)
+def get_elevation_endpoint(lat: float, lon: float) -> Dict[str, Any]:
+    """
+    Resolve elevation for any coordinates on Earth using Open-Meteo Elevation API with local caching.
+    If elevation cannot be resolved, returns requires_user_input=True. Never defaults.
+    """
+    from api.location import resolve_elevation
+    elev, source = resolve_elevation(lat, lon)
+    return {
+        "lat": lat,
+        "lon": lon,
+        "elevation_m": elev,
+        "source": source,
+        "requires_user_input": elev is None,
+        "message": None if elev is not None else "Elevation lookup failed. Please specify site altitude (m ASL) manually.",
+    }
+
+
+@app.get(
+    "/location/search",
+    summary="Search places for coordinates and elevation lookup",
+)
+def search_places_endpoint(q: str, count: int = 8) -> Dict[str, Any]:
+    """
+    Search places globally using Open-Meteo Geocoding API with altitude, region, and country.
+    """
+    from api.location import search_places
+    results = search_places(q, count=count)
+    return {
+        "query": q,
+        "count": len(results),
+        "results": results,
+    }
+

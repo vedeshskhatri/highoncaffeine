@@ -27,6 +27,14 @@ FALLBACK_CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "weather" 
 GRID_NOTE_NASA = "NASA POWER ~0.5x0.625 deg grid — regional estimate, not a site measurement"
 
 
+def is_in_ladakh(lat: float, lon: float) -> bool:
+    """
+    Check if coordinates fall within the geographical boundary of Ladakh.
+    Ladakh bounding box: Latitude 32.0°N to 36.5°N, Longitude 75.5°E to 80.5°E.
+    """
+    return 32.0 <= float(lat) <= 36.5 and 75.5 <= float(lon) <= 80.5
+
+
 def load_fallback_csv(csv_path: Path = FALLBACK_CSV_PATH) -> List[Dict[str, Any]]:
     """Load local offline fallback dataset for Leh winter day."""
     if not csv_path.exists():
@@ -624,24 +632,31 @@ def get_weather(
         except Exception:
             pass
 
-    # 4. Local fallback CSV
-    try:
-        rows = load_fallback_csv()
-        provenance = {
-            "provider": "fallback",
-            "is_live": False,
-            "grid_note": "Offline fallback dataset (Leh typical winter day)",
-            "fetched_at": now_iso,
-        }
-        return rows, provenance
-    except Exception:
-        pass
+    # 4. Local fallback CSV (Scoped strictly to Ladakh)
+    if is_in_ladakh(c_lat, c_lon):
+        try:
+            rows = load_fallback_csv()
+            provenance = {
+                "provider": "fallback",
+                "is_live": False,
+                "grid_note": "Offline fallback dataset (Leh typical winter day)",
+                "fetched_at": now_iso,
+            }
+            return rows, provenance
+        except Exception:
+            pass
 
     # 5. 503 WeatherUnavailableError
-    raise WeatherUnavailableError(
+    msg = (
         f"Weather data unavailable for site ({c_lat}, {c_lon}) on {date_str}. "
-        "Network unreachable, no cache entry found, and fallback CSV failed."
+        "Network unreachable, no cache entry found, and offline fallback dataset is restricted strictly to Ladakh."
+        if not is_in_ladakh(c_lat, c_lon)
+        else (
+            f"Weather data unavailable for site ({c_lat}, {c_lon}) on {date_str}. "
+            "Network unreachable, no cache entry found, and fallback CSV failed."
+        )
     )
+    raise WeatherUnavailableError(msg)
 
 
 def fetch_open_meteo_forecast(

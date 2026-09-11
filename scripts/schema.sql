@@ -68,6 +68,15 @@ CREATE TABLE IF NOT EXISTS forecast_watch_cache (
   PRIMARY KEY (lat, lon, forecast_date, hour)
 );
 
+CREATE TABLE IF NOT EXISTS elevation_cache (
+  lat          REAL,
+  lon          REAL,
+  elevation_m  REAL,
+  source       TEXT,
+  fetched_at   TEXT,
+  PRIMARY KEY (lat, lon)
+);
+
 -- ===========================================================================
 -- THERMA PLATFORM ASSET MANAGEMENT TABLES (Phase P0 per prompt & 07A proposal)
 -- ===========================================================================
