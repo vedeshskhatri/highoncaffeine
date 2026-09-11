@@ -81,22 +81,22 @@ Flat checklist across all phases. Tick as done. Owner in brackets.
 - [x] [A] **Ordering check: Trombe above direct-gain**
 
 ## UI
-- [ ] [S] Step rail
-- [ ] [S] Input rail, persistent, never remounts
-- [ ] [S] Weather mode toggle at top, `grid_note` shown
-- [ ] [S] Live cross-section SVG
-- [ ] [S] Inline input validation
-- [ ] [S] Temp chart, comfort band, health threshold shading
-- [ ] [S] ΔT(indoor − ambient) chart, labelled as PS req 3
-- [ ] [S] ΔT(B − A) chart
-- [ ] [R] Metric cards
-- [ ] [R] Copy-as-text spec sheet
-- [ ] [S] Levers panel with cost/effort and `[estimate]` tags
-- [ ] [S] Validation panel
-- [ ] [S] Pareto plot, top-3 cards
-- [ ] [S] Retrofit list
-- [ ] [S] Refusal card
-- [ ] [S] Responsive to 390 px, verified on a real phone
+- [x] [S] Step rail
+- [x] [S] Input rail, persistent, never remounts
+- [x] [S] Weather mode toggle at top, `grid_note` shown
+- [x] [S] Live cross-section SVG
+- [x] [S] Inline input validation
+- [x] [S] Temp chart, comfort band, health threshold shading
+- [x] [S] ΔT(indoor − ambient) chart, labelled as PS req 3
+- [x] [S] ΔT(B − A) chart
+- [x] [R] Metric cards
+- [x] [R] Copy-as-text spec sheet
+- [x] [S] Levers panel with cost/effort and `[estimate]` tags
+- [x] [S] Validation panel
+- [x] [S] Pareto plot, top-3 cards
+- [x] [S] Retrofit list
+- [x] [S] Refusal card
+- [x] [S] Responsive to 390 px, verified on a real phone
 
 ## Freeze
 - [ ] [all] CI green

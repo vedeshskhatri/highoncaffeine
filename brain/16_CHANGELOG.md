@@ -22,6 +22,11 @@ Format:
 [2026-09-11 11:41] AMAN A3 — Gate 3 validation passed: V1, V2, V3, V4 within tolerance, Ordering check Trombe (16.29) > DG (15.01) PASS
 [2026-09-11 11:42] AMAN A4 — safety interlock (0.35 ACH combustion floor), kerosene/CO2 impact translation, and retrofit ranking complete
 [2026-09-11 12:18] SPEC — single-branch trunk workflow adopted; all branch and PR references removed from brain files; branch hygiene rule added to 12_GITHUB_ACTIONS (see 17_DECISIONS D15)
+[2026-09-11 12:20] SWAPNIL S0 — design tokens created in tokens.css, Tailwind config, /tokens specimen sheet (5d6550f)
+[2026-09-11 12:22] SWAPNIL S1 — app shell, StepRail, persistent InputRail, weather toggle with grid_note (c6b5c66)
+[2026-09-11 12:28] SWAPNIL S2 — compass control, multi-layer envelope builder, client-side validation per 07_API_CONTRACT.md (63cbca4)
+[2026-09-11 12:32] SWAPNIL S3 — live cross-section SVG with scaled wall/roof/floor layers, snow drift, and sun glyph (354fe18)
+[2026-09-11 12:37] SWAPNIL S4 — Recharts suite (TempChart, DeltaAmbient, DeltaDesign), LeversPanel, ValidationPanel, ParetoPlot, RetrofitList (d806ecf)
 ```
 
 ---
