@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   MapPin,
   Calendar,
   Users,
   Compass,
   ArrowRight,
+  ArrowLeft,
   TrendingDown,
   Flame,
   CloudSun,
@@ -97,6 +98,12 @@ export default function SiteHubPage() {
       {/* 1. Header Hub Strip */}
       <div className="hub-header-card">
         <div className="hub-header-left">
+          <div className="hub-nav-back-row">
+            <Link to="/sites" className="hub-back-link">
+              <ArrowLeft size={13} />
+              <span>Back to Site Registry</span>
+            </Link>
+          </div>
           <div className="hub-badge-row">
             <span className="estate-chip">{site.estate} Estate</span>
             <span className={`hub-type-tag tag-${site.site_type}`}>{site.site_type.replace('_', ' ')}</span>

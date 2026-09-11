@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Layers, AlertTriangle, Building2, ChevronRight, Filter } from 'lucide-react';
+import { Search, MapPin, Layers, AlertTriangle, Building2, ChevronRight, Filter, Plane, Boxes, BookOpen, Award } from 'lucide-react';
 import './CommandPalette.css';
 
 export default function CommandPalette({ isOpen, onClose }) {
@@ -79,6 +79,31 @@ export default function CommandPalette({ isOpen, onClose }) {
             <AlertTriangle size={16} className="cmd-item-icon" />
             <span>Cold Snap Alerts</span>
             <span className="cmd-item-meta">Operational Warnings</span>
+          </div>
+          <div className="cmd-item" onClick={() => handleSelect('/library')}>
+            <Layers size={16} className="cmd-item-icon" />
+            <span>Design Library</span>
+            <span className="cmd-item-meta">CAD Drawings</span>
+          </div>
+          <div className="cmd-item" onClick={() => handleSelect('/forecast')}>
+            <Plane size={16} className="cmd-item-icon" />
+            <span>Sortie Logistics</span>
+            <span className="cmd-item-meta">Aviation Fuel Modeling</span>
+          </div>
+          <div className="cmd-item" onClick={() => handleSelect('/materials')}>
+            <Boxes size={16} className="cmd-item-icon" />
+            <span>Materials Catalog</span>
+            <span className="cmd-item-meta">Regional Supply Chains</span>
+          </div>
+          <div className="cmd-item" onClick={() => handleSelect('/method')}>
+            <BookOpen size={16} className="cmd-item-icon" />
+            <span>Method & Physics</span>
+            <span className="cmd-item-meta">ISO 52016-1 Specification</span>
+          </div>
+          <div className="cmd-item" onClick={() => handleSelect('/validation')}>
+            <Award size={16} className="cmd-item-icon" />
+            <span>Empirical Checks</span>
+            <span className="cmd-item-meta">V1–V4 Benchmark Suite</span>
           </div>
 
           {/* Sites Section */}

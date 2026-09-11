@@ -10,6 +10,70 @@
   align-items: center;
 }
 
+.report-picker-card {
+  background-color: var(--cream-2);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 36px 40px;
+  max-width: 680px;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.report-picker-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0;
+}
+
+.report-picker-subtitle {
+  font-size: 14px;
+  color: var(--espresso-70);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.report-site-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.report-site-selector label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--espresso-70);
+  text-transform: uppercase;
+}
+
+.report-select-input {
+  padding: 10px 14px;
+  background-color: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--espresso);
+  cursor: pointer;
+  outline: none;
+}
+
+.report-select-input:focus {
+  border-color: var(--orange);
+}
+
+.report-picker-actions {
+  display: flex;
+  margin-top: 12px;
+}
+
 .print-btn {
   display: flex;
   align-items: center;

@@ -23,6 +23,28 @@
   gap: var(--space-3);
 }
 
+.studio-exit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.studio-exit-btn:hover {
+  background: var(--surface-1);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .app-wordmark {
   font-family: var(--font-heading);
   font-size: 16px;

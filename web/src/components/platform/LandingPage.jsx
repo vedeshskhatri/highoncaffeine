@@ -55,7 +55,7 @@ export default function LandingPage() {
             <span>Open Estate Dashboard</span>
             <ArrowRight size={16} />
           </Link>
-          <Link to="/sites/siachen-base-camp/design" className="btn-secondary-editorial">
+          <Link to="/sites/site_siachen_base/design" className="btn-secondary-editorial">
             <span>Launch Interactive Shelter Studio</span>
           </Link>
           <Link to="/programme" className="btn-secondary-editorial">
@@ -72,12 +72,12 @@ export default function LandingPage() {
             <span className="strip-label">Frontier military outposts & relief sites monitored</span>
           </div>
           <div className="strip-stat">
-            <span className="strip-value">228,800 L</span>
+            <span className="strip-value">228,800 L <span className="estimate-chip">estimate</span></span>
             <span className="strip-label">Annual baseline kerosene exposure across active Ladakh posts</span>
           </div>
           <div className="strip-stat">
-            <span className="strip-value">508</span>
-            <span className="strip-label">Helicopter sorties required annually (estimated @ 450 L useful load)</span>
+            <span className="strip-value">508 <span className="estimate-chip">estimate</span></span>
+            <span className="strip-label">Helicopter sorties required annually (@ 450 L useful load)</span>
           </div>
           <div className="strip-stat">
             <span className="strip-value">18.0 °C</span>
