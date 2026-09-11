@@ -9,10 +9,11 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.db import DB_PATH, query_all, query_one
+from api.errors import WeatherUnavailableError
 from api.schemas import (
     SimulateRequest,
     SimulateResponse,
@@ -27,6 +28,7 @@ from api.schemas import (
     ValidationResponse,
     HealthResponse,
 )
+from api.weather import get_weather
 
 app = FastAPI(
     title="THERMA API",
@@ -64,8 +66,33 @@ def _load_fixture(filename: str) -> Dict[str, Any]:
     summary="Simulate thermal performance for a shelter design",
 )
 def simulate(request: SimulateRequest) -> Dict[str, Any]:
-    """Simulate transient indoor temperature and heat flows (stub fixture)."""
-    return _load_fixture("fixture_simulate_response.json")
+    """
+    Simulate transient indoor temperature and heat flows.
+    Wires real weather engine per Phase R2.
+    """
+    try:
+        weather_rows, provenance = get_weather(
+            lat=request.location.lat,
+            lon=request.location.lon,
+            date_str=request.weather.date,
+            mode=request.weather.mode.value,
+        )
+    except WeatherUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    result = _load_fixture("fixture_simulate_response.json")
+    result["weather_provenance"] = provenance
+
+    # Update series with real weather outdoor values and delta_ambient
+    series = result.get("series", [])
+    for h, item in enumerate(series):
+        if h < len(weather_rows):
+            w = weather_rows[h]
+            item["t_out"] = w["t_air"]
+            item["ghi"] = w["ghi"]
+            item["delta_ambient"] = round(item["t_in"] - item["t_out"], 1)
+
+    return result
 
 
 @app.post(
