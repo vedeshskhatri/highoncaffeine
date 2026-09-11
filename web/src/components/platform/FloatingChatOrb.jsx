@@ -2,82 +2,199 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bot, 
+  Search,
   Sparkles, 
+  RefreshCw,
   Send, 
   Mic, 
   MicOff, 
   X, 
   Minus, 
-  Trash2, 
-  Copy, 
-  Check, 
-  GripVertical, 
-  Palette,
-  ShieldCheck,
+  RotateCcw,
+  CheckCircle2,
+  AlertTriangle,
   Thermometer,
-  Flame,
-  AlertCircle
+  Activity,
+  Zap,
+  ShieldAlert,
+  FileText,
+  Boxes,
+  MapPin
 } from 'lucide-react';
 import { VoicePoweredOrb } from '@/components/ui/voice-powered-orb';
 import './FloatingChatOrb.css';
 
-const HUE_PRESETS = [
-  { label: 'Glacier Cyan', hue: 0 },
-  { label: 'Solar Amber', hue: 45 },
-  { label: 'Alpine Emerald', hue: 135 },
-  { label: 'Aurora Violet', hue: 280 },
+const API_BASE = 'http://127.0.0.1:8000';
+
+const HIMALAYAN_SCENARIO_LOCATIONS = [
+  { id: 'all', name: 'All Himalayan Sites (Auto-Detect)' },
+  { id: 'Siachen_Base_Camp', name: 'Siachen Base Camp (3,600m)' },
+  { id: 'Siachen_Glacier_High_Camp', name: 'Siachen High Camp (4,800m)' },
+  { id: 'Daulat_Beg_Oldie', name: 'Daulat Beg Oldie (5,065m)' },
+  { id: 'Depsang_Plains', name: 'Depsang Plains (4,920m)' },
+  { id: 'Galwan_Valley', name: 'Galwan Valley (4,350m)' },
+  { id: 'Pangong_North', name: 'Pangong North (4,250m)' },
+  { id: 'Chushul', name: 'Chushul (4,350m)' },
+  { id: 'Rezang_La', name: 'Rezang La (4,850m)' },
+  { id: 'Hanle', name: 'Hanle (4,500m)' },
+  { id: 'Nyoma', name: 'Nyoma (4,180m)' },
+  { id: 'Kargil_Ridge', name: 'Kargil Ridge (2,670m)' },
+  { id: 'Dras', name: 'Dras (3,280m)' },
+  { id: 'Sonamarg', name: 'Sonamarg (2,730m)' },
+  { id: 'Keylong', name: 'Keylong (3,080m)' },
+  { id: 'Kunzum_Pass', name: 'Kunzum Pass (4,550m)' },
+  { id: 'Rohtang_Pass', name: 'Rohtang Pass (3,978m)' },
+  { id: 'Spiti_Kaza', name: 'Spiti Kaza (3,800m)' },
+  { id: 'Baralacha_La', name: 'Baralacha La (4,890m)' },
+  { id: 'Mana_Pass', name: 'Mana Pass (5,630m)' },
+  { id: 'Niti_Pass', name: 'Niti Pass (5,068m)' },
+  { id: 'Nathu_La', name: 'Nathu La (4,310m)' },
+  { id: 'Tawang', name: 'Tawang (3,048m)' },
+  { id: 'Bum_La', name: 'Bum La (4,630m)' },
+  { id: 'Se_La', name: 'Se La (4,170m)' },
 ];
 
-const SUGGESTIONS = [
-  'What is the dominant heat loss at Leh?',
-  'Can we reach +15°C at -30°C ambient?',
-  'Evaluate EPS vs Aerogel insulation',
-  'Benefit of nocturnal thermal shutters',
-  'Siachen fuel logistics & kerosene costs'
+const SUGGESTED_QUERIES = [
+  'What is the predicted indoor temperature for a shelter in Siachen Base Camp with stone masonry and 0.5 ACH?',
+  'What is the predicted performance in Dras at -25°C with PUF sandwich panels and 0.35 ACH?',
+  'What will be the dominant heat loss bottleneck in Leh with mud brick walls?',
+  'Is an unflued combustion heater safe with 0.2 ACH in Siachen?',
+  'Compare thermal performance of 50mm PUF vs 100mm EPS in Daulat Beg Oldie',
+  'What are the recommended wall materials for Galwan Valley at 4350m altitude?',
 ];
 
-const INITIAL_MESSAGES = [
-  {
-    id: 'welcome-1',
-    sender: 'assistant',
-    text: `Greetings! I am **THERMA AI**, your high-altitude thermal engineering specialist. 
+const FLUX_META = {
+  sky_longwave_loss_W: {
+    label: 'Sky Longwave Radiative Loss',
+    sub: 'Radiative cooling exchange with clear celestial sky dome',
+    color: '#3B82F6',
+  },
+  wall_conduction_W: {
+    label: 'Wall Fabric Conduction',
+    sub: 'Conductive heat transmission across exterior vertical envelope',
+    color: '#C2410C',
+  },
+  glazing_conduction_W: {
+    label: 'Glazing Assembly Conduction',
+    sub: 'Direct conductive loss through window glazing panes',
+    color: '#D97706',
+  },
+  roof_conduction_W: {
+    label: 'Roof Assembly Conduction',
+    sub: 'Heat transmission through ceiling insulation & CGI roof sheet',
+    color: '#9A3412',
+  },
+  infiltration_heat_loss_W: {
+    label: 'Infiltration Air Leakage',
+    sub: 'Sensible convective enthalpy loss from sub-zero air exchange',
+    color: '#64748B',
+  },
+  floor_conduction_W: {
+    label: 'Permafrost / Ground Conduction',
+    sub: 'Sub-structure heat flux transmission into frozen ground slab',
+    color: '#78716C',
+  },
+};
 
-I am linked to our 5 surrogate ML models trained on 120,000 physics-grounded simulation hours. Ask me about envelope heat fluxes, life-safety ventilation, passive solar gains, or logistic fuel savings across Himalayan outposts.`,
-    timestamp: 'Now',
-  }
-];
+function formatInlineMathAndBold(text) {
+  if (!text) return text;
+  let cleaned = text
+    .replace(/\(\$T_\{?in\}?\$\)/g, '(Tin)')
+    .replace(/\(\$T_\{?op\}?\$\)/g, '(Top)')
+    .replace(/\(\$T_\{?mrt\}?\$\)/g, '(Tmrt)')
+    .replace(/\(\$?\\Delta\s*T\$\)/g, '(ΔT)')
+    .replace(/\$([^\$]+)\$/g, '$1');
+
+  const parts = cleaned.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={idx}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={idx} className="mono-code-chip mono">{part.slice(1, -1)}</code>;
+    }
+    return part;
+  });
+}
+
+function RenderDiagnosticAnswer({ text }) {
+  if (!text) return null;
+  const lines = text.split('\n');
+  const elements = [];
+  let currentList = [];
+
+  const flushList = () => {
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={`list-${elements.length}`} className="diagnostic-bullet-list">
+          {currentList.map((item, i) => (
+            <li key={i}>{formatInlineMathAndBold(item)}</li>
+          ))}
+        </ul>
+      );
+      currentList = [];
+    }
+  };
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushList();
+      return;
+    }
+
+    if (trimmed.startsWith('### ') || trimmed.startsWith('#### ')) {
+      flushList();
+      const title = trimmed.replace(/^#+\s*/, '');
+      elements.push(
+        <h4 key={`head-${idx}`} className="diagnostic-section-title">
+          {title}
+        </h4>
+      );
+    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      currentList.push(trimmed.slice(2));
+    } else if (/^\d+\.\s/.test(trimmed)) {
+      flushList();
+      elements.push(
+        <div key={`step-${idx}`} className="diagnostic-numbered-item">
+          {formatInlineMathAndBold(trimmed)}
+        </div>
+      );
+    } else {
+      flushList();
+      elements.push(
+        <p key={`p-${idx}`} className="diagnostic-prose">
+          {formatInlineMathAndBold(trimmed)}
+        </p>
+      );
+    }
+  });
+
+  flushList();
+  return <div className="diagnostic-answer-container">{elements}</div>;
+}
 
 export default function FloatingChatOrb() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [queryInput, setQueryInput] = useState('');
+  const [selectedSite, setSelectedSite] = useState('all');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState(null);
   const [isListening, setIsListening] = useState(false);
-  const [hueIndex, setHueIndex] = useState(0);
-  const [copiedId, setCopiedId] = useState(null);
   const [placement, setPlacement] = useState({ v: 'bottom', h: 'right' });
 
   const boundaryRef = useRef(null);
   const orbRef = useRef(null);
   const isDraggingRef = useRef(false);
-  const messagesEndRef = useRef(null);
+  const contentBodyRef = useRef(null);
   const recognitionRef = useRef(null);
-
-  const activeHue = HUE_PRESETS[hueIndex].hue;
-
-  // Auto-scroll to bottom of messages
-  useEffect(() => {
-    if (isOpen && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, isOpen, isLoading]);
 
   // Update placement relative to screen edges so chat window never clips
   const updatePlacement = useCallback(() => {
     if (!orbRef.current) return;
     const rect = orbRef.current.getBoundingClientRect();
     const v = rect.top < 380 ? 'top' : 'bottom';
-    const h = rect.left < 360 ? 'left' : 'right';
+    const h = rect.left < 400 ? 'left' : 'right';
     setPlacement({ v, h });
   }, []);
 
@@ -85,6 +202,59 @@ export default function FloatingChatOrb() {
     window.addEventListener('resize', updatePlacement);
     return () => window.removeEventListener('resize', updatePlacement);
   }, [updatePlacement]);
+
+  // Submit AI Query
+  const handleAiSubmit = useCallback(async (qText, siteOverride) => {
+    const q = qText || queryInput;
+    if (!q || !q.trim()) return;
+    setAiLoading(true);
+
+    const siteToUse = siteOverride !== undefined ? siteOverride : selectedSite;
+    const payload = {
+      question: q,
+      use_ollama: true,
+    };
+    if (siteToUse && siteToUse !== 'all') {
+      payload.shelter_override = { location: siteToUse };
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/ml/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      setAiResponse(data);
+    } catch (err) {
+      console.error('Prediction Error', err);
+      setAiResponse({
+        question: q,
+        answer: `Connection Error: Failed to contact ${API_BASE}. Make sure the backend server is running.`,
+        predictions: {},
+        resolved_parameters: {},
+        recommendations: [],
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  }, [queryInput, selectedSite]);
+
+  // Listen to open-therma-orb global events
+  useEffect(() => {
+    const handleExternalOpen = (e) => {
+      setIsOpen(true);
+      updatePlacement();
+      const q = e.detail?.query || SUGGESTED_QUERIES[0];
+      const s = e.detail?.site || 'all';
+      setQueryInput(q);
+      setSelectedSite(s);
+      handleAiSubmit(q, s);
+    };
+
+    window.addEventListener('open-therma-orb', handleExternalOpen);
+    return () => window.removeEventListener('open-therma-orb', handleExternalOpen);
+  }, [handleAiSubmit, updatePlacement]);
 
   // Handle Dragging
   const handleDragStart = () => {
@@ -94,7 +264,6 @@ export default function FloatingChatOrb() {
   const handleDragEnd = (_, info) => {
     const dist = Math.hypot(info.offset.x, info.offset.y);
     if (dist > 6) {
-      // It was a drag, block click trigger
       setTimeout(() => {
         isDraggingRef.current = false;
       }, 120);
@@ -107,24 +276,14 @@ export default function FloatingChatOrb() {
   const handleOrbClick = () => {
     if (isDraggingRef.current) return;
     updatePlacement();
-    setIsOpen(prev => !prev);
-  };
-
-  // Cycle Hue
-  const cycleHue = () => {
-    setHueIndex(prev => (prev + 1) % HUE_PRESETS.length);
-  };
-
-  // Clear Chat
-  const clearChat = () => {
-    setMessages(INITIAL_MESSAGES);
-  };
-
-  // Copy Message Text
-  const copyMessage = (id, text) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 1800);
+    setIsOpen(prev => {
+      const next = !prev;
+      if (next && !aiResponse) {
+        handleAiSubmit(SUGGESTED_QUERIES[0]);
+        setQueryInput(SUGGESTED_QUERIES[0]);
+      }
+      return next;
+    });
   };
 
   // Speech Recognition
@@ -157,7 +316,7 @@ export default function FloatingChatOrb() {
         const transcript = Array.from(event.results)
           .map(result => result[0].transcript)
           .join('');
-        setInputValue(transcript);
+        setQueryInput(transcript);
       };
 
       recognition.onerror = (err) => {
@@ -177,94 +336,9 @@ export default function FloatingChatOrb() {
     }
   };
 
-  // Send Question to THERMA Backend
-  const sendMessage = async (textToSend) => {
-    const query = (textToSend || inputValue).trim();
-    if (!query || isLoading) return;
-
-    const userMsgId = 'user-' + Date.now();
-    const newMessages = [
-      ...messages,
-      {
-        id: userMsgId,
-        sender: 'user',
-        text: query,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      }
-    ];
-
-    setMessages(newMessages);
-    setInputValue('');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/ml/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: query,
-          use_ollama: true,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      setMessages(prev => [
-        ...prev,
-        {
-          id: 'assistant-' + Date.now(),
-          sender: 'assistant',
-          text: data.answer || 'Analysis complete.',
-          predictions: data.predictions || null,
-          recommendations: data.recommendations || [],
-          resolved_parameters: data.resolved_parameters || null,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        }
-      ]);
-    } catch (err) {
-      console.error('THERMA AI Chat Error:', err);
-
-      // Intelligent local fallback response grounded in DRDO PS 26051
-      let fallbackText = `Our surrogate models predict that for high-altitude Himalayan shelters (-15°C to -35°C outdoor ambient), sky radiation and air infiltration (ACH > 0.8) account for over 70% of peak envelope losses.\n\nRecommended actions:\n1. Ensure south-facing double glazing (U < 1.4 W/m²K).\n2. Deploy nocturnal thermal shutters (R-2.5 equivalent) to stop nocturnal radiative sky chilling.\n3. Maintain air infiltration below 0.4 ACH with airtight silicone gaskets.`;
-      
-      setMessages(prev => [
-        ...prev,
-        {
-          id: 'assistant-' + Date.now(),
-          sender: 'assistant',
-          text: fallbackText,
-          predictions: {
-            indoor_temperature_C: 6.2,
-            temperature_lift_C: 21.2,
-            dominant_heat_loss: 'SKY RADIATION (68%)',
-            safety_status: 'PASS',
-          },
-          recommendations: [
-            'Install nocturnal thermal shutters to prevent radiative subcooling.',
-            'Apply airtight gaskets to reduce infiltration below 0.5 ACH.',
-          ],
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        }
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
   return (
     <>
-      {/* Screen Boundary for Dragging (Leaves 16px safety margin around viewport) */}
+      {/* Screen Boundary for Dragging */}
       <div 
         ref={boundaryRef} 
         className="fixed inset-4 pointer-events-none z-[99998]" 
@@ -290,71 +364,63 @@ export default function FloatingChatOrb() {
             alignItems: placement.h === 'left' ? 'flex-start' : 'flex-end',
           }}
         >
-          {/* Chat Window Panel */}
+          {/* Grounded Thermal AI Chatbox Modal */}
           <AnimatePresence>
             {isOpen && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.88, y: placement.v === 'top' ? -15 : 15 }}
+                initial={{ opacity: 0, scale: 0.9, y: placement.v === 'top' ? -15 : 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.88, y: placement.v === 'top' ? -15 : 15 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ opacity: 0, scale: 0.9, y: 15 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="floating-chat-window"
                 style={{
                   position: 'absolute',
-                  ...(placement.v === 'top' ? { top: '78px' } : { bottom: '78px' }),
+                  ...(placement.v === 'top' ? { top: '82px' } : { bottom: '82px' }),
                   ...(placement.h === 'left' ? { left: '0' } : { right: '0' }),
                 }}
               >
-                {/* Header */}
-                <div className="chat-header">
-                  <div className="chat-header-info">
-                    <div className="chat-header-avatar">
-                      <Bot size={18} />
+                {/* Executive Window Header */}
+                <div className="chat-window-topbar">
+                  <div className="chat-topbar-info">
+                    <div className="chat-topbar-icon">
+                      <Sparkles size={16} />
                     </div>
                     <div>
-                      <div className="chat-header-title">
-                        THERMA AI
-                        <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 font-mono">
-                          v2.4
-                        </span>
+                      <div className="chat-topbar-title">
+                        THERMA Grounded Thermal AI
+                        <span className="chat-topbar-tag">DRDO PS 26051</span>
                       </div>
-                      <div className="chat-header-sub">
+                      <div className="chat-topbar-sub">
                         <span className="floating-orb-status-dot" />
-                        120k Surrogate ML Models Online
+                        5 Surrogate ML Models · 120,000 Timesteps · R²: 0.968
                       </div>
                     </div>
                   </div>
 
-                  <div className="chat-header-actions">
-                    {/* Hue Switcher */}
+                  <div className="chat-topbar-actions">
                     <button
+                      type="button"
                       className="chat-icon-btn"
-                      onClick={cycleHue}
-                      title={`Theme: ${HUE_PRESETS[hueIndex].label} (Click to cycle)`}
+                      onClick={() => {
+                        setQueryInput('');
+                        setAiResponse(null);
+                      }}
+                      title="Reset / Clear Search"
                     >
-                      <Palette size={14} />
+                      <RotateCcw size={14} />
                     </button>
 
-                    {/* Clear Chat */}
                     <button
-                      className="chat-icon-btn"
-                      onClick={clearChat}
-                      title="Clear chat history"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-
-                    {/* Minimize */}
-                    <button
+                      type="button"
                       className="chat-icon-btn"
                       onClick={() => setIsOpen(false)}
-                      title="Minimize chat"
+                      title="Minimize"
                     >
                       <Minus size={14} />
                     </button>
 
-                    {/* Close */}
                     <button
+                      type="button"
                       className="chat-icon-btn"
                       onClick={() => setIsOpen(false)}
                       title="Close"
@@ -364,158 +430,344 @@ export default function FloatingChatOrb() {
                   </div>
                 </div>
 
-                {/* Quick Suggestion Chips */}
-                <div className="chat-suggestions">
-                  {SUGGESTIONS.map((s, idx) => (
-                    <button
-                      key={idx}
-                      className="suggestion-chip"
-                      onClick={() => sendMessage(s)}
+                {/* Scrollable Chatbox Body */}
+                <div ref={contentBodyRef} className="chat-window-body">
+                  {/* Sample Grounded Inquiries */}
+                  <div className="prompt-chips-label">Sample Grounded Inquiries (Final Dataset)</div>
+                  <div className="prompt-chips-group">
+                    {SUGGESTED_QUERIES.map((sq, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="prompt-chip"
+                        onClick={() => {
+                          setQueryInput(sq);
+                          handleAiSubmit(sq);
+                        }}
+                      >
+                        {sq}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search Form Strip */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleAiSubmit();
+                    }}
+                    className="cpwd-search-strip"
+                    style={{ marginTop: '14px', marginBottom: '16px' }}
+                  >
+                    <div className="cpwd-input-box">
+                      <Search size={16} className="cpwd-input-icon" />
+                      <input
+                        type="text"
+                        placeholder="Ask any shelter thermal performance, temperature, heat loss, comfort, or safety question..."
+                        value={queryInput}
+                        onChange={(e) => setQueryInput(e.target.value)}
+                      />
+                    </div>
+
+                    <select
+                      className="cpwd-select"
+                      value={selectedSite}
+                      onChange={(e) => setSelectedSite(e.target.value)}
+                      aria-label="Location Scope"
                     >
-                      {s}
+                      {HIMALAYAN_SCENARIO_LOCATIONS.map((loc) => (
+                        <option key={loc.id} value={loc.id}>
+                          {loc.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      className={`cpwd-btn-secondary ${isListening ? 'active' : ''}`}
+                      onClick={toggleSpeechRecognition}
+                      title={isListening ? 'Stop listening' : 'Speak inquiry'}
+                      style={{ padding: '0 12px' }}
+                    >
+                      {isListening ? <MicOff size={15} className="text-emerald-500" /> : <Mic size={15} />}
                     </button>
-                  ))}
-                </div>
 
-                {/* Message Feed */}
-                <div className="chat-feed">
-                  {messages.map((msg) => (
-                    <div key={msg.id} className={`chat-msg ${msg.sender}`}>
-                      <div className="msg-bubble">
-                        <p className="whitespace-pre-line">{msg.text}</p>
+                    <button type="submit" className="cpwd-btn-primary" disabled={aiLoading}>
+                      {aiLoading ? <RefreshCw size={15} className="spin" /> : <Sparkles size={15} />}
+                      <span>{aiLoading ? 'Predicting...' : 'Query Thermal AI'}</span>
+                    </button>
+                  </form>
 
-                        {/* Telemetry Card if predictions available */}
-                        {msg.predictions && (
-                          <div className="telemetry-card">
-                            <div className="telemetry-grid">
-                              <div className="telemetry-stat">
-                                <span className="telemetry-stat-label">Indoor Air Temp</span>
-                                <span className={`telemetry-stat-val ${msg.predictions.indoor_temperature_C > 10 ? 'warm' : 'cold'}`}>
-                                  {msg.predictions.indoor_temperature_C?.toFixed(1) ?? '--'} °C
-                                </span>
+                  {/* Grounded Response Diagnostic Console */}
+                  {aiResponse && (
+                    <div className="ai-diagnostic-console" style={{ marginTop: '0' }}>
+                      {/* Executive Header */}
+                      <div className="diagnostic-header-bar">
+                        <div className="diagnostic-header-left">
+                          <div className="diagnostic-engine-pill">
+                            <CheckCircle2 size={13} className="text-comfort" />
+                            <span>DRDO PS 26051 · ML Surrogate Diagnostic</span>
+                          </div>
+                          <div className="diagnostic-benchmark-pill mono">
+                            <span>SURROGATE R²: 0.968</span>
+                            <span className="dot-divider">·</span>
+                            <span>120,000 TIMESTEPS</span>
+                          </div>
+                        </div>
+
+                        <div className="diagnostic-header-right mono">
+                          {aiResponse.resolved_parameters?.location && (
+                            <span className="diagnostic-site-tag">
+                              {aiResponse.resolved_parameters.location.replace(/_/g, ' ')} · {aiResponse.resolved_parameters.altitude_m?.toFixed(0)}m AMSL · Ambient {aiResponse.resolved_parameters.outdoor_temperature_C?.toFixed(1)}°C
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Envelope Design Parameters Strip */}
+                      {aiResponse.resolved_parameters?.wall_material && (
+                        <div className="diagnostic-specs-strip">
+                          <div className="spec-item">
+                            <span className="spec-k">Wall Assembly:</span>
+                            <span className="spec-v">{aiResponse.resolved_parameters.wall_material.replace(/_/g, ' ').toUpperCase()}</span>
+                          </div>
+                          <div className="spec-item">
+                            <span className="spec-k">Wall Insulation:</span>
+                            <span className="spec-v mono">{(aiResponse.resolved_parameters.wall_insulation_thickness_m * 1000).toFixed(0)} mm</span>
+                          </div>
+                          <div className="spec-item">
+                            <span className="spec-k">Air Infiltration:</span>
+                            <span className="spec-v mono">{aiResponse.resolved_parameters.ach} ACH</span>
+                          </div>
+                          <div className="spec-item">
+                            <span className="spec-k">Design Occupancy:</span>
+                            <span className="spec-v mono">{aiResponse.resolved_parameters.occupants} Troops</span>
+                          </div>
+                          <div className="spec-item">
+                            <span className="spec-k">Region:</span>
+                            <span className="spec-v">{aiResponse.resolved_parameters.region || 'Ladakh'}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 4 Primary Precision Metric Tiles */}
+                      {aiResponse.predictions?.indoor_temperature_C !== undefined && (
+                        <div className="thermal-metrics-grid">
+                          <div className="thermal-metric-tile">
+                            <div className="metric-header-row">
+                              <span className="thermal-metric-label">INDOOR EQUILIBRIUM TEMP (Tin)</span>
+                              <Thermometer size={14} className="text-secondary" />
+                            </div>
+                            <div className="thermal-metric-value mono">
+                              {aiResponse.predictions.indoor_temperature_C.toFixed(2)} °C
+                            </div>
+                            <div className="thermal-lift-badge">
+                              <span>Passive Lift:</span>
+                              <strong className="mono">+{aiResponse.predictions.temperature_lift_C.toFixed(2)} °C</strong>
+                              <span>above ambient</span>
+                            </div>
+                          </div>
+
+                          <div className="thermal-metric-tile">
+                            <div className="metric-header-row">
+                              <span className="thermal-metric-label">OPERATIVE COMFORT (Top)</span>
+                              <Activity size={14} className="text-secondary" />
+                            </div>
+                            <div className="thermal-metric-value mono">
+                              {aiResponse.predictions.operative_temperature_C.toFixed(2)} °C
+                            </div>
+                            <div className="thermal-metric-sub mono">
+                              Mean Radiant (Tmrt): {aiResponse.predictions.mean_radiant_temperature_C.toFixed(2)} °C
+                            </div>
+                          </div>
+
+                          <div className="thermal-metric-tile">
+                            <div className="metric-header-row">
+                              <span className="thermal-metric-label">THERMAL BOTTLENECK</span>
+                              <Zap size={14} className="text-orange" />
+                            </div>
+                            <div className="thermal-metric-value bottleneck-val">
+                              {aiResponse.predictions.dominant_heat_loss.replace(/_/g, ' ').toUpperCase()}
+                            </div>
+                            <div className="thermal-metric-sub">
+                              Primary thermodynamic dissipation vector
+                            </div>
+                          </div>
+
+                          <div className="thermal-metric-tile">
+                            <div className="metric-header-row">
+                              <span className="thermal-metric-label">COMFORT & LIFE SAFETY</span>
+                              <ShieldAlert size={14} className={aiResponse.predictions.safety_status === 'PASS' ? 'text-comfort' : 'text-danger'} />
+                            </div>
+                            <div className="safety-badges-row">
+                              <span
+                                className={`thermal-badge ${
+                                  aiResponse.predictions.comfort_status === 'COMFORT'
+                                    ? 'comfort'
+                                    : aiResponse.predictions.comfort_status === 'WARM'
+                                    ? 'warm'
+                                    : 'cold'
+                                }`}
+                              >
+                                {aiResponse.predictions.comfort_status}
+                              </span>
+                              <span
+                                className={`thermal-badge ${
+                                  aiResponse.predictions.safety_status === 'PASS' ? 'pass' : 'refused'
+                                }`}
+                              >
+                                {aiResponse.predictions.safety_status}
+                              </span>
+                            </div>
+                            <div className="thermal-metric-sub">
+                              Risk Class: <strong className="mono">{aiResponse.predictions.thermal_risk_class}</strong>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Architectural Heat Loss Flux Breakdown */}
+                      {aiResponse.predictions?.heat_loss_fluxes_W && (() => {
+                        const fluxes = aiResponse.predictions.heat_loss_fluxes_W;
+                        const totalW = fluxes.total_heat_loss_W || 1;
+                        const fluxEntries = Object.entries(fluxes).filter(([k]) => k !== 'total_heat_loss_W');
+
+                        return (
+                          <div className="flux-diagnostic-card">
+                            <div className="flux-diagnostic-header">
+                              <div>
+                                <h3 className="flux-diagnostic-title">Predicted Envelope Heat Loss Flux Breakdown</h3>
+                                <p className="flux-diagnostic-sub">
+                                  Quantified thermal flux distribution across envelope components under steady-state simulation.
+                                </p>
                               </div>
-
-                              <div className="telemetry-stat">
-                                <span className="telemetry-stat-label">Passive Lift</span>
-                                <span className="telemetry-stat-val pass">
-                                  {msg.predictions.temperature_lift_C ? `+${msg.predictions.temperature_lift_C.toFixed(1)} °C` : '--'}
-                                </span>
-                              </div>
-
-                              <div className="telemetry-stat">
-                                <span className="telemetry-stat-label">Dominant Bottleneck</span>
-                                <span className="telemetry-stat-val warm">
-                                  {msg.predictions.dominant_heat_loss?.toUpperCase() || 'EQUILIBRIUM'}
-                                </span>
-                              </div>
-
-                              <div className="telemetry-stat">
-                                <span className="telemetry-stat-label">Life Safety</span>
-                                <span className={`telemetry-stat-val ${msg.predictions.safety_status === 'PASS' ? 'pass' : 'warm'}`}>
-                                  {msg.predictions.safety_status === 'PASS' ? '✓ PASS' : 'ELEVATED'}
-                                </span>
+                              <div className="total-flux-badge mono">
+                                <span className="total-flux-label">TOTAL BUILDING FLUX</span>
+                                <span className="total-flux-val">{totalW.toLocaleString()} W</span>
                               </div>
                             </div>
 
-                            {/* Recommendations */}
-                            {msg.recommendations && msg.recommendations.length > 0 && (
-                              <div className="recommendations-list">
-                                {msg.recommendations.map((rec, rIdx) => (
-                                  <div key={rIdx} className="recommendation-item">
-                                    <span className="recommendation-bullet">✓</span>
-                                    <span>{rec}</span>
+                            {/* Proportional Stacked Spectrum Bar */}
+                            <div className="stacked-flux-bar" title="Building Heat Loss Distribution (100%)">
+                              {fluxEntries.map(([k, v]) => {
+                                const pct = (v / totalW) * 100;
+                                const meta = FLUX_META[k] || { label: k, color: '#64748B' };
+                                return (
+                                  <div
+                                    key={k}
+                                    className="stacked-flux-segment"
+                                    style={{
+                                      width: `${Math.max(1, pct)}%`,
+                                      backgroundColor: meta.color,
+                                    }}
+                                    title={`${meta.label}: ${v.toFixed(1)} W (${pct.toFixed(1)}%)`}
+                                  />
+                                );
+                              })}
+                            </div>
+
+                            {/* Detail Component Rows */}
+                            <div className="flux-components-grid">
+                              {fluxEntries.map(([k, v]) => {
+                                const pct = ((v / totalW) * 100).toFixed(1);
+                                const meta = FLUX_META[k] || {
+                                  label: k.replace(/_/g, ' ').replace(' W', ''),
+                                  sub: 'Thermodynamic loss component',
+                                  color: '#64748B',
+                                };
+                                const isDominant = k.toLowerCase().includes(aiResponse.predictions.dominant_heat_loss.toLowerCase());
+
+                                return (
+                                  <div key={k} className={`flux-item-row ${isDominant ? 'is-dominant-loss' : ''}`}>
+                                    <div className="flux-item-indicator" style={{ backgroundColor: meta.color }} />
+                                    <div className="flux-item-info">
+                                      <div className="flux-item-name-row">
+                                        <span className="flux-item-label">{meta.label}</span>
+                                        {isDominant && <span className="bottleneck-chip">PRIMARY BOTTLENECK</span>}
+                                      </div>
+                                      <span className="flux-item-sub">{meta.sub}</span>
+                                    </div>
+
+                                    <div className="flux-item-track-box">
+                                      <div className="flux-item-track">
+                                        <div
+                                          className="flux-item-fill"
+                                          style={{
+                                            width: `${Math.min(100, Math.max(3, pct))}%`,
+                                            backgroundColor: meta.color,
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="flux-item-numbers">
+                                      <span className="flux-item-watts mono">{v.toFixed(1)} W</span>
+                                      <span className="flux-item-pct mono">{pct}%</span>
+                                    </div>
                                   </div>
-                                ))}
-                              </div>
-                            )}
+                                );
+                              })}
+                            </div>
                           </div>
-                        )}
-                      </div>
+                        );
+                      })()}
 
-                      <div className="flex items-center gap-2 px-1">
-                        <span className="msg-timestamp">{msg.timestamp}</span>
-                        {msg.sender === 'assistant' && (
-                          <button
-                            onClick={() => copyMessage(msg.id, msg.text)}
-                            className="text-[#64748b] hover:text-[#38bdf8] transition-colors"
-                            title="Copy response"
-                          >
-                            {copiedId === msg.id ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                      {/* Natural Synthesized Engineering Narrative */}
+                      {aiResponse.answer && (
+                        <div className="diagnostic-narrative-card">
+                          <div className="narrative-card-header">
+                            <span className="narrative-tag">EXECUTIVE BUILDING PHYSICS ASSESSMENT</span>
+                            <span className="narrative-engine-meta mono">Grounding: 5 ML Surrogates (Decision Tree, RF, GBDT, MLP, CatBoost)</span>
+                          </div>
 
-                  {/* Loading Typing Indicator */}
-                  {isLoading && (
-                    <div className="chat-msg assistant">
-                      <div className="msg-bubble typing-bubble">
-                        <span className="typing-dot" />
-                        <span className="typing-dot" />
-                        <span className="typing-dot" />
-                        <span className="text-[11px] font-mono text-[#94a3b8] ml-2">
-                          Computing surrogate models...
-                        </span>
+                          <div className="narrative-body-content">
+                            <RenderDiagnosticAnswer text={aiResponse.answer} />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actionable Engineering Recommendations */}
+                      {aiResponse.recommendations && aiResponse.recommendations.length > 0 && (
+                        <div className="diagnostic-recommendations-card">
+                          <div className="recommendations-header">
+                            <h4 className="recommendations-title">Verified High-Altitude Engineering Directives</h4>
+                            <span className="recommendations-sub">Priority interventions ordered by expected passive thermal gain</span>
+                          </div>
+
+                          <div className="recommendations-grid">
+                            {aiResponse.recommendations.map((rec, rIdx) => (
+                              <div key={rIdx} className="recommendation-card-item">
+                                <div className="rec-number-box mono">#{rIdx + 1}</div>
+                                <div className="rec-text-box">
+                                  <p className="rec-text-paragraph">{rec}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Official Source Document Traceability */}
+                      <div className="citations-container">
+                        <div className="citations-title">Official Scientific Dataset Traceability</div>
+                        <div className="citations-list">
+                          <div className="citation-pill">
+                            <strong>master_timeseries.csv</strong>
+                            <span>· 120,000 Hourly Timesteps</span>
+                            <span>· DRDO PS 26051 Benchmark</span>
+                          </div>
+                          <div className="citation-pill">
+                            <strong>locations.csv</strong>
+                            <span>· 39 Himalayan Scenario Sites</span>
+                          </div>
+                          <div className="citation-pill">
+                            <strong>materials.csv</strong>
+                            <span>· 102 Envelope Materials</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
-
-                  <div ref={messagesEndRef} />
-                </div>
-
-                {/* Voice Listening Banner */}
-                {isListening && (
-                  <div className="voice-banner">
-                    <span className="flex items-center gap-2">
-                      <Mic size={14} className="animate-pulse text-emerald-400" />
-                      Listening to your voice... Speak now
-                    </span>
-                    <button
-                      onClick={toggleSpeechRecognition}
-                      className="text-xs text-emerald-300 hover:underline"
-                    >
-                      Done
-                    </button>
-                  </div>
-                )}
-
-                {/* Input Area */}
-                <div className="chat-input-area">
-                  <div className="chat-input-wrapper">
-                    <input
-                      type="text"
-                      className="chat-text-input"
-                      placeholder={isListening ? "Listening..." : "Ask thermal engineering question..."}
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                    />
-
-                    {/* Speech to text */}
-                    <button
-                      className={`chat-btn-voice ${isListening ? 'active' : ''}`}
-                      onClick={toggleSpeechRecognition}
-                      title={isListening ? "Stop listening" : "Speak question"}
-                    >
-                      {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-                    </button>
-
-                    {/* Send Button */}
-                    <button
-                      className="chat-btn-send"
-                      onClick={() => sendMessage()}
-                      disabled={!inputValue.trim() || isLoading}
-                      title="Send message"
-                    >
-                      <Send size={15} />
-                    </button>
-                  </div>
-
-                  <div className="chat-footer-hint">
-                    <span>Press Enter to send • Drag orb to reposition</span>
-                    <span className="text-sky-600 font-semibold">{HUE_PRESETS[hueIndex].label}</span>
-                  </div>
                 </div>
               </motion.div>
             )}
@@ -526,12 +778,12 @@ export default function FloatingChatOrb() {
             ref={orbRef}
             onClick={handleOrbClick}
             className={`floating-orb-button ${isListening ? 'voice-active' : ''}`}
-            title="THERMA Chat • Drag anywhere • Click to open"
+            title="THERMA Grounded AI • Drag anywhere • Click to open"
           >
             {/* The WebGL VoicePoweredOrb Canvas */}
             <div className="floating-orb-canvas-container">
               <VoicePoweredOrb
-                hue={activeHue}
+                hue={0}
                 enableVoiceControl={isListening}
                 voiceSensitivity={1.8}
                 maxRotationSpeed={1.5}

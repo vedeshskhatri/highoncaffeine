@@ -176,14 +176,8 @@ function RenderDiagnosticAnswer({ text }) {
 }
 
 export default function CpwdPage() {
-  const [activeTab, setActiveTab] = useState('ai'); // 'ai' | 'sites' | 'materials' | 'studio' | 'registry'
+  const [activeTab, setActiveTab] = useState('sites'); // 'sites' | 'materials' | 'studio' | 'registry'
   const [modelMeta, setModelMeta] = useState(null);
-
-  // AI Chat Tab State
-  const [queryInput, setQueryInput] = useState('');
-  const [selectedSite, setSelectedSite] = useState('all');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiResponse, setAiResponse] = useState(null);
 
   // Sites Tab State
   const [sitesList, setSitesList] = useState([]);
@@ -222,46 +216,7 @@ export default function CpwdPage() {
       .then((r) => r.json())
       .then((data) => setMaterialsList(data || []))
       .catch(() => {});
-
-    // Run default initial query
-    handleAiSubmit(SUGGESTED_QUERIES[0]);
   }, []);
-
-  // Submit AI Query
-  const handleAiSubmit = async (qText) => {
-    const q = qText || queryInput;
-    if (!q.trim()) return;
-    setAiLoading(true);
-
-    const payload = {
-      question: q,
-      use_ollama: true,
-    };
-    if (selectedSite && selectedSite !== 'all') {
-      payload.shelter_override = { location: selectedSite };
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/api/ml/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      setAiResponse(data);
-    } catch (err) {
-      console.error('Prediction Error', err);
-      setAiResponse({
-        question: q,
-        answer: `Connection Error: Failed to contact ${API_BASE}. Make sure the backend server is running.`,
-        predictions: {},
-        resolved_parameters: {},
-        recommendations: [],
-      });
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   // Run Studio Prediction
   const handleRunStudio = async () => {
@@ -332,11 +287,13 @@ export default function CpwdPage() {
       <nav className="cpwd-tabs" aria-label="Thermal AI Tool Tabs">
         <button
           type="button"
-          className={`cpwd-tab-btn ${activeTab === 'ai' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ai')}
+          className="cpwd-tab-btn"
+          style={{ color: '#0284c7', borderColor: 'rgba(2, 132, 199, 0.4)', background: 'rgba(2, 132, 199, 0.06)' }}
+          onClick={() => window.dispatchEvent(new CustomEvent('open-therma-orb'))}
+          title="Open the Grounded Thermal AI Chatbox Orb"
         >
-          <Bot size={15} />
-          <span>Grounded AI Assistant</span>
+          <Sparkles size={15} />
+          <span>Launch AI Assistant (Orb)</span>
         </button>
 
         <button
@@ -381,335 +338,7 @@ export default function CpwdPage() {
 
       {/* 3. Tab Contents */}
 
-      {/* TAB 1: Grounded AI Assistant (The Main Chatbox) */}
-      {activeTab === 'ai' && (
-        <section className="cpwd-card">
-          <div className="prompt-chips-label">Sample Grounded Inquiries (Final Dataset)</div>
-          <div className="prompt-chips-group">
-            {SUGGESTED_QUERIES.map((sq, idx) => (
-              <button
-                key={idx}
-                type="button"
-                className="prompt-chip"
-                onClick={() => {
-                  setQueryInput(sq);
-                  handleAiSubmit(sq);
-                }}
-              >
-                {sq}
-              </button>
-            ))}
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleAiSubmit();
-            }}
-            className="cpwd-search-strip"
-          >
-            <div className="cpwd-input-box">
-              <Search size={16} className="cpwd-input-icon" />
-              <input
-                type="text"
-                placeholder="Ask any shelter thermal performance, temperature, heat loss, comfort, or safety question..."
-                value={queryInput}
-                onChange={(e) => setQueryInput(e.target.value)}
-              />
-            </div>
-
-            <select
-              className="cpwd-select"
-              value={selectedSite}
-              onChange={(e) => setSelectedSite(e.target.value)}
-              aria-label="Location Scope"
-            >
-              {HIMALAYAN_SCENARIO_LOCATIONS.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.name}
-                </option>
-              ))}
-            </select>
-
-            <button type="submit" className="cpwd-btn-primary" disabled={aiLoading}>
-              {aiLoading ? <RefreshCw size={15} className="spin" /> : <Sparkles size={15} />}
-              <span>{aiLoading ? 'Predicting...' : 'Query Thermal AI'}</span>
-            </button>
-          </form>
-
-          {/* Grounded Response Card */}
-          {aiResponse && (
-            <div className="ai-diagnostic-console">
-              {/* Executive Header */}
-              <div className="diagnostic-header-bar">
-                <div className="diagnostic-header-left">
-                  <div className="diagnostic-engine-pill">
-                    <CheckCircle2 size={13} className="text-comfort" />
-                    <span>DRDO PS 26051 · ML Surrogate Diagnostic</span>
-                  </div>
-                  <div className="diagnostic-benchmark-pill mono">
-                    <span>SURROGATE R²: 0.968</span>
-                    <span className="dot-divider">·</span>
-                    <span>120,000 TIMESTEPS</span>
-                  </div>
-                </div>
-
-                <div className="diagnostic-header-right mono">
-                  {aiResponse.resolved_parameters?.location && (
-                    <span className="diagnostic-site-tag">
-                      {aiResponse.resolved_parameters.location.replace(/_/g, ' ')} · {aiResponse.resolved_parameters.altitude_m?.toFixed(0)}m AMSL · Ambient {aiResponse.resolved_parameters.outdoor_temperature_C?.toFixed(1)}°C
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Envelope Design Parameters Strip */}
-              {aiResponse.resolved_parameters?.wall_material && (
-                <div className="diagnostic-specs-strip">
-                  <div className="spec-item">
-                    <span className="spec-k">Wall Assembly:</span>
-                    <span className="spec-v">{aiResponse.resolved_parameters.wall_material.replace(/_/g, ' ').toUpperCase()}</span>
-                  </div>
-                  <div className="spec-item">
-                    <span className="spec-k">Wall Insulation:</span>
-                    <span className="spec-v mono">{(aiResponse.resolved_parameters.wall_insulation_thickness_m * 1000).toFixed(0)} mm</span>
-                  </div>
-                  <div className="spec-item">
-                    <span className="spec-k">Air Infiltration:</span>
-                    <span className="spec-v mono">{aiResponse.resolved_parameters.ach} ACH</span>
-                  </div>
-                  <div className="spec-item">
-                    <span className="spec-k">Design Occupancy:</span>
-                    <span className="spec-v mono">{aiResponse.resolved_parameters.occupants} Troops</span>
-                  </div>
-                  <div className="spec-item">
-                    <span className="spec-k">Region:</span>
-                    <span className="spec-v">{aiResponse.resolved_parameters.region || 'Ladakh'}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* 4 Primary Precision Metric Tiles */}
-              {aiResponse.predictions?.indoor_temperature_C !== undefined && (
-                <div className="thermal-metrics-grid">
-                  <div className="thermal-metric-tile">
-                    <div className="metric-header-row">
-                      <span className="thermal-metric-label">INDOOR EQUILIBRIUM TEMP (Tin)</span>
-                      <Thermometer size={14} className="text-secondary" />
-                    </div>
-                    <div className="thermal-metric-value mono">
-                      {aiResponse.predictions.indoor_temperature_C.toFixed(2)} °C
-                    </div>
-                    <div className="thermal-lift-badge">
-                      <span>Passive Lift:</span>
-                      <strong className="mono">+{aiResponse.predictions.temperature_lift_C.toFixed(2)} °C</strong>
-                      <span>above ambient</span>
-                    </div>
-                  </div>
-
-                  <div className="thermal-metric-tile">
-                    <div className="metric-header-row">
-                      <span className="thermal-metric-label">OPERATIVE COMFORT (Top)</span>
-                      <Activity size={14} className="text-secondary" />
-                    </div>
-                    <div className="thermal-metric-value mono">
-                      {aiResponse.predictions.operative_temperature_C.toFixed(2)} °C
-                    </div>
-                    <div className="thermal-metric-sub mono">
-                      Mean Radiant (Tmrt): {aiResponse.predictions.mean_radiant_temperature_C.toFixed(2)} °C
-                    </div>
-                  </div>
-
-                  <div className="thermal-metric-tile">
-                    <div className="metric-header-row">
-                      <span className="thermal-metric-label">THERMAL BOTTLENECK</span>
-                      <Zap size={14} className="text-orange" />
-                    </div>
-                    <div className="thermal-metric-value bottleneck-val">
-                      {aiResponse.predictions.dominant_heat_loss.replace(/_/g, ' ').toUpperCase()}
-                    </div>
-                    <div className="thermal-metric-sub">
-                      Primary thermodynamic dissipation vector
-                    </div>
-                  </div>
-
-                  <div className="thermal-metric-tile">
-                    <div className="metric-header-row">
-                      <span className="thermal-metric-label">COMFORT & LIFE SAFETY</span>
-                      <ShieldAlert size={14} className={aiResponse.predictions.safety_status === 'PASS' ? 'text-comfort' : 'text-danger'} />
-                    </div>
-                    <div className="safety-badges-row">
-                      <span
-                        className={`thermal-badge ${
-                          aiResponse.predictions.comfort_status === 'COMFORT'
-                            ? 'comfort'
-                            : aiResponse.predictions.comfort_status === 'WARM'
-                            ? 'warm'
-                            : 'cold'
-                        }`}
-                      >
-                        {aiResponse.predictions.comfort_status}
-                      </span>
-                      <span
-                        className={`thermal-badge ${
-                          aiResponse.predictions.safety_status === 'PASS' ? 'pass' : 'refused'
-                        }`}
-                      >
-                        {aiResponse.predictions.safety_status}
-                      </span>
-                    </div>
-                    <div className="thermal-metric-sub">
-                      Risk Class: <strong className="mono">{aiResponse.predictions.thermal_risk_class}</strong>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Architectural Heat Loss Flux Breakdown */}
-              {aiResponse.predictions?.heat_loss_fluxes_W && (() => {
-                const fluxes = aiResponse.predictions.heat_loss_fluxes_W;
-                const totalW = fluxes.total_heat_loss_W || 1;
-                const fluxEntries = Object.entries(fluxes).filter(([k]) => k !== 'total_heat_loss_W');
-
-                return (
-                  <div className="flux-diagnostic-card">
-                    <div className="flux-diagnostic-header">
-                      <div>
-                        <h3 className="flux-diagnostic-title">Predicted Envelope Heat Loss Flux Breakdown</h3>
-                        <p className="flux-diagnostic-sub">
-                          Quantified thermal flux distribution across envelope components under steady-state simulation.
-                        </p>
-                      </div>
-                      <div className="total-flux-badge mono">
-                        <span className="total-flux-label">TOTAL BUILDING FLUX</span>
-                        <span className="total-flux-val">{totalW.toLocaleString()} W</span>
-                      </div>
-                    </div>
-
-                    {/* Proportional Stacked Spectrum Bar */}
-                    <div className="stacked-flux-bar" title="Building Heat Loss Distribution (100%)">
-                      {fluxEntries.map(([k, v]) => {
-                        const pct = (v / totalW) * 100;
-                        const meta = FLUX_META[k] || { label: k, color: '#64748B' };
-                        return (
-                          <div
-                            key={k}
-                            className="stacked-flux-segment"
-                            style={{
-                              width: `${Math.max(1, pct)}%`,
-                              backgroundColor: meta.color,
-                            }}
-                            title={`${meta.label}: ${v.toFixed(1)} W (${pct.toFixed(1)}%)`}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    {/* Detail Component Rows */}
-                    <div className="flux-components-grid">
-                      {fluxEntries.map(([k, v]) => {
-                        const pct = ((v / totalW) * 100).toFixed(1);
-                        const meta = FLUX_META[k] || {
-                          label: k.replace(/_/g, ' ').replace(' W', ''),
-                          sub: 'Thermodynamic loss component',
-                          color: '#64748B',
-                        };
-                        const isDominant = k.toLowerCase().includes(aiResponse.predictions.dominant_heat_loss.toLowerCase());
-
-                        return (
-                          <div key={k} className={`flux-item-row ${isDominant ? 'is-dominant-loss' : ''}`}>
-                            <div className="flux-item-indicator" style={{ backgroundColor: meta.color }} />
-                            <div className="flux-item-info">
-                              <div className="flux-item-name-row">
-                                <span className="flux-item-label">{meta.label}</span>
-                                {isDominant && <span className="bottleneck-chip">PRIMARY BOTTLENECK</span>}
-                              </div>
-                              <span className="flux-item-sub">{meta.sub}</span>
-                            </div>
-
-                            <div className="flux-item-track-box">
-                              <div className="flux-item-track">
-                                <div
-                                  className="flux-item-fill"
-                                  style={{
-                                    width: `${Math.min(100, Math.max(3, pct))}%`,
-                                    backgroundColor: meta.color,
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="flux-item-numbers">
-                              <span className="flux-item-watts mono">{v.toFixed(1)} W</span>
-                              <span className="flux-item-pct mono">{pct}%</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Natural Synthesized Engineering Narrative */}
-              {aiResponse.answer && (
-                <div className="diagnostic-narrative-card">
-                  <div className="narrative-card-header">
-                    <span className="narrative-tag">EXECUTIVE BUILDING PHYSICS ASSESSMENT</span>
-                    <span className="narrative-engine-meta mono">Grounding: 5 ML Surrogates (Decision Tree, RF, GBDT, MLP, CatBoost)</span>
-                  </div>
-                  <div className="narrative-body-content">
-                    <RenderDiagnosticAnswer text={aiResponse.answer} />
-                  </div>
-                </div>
-              )}
-
-              {/* Actionable Engineering Recommendations */}
-              {aiResponse.recommendations && aiResponse.recommendations.length > 0 && (
-                <div className="diagnostic-recommendations-card">
-                  <div className="recommendations-header">
-                    <h4 className="recommendations-title">Verified High-Altitude Engineering Directives</h4>
-                    <span className="recommendations-sub">Priority interventions ordered by expected passive thermal gain</span>
-                  </div>
-
-                  <div className="recommendations-grid">
-                    {aiResponse.recommendations.map((rec, rIdx) => (
-                      <div key={rIdx} className="recommendation-card-item">
-                        <div className="rec-number-box mono">#{rIdx + 1}</div>
-                        <div className="rec-text-box">
-                          <p className="rec-text-paragraph">{rec}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Official Source Document Traceability */}
-              <div className="citations-container">
-                <div className="citations-title">Official Scientific Dataset Traceability</div>
-                <div className="citations-list">
-                  <div className="citation-pill">
-                    <strong>master_timeseries.csv</strong>
-                    <span>· 120,000 Hourly Timesteps</span>
-                    <span>· DRDO PS 26051 Benchmark</span>
-                  </div>
-                  <div className="citation-pill">
-                    <strong>locations.csv</strong>
-                    <span>· 39 Himalayan Scenario Sites</span>
-                  </div>
-                  <div className="citation-pill">
-                    <strong>materials.csv</strong>
-                    <span>· 102 Envelope Materials</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* TAB 2: Himalayan Sites Registry */}
+      {/* TAB: Himalayan Sites Registry */}
       {activeTab === 'sites' && (
         <section className="cpwd-card">
           <div className="cpwd-search-strip">
@@ -759,10 +388,10 @@ export default function CpwdPage() {
                           className="cpwd-btn-secondary"
                           style={{ padding: '4px 10px', fontSize: '12px' }}
                           onClick={() => {
-                            setActiveTab('ai');
-                            setQueryInput(`What is the predicted indoor temperature for a shelter in ${site.location}?`);
-                            setSelectedSite(site.location);
-                            handleAiSubmit(`What is the predicted indoor temperature for a shelter in ${site.location}?`);
+                            const q = `What is the predicted indoor temperature for a shelter in ${site.location}?`;
+                            window.dispatchEvent(new CustomEvent('open-therma-orb', {
+                              detail: { query: q, site: site.location }
+                            }));
                           }}
                         >
                           Ask AI
@@ -822,10 +451,10 @@ export default function CpwdPage() {
                           className="cpwd-btn-secondary"
                           style={{ padding: '4px 10px', fontSize: '12px' }}
                           onClick={() => {
-                            setActiveTab('ai');
                             const q = `How does using ${mat.material.replace(/_/g, ' ')} affect shelter thermal comfort in Dras?`;
-                            setQueryInput(q);
-                            handleAiSubmit(q);
+                            window.dispatchEvent(new CustomEvent('open-therma-orb', {
+                              detail: { query: q, site: 'Dras' }
+                            }));
                           }}
                         >
                           Evaluate Material
