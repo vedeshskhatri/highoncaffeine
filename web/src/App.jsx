@@ -235,23 +235,21 @@ export default function App() {
             onClick={() => navigate(siteId ? `/sites/${siteId}` : '/dashboard')}
             title="Exit Shelter Studio and return to THERMA Platform"
           >
-            <ArrowLeft size={14} />
-            <span>Exit to Platform</span>
+            <ArrowLeft size={13} />
+            <span>Platform</span>
           </button>
 
           <div className="app-wordmark" aria-label="THERMA application">
             <span>THERMA</span>
-            <span className="wordmark-dot">.</span>
+            <span className="wordmark-dot">·</span>
             <span className="app-badge">STUDIO</span>
           </div>
 
-          {/* Active Shelter Configuration Breadcrumb */}
-          <div className="topbar-config-pill">
-            <span className="config-name">Ladakh_Rapid_Shelter</span>
-            <span className="config-divider">/</span>
-            <span className="config-meta">
-              {floorArea} m² ({simulateRequest.geometry.length_m}m × {simulateRequest.geometry.width_m}m × {simulateRequest.geometry.height_m}m)
-            </span>
+          {/* Active Shelter Configuration Pill */}
+          <div className="topbar-config-pill" title={`Dimensions: ${simulateRequest.geometry.length_m}m × ${simulateRequest.geometry.width_m}m × ${simulateRequest.geometry.height_m}m`}>
+            <span className="config-dot" />
+            <span className="config-name">Ladakh Rapid Shelter</span>
+            <span className="config-meta">{floorArea} m²</span>
           </div>
         </div>
 
@@ -276,15 +274,14 @@ export default function App() {
                       transition={{ type: 'spring', stiffness: 450, damping: 32 }}
                     />
                   )}
-                  <span className="step-number" aria-hidden="true" style={{ position: 'relative', zIndex: 2 }}>
-                    {step.number}
+                  <span className="step-number" aria-hidden="true">
+                    0{step.number}
                   </span>
-                  <span style={{ position: 'relative', zIndex: 2 }}>{step.label}</span>
+                  <span className="step-label">{step.label}</span>
                 </button>
               );
             })}
           </nav>
-
 
           {/* Demo Mode Toggle Button */}
           <button
@@ -294,7 +291,7 @@ export default function App() {
             title="Toggle 8-Stage Deterministic Demo Mode"
           >
             <span className="demo-dot" />
-            <span>{demoMode ? 'Exit Demo' : 'Demo Mode'}</span>
+            <span>{demoMode ? 'Live Demo' : 'Demo'}</span>
           </button>
 
           {/* Primary Action Button */}
@@ -304,7 +301,7 @@ export default function App() {
             onClick={handleSimulate}
             title="Execute 24-hour thermal diurnal simulation"
           >
-            <Play size={13} fill="currentColor" />
+            <Play size={12} fill="currentColor" />
             <span>Simulate</span>
           </button>
         </div>

@@ -22,6 +22,7 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -31,12 +32,14 @@ body {
   font-size: var(--text-body-size);
   line-height: var(--text-body-lh);
   font-weight: var(--text-body-weight);
+  overflow-x: hidden;
 }
 
 /* Every number is monospaced — temperatures, rupees, percentages */
 .mono,
 [data-numeric] {
   font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
 /* Headings */
@@ -45,11 +48,6 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: var(--text-display-weight);
   letter-spacing: var(--text-display-spacing);
   color: var(--text-primary);
-}
-
-/* Hairline borders — no shadows anywhere */
-* {
-  box-shadow: none !important;
 }
 
 /* Scrollbar */
@@ -63,6 +61,10 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--espresso-70);
 }
 
 /* Semantic Model Badges per Decision D20 */
@@ -99,4 +101,9 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--sage-soft);
   color: var(--sage);
   border: 1px solid rgba(74, 124, 89, 0.3);
+}
+
+/* Tactile micro-interactions */
+button:active:not(:disabled) {
+  transform: scale(0.985);
 }

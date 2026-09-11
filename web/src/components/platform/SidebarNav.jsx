@@ -8,16 +8,17 @@ import {
   Layers,
   Plane,
   Boxes,
-  FileText,
   BookOpen,
   Award,
   Globe2,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 import './SidebarNav.css';
 
 export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) {
   const NAV_ITEMS = [
-    { to: '/dashboard', label: 'Estate Dashboard', icon: LayoutDashboard },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/sites', label: 'Site Registry & Map', icon: MapPin },
     { to: '/programme', label: 'Programme Planner', icon: TrendingUp },
     { to: '/alerts', label: 'Cold Snap Alerts', icon: AlertTriangle, badge: alertsCount },
@@ -31,19 +32,35 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
 
   return (
     <aside className="platform-sidebar" aria-label="Platform Sidebar">
-      {/* Brand & Identity */}
-      <div className="sidebar-brand">
+      {/* 1. Brand Header */}
+      <div className="sidebar-brand-wrapper">
         <NavLink to="/" className="sidebar-logo">
-          <span className="logo-main">THERMA</span>
-          <span className="logo-sub">DRDO · PS 26051</span>
+          <div className="logo-icon-box">
+            <Sparkles size={16} />
+          </div>
+          <div className="logo-text-group">
+            <span className="logo-main">THERMA</span>
+            <span className="logo-badge">DRDO · SIH</span>
+          </div>
         </NavLink>
-        <span className="sidebar-tag">ASSET MANAGEMENT</span>
       </div>
 
-      {/* Estate Selector per Correction 2 */}
+      {/* 2. User Profile Card (from Inspo UI) */}
+      <div className="sidebar-user-card">
+        <div className="user-avatar-wrap">
+          <div className="user-avatar-img">VS</div>
+          <span className="user-online-dot" />
+        </div>
+        <div className="user-details">
+          <span className="user-name">Col. V. Sharma</span>
+          <span className="user-role">Directorate of High Altitude</span>
+        </div>
+      </div>
+
+      {/* 3. Estate Selector Toggle */}
       <div className="sidebar-estate-selector">
         <div className="estate-selector-label">
-          <Globe2 size={13} />
+          <Globe2 size={12} />
           <span>ESTATE SCOPE</span>
         </div>
         <div className="estate-toggle-group">
@@ -64,7 +81,7 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
         </div>
       </div>
 
-      {/* Nav Links */}
+      {/* 4. Navigation Links */}
       <nav className="sidebar-nav-links">
         {NAV_ITEMS.map(item => {
           const Icon = item.icon;
@@ -74,7 +91,9 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
               to={item.to}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             >
-              <Icon size={16} className="sidebar-link-icon" />
+              <div className="sidebar-link-icon-wrap">
+                <Icon size={17} />
+              </div>
               <span className="sidebar-link-text">{item.label}</span>
               {Boolean(item.badge) && item.badge > 0 && (
                 <span className="sidebar-badge">{item.badge}</span>
@@ -84,14 +103,25 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
         })}
       </nav>
 
-      {/* Designer Studio Handoff Button (Swapnil's boundary) */}
-      <div className="sidebar-bottom">
-        <NavLink to="/sites/site_siachen_base/design" className="sidebar-designer-cta">
-          <span>Open Shelter Studio</span>
-          <span className="cta-arrow">→</span>
-        </NavLink>
-        <div className="sidebar-version">v1.0 · Gate A Verified Engine</div>
+      {/* 5. Bottom Dark Status Card (Inspo UI Card) */}
+      <div className="sidebar-bottom-section">
+        <div className="sidebar-dark-promo-card">
+          <div className="promo-card-header">
+            <div className="promo-icon-badge">
+              <Zap size={14} />
+            </div>
+            <span className="promo-badge-text">GATE A ENGINE</span>
+          </div>
+          <p className="promo-card-desc">
+            ISO 52016-1 real-time solver active with diurnal sol-air radiation.
+          </p>
+          <NavLink to="/sites/site_siachen_base/design" className="promo-card-btn">
+            <span>Shelter Studio</span>
+            <span className="promo-arrow">→</span>
+          </NavLink>
+        </div>
       </div>
     </aside>
   );
 }
+

@@ -1,7 +1,7 @@
 .platform-sidebar {
-  width: 250px;
-  background-color: var(--cream);
-  border-right: 1px solid var(--rule);
+  width: 260px;
+  background-color: var(--surface-1);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -9,98 +9,184 @@
   top: 0;
   flex-shrink: 0;
   user-select: none;
+  z-index: 50;
 }
 
-.sidebar-brand {
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--rule);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* 1. Brand Logo Header */
+.sidebar-brand-wrapper {
+  padding: 24px 20px 16px;
 }
 
 .sidebar-logo {
   text-decoration: none;
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--surface-dark);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.logo-text-group {
+  display: flex;
+  flex-direction: column;
 }
 
 .logo-main {
   font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 20px;
-  color: var(--espresso);
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
-.logo-sub {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--orange);
-  font-weight: 600;
-}
-
-.sidebar-tag {
+.logo-badge {
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.08em;
-  color: var(--espresso-40);
+  color: var(--orange);
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
+/* 2. User Profile Card (from Inspo UI) */
+.sidebar-user-card {
+  margin: 0 16px 14px;
+  padding: 10px 12px;
+  background-color: var(--surface-2);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border-light);
+  transition: all 0.15s ease;
+}
+
+.sidebar-user-card:hover {
+  background-color: #EBF1F8;
+}
+
+.user-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.user-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FDE047, #F97316);
+  color: #78350F;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+}
+
+.user-online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--comfort);
+  border: 2px solid var(--surface-1);
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3. Estate Scope Toggle */
 .sidebar-estate-selector {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--rule);
-  background-color: var(--cream-2);
+  margin: 0 16px 12px;
+  padding: 10px 12px;
+  background-color: var(--surface-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
 }
 
 .estate-selector-label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-family: var(--font-heading);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: var(--espresso-70);
-  margin-bottom: 8px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
 }
 
 .estate-toggle-group {
   display: flex;
-  background: var(--cream);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 2px;
+  gap: 2px;
 }
 
 .estate-btn {
   flex: 1;
-  padding: 5px 8px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 4px 6px;
+  font-size: 11.5px;
+  font-weight: 600;
   font-family: var(--font-body);
   border: none;
   background: transparent;
-  color: var(--espresso-70);
+  color: var(--text-secondary);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .estate-btn.active {
-  background-color: var(--orange);
-  color: white;
-  font-weight: 600;
+  background-color: var(--surface-dark);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
 }
 
+/* 4. Navigation Links */
 .sidebar-nav-links {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 10px;
+  padding: 4px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .sidebar-link {
@@ -108,28 +194,41 @@
   align-items: center;
   gap: 10px;
   padding: 9px 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   text-decoration: none;
   font-family: var(--font-body);
   font-size: 13.5px;
-  color: var(--espresso-70);
-  transition: all 0.12s ease;
+  color: var(--text-secondary);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   font-weight: 500;
 }
 
+.sidebar-link-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
 .sidebar-link:hover {
-  background-color: var(--cream-2);
-  color: var(--espresso);
+  background-color: var(--surface-2);
+  color: var(--text-primary);
+}
+
+.sidebar-link:hover .sidebar-link-icon-wrap {
+  color: var(--text-primary);
 }
 
 .sidebar-link.active {
-  background-color: var(--orange-soft);
-  color: var(--orange);
+  background-color: var(--surface-dark);
+  color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
 }
 
-.sidebar-link-icon {
-  flex-shrink: 0;
+.sidebar-link.active .sidebar-link-icon-wrap {
+  color: #ffffff;
 }
 
 .sidebar-link-text {
@@ -137,51 +236,86 @@
 }
 
 .sidebar-badge {
-  background-color: var(--ice);
+  background-color: var(--danger);
   color: white;
   font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
 }
 
-.sidebar-bottom {
-  padding: 16px;
-  border-top: 1px solid var(--rule);
+/* 5. Bottom Dark Status Card */
+.sidebar-bottom-section {
+  padding: 14px 16px 16px;
+}
+
+.sidebar-dark-promo-card {
+  background: var(--surface-dark);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  background-color: var(--cream-2);
+  gap: 8px;
+  box-shadow: var(--shadow-floating);
 }
 
-.sidebar-designer-cta {
+.promo-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.promo-icon-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(249, 115, 22, 0.2);
+  color: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.promo-badge-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--orange);
+}
+
+.promo-card-desc {
+  font-size: 11.5px;
+  color: var(--text-inverse-sub);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.promo-card-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  background-color: var(--espresso);
-  color: var(--cream);
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 12.5px;
-  transition: opacity 0.15s ease;
+  font-size: 12px;
+  transition: all 0.15s ease;
+  margin-top: 2px;
 }
 
-.sidebar-designer-cta:hover {
-  opacity: 0.9;
+.promo-card-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateX(1px);
 }
 
-.cta-arrow {
+.promo-arrow {
   font-family: var(--font-mono);
   color: var(--orange);
 }
 
-.sidebar-version {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--espresso-40);
-  text-align: center;
-}

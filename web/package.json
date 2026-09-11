@@ -11,9 +11,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@deck.gl/geo-layers": "^9.4.0",
+    "@deck.gl/layers": "^9.4.0",
+    "@deck.gl/react": "^9.4.0",
+    "deck.gl": "^9.4.0",
     "framer-motion": "^11.3.0",
     "gsap": "^3.15.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^1.44.0",
+    "maplibre-gl": "^6.9.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3",
