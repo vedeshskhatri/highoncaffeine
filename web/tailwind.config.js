@@ -10,7 +10,7 @@
 export default {
   content: [
     './index.html',
-    './src/**/*.{js,jsx}',
+    './src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
     /* ── Override Tailwind defaults entirely — use tokens ── */
@@ -33,6 +33,19 @@ export default {
       'danger':   'var(--danger)',    /* ONLY: below health threshold */
       'comfort':  'var(--comfort)',   /* ONLY: inside comfort band */
       'estimate': 'var(--estimate)',  /* ONLY: the [estimate] tag */
+
+      /* Shadcn UI token mappings */
+      'primary':              'var(--primary, #0f172a)',
+      'primary-foreground':   'var(--primary-foreground, #f8fafc)',
+      'secondary':            'var(--secondary, #f1f5f9)',
+      'secondary-foreground': 'var(--secondary-foreground, #0f172a)',
+      'destructive':          'var(--destructive, #ef4444)',
+      'destructive-foreground': 'var(--destructive-foreground, #f8fafc)',
+      'muted-foreground':     'var(--text-muted, #64748b)',
+      'background':           'var(--background, #ffffff)',
+      'foreground':           'var(--foreground, #0f172a)',
+      'input':                'var(--input, #e2e8f0)',
+      'ring':                 'var(--ring, #0f172a)',
 
       /* Transparent black/white for overlays */
       transparent: 'transparent',

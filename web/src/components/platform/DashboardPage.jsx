@@ -89,14 +89,27 @@ export default function DashboardPage() {
     let isMounted = true;
     setApiLoading(true);
 
+    const wallLayers = (currentStation.baseline_envelope?.walls || [{ material: 'stone_masonry', thickness_m: 0.35 }]).map((w) => ({
+      material: w.material === 'puf_sandwich' ? 'pu_sandwich_panel' : w.material === 'concrete' ? 'stone_masonry' : w.material,
+      thickness_m: w.thickness_m,
+    }));
+    const roofLayers = (currentStation.baseline_envelope?.roof || [{ material: 'rammed_earth', thickness_m: 0.15 }]).map((r) => ({
+      material: r.material === 'concrete' ? 'rammed_earth' : r.material === 'puf_sandwich' ? 'pu_sandwich_panel' : r.material,
+      thickness_m: r.thickness_m,
+    }));
+    const floorLayers = (currentStation.baseline_envelope?.floor || [{ material: 'rammed_earth', thickness_m: 0.10 }]).map((f) => ({
+      material: f.material === 'concrete' ? 'rammed_earth' : f.material,
+      thickness_m: f.thickness_m,
+    }));
+
     const payload = {
       location: {
-        estate: currentStation.region || 'Ladakh',
-        station_name: currentStation.name,
-        altitude_m: currentStation.altitude_m,
+        lat: currentStation.lat || 34.1526,
+        lon: currentStation.lon || 77.5771,
+        altitude_m: currentStation.altitude_m || 3500.0,
       },
       weather: {
-        mode: simulationMode === 'historical_p1' ? 'worst_night' : 'typical_day',
+        mode: simulationMode === 'historical_p1' ? 'design_winter_night' : 'typical_day',
         date: '2026-01-15',
         hours: 24,
       },
@@ -104,18 +117,28 @@ export default function DashboardPage() {
         length_m: 6.0,
         width_m: 4.0,
         height_m: 2.6,
-        orientation_deg: 180,
+        orientation_deg: 180.0,
       },
-      envelope: currentStation.baseline_envelope,
+      envelope: {
+        walls: wallLayers,
+        roof: roofLayers,
+        floor: floorLayers,
+        roof_emissivity: 0.90,
+      },
       openings: [
-        { facing: 'south', area_m2: 4.0, glazing: 'double_pane', night_shutter: false },
+        {
+          facing: 'south',
+          area_m2: 4.0,
+          glazing: 'double_glass',
+          night_shutter: simulationMode === 'historical_p1',
+        },
       ],
       ventilation: {
-        ach: currentStation.baseline_envelope.ach || 0.6,
+        ach: currentStation.baseline_envelope?.ach || 0.6,
         heater_type: 'none',
       },
       occupancy: { people: currentStation.occupants || 8, watts_per_person: 100 },
-      ground: { snow_cover: currentStation.snow_cover, albedo: null },
+      ground: { snow_cover: currentStation.snow_cover ?? true, albedo: 0.75 },
       comfort: { model: 'imac', health_threshold_c: 18.0 },
     };
 
@@ -152,18 +175,21 @@ export default function DashboardPage() {
     const tMin = currentStation.design_min_temp_c;
     const tMax = currentStation.design_max_temp_c;
     const tRange = tMax - tMin;
+    const isP1 = simulationMode === 'historical_p1';
 
     for (let h = 0; h < 24; h++) {
       const hourRad = ((h - 6.0) / 24.0) * 2.0 * Math.PI;
       const diurnalNorm = 0.5 * (1.0 - Math.cos(hourRad));
-      let tOut = Number((tMin + diurnalNorm * tRange).toFixed(2));
+      let tOut = isP1
+        ? Number((tMin - 5.5 + Math.cos((h / 24.0) * 2.0 * Math.PI) * 1.8).toFixed(2))
+        : Number((tMin + diurnalNorm * tRange).toFixed(2));
 
-      const sol = calculateSolarPosition(currentStation.lat, h);
+      const sol = isP1 ? { is_daylight: false, altitude_deg: 0, azimuth_deg: 180 } : calculateSolarPosition(currentStation.lat, h);
       let ghi = 0;
       let dni = 0;
       let dhi = 0;
 
-      if (sol.is_daylight && sol.altitude_deg > 0) {
+      if (!isP1 && sol.is_daylight && sol.altitude_deg > 0) {
         const maxGhi = currentStation.solar_potential_kwh_m2 * 145.0;
         const sunElevFrac = Math.sin((sol.altitude_deg * Math.PI) / 180.0);
         ghi = Math.max(0, Math.round(maxGhi * sunElevFrac));
@@ -171,18 +197,20 @@ export default function DashboardPage() {
         dhi = Math.max(0, Math.round(ghi * 0.18));
       }
 
-      const surfaceIrr = calculateSurfaceIrradiance(
-        ghi,
-        dni,
-        dhi,
-        sol.altitude_deg,
-        sol.azimuth_deg,
-        solarSurface
-      );
+      const surfaceIrr = isP1
+        ? 0
+        : calculateSurfaceIrradiance(
+            ghi,
+            dni,
+            dhi,
+            sol.altitude_deg,
+            sol.azimuth_deg,
+            solarSurface
+          );
 
-      let tIn = tOut + 4.5;
-      let tOp = tOut + 4.8;
-      let tMrt = tOut + 5.1;
+      let tIn = tOut + (isP1 ? 2.5 : 4.5);
+      let tOp = tOut + (isP1 ? 2.2 : 4.8);
+      let tMrt = tOut + (isP1 ? 1.8 : 5.1);
       let solGainW = 0;
 
       if (apiSimulationData?.series && apiSimulationData.series[h]) {
@@ -194,22 +222,29 @@ export default function DashboardPage() {
         solGainW = item.solar_gain_w || 0;
         ghi = item.ghi !== undefined ? item.ghi : ghi;
       } else {
-        const solarLagHour = (h - 2 + 24) % 24;
-        const lagSol = calculateSolarPosition(currentStation.lat, solarLagHour);
-        const lagIrr = lagSol.is_daylight
-          ? Math.sin((lagSol.altitude_deg * Math.PI) / 180.0) * (currentStation.solar_potential_kwh_m2 * 120.0)
-          : 0;
-        solGainW = Math.round(lagIrr * 4.0 * 0.65);
-        const deltaSolar = solGainW / 350.0;
-        tIn = Number((tOut + 6.5 + deltaSolar).toFixed(2));
-        tOp = Number((tIn + 0.3).toFixed(2));
-        tMrt = Number((tIn + 0.6).toFixed(2));
+        if (isP1) {
+          solGainW = 0;
+          tIn = Number((tOut + 2.5).toFixed(2));
+          tOp = Number((tIn - 0.4).toFixed(2));
+          tMrt = Number((tIn - 0.8).toFixed(2));
+        } else {
+          const solarLagHour = (h - 2 + 24) % 24;
+          const lagSol = calculateSolarPosition(currentStation.lat, solarLagHour);
+          const lagIrr = lagSol.is_daylight
+            ? Math.sin((lagSol.altitude_deg * Math.PI) / 180.0) * (currentStation.solar_potential_kwh_m2 * 120.0)
+            : 0;
+          solGainW = Math.round(lagIrr * 4.0 * 0.65);
+          const deltaSolar = solGainW / 350.0;
+          tIn = Number((tOut + 6.5 + deltaSolar).toFixed(2));
+          tOp = Number((tIn + 0.3).toFixed(2));
+          tMrt = Number((tIn + 0.6).toFixed(2));
+        }
       }
 
       const tSky = Number((tOut - (14.0 + currentStation.altitude_m / 600.0)).toFixed(2));
       const deltaT = Math.max(0.1, tIn - tOut);
 
-      const qRoof = Math.round(2.2 * 24.0 * (tIn - tOut + 3.0));
+      const qRoof = Math.round(2.2 * 24.0 * (tIn - tOut + (isP1 ? 0.0 : 3.0)));
       const qWall = Math.round(1.8 * 52.0 * deltaT);
       const qFloor = Math.round(1.2 * 24.0 * Math.max(0, tIn - (tOut + 5.0)));
       const qGlazing = Math.round(2.8 * 4.0 * deltaT);
@@ -256,7 +291,7 @@ export default function DashboardPage() {
     }
 
     return series;
-  }, [currentStation, solarSurface, apiSimulationData]);
+  }, [currentStation, solarSurface, apiSimulationData, simulationMode]);
 
   // Current Step Scrubbed Data
   const currentStepData = useMemo(() => {
@@ -333,7 +368,7 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [isPlaying, playbackIntervalMs, playbackSpeed]);
 
-  // Auto Site Rotation Timer
+  // Auto Site Rotation Timer (4.5s cadence for responsive cycling)
   useEffect(() => {
     if (!autoSiteRotation) return;
 
@@ -343,10 +378,20 @@ export default function DashboardPage() {
         const nextIdx = (idx + 1) % SUPPORTED_STATIONS.length;
         return SUPPORTED_STATIONS[nextIdx].id;
       });
-    }, 12000);
+    }, 4500);
 
     return () => clearInterval(interval);
   }, [autoSiteRotation]);
+
+  const handleAnalyzeOutpost = useCallback((stId) => {
+    setSelectedStationId(stId);
+    const target = document.getElementById('dashboard-console-header');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
 
   const handlePlayPause = useCallback(() => setIsPlaying((p) => !p), []);
   const handleReset = useCallback(() => {
@@ -357,7 +402,7 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-console-wrapper">
       {/* ── 1. Page Header & Operational Sector Brief ───────────────────────── */}
-      <header className="dashboard-page-header">
+      <header className="dashboard-page-header" id="dashboard-console-header">
         <div className="header-meta-strip">
           <span className="estate-tag">{estate} Sector Console</span>
           <span className="dot-divider">•</span>
@@ -470,7 +515,7 @@ export default function DashboardPage() {
           <div className="toolbar-scrubber">
             <div className="time-badge">
               <Clock size={12} />
-              <span>{currentStepData.time_label} LST</span>
+              <span>{currentStepData.time_label} IST</span>
             </div>
             <input
               type="range"
@@ -495,26 +540,40 @@ export default function DashboardPage() {
               <button
                 type="button"
                 className={`mode-pill ${simulationMode === 'simulation' ? 'active' : ''}`}
-                onClick={() => setSimulationMode('simulation')}
+                onClick={() => {
+                  setSimulationMode('simulation');
+                  setSimulationHour(12);
+                }}
+                title="Simulate 24-Hour Diurnal Solar Day (typical clear-sky condition)"
               >
                 Diurnal Day
               </button>
               <button
                 type="button"
                 className={`mode-pill ${simulationMode === 'historical_p1' ? 'active' : ''}`}
-                onClick={() => setSimulationMode('historical_p1')}
+                onClick={() => {
+                  setSimulationMode('historical_p1');
+                  setSimulationHour(2);
+                }}
+                title="Simulate P1 Extreme Sub-Zero Winter Night (1st percentile design minimum)"
               >
                 P1 Winter Night
               </button>
             </div>
 
-            <label className="auto-rotation-toggle">
+            <label className={`auto-rotation-toggle ${autoSiteRotation ? 'active' : ''}`}>
               <input
                 type="checkbox"
                 checked={autoSiteRotation}
                 onChange={(e) => setAutoSiteRotation(e.target.checked)}
               />
               <span>Auto Rotate Sites</span>
+              {autoSiteRotation && (
+                <span className="auto-rotate-badge">
+                  <span className="pulse-dot" />
+                  4.5s
+                </span>
+              )}
             </label>
           </div>
         </div>
@@ -617,9 +676,13 @@ export default function DashboardPage() {
       <section className="dashboard-panel hero-chart-panel">
         <div className="panel-header">
           <div>
-            <h2 className="panel-title">24-Hour Diurnal Thermal Response</h2>
+            <h2 className="panel-title">
+              {simulationMode === 'historical_p1' ? '24-Hour P1 Winter Night Simulation' : '24-Hour Diurnal Thermal Response'}
+            </h2>
             <p className="panel-subtitle">
-              Transient node temperatures and comfort envelope at {currentStation.name} ({currentStation.altitude_m}m ASL)
+              {simulationMode === 'historical_p1'
+                ? `1st percentile extreme sub-zero design night at ${currentStation.name} (${currentStation.altitude_m}m ASL) • 0 W Solar Aperture`
+                : `Transient node temperatures and comfort envelope at ${currentStation.name} (${currentStation.altitude_m}m ASL)`}
             </p>
           </div>
 
@@ -815,7 +878,7 @@ export default function DashboardPage() {
         <div className="chart-telemetry-readout">
           <div className="readout-item">
             <span className="readout-lbl">HOUR:</span>
-            <strong>{currentStepData.time_label} LST</strong>
+            <strong>{currentStepData.time_label} IST</strong>
           </div>
           <div className="readout-item">
             <span className="readout-lbl">Tout:</span>
@@ -1472,7 +1535,7 @@ export default function DashboardPage() {
                 <tr
                   key={st.id}
                   className={st.id === selectedStationId ? 'active-outpost-row' : ''}
-                  onClick={() => setSelectedStationId(st.id)}
+                  onClick={() => handleAnalyzeOutpost(st.id)}
                 >
                   <td>
                     <strong>{st.name}</strong>
@@ -1482,21 +1545,22 @@ export default function DashboardPage() {
                   <td className="mono-num">{st.altitude_m} m</td>
                   <td className="mono-num crit-text">{st.design_min_temp_c} °C</td>
                   <td className="mono-num solar-text">{st.solar_potential_kwh_m2} kWh/m²</td>
-                  <td className="mono-num">{(st.altitude_m > 4000 ? 5.8 : 3.8)} kW</td>
-                  <td className="mono-num">{st.altitude_m > 4000 ? '4,100 h' : '2,600 h'}</td>
+                  <td className="mono-num">{st.peak_heat_loss_kw !== undefined ? `${st.peak_heat_loss_kw} kW` : (st.altitude_m > 4000 ? '5.8 kW' : '3.8 kW')}</td>
+                  <td className="mono-num">{st.annual_deficit_hours || (st.altitude_m > 4000 ? '4,100 h' : '2,600 h')}</td>
                   <td>
-                    {st.altitude_m > 4000 ? '120mm PUF SIP + Low-E Triple Glazing' : '350mm Stone/Earth + 100mm EPS'}
+                    {st.recommended_assembly || (st.altitude_m > 4000 ? '120mm PUF SIP + Low-E Triple Glazing' : '350mm Stone/Earth + 100mm EPS')}
                   </td>
                   <td>
                     <button
                       type="button"
-                      className="table-action-btn"
+                      className={`table-action-btn ${st.id === selectedStationId ? 'active' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedStationId(st.id);
+                        handleAnalyzeOutpost(st.id);
                       }}
+                      title={`Load & analyze ${st.name} in console`}
                     >
-                      ANALYZE
+                      {st.id === selectedStationId ? 'ANALYZED' : 'ANALYZE'}
                     </button>
                   </td>
                 </tr>

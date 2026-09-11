@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import SidebarNav from './SidebarNav';
 import TopBar from './TopBar';
 import CommandPalette from './CommandPalette';
+import FloatingChatOrb from './FloatingChatOrb';
 import './PlatformLayout.css';
 
 const PAGE_TITLES = {
@@ -104,6 +105,8 @@ export default function PlatformLayout() {
         isOpen={cmdOpen}
         onClose={() => setCmdOpen(false)}
       />
+
+      <FloatingChatOrb />
     </div>
   );
 }
