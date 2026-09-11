@@ -51,6 +51,9 @@ export default function Shelter3DCanvas({
   const animFrameIdRef = useRef(null);
   const shelterGroupRef = useRef(null);
   const explodedLayersRef = useRef([]);
+  const explodedPartsRef = useRef(null);
+  const prevExplodedRef = useRef(viewMode === 'exploded');
+  const updateProjectedPinsRef = useRef(null);
   const sunLightRef = useRef(null);
   const sunGroupRef = useRef(null);
   const solarRayMeshRef = useRef(null);
@@ -96,6 +99,9 @@ export default function Shelter3DCanvas({
 
   const totalWallThickness = walls.reduce((sum, w) => sum + (Number(w.thickness_m) || 0.1), 0);
   const wallUValue = computeTotalU(walls);
+
+  const isThermal = viewMode === 'thermal';
+  const isExploded = viewMode === 'exploded';
 
   /* ─────────────────────────────────────────────────────────────────────────
      1. THREE.JS SCENE & ENVIRONMENT INITIALIZATION
@@ -258,7 +264,11 @@ export default function Shelter3DCanvas({
           sunGroupRef.current.lookAt(cameraRef.current.position);
         }
         rendererRef.current.render(sceneRef.current, cameraRef.current);
-        updateProjectedPins();
+        if (updateProjectedPinsRef.current) {
+          updateProjectedPinsRef.current();
+        } else {
+          updateProjectedPins();
+        }
       }
     };
     renderLoop();
@@ -307,9 +317,6 @@ export default function Shelter3DCanvas({
     const l = length_m; // X dimension
     const w = width_m;  // Z dimension
     const h = height_m; // Y dimension
-
-    const isThermal = viewMode === 'thermal';
-    const isExploded = viewMode === 'exploded';
 
     // Textures
     const adobeTex = getAdobeTexture();
@@ -649,28 +656,102 @@ export default function Shelter3DCanvas({
 
     shelter.add(roofGroup);
 
-    // ── 5. Exploded View GSAP Transitions & Multi-Layer Separation ──
+    // Save references to components and coordinate anchors for exploded transitions
+    explodedPartsRef.current = {
+      roofGroup,
+      snowMeshRef,
+      northGroup,
+      northExt,
+      southGroup,
+      eastGroup,
+      westGroup,
+      base: {
+        roofY: roofBaseY,
+        snowY: 0.46,
+        northZ: -w / 2 + totalWallThick / 2,
+        northExtZ: -coreThick / 2 - intThick / 2,
+        southZ: w / 2 - totalWallThick / 2,
+        eastX: -l / 2 + totalWallThick / 2,
+        westX: l / 2 - totalWallThick / 2,
+      },
+      exploded: {
+        roofY: roofBaseY + 2.4,
+        snowY: 1.2,
+        northZ: -w / 2 - 1.4,
+        northExtZ: -0.6,
+        southZ: w / 2 + 1.4,
+        eastX: -l / 2 - 1.4,
+        westX: l / 2 + 1.4,
+      },
+    };
+
+    // If rebuilding while in exploded mode, position meshes at their exploded offsets
     if (isExploded) {
-      // Roof decomposes upward in staggered sequence
-      gsap.to(roofGroup.position, { y: roofBaseY + 2.4, duration: 0.9, ease: 'power3.out' });
-      if (snowMeshRef) {
-        gsap.to(snowMeshRef.position, { y: 1.2, duration: 1.1, ease: 'power3.out' });
-      }
-
-      // North Wall: Exterior peels backward, EPS core separates
-      gsap.to(northGroup.position, { z: -w / 2 - 1.4, duration: 0.9, ease: 'power3.out' });
-      gsap.to(northExt.position, { z: -0.6, duration: 1.0, ease: 'power3.out' });
-
-      // South Wall: Peels forward (+Z) revealing interior
-      gsap.to(southGroup.position, { z: w / 2 + 1.4, duration: 0.9, ease: 'power3.out' });
-
-      // East & West Walls: Peel left & right
-      gsap.to(eastGroup.position, { x: -l / 2 - 1.4, duration: 0.9, ease: 'power3.out' });
-      gsap.to(westGroup.position, { x:  l / 2 + 1.4, duration: 0.9, ease: 'power3.out' });
+      roofGroup.position.y = roofBaseY + 2.4;
+      if (snowMeshRef) snowMeshRef.position.y = 1.2;
+      northGroup.position.z = -w / 2 - 1.4;
+      northExt.position.z = -0.6;
+      southGroup.position.z = w / 2 + 1.4;
+      eastGroup.position.x = -l / 2 - 1.4;
+      westGroup.position.x = l / 2 + 1.4;
     }
 
     scene.add(shelter);
-  }, [length_m, width_m, height_m, walls, roof, floor, openings, viewMode, snowCover, outerWallMat]);
+  }, [length_m, width_m, height_m, walls, roof, floor, openings, isThermal, snowCover, outerWallMat]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     2B. EXPLODED VIEW EXPANSION & CLOSING ANIMATIONS (GSAP)
+     ───────────────────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    const parts = explodedPartsRef.current;
+    if (!parts) return;
+
+    if (prevExplodedRef.current === isExploded) return;
+    prevExplodedRef.current = isExploded;
+
+    const { roofGroup, snowMeshRef, northGroup, northExt, southGroup, eastGroup, westGroup, base, exploded } = parts;
+
+    // Halt any active tweens on shelter elements to avoid conflicts
+    gsap.killTweensOf([
+      roofGroup.position,
+      northGroup.position,
+      northExt.position,
+      southGroup.position,
+      eastGroup.position,
+      westGroup.position,
+    ]);
+    if (snowMeshRef) gsap.killTweensOf(snowMeshRef.position);
+
+    if (isExploded) {
+      // ── Opening Animation (Preserved exactly as configured) ──
+      gsap.to(roofGroup.position, { y: exploded.roofY, duration: 0.9, ease: 'power3.out' });
+      if (snowMeshRef) {
+        gsap.to(snowMeshRef.position, { y: exploded.snowY, duration: 1.1, ease: 'power3.out' });
+      }
+
+      gsap.to(northGroup.position, { z: exploded.northZ, duration: 0.9, ease: 'power3.out' });
+      gsap.to(northExt.position, { z: exploded.northExtZ, duration: 1.0, ease: 'power3.out' });
+
+      gsap.to(southGroup.position, { z: exploded.southZ, duration: 0.9, ease: 'power3.out' });
+
+      gsap.to(eastGroup.position, { x: exploded.eastX, duration: 0.9, ease: 'power3.out' });
+      gsap.to(westGroup.position, { x:  exploded.westX, duration: 0.9, ease: 'power3.out' });
+    } else {
+      // ── Closing Animation (Smooth return back into solid envelope) ──
+      gsap.to(roofGroup.position, { y: base.roofY, duration: 0.9, ease: 'power3.out' });
+      if (snowMeshRef) {
+        gsap.to(snowMeshRef.position, { y: base.snowY, duration: 0.9, ease: 'power3.out' });
+      }
+
+      gsap.to(northGroup.position, { z: base.northZ, duration: 0.9, ease: 'power3.out' });
+      gsap.to(northExt.position, { z: base.northExtZ, duration: 0.9, ease: 'power3.out' });
+
+      gsap.to(southGroup.position, { z: base.southZ, duration: 0.9, ease: 'power3.out' });
+
+      gsap.to(eastGroup.position, { x: base.eastX, duration: 0.9, ease: 'power3.out' });
+      gsap.to(westGroup.position, { x:  base.westX, duration: 0.9, ease: 'power3.out' });
+    }
+  }, [isExploded]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      3. 3D CELESTIAL SUN PATH & DIURNAL SOLAR POSITIONING
@@ -934,6 +1015,7 @@ export default function Shelter3DCanvas({
 
     setPinPositions(projected);
   }, [length_m, width_m, height_m, outerWallMat, totalWallThickness, wallUValue, openings, roofMat, roof, snowCover, viewMode]);
+  updateProjectedPinsRef.current = updateProjectedPins;
 
   return (
     <div

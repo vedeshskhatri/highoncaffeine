@@ -52,11 +52,62 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .inspector-collapse-btn:hover {
-  color: var(--text-primary);
+  color: var(--solar);
   background: var(--surface-2);
+  transform: translateX(2px);
+}
+
+/* ─── Togglable Arrow Tab when Inspector is Collapsed ───────────────────── */
+.inspector-expand-tab {
+  position: fixed;
+  top: 84px;
+  right: 0;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  padding: 8px 12px 8px 9px;
+  color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: -2px 3px 12px rgba(32, 15, 7, 0.12);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.inspector-expand-tab:hover {
+  background: var(--surface-2);
+  color: var(--solar);
+  box-shadow: -4px 4px 16px rgba(32, 15, 7, 0.18);
+}
+
+.inspector-expand-tab:active {
+  transform: translateX(-1px);
+}
+
+.inspector-expand-chevron {
+  color: var(--solar);
+  transition: transform 0.2s ease;
+}
+
+.inspector-expand-tab:hover .inspector-expand-chevron {
+  transform: translateX(-3px);
+}
+
+.inspector-expand-label {
+  font-size: 11px;
+  line-height: 1;
 }
 
 /* Tabs */
@@ -336,4 +387,10 @@
   opacity: 0.45;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+@media (max-width: 1024px) {
+  .inspector-expand-tab {
+    display: none !important;
+  }
 }

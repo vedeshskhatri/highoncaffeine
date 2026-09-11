@@ -291,7 +291,11 @@ export default function App() {
         )}
 
         {/* Main Canvas Area */}
-        <main className="canvas-area" id="main-canvas" aria-label={demoMode ? 'demo mode canvas' : `${currentStep} canvas`}>
+        <main
+          className={`canvas-area ${inspectorCollapsed && !demoMode && currentStep === 'design' ? 'inspector-collapsed' : ''}`}
+          id="main-canvas"
+          aria-label={demoMode ? 'demo mode canvas' : `${currentStep} canvas`}
+        >
           {demoMode ? (
             <div className="step-results-wrapper" style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: 'var(--space-2) 0' }}>
               <DemoModeController

@@ -28,8 +28,6 @@ import {
 } from './approvedFixtures.js';
 import './DemoModeController.css';
 
-export { DEMO_STAGES };
-
 
 export default function DemoModeController({
   onExitDemo,
