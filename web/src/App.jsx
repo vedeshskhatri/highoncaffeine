@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import './App.css';
 import InputRail from './components/InputRail';
 import DesignCanvas from './components/DesignCanvas';
@@ -87,8 +87,16 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   /* ── Accessible steps ───────────────────────────────────────────── */
-  // Phase S2 will gate on valid input; for now only Design is reachable.
-  const accessibleSteps = new Set(['design']);
+  const accessibleSteps = useMemo(() => {
+    const s = new Set(['design']);
+    if (simulateResult || currentStep === 'simulate' || currentStep === 'optimize') {
+      s.add('simulate');
+    }
+    if (optimizeResult || currentStep === 'optimize') {
+      s.add('optimize');
+    }
+    return s;
+  }, [simulateResult, optimizeResult, currentStep]);
 
   const handleStepClick = useCallback((stepId) => {
     if (accessibleSteps.has(stepId)) {
@@ -96,6 +104,26 @@ export default function App() {
       setDrawerOpen(false);
     }
   }, [accessibleSteps]);
+
+  const handleSimulate = useCallback(async () => {
+    try {
+      const resp = await fetch('http://localhost:8000/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(simulateRequest),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setSimulateResult(data);
+        if (data?.weather_provenance?.grid_note) {
+          setGridNote(data.weather_provenance.grid_note);
+        }
+      }
+    } catch (e) {
+      console.warn('Backend not reachable or simulation failed:', e);
+    }
+    setCurrentStep('simulate');
+  }, [simulateRequest]);
 
   /* ── Partial update helpers ─────────────────────────────────────── */
   const updateWeatherMode = useCallback((mode) => {
@@ -223,6 +251,7 @@ export default function App() {
           <InputRail
             request={simulateRequest}
             onUpdate={updateRequest}
+            onSimulate={handleSimulate}
           />
         </aside>
 
