@@ -108,28 +108,4 @@
   border-top: 2px solid var(--espresso);
   background: color-mix(in srgb, var(--orange) 10%, var(--espresso-70)) !important;
 }
-
-/* ANSYS Note Box */
-.ansys-box {
-  background: var(--espresso-70);
-  border: 1px solid var(--espresso-40);
-  border-left: 4px solid var(--orange);
-  border-radius: var(--radius-sm);
-  padding: var(--space-4);
-}
-
-.ansys-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--orange);
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-1);
-}
-
-.ansys-text {
-  font-family: var(--font-body);
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--cream-2);
-  margin: 0;
 }

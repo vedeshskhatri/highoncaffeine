@@ -309,16 +309,21 @@ Time [s],Probe_Indoor_Air [C],Probe_South_Inner_Surf [C],Probe_South_Outer_Surf 
 
 ### Benchmark Agreement Shell
 
+> **HONEST STATUS DISCLOSURE:**  
+> The agreement table below is **currently unfilled**.  
+> The three canonical case definitions (`validation/ansys/cases/case{1,2,3}.json`) and the automated comparison harness (`validation/ansys/compare.py`) are fully built and tested via `--synthetic-selftest`. However, physical ANSYS Mechanical simulation runs have **not been performed**. Zero ANSYS project files (`.wbpj`), solver meshes, or probe export CSVs exist in this repository.  
+> Cross-validation against ANSYS Transient Thermal is the next engineering milestone. Our active, verified validation is grounded entirely in published, peer-reviewed empirical field measurements from DRDO DIHAR Leh and Leh passive solar housing studies (LEDeG). No synthetic data will ever be presented as ANSYS agreement.
+
 | Case | Scenario | Primary Physics Tested | Expected Max $\Delta T$ | Expected RMSE | Measured Status |
 |---|---|---|---|---|---|
-| **Case 1** | Bare Box (Conduction only) | 1D RC vs 3D continuum FEM conduction & storage | $\le 0.50\ ^\circ\text{C}$ | $\le 0.30\ ^\circ\text{C}$ | [TO COMPLETE V9] |
-| **Case 2** | Multi-layer + Diurnal Swing | Dynamic Fourier node-splitting & thermal lag | $\le 1.00\ ^\circ\text{C}$ | $\le 0.60\ ^\circ\text{C}$ | [TO COMPLETE V9] |
-| **Case 3** | Solar Flux + Sky Radiation | Radiative sub-cooling & surface flux coupling | $\le 1.50\ ^\circ\text{C}$ | $\le 0.90\ ^\circ\text{C}$ | [TO COMPLETE V9] |
+| **Case 1** | Bare Box (Conduction only) | 1D RC vs 3D continuum FEM conduction & storage | $\le 0.50\ ^\circ\text{C}$ | $\le 0.30\ ^\circ\text{C}$ | [UNFILLED — ANSYS RUN PENDING] |
+| **Case 2** | Multi-layer + Diurnal Swing | Dynamic Fourier node-splitting & thermal lag | $\le 1.00\ ^\circ\text{C}$ | $\le 0.60\ ^\circ\text{C}$ | [UNFILLED — ANSYS RUN PENDING] |
+| **Case 3** | Solar Flux + Sky Radiation | Radiative sub-cooling & surface flux coupling | $\le 1.50\ ^\circ\text{C}$ | $\le 0.90\ ^\circ\text{C}$ | [UNFILLED — ANSYS RUN PENDING] |
 
 ### Runtimes
-- **ANSYS Mechanical Solve:** $\sim 45\text{ to } 180\text{ s}$ per case (single-core/4-core Student Mechanical).
+- **ANSYS Mechanical Solve:** $\sim 45\text{ to } 180\text{ s}$ per case (estimated from literature/benchmarks).
 - **THERMA Python Solver:** $< 0.05\text{ s}$ ($50\text{ ms}$) per case.
-- **Speedup Ratio:** $> 1,000\times$ faster, proving why the Python surrogate is mandatory for design-space optimization.
+- **Speedup Ratio:** $> 1,000\times$ faster, proving why the 1D RC model is mandatory for design-space optimization.
 
 ### Diagnostic Tree (Tied to `06_PHYSICS_SPEC.md` Section 13)
 
@@ -344,26 +349,25 @@ Do **not** budget 2 hours. Realistic setup time for a student or engineer execut
 | Activity | Estimated Time | Attended? | Notes |
 |---|---|---|---|
 | ANSYS Student Download ($\sim 12\text{ GB}$) | $1.5 - 2.5\text{ h}$ | Unattended | Start in background first |
-| Installation & License setup | $0.5\text{ h}$ | Semi-attended | Requires admin rights on Windows |
-| Case 1 Geometry & Setup | $1.5 - 2.0\text{ h}$ | Attended | Geometry creation and material entry |
-| Case 1 Solve, Mesh Check, Export | $0.5\text{ h}$ | Attended | Verify node count $< 512\text{k}$ |
-| Case 2 Multi-layer Geometry & Diurnal BC | $1.5 - 2.0\text{ h}$ | Attended | Tabular data entry |
-| Case 3 Solar Flux & Radiation Setup | $1.0 - 1.5\text{ h}$ | Attended | Tabular flux and radiation setup |
-| Execution of `compare.py` & Analysis | $0.5\text{ h}$ | Attended | Automated comparison & plots |
-| **Total Attended Engineering Time** | **$5.5 - 7.5\text{ hours}$** | | |
-| **Total Elapsed Clock Time** | **$7.5 - 10.5\text{ hours}$** | | |
+| Installation and licensing setup | $0.5 - 1\text{ h}$ | Attended | Windows administrator rights required |
+| SpaceClaim CAD modeling (3 geometries) | $1.5 - 2\text{ h}$ | Attended | Follow Section 4 step-by-step |
+| Engineering Data material setup | $0.5\text{ h}$ | Attended | Enter Table 1 properties exactly |
+| Mesh setup & sizing | $1\text{ h}$ | Attended | Confirm node count under 128k cap |
+| Transient thermal analysis settings | $0.5\text{ h}$ | Attended | Initial temp, timestepping, sub-steps |
+| Boundary condition application | $1.5\text{ h}$ | Attended | Film coefficients, tabular flux |
+| Solve time (all 3 cases) | $0.5 - 1\text{ h}$ | Unattended | $\sim 10-20\text{ min}$ per case on modern quad-core |
+| Probe data export & post-processing | $0.5\text{ h}$ | Attended | Save CSVs to `validation/ansys/results/` |
+| Automated comparison via `compare.py` | $0.1\text{ h}$ | Attended | Run `python -m validation.ansys.compare` |
+| Troubleshooting & convergence adjustment | $1 - 2\text{ h}$ | Attended | Refer to Section 7 diagnostic tree |
+| **Total realistic time investment** | **$9 - 13\text{ hours}$** | | Spread over 2 days minimum |
 
 ---
 
-## 9. Sequencing & Team Boundaries
+## 9. Critical Execution Discipline
 
-- **When to execute:**
-  - Case 1 should be run **before Phase V4 or after Phase V6**. Running Case 1 early catches bugs in conduction and node capacitance before the optimizer is wired.
-  - Do **not** attempt to run all ANSYS work during Phases V1–V5: the rest of the team depends on the core Python engine and API contract during those phases.
-- **Aman's Ownership:**
-  - Aman owns **Gate 3 Validation** against published empirical field data (DIHAR/LEDeG scenarios V1–V4).
-  - That gate remains unchanged and non-negotiable.
-  - ANSYS is a complementary second validation axis; it does not replace or diminish DIHAR validation.
+- Do **not** attempt to run all ANSYS work during fast iterations: the core Python engine and API contract take precedence.
+- Empirical DIHAR field validation is the primary anchor of the project.
+- ANSYS is a complementary second validation axis; it does not replace or diminish DIHAR validation.
 
 ---
 
@@ -372,9 +376,9 @@ Do **not** budget 2 hours. Realistic setup time for a student or engineer execut
 If a judge asks Aman about validation or ANSYS during evaluation:
 
 > **Key Briefing Points for Aman:**
-> 1. *"We validate on two independent axes: empirical field measurements from DRDO DIHAR and first-principles numerical simulation in ANSYS Mechanical Transient Thermal."*
-> 2. *"Vedesh ran the ANSYS reference track across three canonical cases: bare box conduction, multi-layer diurnal swing, and solar flux plus sky radiative cooling."*
-> 3. *"The agreement between ANSYS and our Python solver is within $X\ ^\circ\text{C}$ across all cases."*
-> 4. *"Our Python solver runs in 15 milliseconds per design; ANSYS takes 2 minutes per case. The agreement proves our fast 1D RC surrogate is physically sound, which gives us the authority to search 3,000 combinations in 8 seconds."*
+> 1. *"Our empirical validation is grounded in published, peer-reviewed field measurements from DRDO DIHAR Leh and LEDeG passive solar housing studies."*
+> 2. *"For numerical cross-validation, the three canonical case specifications and automated comparison harness for ANSYS Mechanical Transient Thermal are fully built in `validation/ansys/`."*
+> 3. *"The physical ANSYS runs have not yet been executed because an ANSYS workstation environment is required. Cross-validation against ANSYS is scheduled as the next engineering milestone."*
+> 4. *"We do not present synthetic data as ANSYS agreement. Our Python solver executes in under 50 milliseconds; when ANSYS runs are performed, the comparison harness will automatically evaluate spatial discretisation agreement."*
 
-This allows Aman to answer authoritatively, cite the exact numbers, and hand over to Vedesh for mechanical FEA details without hesitation.
+This allows Aman to answer with complete technical honesty and authority without risk of fabrication exposure.

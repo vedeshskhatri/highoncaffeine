@@ -48,6 +48,8 @@ from api.schemas import (
     SurrogateMetricsResponse,
     SurrogatePredictRequest,
     SurrogatePredictResponse,
+    SuggestMaterialsRequest,
+    SuggestMaterialsResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -59,6 +61,8 @@ from engine.what_if import (
     compare_simulations,
 )
 from api.platform import router as platform_router
+from api.cpwd.router import router as cpwd_router
+from api.ml_router import router as ml_router
 
 app = FastAPI(
     title="THERMA API",
@@ -68,6 +72,12 @@ app = FastAPI(
 
 # Mount Platform Asset Management router (Phase P0 per 07A proposal)
 app.include_router(platform_router)
+
+# Mount CPWD AI Knowledge System router
+app.include_router(cpwd_router)
+
+# Mount ML Surrogate Prediction & Q&A router
+app.include_router(ml_router)
 
 # Enable CORS for Vite frontend
 app.add_middleware(
@@ -80,6 +90,35 @@ app.add_middleware(
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / "data" / "fixtures"
 VALIDATION_RESULTS_DIR = Path(__file__).resolve().parent.parent / "validation" / "results"
+
+
+@app.get("/", summary="THERMA API Root & Documentation Portal")
+def root_endpoint() -> Dict[str, Any]:
+    """Root metadata and navigational portal for the THERMA API."""
+    return {
+        "title": "THERMA API",
+        "description": "Area Specific Shelter Thermal Comfort Maintenance System (SIH 2026 PS 26051 · DRDO)",
+        "version": "0.1.0",
+        "status": "operational",
+        "frontend_url": "http://localhost:5173",
+        "docs_url": "http://127.0.0.1:8000/docs",
+        "endpoints": {
+            "health": "/health",
+            "simulate": "/simulate",
+            "materials": "/materials",
+            "validation": "/validation",
+            "surrogate_metrics": "/surrogate/metrics",
+            "surrogate_predict": "/surrogate/predict",
+            "suggest_materials": "/suggest-materials",
+            "location_elevation": "/location/elevation",
+            "location_search": "/location/search",
+            "estate_summary": "/estate/summary",
+            "sites": "/sites",
+            "alerts": "/alerts",
+            "programme": "/programme",
+            "forecast_watch": "/forecast_watch",
+        },
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1354,4 +1393,25 @@ def get_location_weather_endpoint(
         ],
         "weather_provenance": prov,
     }
+
+
+# ---------------------------------------------------------------------------
+# MATERIAL SUGGESTION ENDPOINT (Phase M1)
+# ---------------------------------------------------------------------------
+
+@app.post(
+    "/suggest-materials",
+    response_model=SuggestMaterialsResponse,
+    summary="Material Suggestion Engine (Phase M1)",
+    description="Inverts optimizer to solve for material build-ups from target indoor and design outdoor temperatures.",
+)
+def suggest_materials_endpoint(request: SuggestMaterialsRequest) -> SuggestMaterialsResponse:
+    """
+    Given a target indoor requirement and outdoor design condition,
+    simulates candidate envelope variants and returns the top 3 specifications
+    with full layer build-up, achieved minimum temperature, cost, and residual backup heat.
+    """
+    from engine.material_suggestion import suggest_materials
+    res = suggest_materials(request.model_dump())
+    return SuggestMaterialsResponse(**res)
 

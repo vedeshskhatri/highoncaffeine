@@ -9,7 +9,6 @@
 [![React 18](https://img.shields.io/badge/React-18.3-61DAFB.svg?style=flat-square)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6.1-646CFF.svg?style=flat-square)](https://vitejs.dev)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-black.svg?style=flat-square)](https://threejs.org)
-[![ANSYS Verified](https://img.shields.io/badge/ANSYS-Mechanical%20FEM%20Verified-red.svg?style=flat-square)](https://ansys.com)
 [![100% Offline](https://img.shields.io/badge/Offline-100%25%20Air--Gapped%20Ready-success.svg?style=flat-square)](#30-security-privacy--air-gapped-defense-isolation)
 [![Strict Physics Balance](https://img.shields.io/badge/%CE%A3Qin-%E2%89%A1%20%CE%94E%20%2B%20%CE%A3Qout-brightgreen.svg?style=flat-square)](#1-project-overview--operational-context)
 
@@ -61,9 +60,9 @@ flowchart TD
         SAFE[Safety Interlock & Asphyxiation Prevention]
     end
 
-    subgraph ValidationBench ["Dual-Axis Validation & Numerical Grounding"]
+    subgraph ValidationBench ["Empirical Validation & Numerical Grounding"]
         EMP[DRDO-DIHAR Leh Empirical Field Datasets V1-V4]
-        ANSYS[ANSYS Mechanical 3D Continuum FEM Reference Cases 1-3]
+        ANSYS[ANSYS Reference Cases 1-3 Comparison Harness]
         SANITY[10/10 Inviolable Physical Conservation Tests]
     end
 
@@ -112,7 +111,7 @@ flowchart TD
 | **What-If Analysis Studio** | Schema Bounds Validator, Server Authoritative Re-Simulation, 24-hr $\Delta T$ Strip | Internal REST (`/what-if`) | Single-variable sensitivity investigation against baseline with strict server-side physics authority. |
 | **Multi-Design Comparison** | Normalized Utopia Distance Engine, Cost Basis Classifier (`SOURCED`/`ESTIMATE`/`UNAVAILABLE`) | Internal REST (`/compare`) | Compares 2 to 4 independent designs, detects safety refusals, and identifies true Pareto knee points without arbitrary weights. |
 | **Safety Interlock Guard** | Barometric Air-Density Scale, Combustion Hazard Detector ($ACH < 0.35$ Guardrail) | Engine Invariant Filter | Protects human life against optimizer over-sealing. Instantly refuses hazardous designs and blocks lethal CO poisoning. |
-| **Validation Benchmarks** | DRDO-DIHAR Leh Field Trials (V1–V4), ANSYS Mechanical 3D Continuum FEM (Cases 1–3) | Python Validation Suite | Ground-truth calibration against empirical measurements and first-principles continuum numerical simulations. |
+| **Validation Benchmarks** | DRDO-DIHAR Leh Field Trials (V1–V4), ANSYS Reference Comparison Harness | Python Validation Suite | Ground-truth calibration against empirical measurements and comparison harness for continuum numerical simulations. |
 | **Estate Asset Platform** | Multi-District Defense Post Registry, 12 Evaluated Sites (Siachen, DBO, Galwan, Hanle) | Internal REST (`/sites`) | Portfolio-scale thermal asset management, cold-snap vulnerability sorting, and mission retrofit scheduling. |
 | **Storage & Data Layer** | SQLite 3 (`therma.db`), `materials.csv` (CPWD DSR 2023), NASA POWER EPW Cache | SQLite Driver / CSV | Relational persistence of sites, historical simulation runs, evaluated designs, and cited thermophysical constants. |
 
@@ -142,7 +141,7 @@ flowchart TD
 20. [Physiological Hypothermia Risk Modeling](#20-physiological-hypothermia-risk-modeling)
 21. [Forward Post Weather Engine & Microclimate Ingestion](#21-forward-post-weather-engine--microclimate-ingestion)
 22. [Estate Asset Management & Defense Post Monitoring](#22-estate-asset-management--defense-post-monitoring)
-23. [Field Trial Empirical Validation Suite & ANSYS 3D FEM Benchmarks](#23-field-trial-empirical-validation-suite--ansys-3d-fem-benchmarks)
+23. [Field Trial Empirical Validation Suite & ANSYS Reference Track](#23-field-trial-empirical-validation-suite--ansys-reference-track)
 24. [Siachen Helicopter Logistics & Kerosene Economics](#24-siachen-helicopter-logistics--kerosene-economics)
 25. [Interactive 3D Studio & Dynamic Cross-Section Visualization](#25-interactive-3d-studio--dynamic-cross-section-visualization)
 26. [Engineering Spec Sheet & Provenance Audit Export](#26-engineering-spec-sheet--provenance-audit-export)
@@ -246,7 +245,7 @@ THERMA converts building physics into automated, explainable logistics decisions
 1. **Precision Physics Solver:** Solves Fourier transient thermal diffusion across layered walls, ground heat transfer, Perez solar gains, and sky radiation without heuristic shortcuts.
 2. **Deterministic Optimizer:** Evaluates thousands of designs simultaneously using vectorized NumPy routines, returning the non-dominated Pareto frontier of Thermal Comfort vs. Capital Cost.
 3. **Safety First:** Hard-coded safety interlocks prevent death from asphyxiation by refusing over-sealed designs with combustion heaters.
-4. **Transparent & Grounded:** Every single constant is cited (Rule R1). Every validation benchmark is grounded against published DRDO DIHAR Leh field data (V1–V4) and verified against 3D continuum FEM in ANSYS Mechanical.
+4. **Transparent & Grounded:** Every single constant is cited (Rule R1). Every validation benchmark is grounded against published DRDO DIHAR Leh field data (V1–V4). ANSYS Mechanical reference cases and comparison harness are built for workstation cross-validation.
 5. **100% Offline & Defense Ready:** Operates without internet connectivity, cloud APIs, or external telemetry. Ready for deployment on air-gapped military field laptops.
 
 ---
@@ -370,7 +369,7 @@ THERMA is deployed as a high-performance, containerized local software stack:
 | **Vectorized Computation** | NumPy | 1.26.4 | Parallel batch simulation of thousands of candidate designs simultaneously. |
 | **Relational Database** | SQLite 3 | 3.43+ | Local, ACID-compliant persistence of materials, weather caches, sites, and audit logs. |
 | **Validation Runner** | Pytest & Custom Testbench | 8.4.2 | 75+ automated physics sanity, contract, and validation test cases. |
-| **Finite Element Reference** | ANSYS Mechanical | 2024 R1 | 3D continuum FEM reference solver for first-principles numerical verification. |
+| **Finite Element Reference** | ANSYS Mechanical | 2024 R1 | Reference track specification & comparison harness for continuum numerical cross-validation. |
 
 ---
 
@@ -431,7 +430,7 @@ flowchart TD
     S1[1. MATERIALS<br/>CPWD DSR 2023 & Cited k, rho, cp] --> S2[2. WEATHER<br/>NASA POWER & Cold Night Extreme]
     S2 --> S3[3. PHYSICS ENGINE<br/>Multi-Node RC Discretization]
     S3 --> S4[4. SIMULATION<br/>3-Day Spin-Up + 24h Diffusion]
-    S4 --> S5[5. VALIDATION<br/>Gate 3 DIHAR & ANSYS Benchmarks]
+    S4 --> S5[5. VALIDATION<br/>Gate 3 DIHAR Empirical Benchmarks]
     S5 --> S6[6. THERMAL DIAGNOSIS<br/>100% Heat Loss Attribution]
     S6 --> S7[7. WHAT-IF ANALYSIS<br/>Single-Variable Sensitivity]
     S7 --> S8[8. OPTIMIZATION<br/>Latin Hypercube Sampling N=3200]
@@ -868,9 +867,9 @@ The system continuously scans site evaluations, sorting posts by nearest impendi
 
 ---
 
-# 23. Field Trial Empirical Validation Suite & ANSYS 3D FEM Benchmarks
+# 23. Field Trial Empirical Validation Suite & ANSYS Reference Track
 
-Validation is the gate that establishes credibility. THERMA is grounded across **two independent validation axes**:
+Validation is the gate that establishes credibility. THERMA is grounded across **two validation tracks**:
 
 ## Axis 1: Empirical DRDO-DIHAR Field Measurements (Gate 3)
 
@@ -890,15 +889,17 @@ $$\text{Model Mean}(V_2\text{ Trombe}) > \text{Model Mean}(V_3\text{ Direct Gain
 
 ---
 
-## Axis 2: ANSYS Mechanical 3D Continuum FEM Reference Benchmarks
+## Axis 2: ANSYS Mechanical Reference Track & Comparison Harness
 
-THERMA's fast 1D RC network was benchmarked against high-density 3D continuum finite element simulations in **ANSYS Mechanical Transient Thermal (2024 R1)**:
+THERMA provides three canonical reference cases and an automated comparison harness (`validation/ansys/compare.py`) for cross-validation against ANSYS Mechanical Transient Thermal:
 
-| Case | Physical Mechanism | Target Metric | Max Error ($\Delta T$) | Observed RMSE | Benchmark Plot |
-|:---:|:---|:---|:---:|:---:|:---:|
-| **Case 1** | Pure Conduction & Thermal Storage | 1D Lumped vs. 3D Solid Elements | $\le 0.50\ ^\circ\text{C}$ | **$0.18\ ^\circ\text{C}$** | ![Case 1 Overlay](./validation/ansys/plots/case1_overlay.png) |
-| **Case 2** | Multi-Layer Wall & Diurnal Phase Lag | Multi-Layer Fourier Discretization | $\le 1.00\ ^\circ\text{C}$ | **$0.34\ ^\circ\text{C}$** | ![Case 2 Overlay](./validation/ansys/plots/case2_overlay.png) |
-| **Case 3** | Solar Radiation & Nocturnal Sky Cooling | Surface Flux & Radiative Equilibrium | $\le 1.50\ ^\circ\text{C}$ | **$0.62\ ^\circ\text{C}$** | ![Case 3 Overlay](./validation/ansys/plots/case3_overlay.png) |
+> **Status Notice:** The canonical cases, meshing specifications, boundary conditions, and comparison harness are fully built. Physical ANSYS workstation runs have not yet been performed. The comparison table below will be populated once workstation probe CSVs are exported. Current numerical validation is grounded in published empirical field trials (Axis 1).
+
+| Case | Physical Mechanism | Target Tolerance | Status |
+|:---:|:---|:---|:---:|
+| **Case 1** | Pure Conduction & Thermal Storage | $\le 0.50\ ^\circ\text{C}$ | Harness built — Workstation run pending |
+| **Case 2** | Multi-Layer Wall & Diurnal Phase Lag | $\le 1.00\ ^\circ\text{C}$ | Harness built — Workstation run pending |
+| **Case 3** | Solar Radiation & Nocturnal Sky Cooling | $\le 1.50\ ^\circ\text{C}$ | Harness built — Workstation run pending |
 
 ---
 
@@ -1309,7 +1310,7 @@ In strict adherence to engineering ethics and **PRD Section 9**, we document our
 1. **1D Heat Diffusion vs. 3D Meshing:** THERMA solves 1D transient conduction per facet; corner thermal bridging at steel junctions is corrected via ISO 10211/14683 $\Psi$-factors rather than heavy 3D solid continuum meshes.
 2. **Single Well-Mixed Air Node:** Indoor air is modeled as a single well-mixed thermal capacitance; vertical temperature stratification is approximated rather than simulated via full 3D Navier-Stokes CFD.
 3. **Infiltration Model:** Natural air infiltration is scaled using barometric altitude air density and user-specified ACH, rather than continuous wind-tunnel pressure network simulations.
-4. **Validation Grounding:** Calibrated against published DRDO-DIHAR Leh empirical field data and ANSYS Mechanical 3D FEM benchmarks. Full-scale sensor instrumented field testing at Siachen represents our deployment roadmap milestone.
+4. **Validation Grounding:** Calibrated against published DRDO-DIHAR Leh empirical field data. The ANSYS Mechanical reference model and comparison harness are built with physical runs pending. Full-scale sensor instrumented field testing at Siachen represents our deployment roadmap milestone.
 
 ---
 
@@ -1374,10 +1375,10 @@ highoncaffeine/
 │   ├── 07_API_CONTRACT.md           # Frozen REST API contract
 │   ├── 10_VALIDATION.md             # Gate 3 empirical validation criteria
 │   ├── 11_OPTIMIZER_SPEC.md         # Vectorized optimizer specifications
-│   └── ANSYS_REFERENCE.md           # 3D continuum FEM reference benchmarks
+│   └── ANSYS_REFERENCE.md           # ANSYS reference track & setup guide
 ├── validation/                      # Empirical Benchmarks & Sanity Runner
 │   ├── run.py                       # Gate 3 automated validation execution
-│   └── ansys/                       # ANSYS Mechanical FEM scripts and plots
+│   └── ansys/                       # ANSYS cases and comparison harness
 ├── tests/                           # Pytest Automated Test Suite
 │   ├── test_comparison.py           # Multi-design comparison test suite
 │   ├── test_what_if.py              # What-if sandbox test suite
@@ -1479,9 +1480,91 @@ By replacing crude intuition and sea-level software with high-altitude barometri
 
 - **For the Soldier:** Prevents hypothermia, holds $+17.2\ ^\circ\text{C}$ at dawn without fuel, and prevents carbon monoxide poisoning.
 - **For the Logistics Commander:** Eliminates $>1,180\ \text{L}$ of airlifted kerosene per shelter, saves $>₹28\ \text{Lakh}$ annually per post, and frees up critical rotary-wing air assets.
-- **For the Evaluator:** Grounded in published DRDO-DIHAR empirical trials, verified against ANSYS Mechanical 3D FEM benchmarks, and 100% operational offline.
+- **For the Evaluator:** Grounded in published DRDO-DIHAR empirical trials, complete with ANSYS reference comparison harness, and 100% operational offline.
+
+---
+
+# 43. LOCAL CPWD AI SETUP
+
+THERMA incorporates a grounded, 100% local CPWD Delhi Schedule of Rates (DSR), Analysis of Rates (DAR), and Specifications Knowledge & Estimation System powered by **Ollama** and **SQLite + FTS5 + Vector Retrieval**.
+
+The system strictly adheres to the official CPWD source documents (2016, 2018, 2020 PDFs and 2025 structured data), guarantees zero hallucinations, isolates rates by edition year, provides exact page citations, and computes all arithmetic (Quantity × Rate and % Rate Changes) deterministically in Python backend code.
+
+### 1. Prerequisites & Dependencies
+Ensure Python 3.9+ virtual environment is active and dependencies are installed:
+```bash
+# In highoncaffeine root
+.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install pypdf
+```
+
+### 2. Ollama Local Setup
+Ollama serves as the local offline LLM inference engine without sending documents to cloud APIs:
+```bash
+# 1. Install Ollama (macOS)
+brew install ollama
+
+# 2. Start local Ollama daemon
+ollama serve
+
+# 3. Pull recommended chat and embedding models
+ollama pull llama3.2
+ollama pull nomic-embed-text
+```
+
+*Note: If Ollama is offline or models are not yet pulled, the system runs in high-reliability deterministic mode without crashing, serving exact database lookups, deterministic math, and citations.*
+
+### 3. Environment Variables (Optional Config)
+```bash
+export OLLAMA_BASE_URL="http://localhost:11434"
+export OLLAMA_CHAT_MODEL="llama3.2"
+export OLLAMA_EMBED_MODEL="nomic-embed-text"
+export OLLAMA_TEMPERATURE="0.0"
+```
+
+### 4. PDF & CSV Ingestion Pipeline
+To ingest and index the CPWD DSR/DAR/Specifications documents from the dataset directory (`/Users/cooldude69/Desktop/dataset`):
+```bash
+# Ingest 2016, 2018, 2020 PDFs and 2025 CSV
+.venv/bin/python -m api.cpwd.ingest
+```
+Expected output:
+```text
+Executing CPWD Ingestion Pipeline...
+{
+  "documents_processed": 4,
+  "total_pages_processed": 1686,
+  "items_extracted": 4154,
+  "rates_extracted": 4154,
+  "labour_records": 71,
+  "material_records": 1866,
+  "plant_records": 943,
+  "specification_records": 64,
+  "analysis_records": 3060,
+  "chunks_indexed": 2008,
+  "duration_seconds": 6.1
+}
+```
+
+### 5. Running the Application
+```bash
+# Terminal 1 — Start FastAPI Backend
+.venv/bin/uvicorn api.main:app --port 8000 --reload
+
+# Terminal 2 — Start Vite React Frontend
+cd web
+npm run dev
+```
+Open **`http://localhost:5173/cpwd`** or click **CPWD Rates & AI** in the platform sidebar.
+
+### 6. Running Automated Tests
+Run the 15 dedicated CPWD AI tests covering exact code retrieval, year differentiation, rate arithmetic, citations, and hallucination interlocks:
+```bash
+.venv/bin/pytest tests/test_cpwd_ai.py -v
+```
 
 ---
 
 *Authored by Team HighOnCaffeine for the Smart India Hackathon 2026 Grand Finale.*  
 *SIH 2026 · Problem Statement PS 26051 · Defence Research & Development Organisation (DRDO).*
+

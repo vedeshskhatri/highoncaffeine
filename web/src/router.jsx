@@ -14,9 +14,13 @@ import MaterialsPage from './components/platform/MaterialsPage';
 import ReportPage from './components/platform/ReportPage';
 import MethodPage from './components/platform/MethodPage';
 import ValidationPage from './components/platform/ValidationPage';
+import CpwdPage from './components/platform/CpwdPage';
+import MlPredictorPage from './components/platform/MlPredictorPage';
 import VerifyPage from './components/platform/VerifyPage';
 import TokensPage from './TokensPage';
 import App from './App';
+
+
 
 export const router = createBrowserRouter([
   {
@@ -75,11 +79,22 @@ export const router = createBrowserRouter([
         element: <ValidationPage />,
       },
       {
+        path: '/cpwd',
+        element: <CpwdPage />,
+
+      },
+      {
+        path: '/ml-predictor',
+        element: <MlPredictorPage />,
+      },
+      {
         path: '/verify',
         element: <VerifyPage />,
       },
     ],
   },
+
+
   {
     path: '/sites/:id/design',
     element: <App />,

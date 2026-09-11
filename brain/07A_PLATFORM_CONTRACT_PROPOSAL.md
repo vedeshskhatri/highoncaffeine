@@ -425,3 +425,132 @@ All existing fields remain strictly preserved. New optional fields:
 - `load_fallback_csv()` strictly constrained to Ladakh bounding box ($32.0^\circ\text{–}36.5^\circ\text{ N}, 75.0^\circ\text{–}80.5^\circ\text{ E}$).
 - If an offline request is made outside this region, return HTTP 503 `WeatherUnavailableError` with clear diagnostic explanation.
 
+---
+
+## 7. Material Suggestion Engine (`/suggest-materials` — Phase M1)
+
+Inverts the optimizer to solve for material build-ups from target indoor and outdoor temperatures.
+
+### `POST /suggest-materials`
+
+Request `200 OK`:
+```json
+{
+  "target_indoor_c": 20.0,
+  "design_outdoor_c": -20.0,
+  "use_site_p1": false,
+  "location": {
+    "lat": 34.1526,
+    "lon": 77.5771,
+    "altitude_m": 3500.0
+  },
+  "geometry": {
+    "length_m": 6.0,
+    "width_m": 4.0,
+    "height_m": 2.6
+  },
+  "occupancy": {
+    "people": 4,
+    "watts_per_person": 100.0
+  },
+  "max_cost_inr": 250000.0,
+  "locally_available_only": true,
+  "heater_type": "none"
+}
+```
+
+Response `200 OK`:
+```json
+{
+  "target_indoor_c": 20.0,
+  "design_outdoor_c": -20.0,
+  "use_site_p1": false,
+  "target_met": false,
+  "status_message": "The best passive design reaches -10.5 °C. The remaining 30.5 °C requires 1.5 kW of backup heat for 24.0 hours, about 3.1 L of kerosene per night.",
+  "best_achieved_min_c": -10.5,
+  "evaluated_count": 144,
+  "elapsed_s": 1.54,
+  "recommendations": [
+    {
+      "rank": 1,
+      "title": "Mud brick (adobe) + 100mm Expanded polystyrene (EPS)",
+      "target_met": false,
+      "achieved_min_c": -10.5,
+      "achieved_mean_c": -1.2,
+      "achieved_max_c": 12.4,
+      "gap_c": 30.5,
+      "cost_inr": 106280.0,
+      "cost_formatted": "₹1,06,280",
+      "backup_heat": {
+        "peak_kw": 1.46,
+        "hours": 24.0,
+        "kerosene_litres_per_night": 3.14
+      },
+      "buildup": {
+        "walls": [
+          {
+            "material_id": "mud_brick",
+            "name": "Mud brick (adobe)",
+            "thickness_mm": 300,
+            "category": "structural",
+            "k": 0.75,
+            "source": "ASHRAE HoF 2021 Ch.26 Tbl 1",
+            "locally_available": true
+          },
+          {
+            "material_id": "eps_board",
+            "name": "Expanded polystyrene (EPS)",
+            "thickness_mm": 100,
+            "category": "insulation",
+            "k": 0.036,
+            "source": "CPWD DSR 2023",
+            "locally_available": true
+          }
+        ],
+        "roof": [
+          {
+            "material_id": "cgi_sheet",
+            "name": "Corrugated galvanised iron sheet",
+            "thickness_mm": 2,
+            "category": "structural",
+            "source": "Local market survey Leh",
+            "locally_available": true
+          },
+          {
+            "material_id": "rockwool",
+            "name": "Mineral wool rockwool slab",
+            "thickness_mm": 100,
+            "category": "insulation",
+            "source": "CPWD DSR 2023",
+            "locally_available": true
+          }
+        ],
+        "floor": [
+          {
+            "material_id": "stone_floor",
+            "name": "Dressed stone floor slab",
+            "thickness_mm": 150,
+            "category": "mass",
+            "source": "CPWD DSR 2023",
+            "locally_available": true
+          }
+        ],
+        "glazing": {
+          "glazing_id": "triple_pane",
+          "name": "Triple glazing (4-12-4-12-4 argon/air)",
+          "south_area_m2": 6.0,
+          "u_value": 1.4,
+          "g_value": 0.68,
+          "night_shutter": true,
+          "source": "ISO 52016-1:2017 Table B.14"
+        },
+        "ach": 0.35,
+        "roof_emissivity": 0.25
+      },
+      "design_payload": { ... },
+      "explanation": "Heavy Mud brick (adobe) provides thermal mass damping..."
+    }
+  ]
+}
+```
+

@@ -3,13 +3,11 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   Download,
-  Filter,
   CheckCircle2,
-  AlertCircle,
-  HelpCircle,
   ChevronRight,
   IndianRupee,
-  Flame,
+  Layers,
+  ArrowUpRight,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -26,7 +24,7 @@ export default function ProgrammePage() {
   const { estate } = useOutletContext();
   const navigate = useNavigate();
 
-  // Budget in INR (Default: ₹1.4 Crore per prompt user 2 persona)
+  // Budget in INR (Default: ₹1.4 Crore)
   const [budget, setBudget] = useState(14000000);
   const [programme, setProgramme] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -77,7 +75,12 @@ export default function ProgrammePage() {
   };
 
   if (loading && !programme) {
-    return <div className="loading-state">Optimizing portfolio retrofit allocation...</div>;
+    return (
+      <div className="programme-loading-state">
+        <div className="telemetry-spinner" />
+        <span>Optimizing portfolio retrofit allocation across high-altitude sites...</span>
+      </div>
+    );
   }
 
   // Build cumulative chart data
@@ -102,14 +105,14 @@ export default function ProgrammePage() {
         </div>
 
         <div className="programme-header-actions">
-          <button type="button" className="secondary-btn" onClick={handleExportCsv}>
+          <button type="button" className="btn-secondary" onClick={handleExportCsv}>
             <Download size={14} />
             <span>Export Procurement Pack</span>
           </button>
         </div>
       </div>
 
-      {/* Budget Selector Strip */}
+      {/* Budget Selector Card */}
       <div className="budget-control-card">
         <div className="budget-control-left">
           <span className="budget-control-label">SANCTIONED RETROFIT BUDGET</span>
@@ -128,12 +131,12 @@ export default function ProgrammePage() {
           </div>
         </div>
 
-        <div className="budget-preset-chips">
+        <div className="budget-preset-strip">
           {PRESETS.map(p => (
             <button
               key={p.value}
               type="button"
-              className={`preset-chip ${budget === p.value ? 'active' : ''}`}
+              className={`preset-btn ${budget === p.value ? 'active' : ''}`}
               onClick={() => setBudget(p.value)}
             >
               {p.label}
@@ -142,10 +145,10 @@ export default function ProgrammePage() {
         </div>
       </div>
 
-      {/* 2. Headline Pitch Banner per Phase P4 */}
+      {/* 2. Executive Headline Banner */}
       <div className="programme-headline-banner">
         <div className="headline-icon-box">
-          <TrendingUp size={22} className="text-orange" />
+          <TrendingUp size={22} />
         </div>
         <div className="headline-text-content">
           <h3 className="headline-main-text">{programme?.headline}</h3>
@@ -157,53 +160,59 @@ export default function ProgrammePage() {
 
       {/* 3. Cumulative Return Curve (Spend vs Fuel Avoided) */}
       <div className="programme-card">
-        <div className="card-header-flex">
-          <div>
-            <h3 className="card-heading">Cumulative Return Curve (Spend vs Fuel Avoided)</h3>
-            <span className="card-sub">
-              Demonstrates diminishing returns curve across candidate post interventions. The vertical dotted line marks your ₹{(budget / 100000.0).toFixed(0)} Lakh budget limit.
-            </span>
-          </div>
+        <div className="card-header-block">
+          <h3 className="card-title-text">Cumulative Return Curve (Spend vs Fuel Avoided)</h3>
+          <p className="card-sub-text">
+            Demonstrates the diminishing returns curve across candidate outposts. The vertical marker indicates the ₹{(budget / 100000.0).toFixed(0)} Lakh sanctioned limit.
+          </p>
         </div>
 
         <div className="cumulative-chart-wrapper">
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
               <defs>
                 <linearGradient id="curveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--orange)" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="var(--orange)" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="#1E40AF" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#1E40AF" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
               <XAxis
                 dataKey="spend_lakh"
-                stroke="var(--espresso-70)"
+                stroke="#64748B"
                 fontSize={12}
+                tickLine={false}
                 tickFormatter={v => `₹${v}L`}
               />
               <YAxis
-                stroke="var(--espresso-70)"
+                stroke="#64748B"
                 fontSize={12}
-                tickFormatter={v => `${v / 1000}k L`}
+                tickLine={false}
+                tickFormatter={v => `${(v / 1000).toFixed(1)}k L`}
               />
               <Tooltip
                 formatter={(val, name) => [
-                  name === 'litres_saved' ? `${val.toLocaleString()} L/yr` : val,
+                  name === 'litres_saved' ? `${val.toLocaleString()} L / yr` : val,
                   'Cumulative Avoided Fuel',
                 ]}
                 labelFormatter={l => `Cumulative Spend: ₹${l} Lakh`}
-                contentStyle={{ backgroundColor: 'var(--cream)', borderColor: 'var(--rule)' }}
+                contentStyle={{
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#E2E8F0',
+                  borderRadius: '10px',
+                  boxShadow: '0 4px 16px rgba(15,23,42,0.08)',
+                  fontSize: '12.5px',
+                }}
               />
               <ReferenceLine
                 x={budgetLakh}
-                stroke="var(--ice)"
+                stroke="#0F172A"
                 strokeDasharray="4 4"
-                label={{ value: 'Budget Limit', fill: 'var(--ice)', fontSize: 11, position: 'top' }}
+                label={{ value: 'Sanctioned Budget', fill: '#0F172A', fontSize: 11, position: 'top' }}
               />
               <Area
                 type="monotone"
                 dataKey="litres_saved"
-                stroke="var(--orange)"
+                stroke="#1E40AF"
                 strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#curveGrad)"
@@ -215,64 +224,64 @@ export default function ProgrammePage() {
 
       {/* 4. Ranked Programme Procurement Table */}
       <div className="programme-card">
-        <div className="card-header-flex">
-          <div>
-            <h3 className="card-heading">Ranked Procurement Schedule</h3>
-            <span className="card-sub">
-              Ordered strictly by fuel savings efficiency. Interventions marked with a green badge fit within the available budget.
-            </span>
-          </div>
+        <div className="card-header-block">
+          <h3 className="card-title-text">Ranked Procurement Schedule</h3>
+          <p className="card-sub-text">
+            Ordered strictly by fuel savings efficiency. Interventions marked with a green badge fit within the available budget.
+          </p>
         </div>
 
-        <div className="programme-table-wrapper">
-          <table className="programme-table">
+        <div className="table-wrapper-spacious">
+          <table className="spacious-data-table">
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Target Post</th>
-                <th>Intervention Package</th>
-                <th>Cost (₹)</th>
-                <th>Cost Basis</th>
-                <th>Annual Fuel Saved</th>
-                <th>Return (L / ₹1k)</th>
-                <th>Cumulative Spend</th>
-                <th>Status</th>
+                <th>RANK</th>
+                <th>TARGET POST</th>
+                <th>INTERVENTION PACKAGE</th>
+                <th>CAPEX (₹)</th>
+                <th>BASIS</th>
+                <th>ANNUAL FUEL SAVED</th>
+                <th>EFFICIENCY (L / ₹1k)</th>
+                <th>CUMULATIVE SPEND</th>
+                <th>STATUS</th>
               </tr>
             </thead>
             <tbody>
               {programme?.items?.map(item => (
                 <tr
                   key={`${item.site_id}-${item.rank}`}
-                  className={`programme-row ${item.funded ? 'row-funded' : 'row-unfunded'}`}
+                  className={`clickable-row ${item.funded ? 'row-funded' : 'row-unfunded'}`}
                   onClick={() => navigate(`/sites/${item.site_id}`)}
                 >
                   <td className="mono rank-cell">#{item.rank}</td>
                   <td>
-                    <span className="table-site-name">{item.site_name}</span>
-                    <span className="table-district-name">{item.district}</span>
+                    <div className="post-cell">
+                      <span className="post-name">{item.site_name}</span>
+                      <span className="post-sector">{item.district}</span>
+                    </div>
                   </td>
-                  <td>{item.intervention}</td>
+                  <td className="intervention-cell">{item.intervention}</td>
                   <td className="mono">₹{item.cost_inr.toLocaleString()}</td>
                   <td>
-                    <span className="cost-basis-chip">{item.cost_basis}</span>
+                    <span className="estimate-chip">{item.cost_basis}</span>
                   </td>
-                  <td className="mono text-orange">
+                  <td className="mono fuel-cell">
                     {item.litres_saved_per_year.toLocaleString()} L/yr
                   </td>
-                  <td className="mono font-bold">
+                  <td className="mono font-semibold">
                     {item.litres_per_1000_inr.toFixed(2)}
                   </td>
-                  <td className="mono">
+                  <td className="mono text-muted">
                     ₹{(item.cumulative_cost_inr / 100000.0).toFixed(2)} L
                   </td>
                   <td>
                     {item.funded ? (
-                      <span className="status-badge-funded">
+                      <span className="status-badge status-badge-comfort">
                         <CheckCircle2 size={12} />
                         <span>Funded</span>
                       </span>
                     ) : (
-                      <span className="status-badge-unfunded">
+                      <span className="status-badge status-badge-neutral">
                         <span>Above Budget</span>
                       </span>
                     )}

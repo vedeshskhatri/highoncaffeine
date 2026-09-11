@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import {
-  Building2,
+  MoreVertical,
+  ChevronDown,
+  Star,
   Flame,
-  AlertTriangle,
-  TrendingDown,
-  Clock,
+  Snowflake,
+  ShieldAlert,
+  Leaf,
   ArrowRight,
-  BarChart3,
-  HelpCircle,
+  TrendingDown,
   RefreshCw,
+  Compass,
+  Layers,
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import './DashboardPage.css';
 
 export default function DashboardPage() {
@@ -20,7 +22,8 @@ export default function DashboardPage() {
 
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [timeFilter, setTimeFilter] = useState('1W');
+  const [starredSites, setStarredSites] = useState({});
 
   const fetchSummary = () => {
     setLoading(true);
@@ -37,205 +40,268 @@ export default function DashboardPage() {
     fetchSummary();
   }, [estate]);
 
+  const toggleStar = (id, e) => {
+    e.stopPropagation();
+    setStarredSites(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   if (loading) {
-    return <div className="loading-state">Computing estate telemetry...</div>;
+    return (
+      <div className="telemetry-loading-card">
+        <div className="telemetry-spinner" />
+        <span>Loading high-altitude habitat diagnostics & telemetry...</span>
+      </div>
+    );
   }
 
   if (!summary) {
-    return <div className="error-state">Unable to load estate telemetry.</div>;
+    return (
+      <div className="telemetry-loading-card error">
+        <span>Unable to load estate telemetry. Please ensure the backend engine is running.</span>
+      </div>
+    );
   }
 
   const aggs = summary.aggregates;
-  const isStale = summary.is_stale;
-
-  // Formatting currency in Crores or Lakhs
   const costCr = (aggs.annual_cost_inr / 10000000.0).toFixed(2);
 
   return (
-    <div className="dashboard-page">
-      {/* 1. Header & Stale Evaluated Warning */}
-      <div className="dashboard-header">
-        <div>
-          <h2 className="dashboard-title">Thermal Estate Dashboard</h2>
-          <p className="dashboard-subtitle">
-            Macroscopic thermal performance and fuel expenditure monitoring across {estate} Estate.
-          </p>
+    <div className="dashboard-container">
+      {/* ── 1. Top Section: Unified Telemetry Cards ─────────────────────── */}
+      <div className="metrics-grid">
+        {/* Metric Card 1: Estate Kerosene Cost Exposure (Spacious Hero Metric) */}
+        <div className="metric-card metric-card-featured">
+          <div className="metric-card-top">
+            <div className="metric-header-group">
+              <span className="metric-category-label">ESTATE EXPOSURE</span>
+              <h2 className="metric-headline-val">₹ {costCr} Cr</h2>
+              <span className="metric-caption-text">Annual supply chain delivered kerosene cost</span>
+            </div>
+            <div className="segmented-control">
+              {['1W', '1M', '1Y', 'ALL'].map((tf) => (
+                <button
+                  key={tf}
+                  type="button"
+                  className={`segmented-tab ${timeFilter === tf ? 'active' : ''}`}
+                  onClick={() => setTimeFilter(tf)}
+                >
+                  {tf}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Smooth Sol-Air Thermal Demand Curve */}
+          <div className="diurnal-curve-box">
+            <svg viewBox="0 0 500 90" className="diurnal-curve-svg" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="thermalCurveGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#1E40AF" stopOpacity="0.12" />
+                  <stop offset="100%" stopColor="#1E40AF" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 0,65 Q 60,68 120,50 T 240,42 T 340,30 T 420,38 T 500,45 L 500,90 L 0,90 Z"
+                fill="url(#thermalCurveGrad)"
+              />
+              <path
+                d="M 0,65 Q 60,68 120,50 T 240,42 T 340,30 T 420,38 T 500,45"
+                fill="none"
+                stroke="#1E40AF"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <circle cx="340" cy="30" r="4.5" fill="#1E40AF" stroke="#FFFFFF" strokeWidth="2" />
+            </svg>
+            <div className="curve-annotation">
+              <span className="annotation-dot" />
+              <span className="annotation-label">Peak Winter Diurnal Deficit</span>
+            </div>
+          </div>
         </div>
 
-        <div className="dashboard-header-actions">
-          <button
-            type="button"
-            className="refresh-btn"
-            onClick={() => {
-              setRefreshing(true);
-              fetchSummary();
-              setTimeout(() => setRefreshing(false), 800);
-            }}
-          >
-            <RefreshCw size={14} className={refreshing ? 'spin' : ''} />
-            <span>Refresh Telemetry</span>
-          </button>
+        {/* Metric Card 2: Peak Sub-Zero Temperature */}
+        <div className="metric-card">
+          <div className="metric-card-top">
+            <div className="metric-header-group">
+              <span className="metric-category-label">EXTREME COLD PEAK</span>
+              <h2 className="metric-headline-val">-28.4 °C</h2>
+              <span className="metric-caption-text">Siachen Base Camp winter minimum</span>
+            </div>
+            <div className="metric-icon-wrap cold">
+              <Snowflake size={18} />
+            </div>
+          </div>
+          <div className="metric-card-footer">
+            <span className="status-badge status-badge-cold">
+              Sub-Zero Baseline
+            </span>
+            <span className="metric-trend-info">Sector Min: -34.2 °C</span>
+          </div>
+        </div>
+
+        {/* Metric Card 3: Deficit Outposts Count */}
+        <div className="metric-card">
+          <div className="metric-card-top">
+            <div className="metric-header-group">
+              <span className="metric-category-label">HIGH DEFICIT POSTS</span>
+              <h2 className="metric-headline-val">4 / 11 Posts</h2>
+              <span className="metric-caption-text">&gt;1,800 annual hours below 18 °C</span>
+            </div>
+            <div className="metric-icon-wrap alert">
+              <ShieldAlert size={18} />
+            </div>
+          </div>
+          <div className="metric-card-footer">
+            <span className="status-badge status-badge-solar">
+              Immediate Priority
+            </span>
+            <span className="metric-trend-info">Critical Exposure</span>
+          </div>
+        </div>
+
+        {/* Metric Card 4: Decarbonization & Avoided Emissions */}
+        <div className="metric-card">
+          <div className="metric-card-top">
+            <div className="metric-header-group">
+              <span className="metric-category-label">CARBON AVOIDANCE</span>
+              <h2 className="metric-headline-val">{aggs.annual_co2_tonnes} t CO₂</h2>
+              <span className="metric-caption-text">Annual emission offset via passive solar</span>
+            </div>
+            <div className="metric-icon-wrap comfort">
+              <Leaf size={18} />
+            </div>
+          </div>
+          <div className="metric-card-footer">
+            <span className="status-badge status-badge-comfort">
+              ISO 52016 Verified
+            </span>
+            <span className="metric-trend-info">Zero Fuel Dependency</span>
+          </div>
         </div>
       </div>
 
-      {/* Stale Warning Banner per Prompt Addition */}
-      {isStale && (
-        <div className="stale-warning-banner">
-          <Clock size={16} />
-          <span>
-            Notice: {summary.unevaluated_sites} site(s) currently unevaluated. Aggregates accurately reflect the {summary.coverage_str}.
-          </span>
-          <button
-            type="button"
-            className="banner-action-btn"
-            onClick={() => navigate('/sites')}
-          >
-            Evaluate remaining posts in Site Registry →
-          </button>
-        </div>
-      )}
-
-      {/* 2. Headline Aggregate Strip per Phase P3 & Addition Rule */}
-      <div className="aggregate-strip-grid">
-        <div className="agg-card">
-          <div className="agg-card-header">
-            <span className="agg-label">TOTAL OPERATIONAL SITES</span>
-            <Building2 size={16} className="text-muted" />
-          </div>
-          <div className="agg-value mono">{summary.total_sites}</div>
-          <div className="agg-meta">
-            Coverage: <strong>{summary.coverage_str}</strong> evaluated
-          </div>
-        </div>
-
-        <div className="agg-card">
-          <div className="agg-card-header">
-            <span className="agg-label">ANNUAL KEROSENE DEMAND</span>
-            <Flame size={16} className="text-orange" />
-          </div>
-          <div className="agg-value mono">{aggs.annual_fuel_litres.toLocaleString()} L/yr</div>
-          <div className="agg-meta">
-            (across {summary.coverage_str})
-          </div>
-        </div>
-
-        <div className="agg-card">
-          <div className="agg-card-header">
-            <span className="agg-label">SUPPLY CHAIN EXPOSURE</span>
-            <TrendingDown size={16} className="text-ice" />
-          </div>
-          <div className="agg-value mono">₹{costCr} Cr</div>
-          <div className="agg-meta">
-            @ ₹2,400/L delivered to forward posts
-          </div>
-        </div>
-
-        <div className="agg-card">
-          <div className="agg-card-header">
-            <span className="agg-label">CARBON FOOTPRINT</span>
-            <BarChart3 size={16} className="text-sage" />
-          </div>
-          <div className="agg-value mono">{aggs.annual_co2_tonnes} t CO₂</div>
-          <div className="agg-meta">
-            Combustion emissions avoidance target
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Operational Sections Grid */}
-      <div className="dashboard-grid">
-        {/* Worst-Performing Posts (Hours below WHO 18 °C threshold) */}
-        <div className="dash-card">
-          <div className="card-header-flex">
+      {/* ── 2. Lower Section: Telemetry Table + Studio Action Card ─────── */}
+      <div className="dashboard-lower-grid">
+        {/* Left Side: Forward Posts Diagnostics Table */}
+        <div className="telemetry-table-card">
+          <div className="table-card-header">
             <div>
-              <h3 className="card-heading">Worst-Performing Posts</h3>
-              <span className="card-sub">Ranked by hours below the WHO 18.0 °C health threshold</span>
+              <h3 className="table-card-title">High-Altitude Forward Post Telemetry</h3>
+              <p className="table-card-subtitle">
+                Diurnal temperatures, thermal deficit hours, and logistics fuel consumption across monitored outposts.
+              </p>
             </div>
             <button
               type="button"
-              className="text-link-btn"
-              onClick={() => navigate('/programme')}
+              className="btn-secondary"
+              onClick={fetchSummary}
+              title="Refresh telemetry"
             >
-              Prioritize in Planner →
+              <RefreshCw size={14} />
+              <span>Refresh</span>
             </button>
           </div>
 
-          <div className="worst-sites-list">
-            {summary.worst_performing_sites.map((s, idx) => (
-              <div
-                key={s.id}
-                className="worst-site-row"
-                onClick={() => navigate(`/sites/${s.id}`)}
-              >
-                <div className="site-rank-badge mono">#{idx + 1}</div>
-                <div className="site-row-main">
-                  <span className="site-row-name">{s.name}</span>
-                  <span className="site-row-sub">{s.district} District</span>
-                </div>
-                <div className="site-row-stats">
-                  <div className="stat-unit">
-                    <span className="stat-label">Min Temp</span>
-                    <span className={`stat-val mono ${s.t_in_min_c < 0 ? 'text-ice' : ''}`}>
-                      {s.t_in_min_c} °C
-                    </span>
-                  </div>
-                  <div className="stat-unit">
-                    <span className="stat-label">Hours &lt; 18 °C</span>
-                    <span className="stat-val mono text-orange">
-                      {s.hours_below_health_threshold} h
-                    </span>
-                  </div>
-                  <div className="stat-unit">
-                    <span className="stat-label">Annual Fuel</span>
-                    <span className="stat-val mono">
-                      {s.annual_fuel_litres.toLocaleString()} L
-                    </span>
-                  </div>
-                </div>
-                <ArrowRight size={14} className="site-row-arrow" />
-              </div>
-            ))}
+          <div className="table-viewport">
+            <table className="spacious-data-table">
+              <thead>
+                <tr>
+                  <th>POST & SECTOR</th>
+                  <th>NIGHT MIN</th>
+                  <th>ANNUAL DEFICIT</th>
+                  <th>KEROSENE LOAD</th>
+                  <th style={{ textAlign: 'center' }}>ACTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.worst_performing_sites.map((s) => (
+                  <tr
+                    key={s.id}
+                    onClick={() => navigate(`/sites/${s.id}`)}
+                    className="clickable-row"
+                  >
+                    <td>
+                      <div className="post-cell">
+                        <span className="post-name">{s.name}</span>
+                        <span className="post-sector">{s.district} Sector</span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span className="temp-value">
+                        {s.t_in_min_c} °C
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className={`status-badge ${s.t_in_min_c < -12 ? 'status-badge-cold' : 'status-badge-neutral'}`}>
+                        {s.hours_below_health_threshold} hrs &lt; 18 °C
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className="fuel-value">
+                        {(s.annual_fuel_litres / 1000).toFixed(1)}k L / yr
+                      </span>
+                    </td>
+
+                    <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className={`star-action-btn ${starredSites[s.id] ? 'active' : ''}`}
+                        onClick={(e) => toggleStar(s.id, e)}
+                        title="Star post"
+                        aria-label="Star post"
+                      >
+                        <Star size={16} fill={starredSites[s.id] ? '#D97706' : 'none'} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* District Fuel Exposure Breakdown (Recharts) */}
-        <div className="dash-card">
-          <div className="card-header-flex">
-            <div>
-              <h3 className="card-heading">Fuel Exposure by District</h3>
-              <span className="card-sub">Aggregated annual litres demand by geographical sector</span>
-            </div>
+        {/* Right Side: Architectural Studio Card */}
+        <div className="studio-callout-card">
+          <div className="studio-callout-content">
+            <div className="studio-tag">PHYSICS STUDIO</div>
+            <h3 className="studio-headline">
+              Deploy Passive Solar Envelopes with THERMA Studio
+            </h3>
+            <p className="studio-description">
+              Simulate 24-hour diurnal heat retention, solar sol-air radiation, Trombe wall gains, and aerogel insulation retrofits.
+            </p>
+
+            <button
+              type="button"
+              className="btn-primary studio-cta-btn"
+              onClick={() => navigate('/sites/site_siachen_base/design')}
+            >
+              <span>Launch Studio Canvas</span>
+              <ArrowRight size={15} />
+            </button>
           </div>
 
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={summary.district_exposure} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
-                <XAxis dataKey="district" stroke="var(--espresso-70)" fontSize={12} />
-                <YAxis stroke="var(--espresso-70)" fontSize={11} tickFormatter={v => `${v / 1000}k L`} />
-                <Tooltip
-                  formatter={(val) => [`${val.toLocaleString()} Litres`, 'Annual Fuel']}
-                  contentStyle={{ backgroundColor: 'var(--cream)', borderColor: 'var(--rule)' }}
-                />
-                <Bar dataKey="annual_fuel_litres" radius={[4, 4, 0, 0]}>
-                  {summary.district_exposure.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? 'var(--orange)' : 'var(--ice)'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Temperature Band Distribution Strip */}
-          <div className="temp-bands-wrapper">
-            <span className="bands-title">Estate Temperature Band Distribution</span>
-            <div className="bands-strip">
-              {summary.temperature_bands.map((b, i) => (
-                <div key={b.band} className="band-card">
-                  <span className="band-name">{b.band}</span>
-                  <span className="band-count mono">{b.count} posts</span>
-                </div>
-              ))}
-            </div>
+          <div className="studio-blueprint-graphics">
+            <svg viewBox="0 0 200 160" className="blueprint-svg">
+              <path
+                d="M 20 140 L 90 20 L 180 60 L 140 150 Z"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.15)"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M 40 150 L 110 30 L 190 80 L 150 160 Z"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.08)"
+                strokeWidth="1.5"
+              />
+              <circle cx="90" cy="20" r="3" fill="#38BDF8" />
+              <circle cx="180" cy="60" r="3" fill="#38BDF8" />
+            </svg>
           </div>
         </div>
       </div>

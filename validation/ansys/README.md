@@ -15,10 +15,9 @@ validation/ansys/
   results/
     ansys_case1_export.csv  # Real/exported CSV from ANSYS probe (when solved)
     ...
-  plots/
-    case1_overlay.png  # High-contrast time-series comparison plots
-    case2_overlay.png
-    case3_overlay.png
+  plots/                   # Output directory for overlay plots (generated when real ANSYS CSVs are compared)
+    case1_overlay.png
+    ...
   compare.py           # Automated time-alignment and metrics calculator
   README.md            # This guide
 ```
@@ -27,11 +26,12 @@ validation/ansys/
 
 ## Quick Start
 
-### 1. Test the Comparison Pipeline (Synthetic Mode)
-To test the pipeline and generate overlay plots without waiting for an ANSYS solve:
+### 1. Test the Comparison Pipeline (Synthetic Self-Test Mode)
+To test the harness pipeline mechanics without waiting for an ANSYS solve:
 ```bash
-python -m validation.ansys.compare --synthetic
+python -m validation.ansys.compare --synthetic-selftest
 ```
+*(Note: Synthetic self-test mode validates comparison logic only, prints a prominent disclosure banner, and refuses to write any output files that could be mistaken for real ANSYS results.)*
 
 ### 2. Compare Real ANSYS Exported Results
 After running ANSYS Workbench per [brain/ANSYS_REFERENCE.md](../../brain/ANSYS_REFERENCE.md) and exporting the probe CSV:

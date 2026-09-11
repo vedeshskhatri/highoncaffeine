@@ -1,0 +1,13 @@
+check,value
+master_row_count,120000
+unique_simulations,5000
+hours_per_simulation,24
+duplicate_simulation_hour_pairs,0
+synthetic_records,1
+locations,39
+train_rows,84000
+validation_rows,18000
+test_rows,18000
+train_simulations,3500
+validation_simulations,750
+test_simulations,750

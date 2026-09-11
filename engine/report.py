@@ -348,7 +348,6 @@ def generate_engineering_report(
             "v2_measured_target": classify_val(17.44, "°C", "MEASURED", "Leh Trombe wall experimental room monthly mean (Feb 2020)"),
             "v3_measured_target": classify_val(14.81, "°C", "MEASURED", "Leh Direct-gain experimental room monthly mean (Feb 2020)"),
             "ordering_check_rule": classify_val("Trombe mean > Direct Gain mean", "boolean", "SOURCED", "brain/10_VALIDATION.md thermodynamic ordering criterion"),
-            "ansys_fem_agreement": classify_val("Within 0.65 °C", "tolerance", "MODEL OUTPUT", "3D Continuum ANSYS Mechanical 2024 FEM solid element benchmark"),
         },
     })
 
@@ -389,7 +388,7 @@ def generate_engineering_report(
             "material_properties_count": classify_val(counts.get("material_properties", 30), "items", "SOURCED", "materials.csv verified schedule"),
             "weather_sources_count": classify_val(counts.get("weather", 4), "items", "SOURCED", "Open-Meteo / NASA POWER / bundled fallback"),
             "cost_sources_count": classify_val(counts.get("costs", 4), "items", "SOURCED", "CPWD DSR 2023 / defense logistics"),
-            "validation_targets_count": classify_val(counts.get("validation_measurements", 5), "items", "SOURCED", "DRDO DIHAR / ANSYS Mechanical"),
+            "validation_targets_count": classify_val(counts.get("validation_measurements", 4), "items", "SOURCED", "DRDO DIHAR / Published Studies"),
             "estimate_basis_rule": classify_val("Estimate — source unavailable.", "text", "SOURCED", "brain/05_DATA_SOURCES.md invariant"),
             "derived_basis_rule": classify_val("Derived from sourced inputs.", "text", "SOURCED", "brain/05_DATA_SOURCES.md invariant"),
         },

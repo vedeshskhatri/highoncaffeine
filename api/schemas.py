@@ -728,6 +728,96 @@ class SurrogatePredictResponse(BaseModel):
     )
 
 
+# ---------------------------------------------------------------------------
+# Material Suggestion Schemas (Phase M1)
+# ---------------------------------------------------------------------------
+
+class LayerBuildupSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    material_id: str
+    name: str
+    thickness_mm: int
+    category: Optional[str] = None
+    k: Optional[float] = None
+    rho: Optional[float] = None
+    cp: Optional[float] = None
+    cost_per_m3: Optional[float] = None
+    source: Optional[str] = None
+    locally_available: Optional[bool] = None
+
+
+class GlazingBuildupSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    glazing_id: str
+    name: str
+    south_area_m2: float
+    u_value: Optional[float] = None
+    g_value: Optional[float] = None
+    night_shutter: bool = False
+    source: Optional[str] = None
+
+
+class BuildupSpecificationSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    walls: List[LayerBuildupSchema]
+    roof: List[LayerBuildupSchema]
+    floor: List[LayerBuildupSchema]
+    glazing: GlazingBuildupSchema
+    ach: float
+    roof_emissivity: float
+
+
+class BackupHeatSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    peak_kw: float
+    hours: float
+    kerosene_litres_per_night: float
+
+
+class MaterialRecommendationSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    rank: int
+    title: str
+    target_met: bool
+    achieved_min_c: float
+    achieved_mean_c: float
+    achieved_max_c: float
+    gap_c: float
+    cost_inr: float
+    cost_formatted: str
+    backup_heat: BackupHeatSchema
+    buildup: BuildupSpecificationSchema
+    design_payload: Dict[str, Any]
+    explanation: str
+
+
+class SuggestMaterialsRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    target_indoor_c: float = Field(..., description="Target indoor temperature requirement in Celsius (e.g. 20.0)")
+    design_outdoor_c: Optional[float] = Field(default=None, description="Design outdoor temperature in Celsius (e.g. -20.0). If omitted, uses site P1 winter night.")
+    use_site_p1: bool = Field(default=False, description="Explicitly use site P1 winter night")
+    location: Dict[str, float] = Field(default_factory=lambda: {"lat": 34.1526, "lon": 77.5771, "altitude_m": 3500.0})
+    geometry: Optional[Dict[str, float]] = Field(default_factory=lambda: {"length_m": 6.0, "width_m": 4.0, "height_m": 2.6})
+    occupancy: Optional[Dict[str, Any]] = Field(default_factory=lambda: {"people": 4, "watts_per_person": 100.0})
+    max_cost_inr: Optional[float] = Field(default=None, description="Maximum allowable budget in INR")
+    locally_available_only: bool = Field(default=True, description="Constrain search to materials available locally in Ladakh")
+    heater_type: str = Field(default="none", description="Heater type for safety interlock checking")
+
+
+class SuggestMaterialsResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    target_indoor_c: float
+    design_outdoor_c: float
+    use_site_p1: bool
+    target_met: bool
+    status_message: str
+    best_achieved_min_c: Optional[float] = None
+    evaluated_count: int
+    elapsed_s: float
+    recommendations: List[MaterialRecommendationSchema]
+
+
+
 
 
 

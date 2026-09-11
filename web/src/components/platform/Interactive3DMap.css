@@ -1,0 +1,606 @@
+/* ==========================================================================
+   Interactive3DMap.css — High-Speed 2D Tactical Map & Outpost Inspector
+   Instant loading, crisp 2D cartography, clean design system
+   ========================================================================== */
+
+.fast-2d-map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+  background: #F1F5F9;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  display: block;
+}
+
+.fast-2d-map-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  cursor: grab;
+  z-index: 1;
+}
+
+.fast-2d-map-canvas.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  background: #E2E8F0;
+}
+
+.fast-2d-map-canvas:active {
+  cursor: grabbing;
+}
+
+.fast-2d-map-canvas.cursor-pin {
+  cursor: crosshair !important;
+}
+
+.three-digital-twin-canvas-interactive {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  cursor: grab;
+  z-index: 1;
+}
+
+.three-digital-twin-canvas-interactive:active {
+  cursor: grabbing;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1. CUSTOM TACTICAL MAP PINS (Instant DOM Markers)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.quick-map-pin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transform: translate(0, 0);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+  user-select: none;
+}
+
+.quick-map-pin:hover {
+  transform: scale(1.1) translateY(-2px);
+  z-index: 25;
+}
+
+.quick-map-pin.pin-selected {
+  transform: scale(1.15) translateY(-4px);
+  z-index: 30;
+}
+
+.pin-marker-core {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: #FFFFFF;
+  border: 2px solid #CBD5E1;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  white-space: nowrap;
+}
+
+.pin-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3B82F6;
+}
+
+.pin-short-temp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* Status variants */
+.pin-crit .pin-marker-core {
+  border-color: #EF4444;
+  background: #FFF5F5;
+}
+.pin-crit .pin-status-dot {
+  background: #EF4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.pin-optimal .pin-marker-core {
+  border-color: #10B981;
+  background: #F0FDF4;
+}
+.pin-optimal .pin-status-dot {
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.pin-warning .pin-marker-core {
+  border-color: #F59E0B;
+  background: #FFFBEB;
+}
+.pin-warning .pin-status-dot {
+  background: #F59E0B;
+}
+
+.pin-selected .pin-marker-core {
+  border-color: #0F172A;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.2), 0 8px 20px rgba(15, 23, 42, 0.25);
+  background: #0F172A;
+}
+
+.pin-selected .pin-short-temp {
+  color: #FFFFFF;
+}
+
+.pin-label-pill {
+  margin-top: 3px;
+  padding: 2px 7px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(6px);
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+.pin-name {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2. TOP FLOATING ACTION BAR
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.map-top-action-bar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000 !important;
+  pointer-events: auto;
+}
+
+/* 2D ⇄ 3D Mode Segmented Toggle */
+.view-mode-toggle-pill {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  padding: 3px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  gap: 2px;
+}
+
+.mode-toggle-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  font-family: var(--font-heading);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-toggle-tab:hover {
+  color: var(--text-primary);
+}
+
+.mode-toggle-tab.active {
+  background: #0F172A;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+}
+
+.map-pill-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.map-pill-action-btn:hover {
+  background: #FFFFFF;
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+.map-pill-action-btn.active-pin-mode {
+  background: #0F172A;
+  color: #FFFFFF;
+  border-color: #0F172A;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.15);
+}
+
+/* Style Dropdown */
+.style-dropdown-wrapper {
+  position: relative;
+}
+
+.style-popover-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 200px;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 40;
+  animation: pop-in 0.12s ease-out;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.popover-title {
+  font-family: var(--font-heading);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 6px 10px 4px;
+}
+
+.style-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.1s ease;
+}
+
+.style-option-item:hover {
+  background: #F1F5F9;
+  color: var(--text-primary);
+}
+
+.style-option-item.active {
+  background: #EFF6FF;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.check-mark {
+  color: var(--blue);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3. MINIMAL VERTICAL ZOOM STRIP (Clean 3-button floating pill)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.map-vertical-zoom-bar {
+  position: absolute;
+  bottom: 24px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+  z-index: 1000 !important;
+  pointer-events: auto;
+}
+
+.zoom-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.zoom-icon-btn:hover {
+  background: #F1F5F9;
+  color: var(--text-primary);
+}
+
+.zoom-icon-btn:active {
+  background: #E2E8F0;
+}
+
+.zoom-separator {
+  width: 100%;
+  height: 1px;
+  background: var(--rule);
+}
+
+.map-corner-attribution {
+  position: absolute;
+  bottom: 6px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #94A3B8;
+  z-index: 999 !important;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   4. SLEEK FLOATING OUTPOST INSPECTOR MINI-CARD (Bottom-Right, Non-Intrusive)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.outpost-inspector-floating-card {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  max-width: calc(100% - 48px);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+  padding: 14px 16px;
+  z-index: 1000 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: slide-up-fade 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mini-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mini-card-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.mini-card-alt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.mini-card-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 4px 0 0;
+  line-height: 1.25;
+}
+
+.mini-card-sub {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.inspector-status-pill {
+  font-family: var(--font-heading);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+}
+
+.inspector-status-pill.pill-critical {
+  background: #FEECEE;
+  color: #E11D48;
+}
+.inspector-status-pill.pill-optimal {
+  background: #E6F8EF;
+  color: #059669;
+}
+.inspector-status-pill.pill-warning {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.inspector-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: #F1F5F9;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  margin-left: auto;
+}
+
+.inspector-close-btn:hover {
+  background: #E2E8F0;
+  color: var(--text-primary);
+}
+
+/* Mini 2x2 stats grid */
+.mini-card-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: #F8FAFC;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid #F1F5F9;
+}
+
+.mini-stat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mini-stat-label {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.mini-stat-val {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.mini-stat-val.cold-val { color: #E11D48; }
+.mini-stat-val.opt-val { color: #059669; }
+
+/* Commander mini row */
+.mini-card-cmdr-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-card-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #CBD5E1;
+}
+
+.mini-cmdr-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.mini-cmdr-name {
+  font-family: var(--font-heading);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mini-cmdr-role {
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Actions */
+.mini-card-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.mini-primary-action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 32px;
+  background: #0F172A;
+  color: #FFFFFF;
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.mini-primary-action:hover {
+  background: #1E293B;
+  transform: translateY(-1px);
+}
+
+.mini-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  background: #F1F5F9;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.mini-secondary-action:hover {
+  background: #E2E8F0;
+}

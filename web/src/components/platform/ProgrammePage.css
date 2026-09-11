@@ -1,14 +1,17 @@
+/* ProgrammePage.css — Alpine Precision Programme Planner */
+
 .programme-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5);
+  width: 100%;
 }
 
 .programme-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 
@@ -16,32 +19,36 @@
   font-family: var(--font-heading);
   font-size: 24px;
   font-weight: 700;
-  color: var(--espresso);
-  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
 }
 
 .programme-subtitle {
-  font-size: 14px;
-  color: var(--espresso-70);
+  font-size: 13.5px;
+  color: var(--text-secondary);
   margin: 0;
+  line-height: 1.5;
 }
 
+/* Budget Control Card */
 .budget-control-card {
-  background-color: var(--cream-2);
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  padding: 18px 24px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
   flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
 }
 
 .budget-control-left {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .budget-control-label {
@@ -49,84 +56,100 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: var(--espresso-70);
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .budget-input-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .currency-prefix {
   font-size: 20px;
   font-weight: 700;
-  color: var(--espresso);
+  color: var(--text-primary);
 }
 
 .budget-number-input {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--espresso);
-  background: var(--cream);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 4px 10px;
-  width: 180px;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  width: 190px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.budget-number-input:focus {
+  border-color: var(--brand-blue);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
 .budget-human-label {
   font-size: 14px;
   font-weight: 600;
-  color: var(--orange);
+  color: var(--brand-blue);
 }
 
-.budget-preset-chips {
+.budget-preset-strip {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.preset-chip {
-  padding: 7px 12px;
-  background-color: var(--cream);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  font-family: var(--font-body);
+.preset-btn {
+  padding: 8px 14px;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
   font-size: 12.5px;
-  color: var(--espresso-70);
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-
-.preset-chip:hover {
-  border-color: var(--orange);
-  color: var(--espresso);
-}
-
-.preset-chip.active {
-  background-color: var(--orange);
-  color: white;
-  border-color: var(--orange);
   font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.preset-btn:hover {
+  background-color: #FFFFFF;
+  border-color: var(--border);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-xs);
+}
+
+.preset-btn.active {
+  background-color: var(--surface-dark);
+  color: #FFFFFF;
+  border-color: var(--surface-dark);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Executive Headline Banner */
 .programme-headline-banner {
-  background-color: var(--cream-2);
-  border: 1px solid var(--orange);
-  border-radius: 10px;
-  padding: 20px 24px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--brand-blue);
+  border-radius: var(--radius-lg);
+  padding: 22px 28px;
   display: flex;
   align-items: center;
-  gap: 18px;
-  box-shadow: 0 4px 14px rgba(247, 115, 49, 0.08);
+  gap: 20px;
+  box-shadow: var(--shadow-sm);
 }
 
 .headline-icon-box {
-  background-color: var(--orange-soft);
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  background-color: var(--brand-blue-soft);
+  color: var(--brand-blue);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,111 +164,95 @@
 
 .headline-main-text {
   font-family: var(--font-heading);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--espresso);
+  color: var(--text-primary);
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .headline-meta {
   font-size: 12.5px;
-  color: var(--espresso-70);
+  color: var(--text-secondary);
 }
 
+/* Base Programme Card */
 .programme-card {
-  background-color: var(--cream);
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  padding: 22px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 28px 30px;
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
+}
+
+.card-header-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-title-text {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.card-sub-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
 }
 
 .cumulative-chart-wrapper {
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
-.programme-table-wrapper {
+.table-wrapper-spacious {
   overflow-x: auto;
-}
-
-.programme-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13.5px;
-  text-align: left;
-}
-
-.programme-table th {
-  padding: 12px 14px;
-  background-color: var(--cream-2);
-  border-bottom: 1px solid var(--rule);
-  font-family: var(--font-heading);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--espresso-70);
-  white-space: nowrap;
-}
-
-.programme-table td {
-  padding: 14px;
-  border-bottom: 1px solid var(--rule);
-  vertical-align: middle;
-}
-
-.programme-row {
-  cursor: pointer;
-  transition: background-color 0.1s ease;
-}
-
-.programme-row:hover {
-  background-color: var(--cream-2);
-}
-
-.row-unfunded {
-  opacity: 0.65;
 }
 
 .rank-cell {
   font-weight: 700;
-  color: var(--espresso-70);
+  color: var(--text-muted);
 }
 
-.table-site-name {
+.intervention-cell {
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 320px;
+  line-height: 1.45;
+}
+
+.fuel-cell {
   font-weight: 600;
-  display: block;
-  font-size: 13.5px;
+  color: var(--text-primary);
 }
 
-.table-district-name {
-  font-size: 11.5px;
-  color: var(--espresso-40);
-  display: block;
+.row-unfunded {
+  opacity: 0.55;
 }
 
-.status-badge-funded {
-  display: inline-flex;
+.row-unfunded:hover {
+  opacity: 0.9;
+}
+
+.programme-loading-state {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
-  background-color: var(--sage-soft);
-  color: var(--sage);
-  border: 1px solid var(--sage);
-  border-radius: 12px;
-}
-
-.status-badge-unfunded {
-  display: inline-flex;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 3px 8px;
-  background-color: var(--cream-2);
-  color: var(--espresso-40);
-  border: 1px solid var(--rule);
-  border-radius: 12px;
+  justify-content: center;
+  gap: 16px;
+  min-height: 380px;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
 }

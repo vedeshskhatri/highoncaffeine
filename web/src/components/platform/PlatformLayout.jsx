@@ -15,8 +15,10 @@ const PAGE_TITLES = {
   '/materials': 'Materials & Regional Supply Realities',
   '/method': 'Methodology & Standards Specification',
   '/validation': 'Empirical Model Benchmark & Verification',
+  '/cpwd': 'THERMA Thermal AI & High-Altitude Knowledge Engine',
   '/verify': 'Interactive Verification & Empirical Benchmarks',
 };
+
 
 export default function PlatformLayout() {
   const location = useLocation();
