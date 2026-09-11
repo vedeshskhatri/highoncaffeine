@@ -49,7 +49,7 @@ export default function DashboardPage() {
   const [simulationHour, setSimulationHour] = useState(12); // 0 to 23
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1); // 1x, 2x, 5x, 10x
-  const [playbackIntervalMs, setPlaybackIntervalMs] = useState(5000); // 5s default
+  const [playbackIntervalMs, setPlaybackIntervalMs] = useState(2000); // 2s per hour step
   const [autoSiteRotation, setAutoSiteRotation] = useState(false);
   const [simulationMode, setSimulationMode] = useState('simulation'); // 'simulation' | 'historical_p1'
   const [solarSurface, setSolarSurface] = useState('south'); // 'roof' | 'south' | 'north' | 'east' | 'west'
