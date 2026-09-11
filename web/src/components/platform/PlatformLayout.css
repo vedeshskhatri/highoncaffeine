@@ -1,3 +1,5 @@
+/* PlatformLayout.css — Spacious Alpine Architecture */
+
 .platform-layout-container {
   display: flex;
   min-height: 100vh;
@@ -17,8 +19,8 @@
 
 .platform-page-content {
   flex: 1;
-  padding: 28px 36px 56px;
-  max-width: 1440px;
+  padding: var(--page-padding-y) var(--page-padding-x) 64px;
+  max-width: 1560px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
@@ -29,7 +31,6 @@
     flex-direction: column;
   }
   .platform-page-content {
-    padding: 18px 16px 36px;
+    padding: 20px 16px 40px;
   }
 }
-

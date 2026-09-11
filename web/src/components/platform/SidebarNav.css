@@ -1,3 +1,5 @@
+/* SidebarNav.css — Architectural Alpine Engineering Navigation */
+
 .platform-sidebar {
   width: 260px;
   background-color: var(--surface-1);
@@ -14,65 +16,68 @@
 
 /* 1. Brand Logo Header */
 .sidebar-brand-wrapper {
-  padding: 24px 20px 16px;
+  padding: 24px 20px 18px;
 }
 
 .sidebar-logo {
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .logo-icon-box {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: var(--surface-dark);
-  color: #ffffff;
+  border-radius: var(--radius-md);
+  background-color: var(--surface-dark);
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 }
 
 .logo-text-group {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .logo-main {
   font-family: var(--font-heading);
   font-weight: 800;
-  font-size: 18px;
+  font-size: 17px;
   color: var(--text-primary);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1.1;
 }
 
 .logo-badge {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--orange);
-  font-weight: 700;
+  color: var(--text-secondary);
+  font-weight: 600;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-/* 2. User Profile Card (from Inspo UI) */
+/* 2. User Profile Card */
 .sidebar-user-card {
-  margin: 0 16px 14px;
-  padding: 10px 12px;
+  margin: 0 16px 16px;
+  padding: 10px 14px;
   background-color: var(--surface-2);
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
-  gap: 10px;
-  border: 1px solid var(--border-light);
-  transition: all 0.15s ease;
+  gap: 12px;
+  border: 1px solid var(--border-subtle);
+  transition: background-color 0.15s ease;
 }
 
 .sidebar-user-card:hover {
-  background-color: #EBF1F8;
+  background-color: #EAEFF5;
 }
 
 .user-avatar-wrap {
@@ -83,32 +88,35 @@
 .user-avatar-img {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #FDE047, #F97316);
-  color: #78350F;
-  font-weight: 800;
-  font-size: 13px;
+  border-radius: var(--radius-md);
+  background-color: #1E293B;
+  color: #FFFFFF;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 12.5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-xs);
 }
 
 .user-online-dot {
   position: absolute;
-  bottom: 0;
-  right: 0;
+  bottom: -2px;
+  right: -2px;
   width: 9px;
   height: 9px;
   border-radius: 50%;
   background-color: var(--comfort);
-  border: 2px solid var(--surface-1);
+  border: 2px solid var(--surface-2);
 }
 
 .user-details {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 2px;
 }
 
 .user-name {
@@ -122,8 +130,8 @@
 }
 
 .user-role {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 11.5px;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -131,23 +139,24 @@
 
 /* 3. Estate Scope Toggle */
 .sidebar-estate-selector {
-  margin: 0 16px 12px;
+  margin: 0 16px 14px;
   padding: 10px 12px;
   background-color: var(--surface-2);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-subtle);
 }
 
 .estate-selector-label {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-family: var(--font-heading);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--text-muted);
   margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
 .estate-toggle-group {
@@ -155,14 +164,14 @@
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 2px;
+  padding: 3px;
   gap: 2px;
 }
 
 .estate-btn {
   flex: 1;
-  padding: 4px 6px;
-  font-size: 11.5px;
+  padding: 5px 8px;
+  font-size: 12px;
   font-weight: 600;
   font-family: var(--font-body);
   border: none;
@@ -171,12 +180,13 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
+  text-align: center;
 }
 
 .estate-btn.active {
   background-color: var(--surface-dark);
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+  color: #FFFFFF;
+  box-shadow: var(--shadow-xs);
 }
 
 /* 4. Navigation Links */
@@ -186,14 +196,14 @@
   padding: 4px 12px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
+  gap: 12px;
+  padding: 10px 14px;
   border-radius: var(--radius-md);
   text-decoration: none;
   font-family: var(--font-body);
@@ -209,6 +219,7 @@
   justify-content: center;
   color: var(--text-muted);
   transition: color 0.15s ease;
+  flex-shrink: 0;
 }
 
 .sidebar-link:hover {
@@ -222,13 +233,13 @@
 
 .sidebar-link.active {
   background-color: var(--surface-dark);
-  color: #ffffff;
+  color: #FFFFFF;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 
 .sidebar-link.active .sidebar-link-icon-wrap {
-  color: #ffffff;
+  color: #FFFFFF;
 }
 
 .sidebar-link-text {
@@ -241,38 +252,39 @@
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: var(--radius-full);
 }
 
-/* 5. Bottom Dark Status Card */
+/* 5. Bottom Status Card */
 .sidebar-bottom-section {
-  padding: 14px 16px 16px;
+  padding: 16px 16px 18px;
 }
 
 .sidebar-dark-promo-card {
-  background: var(--surface-dark);
-  color: #ffffff;
+  background: #111827;
+  color: #FFFFFF;
   border-radius: var(--radius-lg);
-  padding: 14px 14px;
+  padding: 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  box-shadow: var(--shadow-floating);
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .promo-card-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .promo-icon-badge {
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: rgba(249, 115, 22, 0.2);
-  color: var(--orange);
+  background: rgba(255, 255, 255, 0.12);
+  color: #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -280,16 +292,16 @@
 
 .promo-badge-text {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--orange);
+  letter-spacing: 0.05em;
+  color: #E2E8F0;
 }
 
 .promo-card-desc {
   font-size: 11.5px;
-  color: var(--text-inverse-sub);
-  line-height: 1.4;
+  color: #94A3B8;
+  line-height: 1.45;
   margin: 0;
 }
 
@@ -297,9 +309,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 10px;
+  padding: 8px 12px;
   background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  color: #FFFFFF;
   text-decoration: none;
   border-radius: var(--radius-sm);
   font-family: var(--font-heading);
@@ -316,6 +328,5 @@
 
 .promo-arrow {
   font-family: var(--font-mono);
-  color: var(--orange);
+  color: #94A3B8;
 }
-

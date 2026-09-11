@@ -1,122 +1,146 @@
 /*
- * tokens.css — THERMA design tokens
- * Direction: MODERN SOFT-ELEVATED NEO-DASHBOARD (Inspo UI)
- * Palette: Frost Mist (#EFF4F9), Crisp White (#FFFFFF), Deep Obsidian (#0F172A),
- *          Vibrant Solar Orange (#F97316), Electric Blue (#3B82F6),
- *          Pastel Mint (#E6F8EF), Pastel Lavender (#EEF0FF), Pastel Amber (#FEF3C7), Pastel Ice (#E0F2FE)
- * Typography: Plus Jakarta Sans (Headings/UI) + DM Sans (Body) + JetBrains Mono (Metrics/Data)
+ * tokens.css — THERMA Alpine Precision Design Tokens
+ * Philosophy: Human-Crafted High-Altitude Civil & Defence Engineering
+ * Focus: Spacious layout, disciplined typographic scale, calm architectural surfaces,
+ *        and purposeful thermal physics semantics (no rainbow AI gradients).
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-  /* ─────────────────────────────────────────
-     CORE COLOUR TOKENS — INSPO REVAMP
-     ───────────────────────────────────────── */
+  /* ─────────────────────────────────────────────────────────────────────────
+     1. SURFACES & CANVAS
+     ───────────────────────────────────────────────────────────────────────── */
+  --canvas-outer:       #F1F5F9;   /* outer frame backdrop */
+  --bg-base:            #F8FAFC;   /* soft crisp alpine mist backdrop */
+  --bg-card:            #FFFFFF;   /* pure white elevated cards */
+  --bg-card-hover:      #F8FAFC;
+  --bg-card-subtle:     #F8FAFC;
+  
+  --surface-1:          #FFFFFF;   /* primary elevated surface */
+  --surface-2:          #F1F5F9;   /* secondary surface, segmented controls */
+  --surface-3:          #E2E8F0;   /* borders, dividers */
+  --surface-dark:       #0F172A;   /* deep alpine slate */
+  --surface-dark-2:     #1E293B;   /* secondary dark surface */
 
-  --canvas-outer:     #E8EEF5;   /* outer frame canvas backdrop */
-  --bg-base:          #F0F4F8;   /* app backdrop surface */
-  --bg-card:          #FFFFFF;   /* pure white elevated cards */
-  --bg-card-hover:    #F8FAFC;   /* subtle card hover */
-  --surface-1:        #FFFFFF;
-  --surface-2:        #F1F5F9;   /* pill backgrounds, secondary controls */
-  --surface-3:        #E2E8F0;   /* borders, dividers */
-  --surface-dark:     #0F172A;   /* deep obsidian dark cards (Sell Order card) */
-  --surface-dark-2:   #1E293B;   /* secondary dark surface */
+  /* ─────────────────────────────────────────────────────────────────────────
+     2. TEXT & HIERARCHY
+     ───────────────────────────────────────────────────────────────────────── */
+  --text-primary:       #0F172A;   /* slate-900 high contrast */
+  --text-secondary:     #475569;   /* slate-600 readable body & descriptions */
+  --text-muted:         #94A3B8;   /* slate-400 captions & hints */
+  --text-inverse:       #FFFFFF;   /* text on dark cards */
+  --text-inverse-sub:   #CBD5E1;   /* secondary on dark cards */
 
-  /* Text colours */
-  --text-primary:     #0F172A;   /* slate-900 high contrast */
-  --text-secondary:   #475569;   /* slate-600 */
-  --text-muted:       #94A3B8;   /* slate-400 captions, placeholders */
-  --text-inverse:     #FFFFFF;   /* text on dark cards */
-  --text-inverse-sub: #94A3B8;   /* secondary on dark cards */
+  /* ─────────────────────────────────────────────────────────────────────────
+     3. BORDERS & HAILINES
+     ───────────────────────────────────────────────────────────────────────── */
+  --rule:               #E2E8F0;
+  --border:             #E2E8F0;
+  --border-subtle:      rgba(15, 23, 42, 0.06);
+  --border-strong:      #CBD5E1;
+  --border-light:       rgba(226, 232, 240, 0.8);
 
-  /* Hairlines & Borders */
-  --rule:             #E2E8F0;
-  --border:           #E2E8F0;
-  --border-strong:    #CBD5E1;
-  --border-light:     rgba(226, 232, 240, 0.7);
+  /* ─────────────────────────────────────────────────────────────────────────
+     4. SEMANTIC THERMAL & ENGINEERING PALETTE (Disciplined & Purposeful)
+     ───────────────────────────────────────────────────────────────────────── */
+  /* Brand Interaction (Cobalt) */
+  --brand-blue:         #1E40AF;   /* authoritative cobalt */
+  --brand-blue-hover:   #1D4ED8;
+  --brand-blue-soft:    #EFF6FF;
+  --blue:               #2563EB;
+  --blue-soft:          #EFF6FF;
 
-  /* Vivid Accents */
-  --orange:           #F97316;   /* solar gain, primary CTA, warning */
-  --orange-soft:      #FFF2EA;
-  --accent:           #F97316;
-  --solar:            #F97316;
-  --blue:             #3B82F6;   /* primary interactive blue */
-  --blue-soft:        #EFF6FF;
-  --ice:              #0284C7;   /* cold, heat loss, sub-zero */
-  --ice-soft:         #E0F2FE;
-  --sage:             #10B981;   /* comfort compliant, energy saved */
-  --sage-soft:        #E6F8EF;
-  --danger:           #EF4444;   /* severe risk */
-  --danger-soft:      #FEECEE;
-  --comfort:          #10B981;
+  /* Solar Heat & Envelope Gain (Warm Terracotta / Amber) */
+  --solar:              #C2410C;   /* refined warm terracotta ember */
+  --solar-soft:         #FFF7ED;
+  --orange:             #C2410C;
+  --orange-soft:        #FFF7ED;
+  --accent:             #C2410C;
 
-  /* Pastel Card Accent Tints (From Inspo UI) */
-  --pastel-lavender-bg:   #EEF0FF;
-  --pastel-lavender-text: #4F46E5;
-  --pastel-mint-bg:       #E6F8EF;
-  --pastel-mint-text:     #059669;
-  --pastel-amber-bg:      #FEF3C7;
-  --pastel-amber-text:    #D97706;
-  --pastel-sky-bg:        #E0F2FE;
-  --pastel-sky-text:      #0284C7;
-  --pastel-rose-bg:       #FEECEE;
-  --pastel-rose-text:     #E11D48;
+  /* Extreme Cold & Sub-Zero Deficit (Frost Steel) */
+  --cold:               #0284C7;   /* glacial frost steel */
+  --cold-soft:          #F0F9FF;
+  --ice:                #0284C7;
+  --ice-soft:           #F0F9FF;
 
-  /* Legacy aliases for backward compatibility across existing sub-pages */
-  --cream:            var(--bg-base);
-  --cream-2:          var(--bg-card);
-  --espresso:         var(--text-primary);
-  --espresso-70:      var(--text-secondary);
-  --espresso-40:      var(--text-muted);
+  /* Standard / Verified Comfort Compliance (Muted Forest Pine) */
+  --comfort:            #15803D;   /* disciplined forest pine, never neon */
+  --comfort-soft:       #F0FDF4;
+  --sage:               #15803D;
+  --sage-soft:          #F0FDF4;
 
-  /* ─────────────────────────────────────────
-     TYPOGRAPHY
-     ───────────────────────────────────────── */
+  /* Operational Alert & Hazard (Muted Crimson) */
+  --danger:             #DC2626;   /* controlled deep crimson */
+  --danger-soft:        #FEF2F2;
+
+  /* Neutral architectural tint replacements for old pastels */
+  --pastel-lavender-bg:   #F8FAFC;
+  --pastel-lavender-text: #334155;
+  --pastel-mint-bg:       #F0FDF4;
+  --pastel-mint-text:     #15803D;
+  --pastel-amber-bg:      #FFFBEB;
+  --pastel-amber-text:    #B45309;
+  --pastel-sky-bg:        #F0F9FF;
+  --pastel-sky-text:      #0369A1;
+  --pastel-rose-bg:       #FEF2F2;
+  --pastel-rose-text:     #DC2626;
+
+  /* Legacy aliases for sub-components */
+  --cream:              var(--bg-base);
+  --cream-2:            var(--bg-card);
+  --espresso:           var(--text-primary);
+  --espresso-70:        var(--text-secondary);
+  --espresso-40:        var(--text-muted);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     5. TYPOGRAPHY
+     ───────────────────────────────────────────────────────────────────────── */
   --font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-sans:    'DM Sans', system-ui, -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-serif:   'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
   /* Type Scale */
-  --text-hero-size:       clamp(32px, 4.5vw, 56px);
-  --text-hero-lh:         1.1;
+  --text-hero-size:       clamp(32px, 4vw, 52px);
+  --text-hero-lh:         1.15;
   --text-hero-weight:     800;
   --text-hero-tracking:   -0.03em;
 
-  --text-display-size:    28px;
-  --text-display-lh:      1.2;
+  --text-display-size:    26px;
+  --text-display-lh:      1.25;
   --text-display-weight:  700;
   --text-display-spacing: -0.02em;
 
-  --text-title-size:      20px;
-  --text-title-lh:        1.3;
+  --text-title-size:      19px;
+  --text-title-lh:        1.35;
   --text-title-weight:    700;
   --text-title-spacing:   -0.015em;
 
-  --text-subhead-size:    16px;
-  --text-subhead-lh:      1.4;
+  --text-subhead-size:    15px;
+  --text-subhead-lh:      1.45;
   --text-subhead-weight:  600;
 
-  --text-body-size:       14.5px;
-  --text-body-lh:         1.55;
+  --text-body-size:       14px;
+  --text-body-lh:         1.6;
   --text-body-weight:     400;
 
-  --text-label-size:      12.5px;
+  --text-label-size:      12px;
   --text-label-lh:        1.4;
   --text-label-weight:    600;
 
-  --text-caption-size:    11.5px;
+  --text-caption-size:    11px;
   --text-caption-lh:      1.4;
   --text-caption-weight:  500;
 
-  --text-metric-size:     26px;
+  --text-metric-size:     28px;
   --text-metric-lh:       1.1;
   --text-metric-weight:   700;
 
-  /* ─────────────────────────────────────────
-     SPACING & METRICS
-     ───────────────────────────────────────── */
+  /* ─────────────────────────────────────────────────────────────────────────
+     6. SPACING SCALE (Spacious & Well-Padded)
+     ───────────────────────────────────────────────────────────────────────── */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 16px;
@@ -124,32 +148,154 @@
   --space-5: 32px;
   --space-6: 48px;
   --space-7: 64px;
+  --space-8: 80px;
 
-  /* ─────────────────────────────────────────
-     BORDERS, SHADOWS & RADIUS
-     ───────────────────────────────────────── */
+  /* Page container spacing */
+  --page-padding-x: clamp(24px, 3vw, 44px);
+  --page-padding-y: clamp(24px, 3vw, 36px);
+  --card-padding:   clamp(20px, 2vw, 30px);
+  --card-gap:       24px;
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     7. BORDERS, RADII & SHADOWS
+     ───────────────────────────────────────────────────────────────────────── */
+  --radius-xs:   4px;
   --radius-sm:   6px;
   --radius-md:   10px;
-  --radius-lg:   16px;
-  --radius-xl:   22px;
-  --radius-2xl:  28px;
-  --radius-full: 9999px; /* Floating pill controls */
+  --radius-lg:   14px;
+  --radius-xl:   18px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
   --border-width: 1px;
 
-  /* Inspo Soft Neo-Morphic & Elevated Shadows */
+  /* Soft, Non-Crumpled Precision Elevation */
   --shadow-xs:       0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm:       0 2px 8px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
-  --shadow-md:       0 8px 24px -4px rgba(15, 23, 42, 0.06), 0 2px 8px -2px rgba(15, 23, 42, 0.03);
-  --shadow-lg:       0 16px 36px -6px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
-  --shadow-floating: 0 20px 48px -8px rgba(15, 23, 42, 0.12), 0 8px 20px -4px rgba(15, 23, 42, 0.05);
-  --shadow-dark:     0 20px 40px -8px rgba(0, 0, 0, 0.35), 0 8px 16px -4px rgba(0, 0, 0, 0.2);
+  --shadow-sm:       0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-md:       0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --shadow-lg:       0 12px 32px -4px rgba(15, 23, 42, 0.07), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+  --shadow-floating: 0 16px 40px -8px rgba(15, 23, 42, 0.10);
+  --shadow-dark:     0 20px 44px -8px rgba(0, 0, 0, 0.35);
 
-  /* Architectural Canvas & Floating Glass */
-  --canvas-bg:      #F0F4F8;
-  --canvas-grid:    rgba(148, 163, 184, 0.15);
-  --glass-bg:       rgba(255, 255, 255, 0.9);
+  /* Architectural Canvas & Grid */
+  --canvas-bg:      #F8FAFC;
+  --canvas-grid:    rgba(148, 163, 184, 0.12);
+  --glass-bg:       rgba(255, 255, 255, 0.92);
   --glass-bg-hover: rgba(255, 255, 255, 0.98);
   --glass-border:   rgba(226, 232, 240, 0.85);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   UNIFIED BUTTON DESIGN SYSTEM
+   ───────────────────────────────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #FFFFFF;
+  background-color: var(--surface-dark);
+  border: 1px solid var(--surface-dark);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
+  line-height: 1.2;
+}
+
+.btn-primary:hover {
+  background-color: #1E293B;
+  border-color: #1E293B;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-xs);
+  line-height: 1.2;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.12s ease;
+}
+
+.btn-ghost:hover {
+  background-color: var(--surface-2);
+  color: var(--text-primary);
+}
+
+/* Standardized Segmented Control / Preset Chip */
+.segmented-control {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 3px;
+}
+
+.segmented-tab {
+  padding: 6px 14px;
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.segmented-tab:hover {
+  color: var(--text-primary);
+}
+
+.segmented-tab.active {
+  background-color: #FFFFFF;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
 }
 
 /* OUTLINED CHIP FOR ESTIMATES */
@@ -157,9 +303,9 @@
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 2px 7px;
@@ -169,20 +315,45 @@
   line-height: 1.2;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   CANONICAL COLOR PALETTE REFERENCE UTILITIES (Locked Inspo System)
-   ───────────────────────────────────────────────────────────────────────────── */
-.bg-canvas-mist    { background-color: var(--bg-base); }
-.bg-card-white     { background-color: var(--bg-card); }
-.bg-card-dark      { background-color: var(--surface-dark); color: var(--text-inverse); }
+/* Standardized Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  line-height: 1.2;
+}
 
-.bg-pastel-sky     { background-color: var(--pastel-sky-bg); color: var(--pastel-sky-text); }
-.bg-pastel-lavender{ background-color: var(--pastel-lavender-bg); color: var(--pastel-lavender-text); }
-.bg-pastel-mint    { background-color: var(--pastel-mint-bg); color: var(--pastel-mint-text); }
-.bg-pastel-amber   { background-color: var(--pastel-amber-bg); color: var(--pastel-amber-text); }
-.bg-pastel-rose    { background-color: var(--pastel-rose-bg); color: var(--pastel-rose-text); }
+.status-badge-cold {
+  background-color: var(--cold-soft);
+  color: var(--cold);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
 
-.text-primary      { color: var(--text-primary); }
-.text-secondary    { color: var(--text-secondary); }
-.text-muted        { color: var(--text-muted); }
-.text-inverse      { color: var(--text-inverse); }
+.status-badge-solar {
+  background-color: var(--solar-soft);
+  color: var(--solar);
+  border: 1px solid rgba(194, 65, 12, 0.2);
+}
+
+.status-badge-comfort {
+  background-color: var(--comfort-soft);
+  color: var(--comfort);
+  border: 1px solid rgba(21, 128, 61, 0.2);
+}
+
+.status-badge-alert {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.status-badge-neutral {
+  background-color: var(--surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}

@@ -1,3 +1,5 @@
+/* TopBar.css — Clean Architectural Top Navigation */
+
 .platform-topbar {
   height: 64px;
   background-color: var(--surface-1);
@@ -5,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
+  padding: 0 var(--page-padding-x);
   position: sticky;
   top: 0;
   z-index: 40;
@@ -14,33 +16,36 @@
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .topbar-back-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  background-color: var(--surface-2);
+  background-color: var(--surface-1);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .topbar-back-btn:hover {
-  background-color: var(--surface-1);
-  color: var(--orange);
-  border-color: var(--orange);
+  background-color: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
 }
 
 .topbar-breadcrumbs {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .breadcrumb-link {
@@ -53,7 +58,7 @@
 }
 
 .breadcrumb-link:hover {
-  color: var(--orange);
+  color: var(--brand-blue);
 }
 
 .breadcrumb-current {
@@ -61,17 +66,21 @@
   font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-estate-pill {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 3px 10px;
   background-color: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .topbar-sep {
@@ -87,9 +96,12 @@
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Center Search Pill (Inspo style) */
+/* Center Search Pill */
 .topbar-center {
   flex: 1;
   max-width: 440px;
@@ -101,10 +113,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
+  padding: 8px 16px;
   background-color: var(--surface-2);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   font-family: var(--font-body);
   font-size: 13px;
@@ -115,13 +127,13 @@
 
 .topbar-cmd-btn:hover {
   border-color: var(--border-strong);
-  background-color: var(--surface-1);
+  background-color: #FFFFFF;
   box-shadow: var(--shadow-sm);
 }
 
 .cmd-search-icon {
   color: var(--text-muted);
-  margin-right: 8px;
+  margin-right: 10px;
   flex-shrink: 0;
 }
 
@@ -129,7 +141,7 @@
   flex: 1;
   text-align: left;
   color: var(--text-muted);
-  font-size: 12.5px;
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -140,18 +152,19 @@
   font-size: 10.5px;
   font-weight: 600;
   padding: 2px 6px;
-  background: var(--surface-1);
+  background: #FFFFFF;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  margin-left: 8px;
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  margin-left: 10px;
 }
 
-/* Right Section Actions (Inspo round actions) */
+/* Right Section Actions */
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
 .topbar-icon-actions {
@@ -164,9 +177,9 @@
   position: relative;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  background-color: var(--surface-2);
-  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-1);
+  border: 1px solid var(--border);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -176,47 +189,44 @@
 }
 
 .topbar-circle-action:hover {
-  background-color: var(--surface-1);
+  background-color: var(--surface-2);
   color: var(--text-primary);
   border-color: var(--border-strong);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-xs);
 }
 
 .notification-dot {
   position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 7px;
-  height: 7px;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background-color: var(--orange);
-  border: 1.5px solid var(--surface-1);
+  background-color: var(--danger);
 }
 
 .engine-status-pill {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  background-color: var(--sage-soft);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: var(--radius-full);
+  padding: 6px 12px;
+  background-color: var(--comfort-soft);
+  border: 1px solid rgba(21, 128, 61, 0.2);
+  border-radius: var(--radius-md);
 }
 
 .status-dot-live {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: var(--sage);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  background-color: var(--comfort);
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
 }
 
 .status-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 700;
-  color: var(--sage);
+  font-weight: 600;
+  color: var(--comfort);
   letter-spacing: 0.02em;
 }
-

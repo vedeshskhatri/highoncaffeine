@@ -1,14 +1,17 @@
+/* LibraryPage.css — Alpine Standard Drawings Library */
+
 .library-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5);
+  width: 100%;
 }
 
 .library-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 
@@ -16,31 +19,39 @@
   font-family: var(--font-heading);
   font-size: 24px;
   font-weight: 700;
-  color: var(--espresso);
-  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
 }
 
 .library-subtitle {
-  font-size: 14px;
-  color: var(--espresso-70);
+  font-size: 13.5px;
+  color: var(--text-secondary);
   margin: 0;
+  line-height: 1.5;
 }
 
 .drawings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--card-gap);
 }
 
 .drawing-card {
-  background-color: var(--cream);
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  padding: 22px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 26px 28px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 2px 8px rgba(32, 15, 7, 0.03);
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.drawing-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .drawing-card-top {
@@ -52,16 +63,17 @@
 .drawing-title-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .revision-pill {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 7px;
-  background-color: var(--espresso);
-  color: var(--cream);
-  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  background-color: var(--surface-dark);
+  color: #FFFFFF;
+  border-radius: var(--radius-sm);
 }
 
 .compare-checkbox-label {
@@ -69,48 +81,48 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--espresso-70);
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
 .drawing-name {
   font-family: var(--font-heading);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  color: var(--espresso);
+  color: var(--text-primary);
   margin: 0;
 }
 
 .drawing-author {
   font-size: 12px;
-  color: var(--espresso-40);
-  margin-top: -6px;
+  color: var(--text-muted);
+  margin-top: -8px;
 }
 
 .drawing-specs {
-  background-color: var(--cream-2);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 12px;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .spec-row {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
 }
 
 .spec-k {
-  color: var(--espresso-70);
+  color: var(--text-secondary);
 }
 
 .spec-v {
-  font-weight: 500;
-  color: var(--espresso);
+  font-weight: 600;
+  color: var(--text-primary);
   text-align: right;
 }
 
@@ -123,57 +135,58 @@
 
 .site-select-input {
   width: 100%;
-  padding: 8px 10px;
-  background: var(--cream);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
+  padding: 8px 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   font-family: var(--font-body);
   font-size: 13px;
-  color: var(--espresso);
+  color: var(--text-primary);
   outline: none;
   margin-top: 6px;
 }
 
 .compare-modal-wide {
-  max-width: 800px;
+  max-width: 840px;
 }
 
 .compare-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  margin: 16px 0;
+  margin: 18px 0;
 }
 
 .compare-col {
-  background-color: var(--cream-2);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 16px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .compare-col h4 {
   margin: 0;
   font-family: var(--font-heading);
   font-size: 16px;
-  color: var(--espresso);
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .author-tag {
-  font-size: 11.5px;
-  color: var(--espresso-40);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .compare-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 12.5px;
-  border-top: 1px solid var(--rule);
-  padding-top: 10px;
+  gap: 10px;
+  font-size: 13px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
 }
 
 .detail-item {
@@ -184,5 +197,7 @@
 
 .detail-item span:first-child {
   font-size: 11px;
-  color: var(--espresso-70);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
