@@ -72,50 +72,97 @@ export default function MetricCards({ summary }) {
       ? `${Math.round(animKerosene).toLocaleString()} L`
       : '—';
 
+  const isHeatBinding = summary?.binding_constraint === 'heat_risk';
+  const hoursAboveUpper = summary?.hours_above_upper_limit ?? 0;
+  const coolingKw = summary?.cooling_demand_peak_kw ?? 0;
+  const coolingHours = summary?.cooling_demand_hours ?? 0;
   const isBelowSafe = typeof t_in_min_c === 'number' && t_in_min_c < 18.0;
 
-  const cards = [
-    {
-      id: 'dawn-min',
-      label: 'Overnight Min (Dawn)',
-      meta: hourFormatted,
-      value: minTempFormatted,
-      sub: isBelowSafe ? 'Below 18 °C threshold' : 'Maintains safe temperature',
-      icon: Moon,
-      color: isBelowSafe ? 'var(--danger)' : 'var(--text-primary)',
-      accentBorder: isBelowSafe ? '1.5px solid var(--danger)' : '1px solid var(--border)',
-    },
-    {
-      id: 'comfort-band',
-      label: 'Comfort Hours',
-      meta: 'IMAC Band',
-      value: comfortPctFormatted,
-      sub: 'Diurnal hours in thermal comfort',
-      icon: ShieldCheck,
-      color: 'var(--comfort)',
-      accentBorder: '1px solid var(--border)',
-    },
-    {
-      id: 'health-risk',
-      label: 'Cold Exposure Risk',
-      meta: 'WHO < 18°C',
-      value: healthHoursFormatted,
-      sub: 'Hours below health guidance',
-      icon: AlertTriangle,
-      color: hours_below_health_threshold > 0 ? 'var(--danger)' : 'var(--comfort)',
-      accentBorder: '1px solid var(--border)',
-    },
-    {
-      id: 'kerosene-saved',
-      label: 'Kerosene Avoided',
-      meta: 'Annual',
-      value: keroseneAvoidedFormatted,
-      sub: 'Displaced combustion fuel/year',
-      icon: Droplet,
-      color: 'var(--accent)',
-      accentBorder: '1px solid var(--border)',
-    },
-  ];
+  const cards = isHeatBinding
+    ? [
+        {
+          id: 'peak-max',
+          label: 'Peak Indoor Temp',
+          meta: 'Diurnal Peak',
+          value: typeof summary.t_in_max_c === 'number' ? `${summary.t_in_max_c.toFixed(1)} °C` : '—',
+          sub: summary.t_in_max_c > 35 ? 'Severe heat stress threshold' : 'High insolation heat gain',
+          icon: AlertTriangle,
+          color: summary.t_in_max_c > 35 ? 'var(--danger)' : 'var(--solar)',
+          accentBorder: summary.t_in_max_c > 35 ? '1.5px solid var(--danger)' : '1px solid var(--border)',
+        },
+        {
+          id: 'comfort-band',
+          label: 'Comfort Hours',
+          meta: 'IMAC Band',
+          value: comfortPctFormatted,
+          sub: 'Diurnal hours in thermal comfort',
+          icon: ShieldCheck,
+          color: 'var(--comfort)',
+          accentBorder: '1px solid var(--border)',
+        },
+        {
+          id: 'heat-risk',
+          label: 'Overheating Risk',
+          meta: 'IMAC Upper Limit',
+          value: `${hoursAboveUpper} / 24 h`,
+          sub: 'Hours exceeding comfort upper limit',
+          icon: AlertTriangle,
+          color: hoursAboveUpper > 0 ? 'var(--danger)' : 'var(--comfort)',
+          accentBorder: hoursAboveUpper > 0 ? '1.5px solid var(--danger)' : '1px solid var(--border)',
+        },
+        {
+          id: 'cooling-demand',
+          label: 'Cooling Demand',
+          meta: 'Peak Sensible',
+          value: `${coolingKw.toFixed(1)} kW`,
+          sub: coolingHours > 0 ? `${coolingHours} hrs active cooling required` : 'Passive dissipation adequate',
+          icon: Droplet,
+          color: coolingKw > 0 ? 'var(--ice, #5bc0be)' : 'var(--comfort)',
+          accentBorder: '1px solid var(--border)',
+        },
+      ]
+    : [
+        {
+          id: 'dawn-min',
+          label: 'Overnight Min (Dawn)',
+          meta: hourFormatted,
+          value: minTempFormatted,
+          sub: isBelowSafe ? 'Below 18 °C threshold' : 'Maintains safe temperature',
+          icon: Moon,
+          color: isBelowSafe ? 'var(--danger)' : 'var(--text-primary)',
+          accentBorder: isBelowSafe ? '1.5px solid var(--danger)' : '1px solid var(--border)',
+        },
+        {
+          id: 'comfort-band',
+          label: 'Comfort Hours',
+          meta: 'IMAC Band',
+          value: comfortPctFormatted,
+          sub: 'Diurnal hours in thermal comfort',
+          icon: ShieldCheck,
+          color: 'var(--comfort)',
+          accentBorder: '1px solid var(--border)',
+        },
+        {
+          id: 'health-risk',
+          label: 'Cold Exposure Risk',
+          meta: 'WHO < 18°C',
+          value: healthHoursFormatted,
+          sub: 'Hours below health guidance',
+          icon: AlertTriangle,
+          color: hours_below_health_threshold > 0 ? 'var(--danger)' : 'var(--comfort)',
+          accentBorder: '1px solid var(--border)',
+        },
+        {
+          id: 'kerosene-saved',
+          label: 'Kerosene Avoided',
+          meta: 'Annual',
+          value: keroseneAvoidedFormatted,
+          sub: 'Displaced combustion fuel/year',
+          icon: Droplet,
+          color: 'var(--accent)',
+          accentBorder: '1px solid var(--border)',
+        },
+      ];
 
   return (
     <div

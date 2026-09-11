@@ -262,14 +262,6 @@ def get_validation_measurements_provenance() -> List[Dict[str, Any]]:
             "status": "SOURCED",
             "basis": "Automated building management system datalogger records.",
         },
-        {
-            "item": "ANSYS Continuum FEM Benchmark Cases 1–3",
-            "value": "Multi-layer transient thermal gradient comparison",
-            "unit": "°C, W",
-            "source": "ANSYS Mechanical 2024 R1 3D Continuum FEM Solid Element Solver",
-            "status": "SOURCED",
-            "basis": "Independent 3D numerical boundary-value solution cross-validation.",
-        },
     ]
 
 

@@ -5,11 +5,14 @@
  * Fully offline — zero LLM, zero external API, zero network dependencies.
  *
  * Supported patterns:
- *  - "open <step>" / "go to <step>" -> { type: 'NAVIGATE_STEP', step }
+ *  - "open <step>" / "go to <step>" / "switch to <step>" -> { type: 'NAVIGATE_STEP', step }
  *  - "simulate <site>" -> { type: 'SET_SITE_AND_NAVIGATE', site, step: 'simulate' }
- *  - "simulate <site> with <material> walls" -> { type: 'SET_SITE_AND_MATERIAL_AND_NAVIGATE', site, material, step: 'simulate' }
+ *  - "simulate <site> with <material> walls" (or wall) -> { type: 'SET_SITE_AND_MATERIAL_AND_NAVIGATE', site, material, step: 'simulate' }
  *  - "compare <material A> vs <material B>" -> { type: 'COMPARE_MATERIALS', materialA, materialB }
- *  - "show validation" -> { type: 'NAVIGATE_STEP', step: 'validation panel toggle' }
+ *  - "show validation" / "open validation" -> { type: 'NAVIGATE_STEP', step: 'validation panel toggle' }
+ *  - "simulate" / "run simulation" -> { type: 'NAVIGATE_STEP', step: 'simulate' }
+ *  - "exit demo" / "close demo" -> { type: 'EXIT_DEMO' }
+ *  - "demo" / "start demo" -> { type: 'START_DEMO' }
  */
 
 import { SITE_PRESETS, FALLBACK_MATERIALS, STEPS } from './presets.js';
@@ -40,10 +43,9 @@ export function resolveStep(input, stepsList = STEPS) {
   }
 
   // Common synonyms / short names
-  if (norm === 'simulation') return 'simulate';
-  if (norm === 'optimization') return 'optimize';
-  if (norm === 'forecast') return 'watch';
-  if (norm === 'forecast watch') return 'watch';
+  if (norm === 'simulation' || norm === 'sim') return 'simulate';
+  if (norm === 'optimization' || norm === 'opt') return 'optimize';
+  if (norm === 'forecast' || norm === 'forecast watch') return 'watch';
 
   return null;
 }
@@ -68,14 +70,17 @@ export function resolveSite(input, presets = SITE_PRESETS) {
 
 /**
  * Resolves material from list of materials or material IDs.
- * Matches against ID or common human name (e.g. 'rammed earth', 'mud brick', 'stone', 'eps').
+ * Strips optional trailing "wall" or "walls" and matches against ID or human name.
  * @param {string} input
  * @param {Array} [materials]
  * @returns {Object|null}
  */
 export function resolveMaterial(input, materials = FALLBACK_MATERIALS) {
-  const norm = normalize(input);
+  let norm = normalize(input);
   if (!norm) return null;
+
+  // Clean trailing "wall" or "walls"
+  norm = norm.replace(/\s+walls?$/i, '').trim();
 
   const list = materials.map(m => {
     if (typeof m === 'string') {
@@ -123,6 +128,16 @@ export function parseCommand(text, context = {}) {
   const sites = context.sitePresets || SITE_PRESETS;
   const materials = context.materialIds || context.materials || FALLBACK_MATERIALS;
 
+  // Pattern 0a: Demo mode commands
+  if (/^(?:exit|close|stop|leave)\s+demo(?:\s+mode)?$/i.test(raw)) {
+    return { type: 'EXIT_DEMO' };
+  }
+  if (/^(?:open|start|launch|run)?\s*demo(?:\s+mode)?$/i.test(raw) && !/^simulate/i.test(raw)) {
+    return { type: 'START_DEMO' };
+  }
+
+
+
   // Pattern 1: Validation panel toggle
   // "show validation", "open validation", "show validation panel", "toggle validation"
   if (/^(?:show|open|toggle)\s+validation(?:\s+panel)?$/i.test(raw)) {
@@ -133,8 +148,8 @@ export function parseCommand(text, context = {}) {
   }
 
   // Pattern 2: Navigation to step
-  // "open <step>" or "go to <step>"
-  const navMatch = raw.match(/^(?:open|go\s+to)\s+(.+)$/i);
+  // "open <step>", "go to <step>", "switch to <step>"
+  const navMatch = raw.match(/^(?:open|go\s+to|switch\s+to)\s+(.+)$/i);
   if (navMatch) {
     const target = navMatch[1].trim();
     if (/^validation(?:\s+panel)?$/i.test(target)) {
@@ -154,9 +169,9 @@ export function parseCommand(text, context = {}) {
     return null;
   }
 
-  // Pattern 3: Simulate site with material walls
-  // "simulate <site> with <material> walls" or "simulate <site> with <material>"
-  const simMatMatch = raw.match(/^simulate\s+(.+?)\s+with\s+(.+?)(?:\s+walls)?$/i);
+  // Pattern 3: Simulate site with material walls (handles "wall" and "walls")
+  // "simulate <site> with <material> walls" or "simulate <site> with <material> wall" or "simulate <site> with <material>"
+  const simMatMatch = raw.match(/^simulate\s+(.+?)\s+with\s+(.+?)(?:\s+walls?)?$/i);
   if (simMatMatch) {
     const siteStr = simMatMatch[1].trim();
     const matStr = simMatMatch[2].trim();

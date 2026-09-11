@@ -45,8 +45,9 @@ export default function SpecSheetCopy({ request, summary, provenance }) {
     const payback = impact.payback_years ? `${impact.payback_years.toFixed(1)} yr` : '2.4 yr';
     const co2 = impact.co2_kg_per_year ? `${(impact.co2_kg_per_year / 1000).toFixed(1)} t/yr` : '3.0 t/yr';
 
+    const siteName = loc.label || loc.name || (loc.lat > 30 && loc.lat < 36 && loc.lon > 75 && loc.lon < 80 ? 'Ladakh Outpost' : 'Site');
     return [
-      `SHELTER SPEC — Leh (${loc.lat.toFixed(2)} N, ${loc.lon.toFixed(2)} E, ${loc.altitude_m} m) — ${weatherLabel}`,
+      `SHELTER SPEC — ${siteName} (${loc.lat.toFixed(2)} N, ${loc.lon.toFixed(2)} E, ${loc.altitude_m} m) — ${weatherLabel}`,
       `Wall:        ${wallsDesc}`,
       `Roof:        ${roofDesc}${roofEmissivity}`,
       `Orientation: ${Math.round(geom.orientation_deg)} deg  |  South glazing: ${glazingArea}  |  Night shutters: ${shutters}`,

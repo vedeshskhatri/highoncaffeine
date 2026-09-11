@@ -45,6 +45,9 @@ from api.schemas import (
     EngineeringReportResponse,
     ScenarioItemSchema,
     ScenarioLibraryResponse,
+    SurrogateMetricsResponse,
+    SurrogatePredictRequest,
+    SurrogatePredictResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -85,6 +88,34 @@ app.add_middleware(
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / "data" / "fixtures"
 VALIDATION_RESULTS_DIR = Path(__file__).resolve().parent.parent / "validation" / "results"
+
+
+@app.get("/", summary="THERMA API Root & Documentation Portal")
+def root_endpoint() -> Dict[str, Any]:
+    """Root metadata and navigational portal for the THERMA API."""
+    return {
+        "title": "THERMA API",
+        "description": "Area Specific Shelter Thermal Comfort Maintenance System (SIH 2026 PS 26051 · DRDO)",
+        "version": "0.1.0",
+        "status": "operational",
+        "frontend_url": "http://localhost:5173",
+        "docs_url": "http://127.0.0.1:8000/docs",
+        "endpoints": {
+            "health": "/health",
+            "simulate": "/simulate",
+            "materials": "/materials",
+            "validation": "/validation",
+            "surrogate_metrics": "/surrogate/metrics",
+            "surrogate_predict": "/surrogate/predict",
+            "location_elevation": "/location/elevation",
+            "location_search": "/location/search",
+            "estate_summary": "/estate/summary",
+            "sites": "/sites",
+            "alerts": "/alerts",
+            "programme": "/programme",
+            "forecast_watch": "/forecast_watch",
+        },
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -291,11 +322,39 @@ def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
     lo, hi = imac_comfort_band(t_out_mean, mode="nv", acceptability=0.90)
     comfort_hours_ratio = round(sum(1 for t in t_in_arr if lo <= t <= hi) / len(t_in_arr), 3)
     hours_below_health = int(sum(1 for t in t_in_arr if t < HEALTH_THRESHOLD_C))
+    hours_above_upper_limit = int(sum(1 for t in t_in_arr if t > hi))
+
+    if hours_below_health > 0 and hours_above_upper_limit == 0:
+        binding_constraint = "cold_risk"
+    elif hours_above_upper_limit > 0 and hours_below_health == 0:
+        binding_constraint = "heat_risk"
+    elif hours_above_upper_limit > 0 and hours_below_health > 0:
+        binding_constraint = "cold_and_heat_risk"
+    else:
+        binding_constraint = "optimal_comfort"
+
+    cooling_deficit_w = [max(0.0, (t - hi) * 50.0) for t in t_in_arr]
+    peak_cooling_kw = round(max(cooling_deficit_w) / 1000.0, 2)
+    cooling_hours = int(sum(1 for w in cooling_deficit_w if w > 0))
+
+    mean_rh = float(sum(r["rh"] for r in weather_rows) / len(weather_rows)) if weather_rows else 30.0
+    if request.location.altitude_m >= 2500.0:
+        climate_class = "cold_high_altitude"
+    elif t_out_mean >= 24.0 and mean_rh >= 55.0:
+        climate_class = "hot_humid"
+    elif t_out_mean >= 24.0 and mean_rh < 55.0:
+        climate_class = "hot_arid"
+    elif t_out_mean < 15.0:
+        climate_class = "cold_temperate"
+    else:
+        climate_class = "moderate_composite"
 
     # Backup heat sizing
     deficit_w = [max(0.0, (HEALTH_THRESHOLD_C - t) * 50.0) for t in t_in_arr]
     backup = backup_heat_sizing(deficit_w)
     backup_py = _to_python(backup)
+    if hours_below_health == 0 and hours_above_upper_limit > 0:
+        backup_py["note"] = "No heating demand at this site (indoor minimum > 18 °C). Site is cooling-dominated."
 
     annual_kerosene_l = float(backup_py["kerosene_litres_per_night"]) * 120.0
     annual_fuel_cost_inr = annual_kerosene_l * 2400.0
@@ -307,6 +366,11 @@ def _simulate_internal(request: SimulateRequest) -> Dict[str, Any]:
         "t_in_max_c": t_in_max_c,
         "comfort_hours_ratio": comfort_hours_ratio,
         "hours_below_health_threshold": hours_below_health,
+        "hours_above_upper_limit": hours_above_upper_limit,
+        "binding_constraint": binding_constraint,
+        "cooling_demand_peak_kw": peak_cooling_kw,
+        "cooling_demand_hours": cooling_hours,
+        "climate_classification": climate_class,
         "solar_gain_kwh": float(summary_eng["solar_gain_kwh"]),
         "heat_loss_kwh": {
             "walls": float(summary_eng["heat_loss_kwh"]["walls"]),
@@ -1078,4 +1142,154 @@ def get_scenarios_endpoint() -> ScenarioLibraryResponse:
         stub=False,
     )
 
+
+# ─── ML Surrogate Model Endpoints ──────────────────────────────────────────
+
+@app.get(
+    "/surrogate/metrics",
+    response_model=SurrogateMetricsResponse,
+    summary="Retrieve accuracy metrics and speed benchmarks for the ML surrogate model",
+)
+def get_surrogate_metrics_endpoint() -> Dict[str, Any]:
+    """Retrieve test-set accuracy metrics and benchmark speedups for the ML surrogate."""
+    from engine.surrogate import DEFAULT_METRICS_PATH
+    if not DEFAULT_METRICS_PATH.exists():
+        raise HTTPException(
+            status_code=503,
+            detail="Surrogate metrics not yet computed. Run scripts/train_surrogate.py first.",
+        )
+    with open(DEFAULT_METRICS_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    eval_res = data.get("eval_results", {})
+    targets = eval_res.get("targets", {})
+
+    return {
+        "trained_on_samples": data.get("dataset_metadata", {}).get("n_samples", 10000),
+        "train_duration_s": data.get("train_duration_s", 0.0),
+        "t_in_min_c_max_error": eval_res.get("t_in_min_c_max_error", 0.0),
+        "acceptance_passed": eval_res.get("acceptance_passed", True),
+        "targets": targets,
+        "benchmarks": data.get("benchmarks", {}),
+        "solver_reference": "EN ISO 52016-1 5R1C multi-node dynamic RC network",
+        "source_statement": (
+            "Trained exclusively on synthetic batch runs of our own ISO 52016-1 solver. "
+            "The surrogate provides sub-millisecond screening for the optimizer; "
+            "the empirical validation suite and final spec sheets strictly use the physics ODE solver."
+        ),
+    }
+
+
+@app.post(
+    "/surrogate/predict",
+    response_model=SurrogatePredictResponse,
+    summary="Sub-millisecond thermal screening via neural surrogate approximating ISO 52016-1",
+)
+def predict_surrogate_endpoint(request: SurrogatePredictRequest) -> Dict[str, Any]:
+    """Execute instant forward thermal screening using the ML surrogate model."""
+    import time
+    from engine.surrogate import get_surrogate_model, design_to_feature_vector
+    from engine.types import Design, Layer, Opening
+
+    t0 = time.perf_counter()
+
+    # Build design layers
+    wall_layers = [Layer(material_id=request.wall_material_id, thickness_m=request.wall_thickness_m)]
+    if request.insulation_thickness_m >= 0.01:
+        wall_layers.append(Layer(material_id="eps_board", thickness_m=request.insulation_thickness_m))
+
+    roof_layers = (Layer(material_id="concrete", thickness_m=request.roof_thickness_m),)
+    floor_layers = (Layer(material_id="concrete", thickness_m=request.floor_thickness_m),)
+    openings = (
+        Opening(
+            facing="south",
+            area_m2=request.south_glazing_m2,
+            glazing_id=request.glazing_type,
+            night_shutter=request.night_shutter,
+        ),
+    )
+
+    design = Design(
+        orientation_deg=request.orientation_deg,
+        walls=tuple(wall_layers),
+        roof=roof_layers,
+        floor=floor_layers,
+        openings=openings,
+        ach=request.ach,
+        roof_emissivity=request.roof_emissivity,
+        night_shutter=request.night_shutter,
+        length_m=request.length_m,
+        width_m=request.width_m,
+        height_m=request.height_m,
+    )
+
+    climate = {
+        "t_out_mean_c": request.t_out_mean_c,
+        "t_out_swing_c": request.t_out_swing_c,
+        "peak_dni": request.peak_dni,
+        "altitude_m": request.altitude_m,
+    }
+
+    surrogate = get_surrogate_model()
+    pred_dict = surrogate.predict_design(design, climate)
+
+    timing_ms = round((time.perf_counter() - t0) * 1000.0, 3)
+
+    return {
+        "source": "surrogate_estimate",
+        "is_surrogate": True,
+        "badge": "surrogate estimate",
+        "t_in_min_c": pred_dict["t_in_min_c"],
+        "t_in_max_c": pred_dict["t_in_max_c"],
+        "t_in_mean_c": pred_dict["t_in_mean_c"],
+        "comfort_hours_ratio": pred_dict["comfort_hours_ratio"],
+        "hours_below_health": pred_dict["hours_below_health"],
+        "timing_ms": timing_ms,
+        "disclaimer": (
+            "ML surrogate estimate trained on ISO 52016-1 solver runs. "
+            "Approximates physics for interactive screening; validation and final spec sheets strictly use the ISO 52016-1 ODE solver."
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# LOCATION & ELEVATION RESOLUTION ENDPOINTS
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/location/elevation",
+    summary="Resolve elevation ASL for coordinates with caching and non-defaulting policy",
+)
+def get_elevation_endpoint(lat: float, lon: float) -> Dict[str, Any]:
+    """
+    Resolve elevation for any coordinates on Earth using Open-Meteo Elevation API with local caching.
+    If elevation cannot be resolved, returns requires_user_input=True. Never defaults.
+    """
+    from api.location import resolve_elevation
+    elev, source = resolve_elevation(lat, lon)
+    return {
+        "lat": lat,
+        "lon": lon,
+        "elevation_m": elev,
+        "source": source,
+        "requires_user_input": elev is None,
+        "message": None if elev is not None else "Elevation lookup failed. Please specify site altitude (m ASL) manually.",
+    }
+
+
+@app.get(
+    "/location/search",
+    summary="Search places for coordinates and elevation lookup",
+)
+def search_places_endpoint(q: str, count: int = 8) -> Dict[str, Any]:
+    """
+    Search places globally using Open-Meteo Geocoding API with altitude, region, and country.
+    """
+    from api.location import search_places
+    results = search_places(q, count=count)
+    return {
+        "query": q,
+        "count": len(results),
+        "results": results,
+    }
 

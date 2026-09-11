@@ -86,6 +86,7 @@ D1 is NOT deleted — it remains the record of why the surrogate exists.
 **Decision:** Add `react-router-dom` to `web/` dependencies.
 **Why:** The platform requires multi-route navigation across Estate Dashboard (`/dashboard`), Site Registry (`/sites`, `/sites/:id`), Programme Planner (`/programme`), Cold Snap Alerts (`/alerts`), Design Library (`/library`), Materials Availability (`/materials`), Logistics Forecast (`/forecast`), Submission Pack Reports (`/reports/:id`), Method (`/method`), and Empirical Validation (`/validation`).
 **Consequence:** Client-side routing with clean URL navigation, breadcrumbs, persistent left sidebar, and global command palette (Cmd+K). Approved per Rule R5.
-
-
-
+### D20 — scikit-learn MLPRegressor for Fast Surrogate Model
+**Decision:** Add `scikit-learn` to backend dependencies for an MLP neural network surrogate trained on our ISO 52016-1 solver.
+**Why:** The round one judge explicitly asked about training a machine learning model ourselves. Replacing the solver with an LLM/Ollama would be scientifically invalid and unverifiable. Instead, following standard building energy meta-modelling literature, we train an MLP surrogate on runs of our own ISO 52016-1 solver. This provides interactive sub-millisecond screening for design optimization while preserving the ISO 52016-1 solver as the rigorous ground truth for validation and final verification.
+**Consequence:** `scikit-learn` added to `requirements.txt`. The validation path (`validation/`) and final spec sheets NEVER use the surrogate — they strictly execute the ISO 52016-1 ODE solver. Any surrogate-generated metric in the UI displays a clear "surrogate estimate" badge.

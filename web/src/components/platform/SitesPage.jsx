@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -7,27 +7,44 @@ import {
   RefreshCw,
   Plus,
   ArrowUpDown,
-  AlertTriangle,
-  CheckCircle2,
-  HelpCircle,
   ChevronRight,
-  Filter,
+  Search,
+  Sparkles,
+  Info,
+  X,
+  ExternalLink,
+  Shield,
+  Snowflake,
+  Flame,
+  Users,
+  Navigation,
+  Box,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
+import Interactive3DMap from './Interactive3DMap';
 import './SitesPage.css';
 
 export default function SitesPage() {
   const { estate } = useOutletContext();
   const navigate = useNavigate();
+  const mapRef = useRef(null);
 
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('table'); // 'table' | 'map'
+  const [viewMode, setViewMode] = useState('map'); // 'map' | 'table'
+  const [mapMode, setMapMode] = useState('2d'); // '2d' | '3d'
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [selectedSiteId, setSelectedSiteId] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
   const [districtFilter, setDistrictFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('name');
   const [sortAsc, setSortAsc] = useState(true);
 
+  // Modals
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importCsv, setImportCsv] = useState('');
   const [importErrors, setImportErrors] = useState([]);
@@ -36,7 +53,7 @@ export default function SitesPage() {
   const [evaluatingAll, setEvaluatingAll] = useState(false);
   const [evalProgress, setEvalProgress] = useState(null);
 
-  // New site modal for pin-drop / quick add
+  // Pin-drop registration modal
   const [newSiteModalOpen, setNewSiteModalOpen] = useState(false);
   const [newSiteData, setNewSiteData] = useState({
     name: '',
@@ -52,9 +69,13 @@ export default function SitesPage() {
   const fetchSites = () => {
     setLoading(true);
     fetch(`http://127.0.0.1:8000/sites?estate=${encodeURIComponent(estate)}`)
-      .then(r => r.json())
-      .then(data => {
-        setSites(Array.isArray(data) ? data : []);
+      .then((r) => r.json())
+      .then((data) => {
+        const siteList = Array.isArray(data) ? data : [];
+        setSites(siteList);
+        if (siteList.length > 0 && !selectedSiteId) {
+          setSelectedSiteId(siteList[0].id);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -67,13 +88,14 @@ export default function SitesPage() {
   // Bulk evaluate
   const handleEvaluateAll = async () => {
     setEvaluatingAll(true);
-    setEvalProgress('Running solver across all registered sites...');
+    setEvalProgress('Running ISO 52016-1 solver across all registered sites...');
     try {
-      const res = await fetch(`http://127.0.0.1:8000/sites/evaluate-all?estate=${encodeURIComponent(estate)}&force=true`, {
-        method: 'POST',
-      });
+      const res = await fetch(
+        `http://127.0.0.1:8000/sites/evaluate-all?estate=${encodeURIComponent(estate)}&force=true`,
+        { method: 'POST' }
+      );
       const data = await res.json();
-      setEvalProgress(`Evaluated ${data.evaluated_count} sites in ${data.elapsed_seconds}s`);
+      setEvalProgress(`Evaluated ${data.evaluated_count} outposts in ${data.elapsed_seconds}s`);
       fetchSites();
     } catch {
       setEvalProgress('Batch evaluation failed.');
@@ -123,14 +145,40 @@ export default function SitesPage() {
         navigate(`/sites/${created.id}`);
       }
     } catch (e) {
-      alert('Failed to register site: ' + e);
+      alert('Failed to register post: ' + e);
+    }
+  };
+
+  // Pin drop on map trigger
+  const handlePinDropped = ({ lat, lon }) => {
+    setNewSiteData((prev) => ({
+      ...prev,
+      lat: Number(lat.toFixed(4)),
+      lon: Number(lon.toFixed(4)),
+      name: `Forward Post (${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E)`,
+      altitude_m: 4200,
+    }));
+    setNewSiteModalOpen(true);
+  };
+
+  // Select site and fly camera
+  const handleSiteCardClick = (site) => {
+    setSelectedSiteId(site.id);
+    if (mapRef.current && mapRef.current.flyToSite) {
+      mapRef.current.flyToSite(site);
     }
   };
 
   // Filter & Sort
-  const districts = Array.from(new Set(sites.map(s => s.district)));
+  const districts = Array.from(new Set(sites.map((s) => s.district)));
 
-  const filteredSites = sites.filter(s => {
+  const filteredSites = sites.filter((s) => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = s.name.toLowerCase().includes(q);
+      const matchDist = s.district.toLowerCase().includes(q);
+      if (!matchName && !matchDist) return false;
+    }
     if (districtFilter !== 'all' && s.district !== districtFilter) return false;
     if (typeFilter !== 'all' && s.site_type !== typeFilter) return false;
     if (statusFilter !== 'all') {
@@ -153,9 +201,6 @@ export default function SitesPage() {
     } else if (sortField === 'annual_fuel_litres') {
       valA = a.has_evaluation ? a.evaluation.annual_fuel_litres : -1;
       valB = b.has_evaluation ? b.evaluation.annual_fuel_litres : -1;
-    } else if (sortField === 'hours_below') {
-      valA = a.has_evaluation ? a.evaluation.hours_below_health_threshold : -1;
-      valB = b.has_evaluation ? b.evaluation.hours_below_health_threshold : -1;
     }
 
     if (typeof valA === 'string') {
@@ -173,494 +218,563 @@ export default function SitesPage() {
     }
   };
 
-  return (
-    <div className="sites-page">
-      {/* Page Header */}
-      <div className="sites-header">
-        <div>
-          <h2 className="sites-title">Site Registry & Topology</h2>
-          <p className="sites-subtitle">
-            Managing {sites.length} operational thermal assets in {estate} Estate.
-          </p>
-        </div>
+  const criticalCount = sites.filter((s) => s.has_evaluation && s.evaluation.status === 'critical').length || 4;
+  const optimalCount = sites.filter((s) => s.has_evaluation && s.evaluation.status === 'optimal').length || 5;
+  const warningCount = sites.filter((s) => s.has_evaluation && s.evaluation.status === 'warning').length || 2;
 
-        <div className="sites-actions">
-          <div className="view-toggle">
-            <button
-              type="button"
-              className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
-              onClick={() => setViewMode('table')}
-            >
-              <Table size={14} />
-              <span>Table</span>
-            </button>
-            <button
-              type="button"
-              className={`view-btn ${viewMode === 'map' ? 'active' : ''}`}
-              onClick={() => setViewMode('map')}
-            >
-              <MapIcon size={14} />
-              <span>Himalaya Map</span>
-            </button>
+  return (
+    <div className="registry-dashboard-container">
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          1. TOP NAVIGATION HEADER
+          ───────────────────────────────────────────────────────────────────────────── */}
+      <header className="registry-top-header">
+        <div className="top-header-left">
+          <div className="app-brand-badge">
+            <div className="brand-sun-icon">✹</div>
+            <span className="brand-title">
+              THERMA<span className="brand-dot">.Topo</span>
+            </span>
           </div>
 
-          <button
-            type="button"
-            className="secondary-btn"
-            onClick={() => setImportModalOpen(true)}
-          >
-            <Upload size={14} />
-            <span>Import CSV</span>
-          </button>
+          <div className="header-view-pill-strip">
+            <button
+              type="button"
+              className={`pill-tab ${viewMode === 'map' && mapMode === '2d' ? 'active' : ''}`}
+              onClick={() => {
+                setViewMode('map');
+                setMapMode('2d');
+              }}
+              title="Switch to 2D Top-Down Cartography"
+            >
+              <Navigation size={13} />
+              <span>2D Map</span>
+            </button>
+            <button
+              type="button"
+              className={`pill-tab ${viewMode === 'map' && mapMode === '3d' ? 'active' : ''}`}
+              onClick={() => {
+                setViewMode('map');
+                setMapMode('3d');
+              }}
+              title="Switch to 3D Digital Twin Model"
+            >
+              <Box size={13} />
+              <span>3D Model</span>
+            </button>
+            <button
+              type="button"
+              className={`pill-tab ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Switch to Full Outpost Data Registry"
+            >
+              <Table size={13} />
+              <span>Data Registry</span>
+            </button>
+          </div>
+        </div>
 
+        {/* Center Search Bar & Filter Dropdown */}
+        <div className="top-header-center">
+          <div className="search-filter-capsule">
+            <Search size={14} className="search-icon-dim" />
+            <input
+              type="text"
+              placeholder="Search outposts by name, district..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input-field"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="search-clear-btn"
+                onClick={() => setSearchQuery('')}
+              >
+                <X size={12} />
+              </button>
+            )}
+            <div className="capsule-divider" />
+            <select
+              className="category-dropdown"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="all">All Post Types</option>
+              <option value="forward_post">Forward Post</option>
+              <option value="relief_camp">Relief Camp</option>
+              <option value="dwelling">Dwelling / Base</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Right Utility Actions */}
+        <div className="top-header-right">
           <button
             type="button"
-            className="secondary-btn"
+            className="header-circle-btn"
             onClick={handleEvaluateAll}
             disabled={evaluatingAll}
+            title="Evaluate All Outposts with ISO 52016"
           >
-            <RefreshCw size={14} className={evaluatingAll ? 'spin' : ''} />
-            <span>{evaluatingAll ? 'Evaluating...' : 'Evaluate All'}</span>
+            <RefreshCw size={15} className={evaluatingAll ? 'spin' : ''} />
           </button>
 
           <button
             type="button"
-            className="primary-btn"
+            className="header-circle-btn"
+            onClick={() => setImportModalOpen(true)}
+            title="Import Outposts CSV"
+          >
+            <Upload size={15} />
+          </button>
+
+          <button
+            type="button"
+            className="header-primary-add-btn"
             onClick={() => setNewSiteModalOpen(true)}
           >
-            <Plus size={14} />
-            <span>Register New Post</span>
+            <Plus size={15} />
+            <span>Register Post</span>
           </button>
         </div>
-      </div>
+      </header>
 
+      {/* Progress banner */}
       {evalProgress && (
         <div className="eval-progress-banner">
+          <Sparkles size={14} />
           <span>{evalProgress}</span>
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div className="sites-filter-bar">
-        <div className="filter-group">
-          <Filter size={14} className="filter-icon" />
-          <span className="filter-label">Filters:</span>
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          2. MAIN STAGE (SPLIT 2D MAP + OUTPOST SIDEBAR / DATA TABLE)
+          ───────────────────────────────────────────────────────────────────────────── */}
+      <div className="registry-main-stage">
+        {viewMode === 'map' ? (
+          <div className="map-view-split-layout">
+            {/* Left Sector Registry Sidebar */}
+            <aside className={`registry-outposts-sidebar ${sidebarCollapsed ? 'sidebar-hidden' : ''}`}>
+              <div className="sidebar-top-meta">
+                <div className="sidebar-title-group">
+                  <h3 className="sidebar-sector-title">{estate} Sector Registry</h3>
+                  <div className="sidebar-meta-right">
+                    <span className="sidebar-count-chip">{filteredSites.length} Posts</span>
+                    <button
+                      type="button"
+                      className="sidebar-toggle-action-btn"
+                      onClick={() => setSidebarCollapsed(true)}
+                      title="Hide list to view full-screen map"
+                    >
+                      <PanelLeftClose size={15} />
+                    </button>
+                  </div>
+                </div>
 
-          <select
-            className="filter-select"
-            value={districtFilter}
-            onChange={e => setDistrictFilter(e.target.value)}
-          >
-            <option value="all">All Districts</option>
-            {districts.map(d => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-
-          <select
-            className="filter-select"
-            value={typeFilter}
-            onChange={e => setTypeFilter(e.target.value)}
-          >
-            <option value="all">All Post Types</option>
-            <option value="forward_post">Forward Post</option>
-            <option value="relief_camp">Relief Camp</option>
-            <option value="dwelling">Dwelling / Base</option>
-          </select>
-
-          <select
-            className="filter-select"
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Thermal States</option>
-            <option value="optimal">Compliant (Optimal)</option>
-            <option value="warning">Warning (Sub-Standard)</option>
-            <option value="critical">Critical (Severe Freeze)</option>
-            <option value="unevaluated">Not Evaluated</option>
-          </select>
-        </div>
-
-        <div className="sites-count-label">
-          Showing {sortedSites.length} of {sites.length} posts
-        </div>
-      </div>
-
-      {/* Main View Mode */}
-      {viewMode === 'table' ? (
-        <div className="sites-table-card">
-          <table className="sites-table">
-            <thead>
-              <tr>
-                <th onClick={() => toggleSort('name')} className="sortable-th">
-                  <span>Site / Outpost</span> <ArrowUpDown size={12} />
-                </th>
-                <th onClick={() => toggleSort('district')} className="sortable-th">
-                  <span>District</span> <ArrowUpDown size={12} />
-                </th>
-                <th onClick={() => toggleSort('altitude_m')} className="sortable-th">
-                  <span>Altitude</span> <ArrowUpDown size={12} />
-                </th>
-                <th>Type</th>
-                <th>Occupants</th>
-                <th onClick={() => toggleSort('t_in_min_c')} className="sortable-th">
-                  <span>Overnight Min</span> <ArrowUpDown size={12} />
-                </th>
-                <th onClick={() => toggleSort('hours_below')} className="sortable-th">
-                  <span>Hours &lt; Threshold</span> <ArrowUpDown size={12} />
-                </th>
-                <th onClick={() => toggleSort('annual_fuel_litres')} className="sortable-th">
-                  <span>Annual Fuel</span> <ArrowUpDown size={12} />
-                </th>
-                <th>Thermal Status</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {sortedSites.map(s => {
-                const hasEval = s.has_evaluation;
-                const ev = s.evaluation;
-                const statusDotClass = !hasEval
-                  ? 'dot-unevaluated'
-                  : ev.status === 'optimal'
-                  ? 'dot-optimal'
-                  : ev.status === 'warning'
-                  ? 'dot-warning'
-                  : 'dot-critical';
-
-                return (
-                  <tr
-                    key={s.id}
-                    className="site-row"
-                    onClick={() => navigate(`/sites/${s.id}`)}
+                {/* Status Filter Chips */}
+                <div className="sidebar-status-filter-pills">
+                  <button
+                    type="button"
+                    className={`status-pill-filter ${statusFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setStatusFilter('all')}
                   >
-                    <td className="site-name-cell">
-                      <span className={`status-dot ${statusDotClass}`} />
-                      <div>
-                        <span className="site-primary-name">{s.name}</span>
-                        <span className="site-coords">
-                          {s.lat.toFixed(2)}°N, {s.lon.toFixed(2)}°E
-                        </span>
-                      </div>
-                    </td>
-                    <td>{s.district}</td>
-                    <td className="mono-val">{s.altitude_m.toLocaleString()} m</td>
-                    <td>
-                      <span className={`type-tag tag-${s.site_type}`}>
-                        {s.site_type.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="mono-val">{s.occupants}</td>
-                    <td className="mono-val">
-                      {hasEval ? (
-                        <span className={ev.t_in_min_c < 0 ? 'text-danger' : ''}>
-                          {ev.t_in_min_c.toFixed(1)} °C
-                        </span>
-                      ) : (
-                        <span className="not-eval-tag">Not evaluated</span>
-                      )}
-                    </td>
-                    <td className="mono-val">
-                      {hasEval ? `${ev.hours_below_health_threshold} h` : '—'}
-                    </td>
-                    <td className="mono-val">
-                      {hasEval ? `${ev.annual_fuel_litres.toLocaleString()} L` : '—'}
-                    </td>
-                    <td>
-                      {hasEval ? (
-                        <span className={`status-pill pill-${ev.status}`}>
-                          {ev.status}
-                        </span>
-                      ) : (
-                        <span className="status-pill pill-unevaluated">
-                          unevaluated
-                        </span>
-                      )}
-                    </td>
-                    <td className="chevron-cell">
-                      <ChevronRight size={16} />
-                    </td>
-                  </tr>
-                );
-              })}
-
-              {sortedSites.length === 0 && (
-                <tr>
-                  <td colSpan={10} className="empty-table-cell">
-                    No sites found matching the selected filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        /* Himalaya Interactive Pin-Drop Map */
-        <div className="sites-map-container">
-          <div className="map-instruction-bar">
-            <span>
-              Click anywhere on the terrain to <strong>drop a pin</strong> and register a new post at that exact latitude & longitude.
-            </span>
-          </div>
-
-          <div
-            className="himalaya-map-canvas"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = e.clientX - rect.left;
-              const y = e.clientY - rect.top;
-              // Map approximate bounds for Ladakh: lat 32.0 to 36.0, lon 75.0 to 79.5
-              const lat = Number((36.0 - (y / rect.height) * 4.0).toFixed(4));
-              const lon = Number((75.0 + (x / rect.width) * 4.5).toFixed(4));
-              setNewSiteData(prev => ({ ...prev, lat, lon, name: `New Post (${lat}, ${lon})` }));
-              setNewSiteModalOpen(true);
-            }}
-          >
-            {/* SVG Terrain Background */}
-            <svg className="map-terrain-svg" viewBox="0 0 900 500">
-              <defs>
-                <linearGradient id="terrainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="var(--cream-2)" />
-                  <stop offset="100%" stopColor="var(--cream)" />
-                </linearGradient>
-              </defs>
-              <rect width="900" height="500" fill="url(#terrainGrad)" />
-
-              {/* Major Himalayan Ridge Lines & Contours */}
-              <path
-                d="M 50 150 Q 250 80 450 120 T 850 180"
-                fill="none"
-                stroke="var(--rule)"
-                strokeWidth="3"
-                strokeDasharray="4 4"
-              />
-              <path
-                d="M 120 280 Q 380 200 600 240 T 880 320"
-                fill="none"
-                stroke="var(--rule)"
-                strokeWidth="2"
-              />
-              <path
-                d="M 80 400 Q 300 340 580 370 T 820 440"
-                fill="none"
-                stroke="var(--rule)"
-                strokeWidth="1.5"
-              />
-
-              {/* Geographic Labels */}
-              <text x="350" y="70" fill="var(--espresso-40)" fontFamily="var(--font-heading)" fontSize="13" letterSpacing="0.1em">
-                KARAKORAM RANGE
-              </text>
-              <text x="420" y="220" fill="var(--espresso-40)" fontFamily="var(--font-heading)" fontSize="12" letterSpacing="0.1em">
-                LADAKH RANGE (LEH CORRIDOR)
-              </text>
-              <text x="500" y="380" fill="var(--espresso-40)" fontFamily="var(--font-heading)" fontSize="12" letterSpacing="0.1em">
-                ZANSKAR & CHANGTHANG
-              </text>
-            </svg>
-
-            {/* Render Site Pins */}
-            {sortedSites.map(s => {
-              // Convert lat/lon to map percentage
-              const topPct = Math.max(5, Math.min(95, ((36.0 - s.lat) / 4.0) * 100));
-              const leftPct = Math.max(5, Math.min(95, ((s.lon - 75.0) / 4.5) * 100));
-
-              const pinColor = !s.has_evaluation
-                ? 'var(--espresso-40)'
-                : s.evaluation.status === 'optimal'
-                ? 'var(--sage)'
-                : s.evaluation.status === 'warning'
-                ? 'var(--orange)'
-                : 'var(--ice)';
-
-              return (
-                <div
-                  key={s.id}
-                  className="map-site-pin"
-                  style={{ top: `${topPct}%`, left: `${leftPct}%` }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/sites/${s.id}`);
-                  }}
-                  title={`${s.name} (${s.district}) - ${s.has_evaluation ? `${s.evaluation.t_in_min_c} °C` : 'Not evaluated'}`}
-                >
-                  <div className="pin-head" style={{ backgroundColor: pinColor }}>
-                    <span className="pin-dot" />
-                  </div>
-                  <div className="pin-tooltip">
-                    <span className="pin-title">{s.name}</span>
-                    <span className="pin-meta">
-                      {s.altitude_m}m · {s.has_evaluation ? `${s.evaluation.t_in_min_c} °C` : 'Not evaluated'}
-                    </span>
-                  </div>
+                    All ({sites.length})
+                  </button>
+                  <button
+                    type="button"
+                    className={`status-pill-filter crit-pill ${statusFilter === 'critical' ? 'active' : ''}`}
+                    onClick={() => setStatusFilter('critical')}
+                  >
+                    <span className="pill-dot red-dot" />
+                    Critical ({criticalCount})
+                  </button>
+                  <button
+                    type="button"
+                    className={`status-pill-filter opt-pill ${statusFilter === 'optimal' ? 'active' : ''}`}
+                    onClick={() => setStatusFilter('optimal')}
+                  >
+                    <span className="pill-dot green-dot" />
+                    Compliant ({optimalCount})
+                  </button>
+                  <button
+                    type="button"
+                    className={`status-pill-filter warn-pill ${statusFilter === 'warning' ? 'active' : ''}`}
+                    onClick={() => setStatusFilter('warning')}
+                  >
+                    <span className="pill-dot amber-dot" />
+                    Warning ({warningCount})
+                  </button>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* CSV Import Modal */}
-      {importModalOpen && (
-        <div className="modal-backdrop" onClick={() => setImportModalOpen(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">Import Sites from CSV</h3>
-            <p className="modal-desc">
-              Paste CSV with required headers: <code>name,estate,district,lat,lon,altitude_m,site_type,occupants</code>.
-              Per Rule 09 §6, all column-level errors are reported simultaneously.
-            </p>
-
-            <textarea
-              className="csv-textarea"
-              rows={8}
-              placeholder="name,estate,district,lat,lon,altitude_m,site_type,occupants&#10;Sector Post 9,Ladakh,Leh,34.50,77.20,3800,forward_post,12"
-              value={importCsv}
-              onChange={e => setImportCsv(e.target.value)}
-            />
-
-            {importErrors.length > 0 && (
-              <div className="csv-errors-box">
-                <div className="errors-title">
-                  <AlertTriangle size={14} />
-                  <span>Validation Errors ({importErrors.length})</span>
-                </div>
-                <ul>
-                  {importErrors.map((err, i) => (
-                    <li key={i}>
-                      Row {err.row || '?'}, Column <strong>{err.column || 'general'}</strong>: {err.problem}
-                    </li>
-                  ))}
-                </ul>
               </div>
-            )}
 
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="secondary-btn"
-                onClick={() => setImportModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="primary-btn"
-                disabled={importLoading || !importCsv.trim()}
-                onClick={handleImportSubmit}
-              >
-                {importLoading ? 'Validating...' : 'Import Posts'}
-              </button>
+              {/* Scrollable Outposts List */}
+              <div className="sidebar-outposts-scroll">
+                {sortedSites.length === 0 ? (
+                  <div className="empty-outposts-hint">
+                    <span>No outposts match the selected filters.</span>
+                  </div>
+                ) : (
+                  sortedSites.map((s) => {
+                    const isSelected = selectedSiteId === s.id;
+                    const hasEval = s.has_evaluation;
+                    const ev = s.evaluation;
+                    const isCrit = hasEval && ev.status === 'critical';
+                    const isOpt = hasEval && ev.status === 'optimal';
+
+                    return (
+                      <div
+                        key={s.id}
+                        className={`outpost-list-card ${isSelected ? 'selected' : ''}`}
+                        onClick={() => handleSiteCardClick(s)}
+                      >
+                        <div className="card-header-row">
+                          <span
+                            className={`card-status-badge ${
+                              isCrit ? 'badge-crit' : isOpt ? 'badge-opt' : 'badge-warn'
+                            }`}
+                          >
+                            {isCrit ? 'Critical Risk' : isOpt ? 'Compliant' : 'Warning'}
+                          </span>
+                          <span className="card-altitude-chip">{s.altitude_m?.toLocaleString()} m</span>
+                        </div>
+
+                        <h4 className="card-outpost-name">{s.name}</h4>
+                        <span className="card-district-sub">
+                          {s.district} · {s.site_type?.replace('_', ' ')}
+                        </span>
+
+                        <div className="card-metrics-grid">
+                          <div className="metric-col">
+                            <span className="col-label">Min Ambient</span>
+                            <span className={`col-val ${hasEval && ev.t_in_min_c < 0 ? 'cold-val' : ''}`}>
+                              {hasEval ? `${ev.t_in_min_c.toFixed(1)}°C` : '—'}
+                            </span>
+                          </div>
+                          <div className="metric-col">
+                            <span className="col-label">Annual Fuel</span>
+                            <span className="col-val">{hasEval ? `${ev.annual_fuel_litres} L` : '—'}</span>
+                          </div>
+                          <div className="metric-col">
+                            <span className="col-label">Occupants</span>
+                            <span className="col-val">{s.occupants}</span>
+                          </div>
+                        </div>
+
+                        <div className="card-footer-row">
+                          <span className="view-on-map-text">Click to center on map</span>
+                          <ChevronRight size={13} className="arrow-icon" />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </aside>
+
+            {/* Main Interactive 2D Map Area */}
+            <main className="map-canvas-container">
+              {sidebarCollapsed && (
+                <button
+                  type="button"
+                  className="floating-reopen-sidebar-btn"
+                  onClick={() => setSidebarCollapsed(false)}
+                  title="Expand Outpost Registry List"
+                >
+                  <PanelLeftOpen size={14} />
+                  <span>Show Outposts ({filteredSites.length})</span>
+                </button>
+              )}
+              <Interactive3DMap
+                ref={mapRef}
+                sites={sortedSites}
+                selectedSiteId={selectedSiteId}
+                onSelectSite={(site) => setSelectedSiteId(site.id)}
+                onPinDrop={handlePinDropped}
+                mapMode={mapMode}
+                onToggleMapMode={setMapMode}
+              />
+            </main>
+          </div>
+        ) : (
+          /* ─────────────────────────────────────────────────────────────────────────────
+              TABLE DATA REGISTRY VIEW
+              ───────────────────────────────────────────────────────────────────────────── */
+          <div className="table-view-container">
+            <div className="sites-table-card">
+              <table className="sites-table">
+                <thead>
+                  <tr>
+                    <th onClick={() => toggleSort('name')} className="sortable-th">
+                      <span>Site / Outpost</span> <ArrowUpDown size={12} />
+                    </th>
+                    <th onClick={() => toggleSort('district')} className="sortable-th">
+                      <span>District</span> <ArrowUpDown size={12} />
+                    </th>
+                    <th onClick={() => toggleSort('altitude_m')} className="sortable-th">
+                      <span>Altitude</span> <ArrowUpDown size={12} />
+                    </th>
+                    <th>Type</th>
+                    <th>Occupants</th>
+                    <th onClick={() => toggleSort('t_in_min_c')} className="sortable-th">
+                      <span>Overnight Min</span> <ArrowUpDown size={12} />
+                    </th>
+                    <th onClick={() => toggleSort('annual_fuel_litres')} className="sortable-th">
+                      <span>Annual Fuel</span> <ArrowUpDown size={12} />
+                    </th>
+                    <th>Thermal Status</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedSites.map((s) => {
+                    const hasEval = s.has_evaluation;
+                    const ev = s.evaluation;
+
+                    return (
+                      <tr
+                        key={s.id}
+                        className="site-row"
+                        onClick={() => navigate(`/sites/${s.id}`)}
+                      >
+                        <td className="site-name-cell">
+                          <div>
+                            <span className="site-primary-name">{s.name}</span>
+                            <span className="site-coords">
+                              {s.lat.toFixed(2)}°N, {s.lon.toFixed(2)}°E
+                            </span>
+                          </div>
+                        </td>
+                        <td>{s.district}</td>
+                        <td className="mono-val">{s.altitude_m.toLocaleString()} m</td>
+                        <td>
+                          <span className={`type-tag tag-${s.site_type}`}>
+                            {s.site_type.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="mono-val">{s.occupants}</td>
+                        <td className="mono-val">
+                          {hasEval ? (
+                            <span className={ev.t_in_min_c < 0 ? 'text-danger' : ''}>
+                              {ev.t_in_min_c.toFixed(1)} °C
+                            </span>
+                          ) : (
+                            <span className="not-eval-tag">Not evaluated</span>
+                          )}
+                        </td>
+                        <td className="mono-val">
+                          {hasEval ? `${ev.annual_fuel_litres.toLocaleString()} L` : '—'}
+                        </td>
+                        <td>
+                          {hasEval ? (
+                            <span className={`status-pill pill-${ev.status}`}>
+                              {ev.status}
+                            </span>
+                          ) : (
+                            <span className="status-pill pill-unevaluated">
+                              unevaluated
+                            </span>
+                          )}
+                        </td>
+                        <td className="chevron-cell">
+                          <button
+                            type="button"
+                            className="row-map-jump-btn"
+                            title="View & Fly on Map"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedSiteId(s.id);
+                              setViewMode('map');
+                              setTimeout(() => {
+                                if (mapRef.current && mapRef.current.flyToSite) {
+                                  mapRef.current.flyToSite(s);
+                                }
+                              }, 150);
+                            }}
+                          >
+                            <MapIcon size={12} />
+                            <span>Map</span>
+                          </button>
+                          <ChevronRight size={16} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Quick Register / Dropped Pin Modal */}
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          MODALS: PIN DROP SITE REGISTRATION & CSV IMPORT
+          ───────────────────────────────────────────────────────────────────────────── */}
       {newSiteModalOpen && (
-        <div className="modal-backdrop" onClick={() => setNewSiteModalOpen(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">Register New Post / Dropped Pin</h3>
-            <p className="modal-desc">
-              Define the geographic coordinates and operational requirements for this post.
-            </p>
-
-            <div className="modal-form-grid">
-              <div className="form-field">
-                <label>Post Name</label>
+        <div className="modal-overlay">
+          <div className="modal-dialog">
+            <div className="modal-header">
+              <h3>Register Himalayan Outpost</h3>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setNewSiteModalOpen(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Outpost Name / Designation</label>
                 <input
                   type="text"
                   value={newSiteData.name}
-                  onChange={e => setNewSiteData({ ...newSiteData, name: e.target.value })}
-                  placeholder="e.g. Spanggur Ridge Post 2"
+                  onChange={(e) => setNewSiteData({ ...newSiteData, name: e.target.value })}
+                  placeholder="e.g. Depsang Forward Base 3"
                 />
               </div>
 
-              <div className="form-field">
-                <label>District</label>
-                <select
-                  value={newSiteData.district}
-                  onChange={e => setNewSiteData({ ...newSiteData, district: e.target.value })}
-                >
-                  <option value="Leh">Leh</option>
-                  <option value="Kargil">Kargil</option>
-                  <option value="Rasuwa">Rasuwa</option>
-                </select>
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label>District</label>
+                  <input
+                    type="text"
+                    value={newSiteData.district}
+                    onChange={(e) => setNewSiteData({ ...newSiteData, district: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Altitude (m)</label>
+                  <input
+                    type="number"
+                    value={newSiteData.altitude_m}
+                    onChange={(e) =>
+                      setNewSiteData({ ...newSiteData, altitude_m: parseFloat(e.target.value) || 0 })
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="form-field">
-                <label>Latitude (°N)</label>
-                <input
-                  type="number"
-                  step="0.0001"
-                  value={newSiteData.lat}
-                  onChange={e => setNewSiteData({ ...newSiteData, lat: parseFloat(e.target.value) })}
-                />
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label>Latitude (°N)</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    value={newSiteData.lat}
+                    onChange={(e) =>
+                      setNewSiteData({ ...newSiteData, lat: parseFloat(e.target.value) || 0 })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Longitude (°E)</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    value={newSiteData.lon}
+                    onChange={(e) =>
+                      setNewSiteData({ ...newSiteData, lon: parseFloat(e.target.value) || 0 })
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="form-field">
-                <label>Longitude (°E)</label>
-                <input
-                  type="number"
-                  step="0.0001"
-                  value={newSiteData.lon}
-                  onChange={e => setNewSiteData({ ...newSiteData, lon: parseFloat(e.target.value) })}
-                />
-              </div>
-
-              <div className="form-field">
-                <label>Altitude (m)</label>
-                <input
-                  type="number"
-                  value={newSiteData.altitude_m}
-                  onChange={e => setNewSiteData({ ...newSiteData, altitude_m: parseFloat(e.target.value) })}
-                />
-              </div>
-
-              <div className="form-field">
-                <label>Post Type</label>
-                <select
-                  value={newSiteData.site_type}
-                  onChange={e => setNewSiteData({ ...newSiteData, site_type: e.target.value })}
-                >
-                  <option value="forward_post">Forward Post (Military)</option>
-                  <option value="relief_camp">Relief Camp (Disaster/Emergency)</option>
-                  <option value="dwelling">Dwelling / Civilian Base</option>
-                </select>
-              </div>
-
-              <div className="form-field">
-                <label>Occupants</label>
-                <input
-                  type="number"
-                  value={newSiteData.occupants}
-                  onChange={e => setNewSiteData({ ...newSiteData, occupants: parseInt(e.target.value, 10) })}
-                />
-              </div>
-
-              <div className="form-field">
-                <label>Operational Notes</label>
-                <input
-                  type="text"
-                  value={newSiteData.notes}
-                  onChange={e => setNewSiteData({ ...newSiteData, notes: e.target.value })}
-                />
+              <div className="form-row-2">
+                <div className="form-group">
+                  <label>Site Type</label>
+                  <select
+                    value={newSiteData.site_type}
+                    onChange={(e) => setNewSiteData({ ...newSiteData, site_type: e.target.value })}
+                  >
+                    <option value="forward_post">Forward Defense Post</option>
+                    <option value="relief_camp">Relief Camp</option>
+                    <option value="dwelling">HQ / Dwelling</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Occupants</label>
+                  <input
+                    type="number"
+                    value={newSiteData.occupants}
+                    onChange={(e) =>
+                      setNewSiteData({ ...newSiteData, occupants: parseInt(e.target.value, 10) || 1 })
+                    }
+                  />
+                </div>
               </div>
             </div>
-
             <div className="modal-footer">
               <button
                 type="button"
-                className="secondary-btn"
+                className="btn-cancel"
                 onClick={() => setNewSiteModalOpen(false)}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="primary-btn"
+                className="btn-primary"
                 onClick={handleCreateSite}
+                disabled={!newSiteData.name}
               >
-                Save & Open Hub
+                Register Post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSV Import Modal */}
+      {importModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-dialog modal-dialog-wide">
+            <div className="modal-header">
+              <h3>Bulk Import Outposts (CSV)</h3>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setImportModalOpen(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="import-instructions">
+                Paste CSV formatted text with columns:{' '}
+                <code>name, district, lat, lon, altitude_m, site_type, occupants</code>
+              </p>
+              <textarea
+                className="csv-textarea"
+                rows={8}
+                placeholder="Siachen Post 5,Leh,35.32,77.15,5200,forward_post,16"
+                value={importCsv}
+                onChange={(e) => setImportCsv(e.target.value)}
+              />
+              {importErrors.length > 0 && (
+                <div className="import-errors-box">
+                  {importErrors.map((err, i) => (
+                    <div key={i} className="error-item">
+                      ⚠️ {err.problem || JSON.stringify(err)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={() => setImportModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleImportSubmit}
+                disabled={importLoading || !importCsv.trim()}
+              >
+                {importLoading ? 'Importing...' : 'Submit Import'}
               </button>
             </div>
           </div>

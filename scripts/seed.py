@@ -106,11 +106,17 @@ def seed_database(db_path: Path = DB_PATH, csv_path: Path = MATERIALS_CSV) -> Di
                 """,
                 m,
             )
+        cursor.execute(
+            """
+            INSERT OR REPLACE INTO elevation_cache (lat, lon, elevation_m, source, fetched_at)
+            VALUES (34.1526, 77.5771, 3500.0, 'canonical', datetime('now'))
+            """
+        )
         conn.commit()
 
         # Gather table counts
         counts = {}
-        for table in ["materials", "weather_cache", "worst_night_profile", "runs"]:
+        for table in ["materials", "weather_cache", "worst_night_profile", "runs", "elevation_cache"]:
             cursor.execute(f"SELECT COUNT(*) FROM {table}")
             counts[table] = cursor.fetchone()[0]
 

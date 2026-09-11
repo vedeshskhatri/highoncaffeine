@@ -92,7 +92,7 @@ A judge lands on something a real company built, scrolls through a rigorous narr
     Document header, revision line, structured tables, Cmd+P print stylesheet for clean PDF export.
     │
 [ 7. EMPIRICAL VALIDATION ] (Full-Bleed Midnight Espresso)
-    Four validation targets (V1–V4), Physical Ordering row (Trombe > DG), ANSYS dual-track benchmark.
+    Four validation targets (V1–V4), Physical Ordering row (Trombe > DG), Empirical Field Benchmarking.
     │
 [ FOOTER & METHOD MODAL ]
     Citations: EN ISO 52016-1:2017, Swinbank nocturnal radiation, altitude lapse scaling.

@@ -355,3 +355,73 @@ Query parameters:
 - `district`: string (`Leh` | `Chushul` | `DBO` | `Kargil` | `Rasuwa`).
 
 Returns material catalog annotated with availability, transit lead time, cost per m³, and `cost_basis` (`sourced` | `estimate`).
+
+---
+
+## 10. Universal Location & Climate-Adaptive Metrics Proposal
+
+### `GET /location/elevation`
+Query parameters:
+- `lat`: float (`-90.0` to `+90.0`)
+- `lon`: float (`-180.0` to `+180.0`)
+
+Response `200 OK`:
+```json
+{
+  "lat": 13.08,
+  "lon": 80.27,
+  "elevation_m": 10.0,
+  "source": "canonical",
+  "requires_user_input": false,
+  "message": null
+}
+```
+If elevation cannot be resolved via DEM:
+```json
+{
+  "lat": 13.08,
+  "lon": 80.27,
+  "elevation_m": null,
+  "source": "unresolved",
+  "requires_user_input": true,
+  "message": "Elevation lookup failed. Please specify site altitude (m ASL) manually."
+}
+```
+
+### `GET /location/search`
+Query parameters:
+- `q`: string (place name or postal region)
+- `count`: optional int (default 8)
+
+Response `200 OK`:
+```json
+{
+  "query": "Chennai",
+  "count": 1,
+  "results": [
+    {
+      "id": 1264527,
+      "name": "Chennai",
+      "admin1": "Tamil Nadu",
+      "country": "India",
+      "country_code": "IN",
+      "lat": 13.0878,
+      "lon": 80.2785,
+      "elevation_m": 14.0
+    }
+  ]
+}
+```
+
+### Additive Extension to `SimulateSummarySchema` (`/simulate` response)
+All existing fields remain strictly preserved. New optional fields:
+- `hours_above_upper_limit`: `int` (hours indoor operative temperature exceeds IMAC 90% upper comfort limit).
+- `binding_constraint`: `"cold_risk" | "heat_risk" | "cold_and_heat_risk" | "optimal_comfort"`.
+- `cooling_demand_peak_kw`: `float` (peak sensible cooling capacity required to pull indoor temperature down to comfort limit).
+- `cooling_demand_hours`: `int` (total diurnal hours requiring active cooling).
+- `climate_classification`: `"cold_high_altitude" | "cold_temperate" | "hot_humid" | "hot_arid" | "moderate_composite"`.
+
+### Fallback Scoping Policy
+- `load_fallback_csv()` strictly constrained to Ladakh bounding box ($32.0^\circ\text{–}36.5^\circ\text{ N}, 75.0^\circ\text{–}80.5^\circ\text{ E}$).
+- If an offline request is made outside this region, return HTTP 503 `WeatherUnavailableError` with clear diagnostic explanation.
+

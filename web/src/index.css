@@ -1,9 +1,9 @@
 /* index.css — global resets and base styles
  * All colours, fonts, spacing resolved through tokens.css.
- * No raw values anywhere in this file.
+ * Clean, spacious, human-crafted Alpine Precision typography & base.
  */
 
-/* 1. Token variables — must come first so Tailwind base can reference them */
+/* 1. Token variables */
 @import './tokens.css';
 
 /* 2. Tailwind */
@@ -19,9 +19,10 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 15px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -31,12 +32,14 @@ body {
   font-size: var(--text-body-size);
   line-height: var(--text-body-lh);
   font-weight: var(--text-body-weight);
+  overflow-x: hidden;
 }
 
-/* Every number is monospaced — temperatures, rupees, percentages */
+/* Monospaced numerals for data density */
 .mono,
 [data-numeric] {
   font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
 /* Headings */
@@ -47,20 +50,69 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
-/* Hairline borders — no shadows anywhere */
-* {
-  box-shadow: none !important;
-}
-
-/* Scrollbar */
+/* Precision Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--surface-1);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Standardized Card Classes */
+.card-surface {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--card-padding);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-surface-elevated {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: var(--card-padding);
+  box-shadow: var(--shadow-md);
+}
+
+/* Subtle Interactive Tactility */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+/* Form inputs */
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--text-primary);
+  background-color: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }

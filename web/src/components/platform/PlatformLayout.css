@@ -1,8 +1,10 @@
+/* PlatformLayout.css — Spacious Alpine Architecture */
+
 .platform-layout-container {
   display: flex;
   min-height: 100vh;
-  background-color: var(--cream);
-  color: var(--espresso);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   font-family: var(--font-body);
 }
 
@@ -12,12 +14,13 @@
   flex-direction: column;
   min-width: 0;
   overflow-x: hidden;
+  background-color: var(--bg-base);
 }
 
 .platform-page-content {
   flex: 1;
-  padding: 24px 32px 48px;
-  max-width: 1400px;
+  padding: var(--page-padding-y) var(--page-padding-x) 64px;
+  max-width: 1560px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
@@ -28,6 +31,6 @@
     flex-direction: column;
   }
   .platform-page-content {
-    padding: 16px;
+    padding: 20px 16px 40px;
   }
 }
