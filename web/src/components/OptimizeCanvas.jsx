@@ -21,7 +21,8 @@ import DeltaDesignChart from './DeltaDesignChart';
 import LeversPanel from './LeversPanel';
 import RetrofitList from './RetrofitList';
 import OptimizeProgress from './OptimizeProgress';
-import { SpecSheetCopy } from './results';
+import { SpecSheetCopy, AnnualComfortHeatmap } from './results';
+
 
 export default function OptimizeCanvas({ result, request }) {
   const [isRunning, setIsRunning] = useState(false);
@@ -311,8 +312,12 @@ export default function OptimizeCanvas({ result, request }) {
         onSelectDesign={(pt) => setSelectedDesign(pt)}
       />
 
-      {/* 3. Differential Lift Chart — A1-3: pass real series (null falls back gracefully) */}
+      {/* 3. Annual Comfort Calendar & 365-Day Diurnal Habitability Heatmap */}
+      <AnnualComfortHeatmap request={request} />
+
+      {/* 4. Differential Lift Chart — A1-3: pass real series (null falls back gracefully) */}
       {(optimizedSeries || baselineSeries) && (
+
         <DeltaDesignChart
           series={optimizedSeries}
           baselineSeries={baselineSeries}

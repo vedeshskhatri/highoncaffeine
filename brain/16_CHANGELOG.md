@@ -37,6 +37,7 @@ Format:
 [2026-09-11 15:30] VEDESH P5 — Cold Snap Alerts: live Open-Meteo forecast scanning, severity tiers with estimate chips, occupant risk counts, acknowledge workflow
 [2026-09-11 15:30] VEDESH P6 — Design Library: versioned standard drawings (Rapid Glamping, DIHAR Trombe), side-by-side comparison, and one-click site rollout with automatic re-evaluation
 [2026-09-11 15:38] VEDESH P7 — Static & Ancillary Platform Pages: Editorial Engineering landing page (/), Seasonal Sortie Forecast (/forecast), Materials Availability (/materials), Formal Submission Pack Report (/reports/:id), Physics Formulation & Standards (/method), Empirical Validation Suite (/validation), and React Router wiring
+[2026-09-11 15:45] FEATURE 3 — 365-day annual comfort scan in engine/annual_scan.py, fetch_nasa_power_year in api/weather.py with SQLite cache, POST /annual_scan endpoint in api/main.py, and AnnualComfortHeatmap UI component
 ```
 
 ---
@@ -47,6 +48,8 @@ Any change to `07_API_CONTRACT.md` gets its own entry here with the reason and w
 
 ```
 [2026-09-11 15:05] CONTRACT ADDITION — POST /simulate occupant_model optional fields and POST /forecast_watch endpoint added — approved for PS 26051 physiological risk & multi-post early warning
+[2026-09-11 15:45] CONTRACT ADDITION — POST /annual_scan endpoint added for 365-day diurnal habitability calendar and worst-week evaluation
+
 ```
 
 ## Validation history

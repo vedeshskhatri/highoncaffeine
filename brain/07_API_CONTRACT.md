@@ -335,3 +335,55 @@ Identifies impending comfort floor breaches (WHO 18 °C) and safety interlock ha
 ```
 `status` ∈ `red` (severe danger / safety refusal / T_in < 12 °C) | `amber` (moderate breach / 12 °C ≤ T_in < 18 °C) | `green` (compliant / T_in ≥ 18 °C).
 Results are sorted by **nearest impending breach first**.
+
+---
+
+## POST /annual_scan
+
+365-day (or 366-day leap year) diurnal RC thermal simulation and habitability calendar across hourly weather.
+Evaluates adaptive comfort bands per hour under IMAC NV 90% acceptability limits (Manu et al. 2016), computing the fraction of comfortable days and identifying the coldest consecutive 7-day period.
+
+### Request
+```json
+{
+  "location": { "lat": 34.1526, "lon": 77.5771, "altitude_m": 3500.0 },
+  "year": 2026,
+  "geometry": { "length_m": 6.0, "width_m": 4.0, "height_m": 2.6, "orientation_deg": 180.0 },
+  "envelope": {
+    "walls": [{ "material": "mud_brick", "thickness_m": 0.30 }, { "material": "eps", "thickness_m": 0.05 }],
+    "roof": [{ "material": "concrete", "thickness_m": 0.15 }],
+    "floor": [{ "material": "concrete", "thickness_m": 0.10 }],
+    "roof_emissivity": 0.90
+  },
+  "openings": [{ "facing": "south", "area_m2": 4.0, "glazing": "double_pane", "night_shutter": false }],
+  "ventilation": { "ach": 0.6, "heater_type": "none" },
+  "occupancy": { "people": 8, "watts_per_person": 100.0 },
+  "ground": { "snow_cover": true, "albedo": null },
+  "comfort": { "model": "imac", "health_threshold_c": 18.0 },
+  "simulation": { "timestep_s": 60, "spinup_days": 1 }
+}
+```
+
+### Response 200
+```json
+{
+  "year": 2026,
+  "days": [
+    {
+      "date": "2026-01-01",
+      "provider": "nasa-power",
+      "hours": [
+        { "hour": 0, "t_in_c": 5.4, "t_out_c": -18.2, "comfort": false }
+      ]
+    }
+  ],
+  "comfort_days_ratio": 0.425,
+  "worst_week": {
+    "start_date": "2026-01-14",
+    "avg_t_in_min_c": -4.8
+  }
+}
+```
+`comfort_days_ratio`: fraction of calendar days where $\ge 50\%$ of hours (12/24) fall within IMAC 90% comfort limits.
+`worst_week`: 7 consecutive calendar days exhibiting the lowest mean daily minimum indoor temperature.
+

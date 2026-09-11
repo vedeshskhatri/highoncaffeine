@@ -473,3 +473,55 @@ class ForecastWatchItemSchema(BaseModel):
     post_name: Optional[str] = None
     status: Optional[str] = None
     t_out_min_c: Optional[float] = None
+
+
+# --- Annual Comfort Calendar Schemas ---
+
+class AnnualScanRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    location: LocationSchema = Field(..., description="Geographical site coordinates and altitude")
+    year: int = Field(default=2026, ge=1980, le=2100, description="Target calendar year (e.g. 2026)")
+    geometry: Optional[GeometrySchema] = Field(default=None, description="Shelter geometry dimensions")
+    envelope: Optional[EnvelopeSchema] = Field(default=None, description="Multi-layer envelope layers")
+    openings: Optional[List[OpeningSchema]] = Field(default=None, description="Fenestration openings")
+    ventilation: Optional[VentilationSchema] = Field(default=None, description="Ventilation rate and heater type")
+    occupancy: Optional[OccupancySchema] = Field(default=None, description="Human occupancy count and sensible heat gain")
+    ground: Optional[GroundSchema] = Field(default=None, description="Ground snow cover and albedo")
+    comfort: Optional[ComfortSchema] = Field(default=None, description="Thermal comfort evaluation model")
+    simulation: Optional[SimulationConfigSchema] = Field(default=None, description="Internal solver controls")
+
+
+
+class AnnualScanHourSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    hour: int = Field(..., ge=0, le=23, description="Hour of day (0-23)")
+    t_in_c: float = Field(..., description="Indoor air temperature in Celsius")
+    t_out_c: float = Field(..., description="Outdoor ambient air temperature in Celsius")
+    comfort: bool = Field(..., description="True if indoor temperature is within IMAC 90% comfort band")
+
+
+class AnnualScanDaySchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    date: str = Field(..., description="ISO date string (YYYY-MM-DD)")
+    provider: Optional[str] = Field(default="nasa-power", description="Weather provider: nasa-power or fallback")
+    hours: List[AnnualScanHourSchema] = Field(..., description="24 hourly diurnal points")
+
+
+class WorstWeekSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    start_date: str = Field(..., description="Start date of the 7-day coldest consecutive window")
+    avg_t_in_min_c: float = Field(..., description="Average daily minimum indoor temperature across the 7 days")
+
+
+class AnnualScanResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    year: int = Field(..., description="Calendar year scanned")
+    days: List[AnnualScanDaySchema] = Field(..., description="Array of 365 (or 366) calendar days")
+    comfort_days_ratio: float = Field(..., ge=0.0, le=1.0, description="Fraction of calendar days where >= 50% of hours met comfort")
+    worst_week: WorstWeekSchema = Field(..., description="7-day coldest consecutive window summary")
+
+
+AnnualScanRequest.model_rebuild()
+AnnualScanResponse.model_rebuild()
+
+

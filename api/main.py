@@ -38,6 +38,8 @@ from api.schemas import (
     ForecastWatchRequest,
     ForecastWatchItemSchema,
     WatchPostSchema,
+    AnnualScanRequest,
+    AnnualScanResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -870,3 +872,68 @@ def forecast_watch(request: ForecastWatchRequest) -> List[Dict[str, Any]]:
         comfort_threshold_c=request.comfort_threshold_c,
     )
     return results
+
+
+# ---------------------------------------------------------------------------
+# POST /annual_scan — 365-day annual diurnal comfort scanner
+# ---------------------------------------------------------------------------
+
+@app.post(
+    "/annual_scan",
+    response_model=AnnualScanResponse,
+    summary="365-day annual transient comfort simulation and habitability calendar",
+)
+def annual_scan(request: AnnualScanRequest) -> Dict[str, Any]:
+    """
+    Execute a full-year 365-day transient RC thermal simulation across hourly weather data.
+    Evaluates hourly adaptive comfort bands under IMAC NV 90% acceptability limits,
+    computing the fraction of comfortable days and identifying the coldest consecutive 7-day period.
+    """
+    from engine.annual_scan import run_annual_scan
+    from engine.solver import SolverDivergedError
+    from api.errors import WeatherUnavailableError, UnknownMaterialError
+
+    design_dict: Dict[str, Any] = {}
+    if request.envelope:
+        design_dict["envelope"] = request.envelope.model_dump()
+    if request.geometry:
+        design_dict["geometry"] = request.geometry.model_dump()
+    if request.openings:
+        design_dict["openings"] = [op.model_dump() for op in request.openings]
+    if request.ventilation:
+        design_dict["ventilation"] = request.ventilation.model_dump()
+
+    design_obj = _build_design(design_dict if design_dict else None)
+
+    sim_opts: Dict[str, Any] = {
+        "altitude_m": request.location.altitude_m,
+        "lat": request.location.lat,
+        "lon": request.location.lon,
+    }
+    if request.ground:
+        sim_opts["snow_cover"] = request.ground.snow_cover
+    if request.occupancy:
+        sim_opts["occupancy"] = request.occupancy.model_dump()
+    if request.simulation:
+        sim_opts["timestep_s"] = request.simulation.timestep_s
+        sim_opts["spinup_days"] = request.simulation.spinup_days
+
+    try:
+        result = run_annual_scan(
+            design=design_obj,
+            lat=request.location.lat,
+            lon=request.location.lon,
+            altitude_m=request.location.altitude_m,
+            year=request.year,
+            opts=sim_opts,
+        )
+        return result
+    except WeatherUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except (UnknownMaterialError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except SolverDivergedError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+

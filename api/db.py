@@ -59,3 +59,13 @@ def execute(sql: str, params: Tuple[Any, ...] = (), db_path: Optional[Path] = No
         cursor.execute(sql, params)
         conn.commit()
         return cursor.rowcount
+
+
+def execute_many(sql: str, seq_of_params: Any, db_path: Optional[Path] = None) -> int:
+    """Execute batch write queries with executemany in a single transaction."""
+    with get_connection(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.executemany(sql, seq_of_params)
+        conn.commit()
+        return cursor.rowcount
+

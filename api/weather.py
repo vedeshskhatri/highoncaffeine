@@ -19,8 +19,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 
-from api.db import execute, query_all, query_one, round_coords
+from api.db import execute, execute_many, query_all, query_one, round_coords
 from api.errors import WeatherUnavailableError
+
 
 FALLBACK_CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "weather" / "leh_january_fallback.csv"
 GRID_NOTE_NASA = "NASA POWER ~0.5x0.625 deg grid — regional estimate, not a site measurement"
@@ -142,6 +143,212 @@ def fetch_nasa_power(lat: float, lon: float, date_str: str) -> List[Dict[str, An
             "snow_cover": 1,
         })
     return rows
+
+
+def fetch_nasa_power_year(
+    lat: float,
+    lon: float,
+    year: int,
+    timeout_s: float = 15.0,
+) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Fetch 365-day (or 366 in leap year) hourly meteorology from NASA POWER API.
+    Caches each day into the existing SQLite `weather_cache` table.
+    If cached data exists for all days of the requested year at (lat, lon),
+    returns directly from cache without network calls.
+    Falls back to regional seasonal synthesis from fallback CSV if NASA POWER is unreachable.
+
+    Args:
+        lat: Latitude in decimal degrees
+        lon: Longitude in decimal degrees
+        year: Target calendar year (e.g. 2026)
+        timeout_s: HTTP request timeout in seconds
+
+    Returns:
+        Dict mapping date string 'YYYY-MM-DD' to 24-hour weather row list.
+    """
+    import calendar
+    from datetime import date, timedelta
+
+    c_lat, c_lon = round_coords(lat, lon)
+    now_iso = datetime.now(timezone.utc).isoformat()
+    expected_days = 366 if calendar.isleap(year) else 365
+
+    # 1. Check SQLite weather_cache for complete year
+    try:
+        cached_rows = query_all(
+            """
+            SELECT date, hour, t_air, ghi, dni, dhi, wind, rh, snow_cover, provider
+            FROM weather_cache
+            WHERE lat = ? AND lon = ? AND date LIKE ? AND t_air >= -70.0
+            ORDER BY date, hour
+            """,
+            (c_lat, c_lon, f"{int(year)}-%"),
+        )
+        cached_by_date: Dict[str, List[Dict[str, Any]]] = {}
+        for r in cached_rows:
+            cached_by_date.setdefault(r["date"], []).append({
+                "hour": r["hour"],
+                "t_air": r["t_air"],
+                "ghi": r["ghi"],
+                "dni": r["dni"],
+                "dhi": r["dhi"],
+                "wind": r["wind"],
+                "rh": r["rh"],
+                "snow_cover": r["snow_cover"],
+                "provider": r["provider"],
+            })
+        valid_dates = [d for d, hrs in cached_by_date.items() if len(hrs) == 24]
+        if len(valid_dates) >= expected_days:
+            return {d: cached_by_date[d] for d in sorted(valid_dates)[:expected_days]}
+    except Exception:
+        cached_by_date = {}
+
+    # 2. Live NASA POWER date-range query
+    clean_start = f"{int(year)}0101"
+    clean_end = f"{int(year)}1231"
+    endpoint = "https://power.larc.nasa.gov/api/temporal/hourly/point"
+    params = {
+        "parameters": "T2M,ALLSKY_SFC_SW_DWN,WS10M,RH2M",
+        "community": "RE",
+        "longitude": lon,
+        "latitude": lat,
+        "start": clean_start,
+        "end": clean_end,
+        "format": "JSON",
+    }
+
+    out_by_date: Dict[str, List[Dict[str, Any]]] = {}
+    try:
+        with httpx.Client(timeout=timeout_s) as client:
+            resp = client.get(endpoint, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+
+        props = data.get("properties", {}).get("parameter", {})
+        t2m = props.get("T2M", {})
+        sw_dwn = props.get("ALLSKY_SFC_SW_DWN", {})
+        ws10m = props.get("WS10M", {})
+        rh2m = props.get("RH2M", {})
+
+        api_by_date: Dict[str, List[Dict[str, Any]]] = {}
+        for k in sorted(t2m.keys()):
+            if len(k) < 10:
+                continue
+            d_str = f"{k[:4]}-{k[4:6]}-{k[6:8]}"
+            h = int(k[8:10])
+            ghi_raw = float(sw_dwn.get(k, 0.0))
+            ghi_val = max(0.0, ghi_raw) if ghi_raw >= 0.0 else 0.0
+            dni_val = max(0.0, ghi_val * 0.85) if ghi_val > 50.0 else 0.0
+            dhi_val = max(0.0, ghi_val * 0.15) if ghi_val > 0.0 else 0.0
+            t_val = float(t2m.get(k, -15.0))
+            api_by_date.setdefault(d_str, []).append({
+                "hour": h,
+                "t_air": t_val,
+                "ghi": ghi_val,
+                "dni": dni_val,
+                "dhi": dhi_val,
+                "wind": float(ws10m.get(k, 2.0)),
+                "rh": float(rh2m.get(k, 30.0)),
+                "snow_cover": 1 if t_val < 0.0 else 0,
+                "provider": "nasa-power",
+            })
+
+        # Keep only days where all 24 hours are valid physical temperatures (no -999 sentinels)
+        for d_str, day_rows in sorted(api_by_date.items()):
+            if len(day_rows) == 24 and all(-70.0 <= r["t_air"] <= 60.0 for r in day_rows):
+                out_by_date[d_str] = day_rows
+
+        if len(out_by_date) >= expected_days:
+            try:
+                save_year_to_cache(c_lat, c_lon, out_by_date, "nasa-power", now_iso)
+            except Exception:
+                pass
+            return out_by_date
+    except Exception:
+        pass
+
+    # 3. Offline fallback synthesis per day
+    fallback_base = load_fallback_csv()
+    cur_date = date(year, 1, 1)
+    end_date = date(year, 12, 31)
+    day_idx = 0
+    fallback_out: Dict[str, List[Dict[str, Any]]] = {}
+
+    while cur_date <= end_date:
+        d_str = cur_date.strftime("%Y-%m-%d")
+        if d_str in out_by_date:
+            fallback_out[d_str] = out_by_date[d_str]
+        elif d_str in cached_by_date and len(cached_by_date[d_str]) == 24 and all(-70.0 <= r["t_air"] <= 60.0 for r in cached_by_date[d_str]):
+            fallback_out[d_str] = cached_by_date[d_str]
+        else:
+            # Diurnal + seasonal model for Ladakh: coldest mid-Jan, warmest mid-July
+            seasonal_shift = 16.0 * math.sin(2.0 * math.pi * (day_idx - 105) / 365.0)
+            day_rows = []
+            for r in fallback_base:
+                t_air_mod = round(r["t_air"] + seasonal_shift, 2)
+                ghi_mod = r["ghi"] if seasonal_shift <= 0 else round(r["ghi"] * 1.25, 1)
+                day_rows.append({
+                    "hour": r["hour"],
+                    "t_air": t_air_mod,
+                    "ghi": ghi_mod,
+                    "dni": r["dni"],
+                    "dhi": r["dhi"],
+                    "wind": r["wind"],
+                    "rh": r["rh"],
+                    "snow_cover": 1 if t_air_mod < 0 else 0,
+                    "provider": "fallback",
+                })
+            fallback_out[d_str] = day_rows
+        cur_date += timedelta(days=1)
+        day_idx += 1
+
+    try:
+        save_year_to_cache(c_lat, c_lon, fallback_out, "fallback", now_iso)
+    except Exception:
+        pass
+
+    return fallback_out
+
+
+def save_year_to_cache(
+    lat: float,
+    lon: float,
+    by_date: Dict[str, List[Dict[str, Any]]],
+    provider: str,
+    fetched_at: str,
+) -> None:
+    """Save 365-day weather rows into SQLite weather_cache in a single transaction."""
+    c_lat, c_lon = round_coords(lat, lon)
+    params_list = []
+    for d_str, day_rows in by_date.items():
+        for r in day_rows:
+            params_list.append((
+                c_lat,
+                c_lon,
+                d_str,
+                r["hour"],
+                r["t_air"],
+                r["ghi"],
+                r["dni"],
+                r["dhi"],
+                r["wind"],
+                r["rh"],
+                r["snow_cover"],
+                provider,
+                fetched_at,
+            ))
+    if params_list:
+        execute_many(
+            """
+            INSERT OR REPLACE INTO weather_cache (
+                lat, lon, date, hour, t_air, ghi, dni, dhi, wind, rh, snow_cover, provider, fetched_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            params_list,
+        )
+
+
 
 
 def generate_or_get_worst_night_profile(lat: float, lon: float) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
