@@ -269,7 +269,7 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
         "weather_provenance": provenance,
         "series": series_out,
         "summary": summary_out,
-        "surfaces": [],
+        "surfaces": sol.get("surfaces", []),
     }
 
 

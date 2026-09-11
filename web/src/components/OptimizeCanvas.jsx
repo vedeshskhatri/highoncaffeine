@@ -254,11 +254,11 @@ export default function OptimizeCanvas({ result, request }) {
       {/* Error banner */}
       {errorMessage && (
         <div style={{
-          background: 'var(--danger-bg, #1a0000)',
-          border: '1px solid var(--danger, #ff4444)',
+          background: 'var(--ice-soft)',
+          border: '1px solid var(--ice)',
           borderRadius: 'var(--radius-sm)',
-          padding: 'var(--space-2)',
-          color: 'var(--danger, #ff6666)',
+          padding: 'var(--space-3)',
+          color: 'var(--ice)',
           fontFamily: 'var(--font-mono)',
           fontSize: 'var(--text-caption-size)',
         }}>

@@ -1,0 +1,103 @@
+/* DayScrubber.css — 24-hour timeline scrubber styling */
+
+.day-scrubber-container {
+  background: var(--cream-2);
+  border: var(--border-width) solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.scrubber-top-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.scrubber-badge-group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.scrubber-label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--espresso-40);
+  letter-spacing: 0.05em;
+}
+
+.scrubber-time-hero {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--espresso);
+}
+
+.scrubber-sun-phase {
+  font-size: 11px;
+  color: var(--orange);
+}
+
+.scrubber-telemetry-ticking {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  background: var(--cream);
+  border: var(--border-width) solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--space-3);
+}
+
+.tick-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.tick-label {
+  font-size: 10px;
+  color: var(--espresso-40);
+}
+
+.tick-val {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--espresso);
+}
+
+.slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scrubber-slider {
+  width: 100%;
+  accent-color: var(--orange);
+  cursor: pointer;
+  height: 6px;
+}
+
+.slider-hour-marks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.hour-mark {
+  font-size: 10px;
+  color: var(--espresso-40);
+  cursor: pointer;
+}
+
+.hour-mark:hover,
+.hour-mark.active {
+  color: var(--orange);
+  font-weight: 600;
+}

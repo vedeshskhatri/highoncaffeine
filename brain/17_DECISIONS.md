@@ -73,3 +73,11 @@ Architectural decision record. Append-only. Each entry states what, why, alterna
 **Consequence:** ~6-10 h of one person's time, scheduled outside V1-V5. The ANSYS piece is three cases, not a general parameterised model, and we say so. Solar is an imposed flux boundary condition, not a computed solar load, and we say that too.
 D1 is NOT deleted — it remains the record of why the surrogate exists.
 
+### D17 — Editorial Engineering (direction change from field instrument to product website)
+**Decision:** Replace "field instrument, no hero section, opens directly into work" with Editorial Engineering — a warm, light, type-led product website with an interactive shelter builder at its centre.
+**Why:** An evaluator/judge should land on a finished, authoritative product built by a serious engineering team, scroll through the narrative argument (the Siachen kerosene cost, the overnight thermal collapse), and arrive at the interactive shelter builder already convinced why it matters.
+**Palette:** Warm cream foundation (`--cream: #FFF9EB`, `--cream-2: #FBF2DE`), midnight espresso typography and contrast panels (`--espresso: #200F07`, `--espresso-70: #5A4A42`, `--espresso-40: #9A8C84`), warm hairlines (`--rule: #E8DCC4`), vivid orange for warmth/sun/gain/brand (`--orange: #F77331`, `--orange-soft: #FDE6D6`), ice blue for cold/loss/health threshold (`--ice: #2E6F8E`, `--ice-soft: #DCEAF1`), and sage for comfort (`--sage: #4A7C59`, `--sage-soft: #E3EDE5`).
+**Typography:** Montserrat 700 for headlines (56–72px hero, tight tracking -0.02em), DM Sans for body, JetBrains Mono for every single number.
+**Consequence:** Single-page long-scroll rhythm with two full-bleed espresso sections breaking the cream surface. Interactive builder live-wired to the transient solver. Zero hardcoded colors.
+
+

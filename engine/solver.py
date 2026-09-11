@@ -328,6 +328,7 @@ def run_single(
             break
 
     hourly_results = []
+    last_q_solar_abs: Dict[str, float] = {}
     substeps_per_hour = int(round(3600.0 / dt))
     global_step = 0
 
@@ -414,6 +415,7 @@ def run_single(
                 # Solar absorbed on outer node
                 alpha_abs = surface_absorptivities.get(surf.name, 0.70)
                 q_solar_abs_outer = surface_i_total[surf.name] * surf.net_area_m2 * alpha_abs
+                last_q_solar_abs[surf.name] = q_solar_abs_outer
 
                 # Sky radiation on outer node (Node 0)
                 # 06_PHYSICS_SPEC.md Section 5.2: Q_sky = h_r * A * F_sky * (T_s - T_sky)
@@ -503,10 +505,24 @@ def run_single(
     solar_kwh = round(total_solar_gain_joules * j_to_kwh, 3)
     total_loss = round(loss_kwh_walls + loss_kwh_roof + loss_kwh_glazing + loss_kwh_inf + loss_kwh_sky, 3)
 
+    surface_summaries = []
+    for s_idx, surf in enumerate(active_surfaces):
+        t_nodes = surface_node_temps[s_idx]
+        t_s_c = float(t_nodes[-1] - 273.15)
+        flux = float(surf.K_int * (t_in - t_nodes[-1]))
+        sol_abs = float(last_q_solar_abs.get(surf.name, 0.0))
+        surface_summaries.append({
+            "name": surf.name,
+            "t_surface_c": round(t_s_c, 1),
+            "flux_w": round(flux, 1),
+            "solar_absorbed_w": round(sol_abs, 1),
+        })
+
     return {
         "series": hourly_results,
         "t_in_c": [r["t_in_c"] for r in hourly_results],
         "t_out_c": [r["t_out_c"] for r in hourly_results],
+        "surfaces": surface_summaries,
         "summary": {
             "solar_gain_kwh": solar_kwh,
             "heat_loss_kwh": {

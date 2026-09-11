@@ -1,0 +1,168 @@
+/* PhysicsSolvedSection.css — Precedents and narrative turn */
+
+.precedents-section {
+  background: var(--cream);
+  padding: var(--space-7) var(--space-4);
+  border-bottom: var(--border-width) solid var(--rule);
+}
+
+.precedents-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.precedents-header {
+  max-width: 800px;
+  margin-bottom: var(--space-6);
+}
+
+.precedents-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--orange);
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-2);
+}
+
+.precedents-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-lh);
+  letter-spacing: var(--text-display-spacing);
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.precedents-intro {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--espresso-70);
+  margin: 0;
+}
+
+.precedents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.precedent-card {
+  background: var(--cream-2);
+  border: var(--border-width) solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.precedent-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.precedent-badge {
+  font-size: 10px;
+  background: var(--orange-soft);
+  color: var(--orange);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.precedent-site {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--espresso-40);
+}
+
+.precedent-name {
+  font-family: var(--font-heading);
+  font-size: var(--text-title-size);
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0;
+}
+
+.precedent-desc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--espresso-70);
+  margin: 0;
+  flex-grow: 1;
+}
+
+.precedent-metric-box {
+  background: var(--cream);
+  border: var(--border-width) solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.p-metric-label {
+  font-size: 12px;
+  color: var(--espresso-40);
+}
+
+.p-metric-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sage);
+}
+
+.p-metric-sub {
+  font-size: 11px;
+  color: var(--espresso-40);
+}
+
+/* The Turn Box */
+.precedents-turn {
+  background: var(--cream-2);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.turn-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.turn-text {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--espresso-70);
+  max-width: 900px;
+  margin: 0 0 var(--space-4) 0;
+}
+
+.turn-cta {
+  background: var(--orange);
+  color: var(--cream);
+  border: none;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.turn-cta:hover {
+  opacity: 0.92;
+}

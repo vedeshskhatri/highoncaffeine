@@ -1,88 +1,121 @@
 /*
  * tokens.css — THERMA design tokens
- * Theme: Light — Vanilla Custard (#FFF9EB), Vivid Orange (#F77331) & Midnight Espresso (#200F07)
- * Typography: Montserrat (Headings) + Google Sans (Body copy) + JetBrains Mono (Telemetry)
+ * Direction: EDITORIAL ENGINEERING
+ * Palette: Cream, Espresso, Vivid Orange, Ice Blue, Sage
+ * Typography: Montserrat 700 (Headings) + DM Sans (Body) + JetBrains Mono (Numbers)
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
-@import url('https://fonts.cdnfonts.com/css/google-sans');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   /* ─────────────────────────────────────────
+     CORE COLOUR TOKENS — EDITORIAL ENGINEERING
+     ───────────────────────────────────────── */
+
+  --cream:       #FFF9EB;   /* page background, majority surface */
+  --cream-2:     #FBF2DE;   /* raised panels, table stripes */
+  --espresso:    #200F07;   /* primary text, dark full-bleed sections */
+  --espresso-70: #5A4A42;   /* secondary text */
+  --espresso-40: #9A8C84;   /* captions, axis labels */
+  --rule:        #E8DCC4;   /* hairlines, borders */
+  --orange:      #F77331;   /* buttons, links, active state, SOLAR GAIN */
+  --orange-soft: #FDE6D6;   /* fills, hover, highlight bands */
+  --ice:         #2E6F8E;   /* cold, heat loss, below health threshold */
+  --ice-soft:    #DCEAF1;   /* shading below the threshold */
+  --sage:        #4A7C59;   /* inside the comfort band */
+  --sage-soft:   #E3EDE5;   /* soft comfort fill */
+
+  /* ─────────────────────────────────────────
+     SEMANTIC ALIASES (STRICT ZERO-DRIFT MAPPING)
+     ───────────────────────────────────────── */
+  --bg-base:        var(--cream);
+  --bg-card:        var(--cream-2);
+  --surface-1:      var(--cream);
+  --surface-2:      var(--cream-2);
+  --border:         var(--rule);
+  --border-strong:  var(--espresso-40);
+
+  --text-primary:   var(--espresso);
+  --text-secondary: var(--espresso-70);
+  --text-muted:     var(--espresso-40);
+
+  --accent:         var(--orange);
+  --solar:          var(--orange);
+  --danger:         var(--ice);
+  --comfort:        var(--sage);
+
+  /* ─────────────────────────────────────────
      TYPOGRAPHY
      ───────────────────────────────────────── */
-
-  /* Font families */
-  --font-heading: 'Montserrat', system-ui, sans-serif;
-  --font-body:    'Google Sans', 'DM Sans', system-ui, sans-serif;
+  --font-heading: 'Montserrat', system-ui, -apple-system, sans-serif;
+  --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
 
-  /* Type scale — five sizes, no more */
-  --text-display-size:    28px;
-  --text-display-lh:      1.2;
-  --text-display-weight:  600;
+  /* Type Scale */
+  --text-hero-size:       clamp(36px, 5.5vw, 68px);
+  --text-hero-lh:         1.08;
+  --text-hero-weight:     700;
+  --text-hero-tracking:   -0.025em;
+
+  --text-display-size:    32px;
+  --text-display-lh:      1.15;
+  --text-display-weight:  700;
   --text-display-spacing: -0.02em;
 
-  --text-title-size:    20px;
-  --text-title-lh:      1.3;
-  --text-title-weight:  600;
-  --text-title-spacing: -0.01em;
+  --text-title-size:      22px;
+  --text-title-lh:        1.25;
+  --text-title-weight:    700;
+  --text-title-spacing:   -0.01em;
 
-  --text-subhead-size:   17px;
-  --text-subhead-lh:     1.35;
-  --text-subhead-weight: 600;
+  --text-subhead-size:    18px;
+  --text-subhead-lh:      1.4;
+  --text-subhead-weight:  600;
 
-  --text-body-size:    15px;
-  --text-body-lh:      1.5;
-  --text-body-weight:  400;
+  --text-body-size:       15px;
+  --text-body-lh:         1.55;
+  --text-body-weight:     400;
 
-  --text-label-size:   13px;
-  --text-label-lh:     1.4;
-  --text-label-weight: 500;
+  --text-label-size:      13px;
+  --text-label-lh:        1.4;
+  --text-label-weight:    500;
 
-  --text-caption-size:   12px;
-  --text-caption-lh:     1.4;
-  --text-caption-weight: 400;
+  --text-caption-size:    12px;
+  --text-caption-lh:      1.4;
+  --text-caption-weight:  400;
 
-  --text-metric-size:   24px;
-  --text-metric-lh:     1.1;
-  --text-metric-weight: 500;
-
-  /* ─────────────────────────────────────────
-     COLOUR — Light Theme (Vanilla Custard, Vivid Orange & Midnight Espresso)
-     ───────────────────────────────────────── */
-
-  /* Surfaces — Light Theme */
-  --bg-base:       #FFF9EB;   /* Vanilla Custard foundation */
-  --surface-1:     #FFFFFF;   /* Crisp clean card surfaces */
-  --surface-2:     #F7EED9;   /* Warm custard-tinted panels, inputs, hover states */
-  --border:        #E5D5BC;   /* Warm soft hairline border */
-  --border-strong: #C4AD8E;   /* Defined contrast borders */
-
-  /* Text — Midnight Espresso foundation */
-  --text-primary:   #200F07;   /* Midnight Espresso — ultra sharp & authoritative */
-  --text-secondary: #5C3E28;   /* Warm medium espresso */
-  --text-muted:     #8E7563;   /* Warm muted espresso */
-
-  /* Semantic — Vivid Orange hero accent */
-  --accent:   #F77331;   /* Vivid Orange — interactive buttons, active step, key highlights */
-  --solar:    #F77331;   /* Vivid Orange — solar gain, daytime, warm surfaces */
-  --danger:   #D63939;   /* High-visibility crimson — below health threshold (18 °C) */
-  --comfort:  #238551;   /* Forest emerald — inside comfort band */
-  --estimate: #9E742A;   /* Rich warm gold — the [estimate] tag on unsourced cost figures */
+  --text-metric-size:     24px;
+  --text-metric-lh:       1.1;
+  --text-metric-weight:   500;
 
   /* ─────────────────────────────────────────
-     SPACING — four values, nothing else
+     SPACING & METRICS
      ───────────────────────────────────────── */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 16px;
   --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --space-7: 64px;
 
-  /* ─────────────────────────────────────────
-     BORDERS & RADIUS
-     ───────────────────────────────────────── */
   --radius-sm: 4px;
-  --radius-md: 6px;    /* max per spec: 4–6 px */
-  --border-width: 1px; /* hairline borders, no shadows */
+  --radius-md: 6px;
+  --border-width: 1px;
+}
+
+/* OUTLINED CHIP FOR ESTIMATES */
+.estimate-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--espresso-40);
+  border: 1px solid var(--espresso-40);
+  border-radius: 3px;
+  padding: 1px 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: transparent;
+  line-height: 1.2;
 }

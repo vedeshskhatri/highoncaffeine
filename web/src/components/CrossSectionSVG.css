@@ -118,8 +118,8 @@
 #snow-cover-ground path,
 .cross-section-svg path[opacity="0.95"],
 .cross-section-svg path[opacity="0.9"] {
-  fill: #FFFFFF !important;
-  stroke: var(--border-strong);
+  fill: var(--cream) !important;
+  stroke: var(--rule);
   stroke-width: 0.75px;
 }
 

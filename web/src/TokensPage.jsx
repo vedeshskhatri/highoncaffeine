@@ -1,194 +1,182 @@
+import { useState, useEffect } from 'react';
 import './TokensPage.css';
 
-/* ── Colour token definitions ──────────────────────────────────────────────
- * Each entry: { token, value, meaning? }
- * 'meaning' is only for semantic colours — the four colours with hard rules.
- */
-const SURFACE_COLOURS = [
-  { token: '--bg-base',       value: '#FFF9EB', label: 'bg-base (Vanilla Custard)' },
-  { token: '--surface-1',     value: '#FFFFFF', label: 'surface-1 (Card base)' },
-  { token: '--surface-2',     value: '#F7EED9', label: 'surface-2 (Custard tint)' },
-  { token: '--border',        value: '#E5D5BC', label: 'border (Warm hairline)' },
-  { token: '--border-strong', value: '#C4AD8E', label: 'border-strong (Contrast)' },
+/* ── Token definitions (values read live from CSS custom properties) ──────── */
+const TOKEN_SPECS = [
+  { token: '--cream',       label: 'cream',       role: 'Page background, majority surface' },
+  { token: '--cream-2',     label: 'cream-2',     role: 'Raised panels, table stripes' },
+  { token: '--espresso',    label: 'espresso',    role: 'Primary text, dark full-bleed sections' },
+  { token: '--espresso-70', label: 'espresso-70', role: 'Secondary text' },
+  { token: '--espresso-40', label: 'espresso-40', role: 'Captions, axis labels, estimate chip border' },
+  { token: '--rule',        label: 'rule',        role: 'Hairlines, section borders' },
+  { token: '--orange',      label: 'orange',      role: 'Buttons, links, active state, SOLAR GAIN' },
+  { token: '--orange-soft', label: 'orange-soft', role: 'Fills, hover, highlight bands' },
+  { token: '--ice',         label: 'ice',         role: 'Cold, heat loss, below health threshold' },
+  { token: '--ice-soft',    label: 'ice-soft',    role: 'Shading below health threshold' },
+  { token: '--sage',        label: 'sage',        role: 'Inside the comfort band' },
+  { token: '--sage-soft',   label: 'sage-soft',   role: 'Comfort band highlight' },
 ];
 
-const TEXT_COLOURS = [
-  { token: '--text-primary',   value: '#200F07', label: 'text-primary (Midnight Espresso)' },
-  { token: '--text-secondary', value: '#5C3E28', label: 'text-secondary' },
-  { token: '--text-muted',     value: '#8E7563', label: 'text-muted' },
+const SEMANTIC_RULES = [
+  {
+    name: 'Vivid Orange',
+    token: '--orange',
+    meaning: 'Warmth, sun, solar gain, primary brand action',
+    bg: 'var(--orange)',
+    fg: 'var(--cream)',
+  },
+  {
+    name: 'Ice Blue',
+    token: '--ice',
+    meaning: 'Cold, heat loss, below 18 °C health threshold',
+    bg: 'var(--ice)',
+    fg: 'var(--cream)',
+  },
+  {
+    name: 'Sage Green',
+    token: '--sage',
+    meaning: 'Comfort band (inside 18–26 °C band)',
+    bg: 'var(--sage)',
+    fg: 'var(--cream)',
+  },
 ];
 
-const SEMANTIC_COLOURS = [
-  { token: '--accent',   value: '#F77331', label: 'accent (Vivid Orange)',   meaning: 'Interactive only: buttons, active step, links' },
-  { token: '--solar',    value: '#F77331', label: 'solar (Vivid Orange)',    meaning: 'Solar gain, daytime, warm surfaces' },
-  { token: '--danger',   value: '#D63939', label: 'danger',                  meaning: 'ONLY: below health threshold (18 °C)' },
-  { token: '--comfort',  value: '#238551', label: 'comfort',                 meaning: 'ONLY: inside comfort band' },
-  { token: '--estimate', value: '#9E742A', label: 'estimate',                meaning: 'ONLY: the [estimate] tag on unsourced cost figures' },
-];
-
-/* ── Type scale ─────────────────────────────────────────────────────────── */
 const TYPE_SCALE = [
   {
+    token: '--text-hero',
+    sample: 'Rs 2,400 to deliver one litre of kerosene.',
+    family: 'var(--font-heading)',
+    size: 'var(--text-hero-size)',
+    lh: 'var(--text-hero-lh)',
+    weight: 'var(--text-hero-weight)',
+    details: '56–72px · Montserrat 700 · -0.025em',
+  },
+  {
     token: '--text-display',
-    sample: 'Display — 28px / 1.2 / 600 / -0.02em',
+    sample: 'The Physics is Solved. The Decision Isn’t.',
     family: 'var(--font-heading)',
     size: 'var(--text-display-size)',
     lh: 'var(--text-display-lh)',
     weight: 'var(--text-display-weight)',
-    spacing: 'var(--text-display-spacing)',
-    details: '28px · Montserrat 600 · -0.02em',
+    details: '32px · Montserrat 700 · -0.02em',
   },
   {
     token: '--text-title',
-    sample: 'Title — 20px / 1.3 / 600 / -0.01em',
+    sample: 'Shelter Cross-Section & Thermal Envelope',
     family: 'var(--font-heading)',
     size: 'var(--text-title-size)',
     lh: 'var(--text-title-lh)',
     weight: 'var(--text-title-weight)',
-    spacing: 'var(--text-title-spacing)',
-    details: '20px · Montserrat 600 · -0.01em',
+    details: '22px · Montserrat 700 · -0.01em',
   },
   {
     token: '--text-subhead',
-    sample: 'Subhead — 17px / 1.35 / 600',
+    sample: 'Transient ISO 52016-1 thermal response across 24 hours',
     family: 'var(--font-heading)',
     size: 'var(--text-subhead-size)',
     lh: 'var(--text-subhead-lh)',
     weight: 'var(--text-subhead-weight)',
-    spacing: 'normal',
-    details: '17px · Montserrat 600',
+    details: '18px · Montserrat 600',
   },
   {
     token: '--text-body',
-    sample: 'Body — 15px / 1.5 / 400 — The thermal mass of a wall delays and attenuates the temperature wave.',
+    sample: 'A standard uninsulated tent collapses to -32 C overnight in Ladakh. Adding 50 mm EPS lifts the night minimum by 14.8 C.',
     family: 'var(--font-body)',
     size: 'var(--text-body-size)',
     lh: 'var(--text-body-lh)',
     weight: 'var(--text-body-weight)',
-    spacing: 'normal',
-    details: '15px · Google Sans 400',
-  },
-  {
-    token: '--text-label',
-    sample: 'Label — 13px / 1.4 / 500 — Wall thickness · Material · Facing',
-    family: 'var(--font-body)',
-    size: 'var(--text-label-size)',
-    lh: 'var(--text-label-lh)',
-    weight: 'var(--text-label-weight)',
-    spacing: 'normal',
-    details: '13px · Google Sans 500',
-  },
-  {
-    token: '--text-caption',
-    sample: 'Caption — 12px / 1.4 / 400 — ~₹500/window · local craftsman, 1 day   [estimate]',
-    family: 'var(--font-body)',
-    size: 'var(--text-caption-size)',
-    lh: 'var(--text-caption-lh)',
-    weight: 'var(--text-caption-weight)',
-    spacing: 'normal',
-    details: '12px · Google Sans 400',
+    details: '15px · DM Sans 400',
   },
   {
     token: '--text-metric',
-    sample: '−17.2 °C    86%    1,180 L    ₹4,200',
+    sample: '-32.28 °C · 2,400 INR/L · 15.34 kWh · 04:00',
     family: 'var(--font-mono)',
     size: 'var(--text-metric-size)',
     lh: 'var(--text-metric-lh)',
     weight: 'var(--text-metric-weight)',
-    spacing: 'normal',
-    details: '24px · JetBrains Mono 500',
+    details: '24px · JetBrains Mono 500 (Every Number)',
   },
 ];
 
-/* ── Spacing ────────────────────────────────────────────────────────────── */
-const SPACING = [
-  { token: '--space-1', value: '4px',  px: 4 },
-  { token: '--space-2', value: '8px',  px: 8 },
-  { token: '--space-3', value: '16px', px: 16 },
-  { token: '--space-4', value: '24px', px: 24 },
-];
-
-/* ── Font families ─────────────────────────────────────────────────────── */
-const FONT_FAMILIES = [
-  {
-    token: '--font-heading',
-    family: 'Montserrat',
-    cssFamily: "'Montserrat', system-ui, sans-serif",
-    weights: [600, 700],
-    role: 'Headings',
-  },
-  {
-    token: '--font-body',
-    family: 'DM Sans',
-    cssFamily: "'DM Sans', system-ui, sans-serif",
-    weights: [400, 500],
-    role: 'Body / UI (swap target for Google Sans — Decision D13)',
-  },
-  {
-    token: '--font-mono',
-    family: 'JetBrains Mono',
-    cssFamily: "'JetBrains Mono', ui-monospace, monospace",
-    weights: [400, 500],
-    role: 'All numbers — temperatures, rupees, percentages',
-  },
-];
-
-/* ── Swatch component ───────────────────────────────────────────────────── */
-function Swatch({ token, value, label, meaning }) {
-  return (
-    <div className="swatch">
-      <div className="swatch-block" style={{ backgroundColor: value }} />
-      <div className="swatch-label">
-        <span className="swatch-name">{label}</span>
-        <span className="swatch-value">{value}</span>
-        {meaning && <span className="swatch-meaning">{meaning}</span>}
-      </div>
-    </div>
-  );
-}
-
-/* ── Main page ──────────────────────────────────────────────────────────── */
 export default function TokensPage() {
+  const [resolvedValues, setResolvedValues] = useState({});
+
+  useEffect(() => {
+    const computed = getComputedStyle(document.documentElement);
+    const vals = {};
+    TOKEN_SPECS.forEach((s) => {
+      vals[s.token] = computed.getPropertyValue(s.token).trim();
+    });
+    setResolvedValues(vals);
+  }, []);
+
   return (
     <div className="tokens-page">
-      <h1>THERMA — Design Token Specimen</h1>
-      <p style={{
-        color: 'var(--text-secondary)',
-        fontSize: 'var(--text-body-size)',
-        marginBottom: 'var(--space-4)',
-        fontStyle: 'italic',
-      }}>
-        Palette is <strong>provisional</strong> (Decision D14). Replace values in{' '}
-        <code style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>tokens.css</code>{' '}
-        only — no component hardcodes a colour.
-      </p>
+      <header className="tokens-header">
+        <a href="/" className="back-link">← Back to Shelter Builder</a>
+        <h1 className="tokens-title">Design Tokens — Editorial Engineering</h1>
+        <p className="tokens-subtitle">
+          Single source of truth for THERMA. Warm cream foundation, midnight espresso typography,
+          and strict semantic colour discipline.
+        </p>
+      </header>
 
-      {/* ── Font families ─── */}
+      {/* Colour palette */}
       <section className="tokens-section">
-        <h2>Font Families</h2>
-        <div className="font-specimens">
-          {FONT_FAMILIES.map((f) => (
-            <div key={f.token} className="font-specimen">
-              <div className="font-meta">
-                <code>{f.token}</code> · {f.role}
+        <h2>1. Palette Tokens</h2>
+        <div className="swatch-grid">
+          {TOKEN_SPECS.map((c) => (
+            <div key={c.token} className="swatch">
+              <div className="swatch-block" style={{ backgroundColor: `var(${c.token})` }} />
+              <div className="swatch-label">
+                <span className="swatch-name">{c.label}</span>
+                <span className="swatch-token">{c.token}</span>
+                <span className="swatch-value">{resolvedValues[c.token] || 'Loading...'}</span>
+                <span className="swatch-role">{c.role}</span>
               </div>
-              {f.weights.map((w) => (
-                <div
-                  key={w}
-                  className={`font-sample-${w}`}
-                  style={{ fontFamily: f.cssFamily, fontWeight: w }}
-                >
-                  {f.family} {w} — The quick brown fox
-                </div>
-              ))}
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Type scale ─── */}
+      {/* Semantic discipline */}
       <section className="tokens-section">
-        <h2>Type Scale</h2>
+        <h2>2. Semantic Colour Discipline</h2>
+        <p className="section-note">
+          Every colour carries exact physics and narrative meaning. The night collapse reads
+          directly as a slide from orange (sun, warmth) into ice blue (cold, loss).
+        </p>
+        <div className="semantic-grid">
+          {SEMANTIC_RULES.map((s) => (
+            <div key={s.token} className="semantic-card" style={{ borderLeftColor: s.bg }}>
+              <div className="semantic-badge" style={{ backgroundColor: s.bg, color: s.fg }}>
+                {s.name}
+              </div>
+              <div className="semantic-meta">
+                <span className="semantic-token">{s.token}</span>
+                <span className="semantic-meaning">{s.meaning}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Estimate chip token */}
+      <section className="tokens-section">
+        <h2>3. Estimate Tag Chip Spec</h2>
+        <p className="section-note">
+          Per specification, unsourced material or cost estimates render as a subtle outlined chip
+          in <code>--espresso-40</code>, not an alert colour.
+        </p>
+        <div className="estimate-demo-box">
+          <span>Cost per m²: ₹1,450 </span>
+          <span className="estimate-chip">[estimate]</span>
+        </div>
+      </section>
+
+      {/* Typography */}
+      <section className="tokens-section">
+        <h2>4. Typography Scale</h2>
         <div className="type-specimen-grid">
           {TYPE_SCALE.map((t) => (
             <div key={t.token} className="type-specimen">
@@ -197,14 +185,12 @@ export default function TokensPage() {
                 <div className="type-details">{t.details}</div>
               </div>
               <div
+                className="type-sample"
                 style={{
                   fontFamily: t.family,
                   fontSize: t.size,
                   lineHeight: t.lh,
                   fontWeight: t.weight,
-                  letterSpacing: t.spacing,
-                  color: 'var(--text-primary)',
-                  flex: 1,
                 }}
               >
                 {t.sample}
@@ -213,61 +199,6 @@ export default function TokensPage() {
           ))}
         </div>
       </section>
-
-      {/* ── Colour — surfaces ─── */}
-      <section className="tokens-section">
-        <h2>Surfaces</h2>
-        <div className="swatch-grid">
-          {SURFACE_COLOURS.map((c) => (
-            <Swatch key={c.token} {...c} />
-          ))}
-        </div>
-      </section>
-
-      {/* ── Colour — text ─── */}
-      <section className="tokens-section">
-        <h2>Text</h2>
-        <div className="swatch-grid">
-          {TEXT_COLOURS.map((c) => (
-            <Swatch key={c.token} {...c} />
-          ))}
-        </div>
-      </section>
-
-      {/* ── Colour — semantic ─── */}
-      <section className="tokens-section">
-        <h2>Semantic Colours — each has exactly ONE meaning</h2>
-        <div className="swatch-grid">
-          {SEMANTIC_COLOURS.map((c) => (
-            <Swatch key={c.token} {...c} />
-          ))}
-        </div>
-      </section>
-
-      {/* ── Spacing ─── */}
-      <section className="tokens-section">
-        <h2>Spacing Scale (4 values only)</h2>
-        <div className="spacing-grid">
-          {SPACING.map((s) => (
-            <div key={s.token} className="spacing-row">
-              <div className="spacing-label">
-                <code>{s.token}</code> · {s.value}
-              </div>
-              <div className="spacing-bar-wrap">
-                <div
-                  className="spacing-bar"
-                  style={{ width: `${s.px * 6}px` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="tokens-footer">
-        THERMA · Phase S0 · Swapnil · All colours provisional per Decision D14 ·
-        Font swap target: --font-body → Google Sans (Decision D13)
-      </div>
     </div>
   );
 }

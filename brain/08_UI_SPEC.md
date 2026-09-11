@@ -1,171 +1,133 @@
-# 08 — UI SPEC
+# 08 — UI SPEC (REVISED: EDITORIAL ENGINEERING)
 
-**Owner: Swapnil.** `tokens.css` and `tailwind.config.js` are his alone (Rule R4).
+**Direction Change per D17 & Phase S5–S9.**
+Replaces "field instrument, no hero section, opens directly into work" with **EDITORIAL ENGINEERING** — a product website with an interactive shelter builder at its centre.
 
-## 1. Design direction
+---
 
-**Not a startup dashboard. A field instrument.**
+## 1. Design Direction: Editorial Engineering
 
-Reference: engineering software an army engineer opens on a laptop in Leh. Dense, precise, quiet, trustworthy. It should look like it was built by people who care about the numbers being right.
+Warm and light, not dark and clinical. Type-led, not widget-led.
+A judge lands on something a real company built, scrolls through a rigorous narrative argument, and reaches the tool already convinced it matters.
 
-- No hero section, no marketing copy, no illustrations. The app opens directly into work.
-- Hairline borders, no shadows. 1 px dividers, 4–6 px radius maximum, flat surfaces.
-- Data-dense but breathing — generous padding inside panels, tight spacing between related fields.
-- **Colour carries meaning.** If something is coloured it is because it means something.
+- **Warm cream foundation** for readability and authority.
+- **Two full-bleed midnight espresso sections** (The Collapse story, and Empirical Validation) that break the scroll rhythm.
+- **Type-led clarity:** Hero Montserrat 700 headline, DM Sans for prose, JetBrains Mono for every single numerical value.
+- **Zero hardcoded colours.** Everything resolves through `tokens.css`.
+- **Zero external drag or component libraries.** Native HTML5 drag-and-drop.
+- **Strict semantic colour discipline.**
 
-## 2. Typography
+---
 
-| Role | Family | Weights |
-|---|---|---|
-| Headings | **Montserrat** | 600, 700 |
-| Body / UI | **DM Sans** | 400, 500 |
-| All numbers | **JetBrains Mono** | 400, 500 |
-
-**Note on Google Sans.** The requested pairing was Montserrat + Google Sans. Google Sans is Google's proprietary brand typeface and is **not publicly licensed for web use** — it is not on Google Fonts. **DM Sans** is the closest open geometric-humanist substitute and is used here. If a licensed copy of Google Sans is available, swap it in `tokens.css` only — one variable, nothing else changes.
-
-**Every number renders in mono.** Temperatures, litres, rupees, percentages. This single rule does most of the work of making the product read as an instrument rather than marketing.
+## 2. Palette & Semantic Rules
 
 ```css
---font-heading: 'Montserrat', system-ui, sans-serif;
---font-body:    'DM Sans', system-ui, sans-serif;   /* swap target for Google Sans */
---font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --cream:       #FFF9EB   /* page background, majority surface */
+  --cream-2:     #FBF2DE   /* raised panels, table stripes */
+  --espresso:    #200F07   /* primary text, dark full-bleed sections */
+  --espresso-70: #5A4A42   /* secondary text */
+  --espresso-40: #9A8C84   /* captions, axis labels, estimate border */
+  --rule:        #E8DCC4   /* hairlines, borders */
+  --orange:      #F77331   /* buttons, links, active state, SOLAR GAIN */
+  --orange-soft: #FDE6D6   /* fills, hover, highlight bands */
+  --ice:         #2E6F8E   /* cold, heat loss, below health threshold */
+  --ice-soft:    #DCEAF1   /* shading below the threshold */
+  --sage:        #4A7C59   /* inside the comfort band */
+  --sage-soft:   #E3EDE5   /* comfort band highlight */
 ```
 
-Type scale — five sizes, no more:
-```css
---text-display: 28px / 1.2  600  -0.02em   Montserrat
---text-title:   20px / 1.3  600  -0.01em   Montserrat
---text-body:    15px / 1.5  400            DM Sans
---text-label:   13px / 1.4  500            DM Sans
---text-caption: 12px / 1.4  400            DM Sans
---text-metric:  24px / 1.1  500            JetBrains Mono
-```
+### Semantic Discipline
+- **Orange (`--orange`):** Warmth, solar gain, interactive buttons, active step.
+- **Ice Blue (`--ice`):** Cold, heat loss, temperatures below 18 °C health threshold.
+- **Sage Green (`--sage`):** Thermal comfort (within 18–26 °C comfort band).
+- **Estimate Tag (`[estimate]`):** Small OUTLINED chip in `--espresso-40` with monospace font. Not an alert colour.
 
-## 3. Colour — PROVISIONAL
+---
 
-⚠ **The team palette had not arrived when this was written.** These values are a working set built for the design direction above. When the real palette lands, replace the values in `tokens.css` — **no component may hardcode a colour**, so the swap is one file.
+## 3. Typography Scale
 
-```css
-/* surfaces — dark-first */
---bg-base:      #0E0F11;
---surface-1:    #16181B;
---surface-2:    #1E2125;
---border:       #2A2E33;
---border-strong:#3A3F46;
+| Role | Token | Family | Size / Weight | Details |
+|---|---|---|---|---|
+| Hero Headline | `--text-hero` | **Montserrat** | clamp(36px, 5.5vw, 68px) / 700 | Tight tracking -0.025em |
+| Display | `--text-display` | **Montserrat** | 32px / 700 | -0.02em tracking |
+| Title | `--text-title` | **Montserrat** | 22px / 700 | -0.01em tracking |
+| Subhead | `--text-subhead` | **Montserrat** | 18px / 600 | Normal tracking |
+| Body UI | `--text-body` | **DM Sans** | 15px / 400 | Line height 1.55 |
+| Captions | `--text-caption` | **DM Sans** | 12px / 400 | Captions & metadata |
+| All Numbers | `--text-metric` | **JetBrains Mono** | 24px / 500 | Temperatures, fluxes, rupees |
 
-/* text */
---text-primary:   #ECEDEE;
---text-secondary: #A0A6AD;
---text-muted:     #6B7178;
+---
 
-/* semantic — each colour has exactly one meaning */
---accent:   #4C9EE8;   /* interactive only: buttons, active step, links */
---solar:    #E8A33D;   /* solar gain, daytime, warm surfaces */
---danger:   #E05C5C;   /* ONLY: below health threshold */
---comfort:  #3FA87A;   /* ONLY: inside comfort band */
---estimate: #8B7A55;   /* ONLY: the [estimate] tag */
-```
-
-**Semantic discipline is a hard rule.** Red means below the health threshold and nothing else. Green means in the comfort band and nothing else. Amber means an unsourced estimate and nothing else. A judge reading the screen should be able to learn the colour language in five seconds and trust it.
-
-Spacing scale — four values: `4 / 8 / 16 / 24 px`. Nothing else.
-
-## 4. Layout skeleton — identical on all three steps
+## 4. Page Architecture (Long-Scroll Rhythm)
 
 ```
-+---------------------------------------------------------------+
-|  THERMA                    [1 Design] 2 Simulate  3 Optimize   |
-+----------------+----------------------------------------------+
-| Weather mode   |                                              |
-| [Typical|P1 ]  |          CANVAS — swaps by step              |
-|                |                                              |
-| Site           |                                              |
-|  [ ] [ ] [ ]   |                                              |
-|                |                                              |
-| Geometry       |                                              |
-|  [ ] [ ]       |                                              |
-|                |                                              |
-| Envelope       |                                              |
-|  [ ] [ ]       |                                              |
-|                |                                              |
-| +------------+ |                                              |
-| | live cross-| |                                              |
-| | section    | |                                              |
-| +------------+ |                                              |
-+----------------+----------------------------------------------+
+[ HEADER ] Sticky: Logo mark, Validation link, Method link, Tokens link, Orange CTA ("Try Shelter Builder")
+    │
+[ 1. HERO SECTION ] (Cream)
+    "Rs 2,400 to deliver one litre of kerosene to Siachen."
+    Subhead on free solar resource vs leaky building. Orange CTA button.
+    │
+[ 2. THE NIGHTTIME COLLAPSE ] (Full-Bleed Midnight Espresso)
+    Narrative: "At 04:00, the temperature inside lands at -32.3 °C."
+    Self-drawing SVG curve on scroll (IntersectionObserver + stroke-dashoffset).
+    Target marker landing at the verified -32.3 °C overnight minimum.
+    │
+[ 3. THE PHYSICS IS SOLVED, THE DECISION ISN'T ] (Cream)
+    Three empirical precedents: DIHAR (16–18 °C), ADM Block (18.9 °C), LEDeG Trombe (16.3 °C).
+    The Turn: Consultancy doesn't scale to field ops; THERMA automates it.
+    │
+[ 4. THREE SCENARIO MODES ] (Cream)
+    - Forward Post (Ladakh 3,500 m · Stone, EPS · Fuel avoidance)
+    - Relief Shelter (Rasuwa Nepal 2,400 m · Tarpaulin, mud skirt · Survival)
+    - Village Home (Leh Valley 3,500 m · Mud brick, Trombe · Low-cost fix)
+    │
+[ 5. THE SHELTER BUILDER (CENTREPIECE) ] (Cream Workbench)
+    Three columns:
+      - LEFT: Materials Tray (drag blocks with conductivity bars, k/rho/cp signatures)
+      - CENTRE: 2D Scale Cross-Section & 3 Drop Zones (Roof, Walls, Floor with thickness sliders)
+      - RIGHT: Live 24-Hour Temperature Curve (debounced ~150 ms, responds to hand drags)
+      - SUB: Day Scrubber (0–24h timeline, temperature tinting, sun arc, surface flux arrows)
+    │
+[ 6. RESULTS AS AN ENGINEERING REPORT ] (Cream Designed Spec Sheet)
+    Document header, revision line, structured tables, Cmd+P print stylesheet for clean PDF export.
+    │
+[ 7. EMPIRICAL VALIDATION ] (Full-Bleed Midnight Espresso)
+    Four validation targets (V1–V4), Physical Ordering row (Trombe > DG), ANSYS dual-track benchmark.
+    │
+[ FOOTER & METHOD MODAL ]
+    Citations: EN ISO 52016-1:2017, Swinbank nocturnal radiation, altitude lapse scaling.
 ```
 
-**The left rail never moves or remounts.** Only the canvas changes. That consistency is most of what "clean UI" means to an evaluator.
+---
 
-## 5. Component specs
+## 5. Centerpiece Shelter Builder Spec (Phase S6 & S7)
 
-### StepRail
-Three steps, current one in `--accent`, others `--text-muted`. Not clickable ahead of valid input.
+1. **Materials Tray:**
+   - Real sourced values ($k$, $\rho$, $C_p$, cost, availability).
+   - Dynamic conductivity bar: lower conductivity = green insulation signature, high conductivity = blue conductive mass.
+   - Filter toggle: "Locally available in Leh only".
+2. **2D Elevation Cross-Section:**
+   - Drop zones: ROOF (outside to inside), WALLS (outside to inside), FLOOR (outside to inside).
+   - Reorder layers by dragging within stack.
+   - Thickness handle slider on each layer (10 mm to 500 mm).
+   - Section redraws to scale with category pattern fills.
+3. **Live Temperature Curve:**
+   - Debounced at 150 ms so continuous dragging does not flood the solver.
+   - Optimistic layer rendering: section updates immediately on drop, curve smoothly transitions.
+   - Big mono readout of overnight minimum with before/after $\Delta T$ chip.
+   - Subtle "Solving..." pulse badge; chart never blanks on error.
+   - Request sequencing ID guard prevents stale responses from overwriting newer ones.
+4. **Day Scrubber:**
+   - 0–24h slider under the cross-section.
+   - Section background tints with temperature from `--orange-soft` at noon peak to `--ice-soft` at 04:00.
+   - Sun glyph arcs from 06:00 to 18:00 with direct GHI readout.
+   - Surface flux arrows scale with that hour's real conduction/radiation losses.
 
-### Weather mode toggle — top of the rail
-`Typical day | Design winter night`. **Placed above everything else**, because it is the most consequential control in the application. When P1 is active, show the `grid_note` as caption text beneath — the regional-estimate caveat must be visible, not buried.
+---
 
-### CrossSectionSVG
-Hand-written SVG, no library. Shows wall layers to scale with material fills, window openings, roof, ground line, snow if `snow_cover`. Redraws on **every** input change — no debounce, no animation.
+## 6. Constraints & Verification Requirements
 
-This is the single best UI element in the product. It makes the tool feel like a product rather than a form.
-
-### TempChart
-Indoor and outdoor lines, comfort band shaded `--comfort` at low opacity, region below health threshold shaded `--danger` at low opacity. Uncertainty band as a light area between `t_in_lo` and `t_in_hi`. Hour axis 0–23.
-
-### DeltaAmbientChart
-`delta_ambient` with a zero baseline. **Label it "Heat flow across ΔT (indoor − ambient)" and name it as PS requirement 3 during the demo.**
-
-### DeltaDesignChart
-`t_in(B) − t_in(A)`, zero baseline, shaded above and below. Visually striking when it spikes at 03:00.
-
-### MetricCards
-Four: min at dawn, comfort hours, hours below health threshold, kerosene avoided. `--text-metric` for the value, `--text-caption` for the label.
-
-### LeversPanel
-Horizontal bars by `effect_c`. Under each bar, one caption line:
-```
-Night shutters      ████████████  +6.1 °C
-                    ~₹500/window · local craftsman, 1 day   [estimate]
-```
-`[estimate]` renders in `--estimate`. **Never hide it.** A panel showing two sourced numbers and one honestly labelled estimate reads as more trustworthy than three confident unsourced numbers.
-
-### ValidationPanel
-Collapsed by default, expands on the Simulate step. Three measured points with error bars, model output as a line through them. Plus an explicit ordering check row: *Trombe ranked above direct-gain ✓*. Data from `GET /validation`, pre-run and committed — **never computed live.**
-
-### RetrofitList
-Ranked interventions with `degrees_per_1000_inr`, cumulative cost and cumulative temperature columns, budget line marker.
-
-### SpecSheetCopy
-One button, clipboard only, no PDF library.
-```
-SHELTER SPEC — Leh (34.15 N, 77.58 E, 3500 m) — design winter night
-Wall:        300 mm mud brick + 50 mm EPS
-Roof:        150 mm concrete, low-e coating (e=0.25)
-Orientation: 172 deg  |  South glazing: 5.5 m2  |  Night shutters: yes
-Min indoor:  17.2 C at 06:10   |   Comfort hours: 86%
-Hours below 18 C: 14/24
-Kerosene avoided: 1,180 L/yr   |   Payback: 2.4 yr   |   CO2: 3.0 t/yr
-Model: EN ISO 52016-1 5R1C, altitude-corrected. Validated vs DIHAR Leh.
-```
-
-### RefusalCard
-When `refused: true`, replace the canvas with a full-width card in `--danger` border, the reason text, and a "what to change" line. **This is a result, not an error** — do not style it as a crash.
-
-## 6. Input validation UX
-
-- Every numeric field has min/max enforced client-side and server-side
-- Errors render inline under the field, `--danger`, `--text-caption`
-- Submit disabled while any field is invalid
-- **Deliberately demonstrate a rejected input during the demo**
-- CSV paste errors render as a column/row table, never a stack trace
-
-## 7. Responsive
-
-Down to 390 px. Below 900 px the left rail collapses to a drawer behind a toggle; canvas goes full width; charts keep a 16:9 minimum. Verify on a real phone via ngrok before freeze.
-
-## 8. Loading and empty states
-
-- Simulate: skeleton chart, not a spinner
-- Optimize: progress text "Evaluating 3,200 designs…" — **this pause is the demo's most theatrical moment, do not hide it behind a generic spinner**
-- No data yet: a one-line instruction, never a blank panel
+- Responsive down to 390 px mobile devices (three columns collapse cleanly).
+- Zero hardcoded hex values in `web/src` outside `tokens.css`.
+- Verification of before/after $\Delta T$ on EPS drag onto roof.
+- Verification of clean validation error on empty envelope zone.
