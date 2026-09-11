@@ -1,0 +1,152 @@
+/*
+ * CommandBar.css — Field-instrument terminal prompt styling for THERMA.
+ * Strictly conforms to tokens.css — zero new hex colors.
+ */
+
+.command-bar-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  font-family: var(--font-mono);
+}
+
+/* Prompt + Input row */
+.command-bar-row {
+  display: flex;
+  align-items: center;
+  background: var(--surface-2);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+  height: 32px;
+  gap: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.command-bar-row:focus-within {
+  border-color: var(--border-strong);
+  background: var(--surface-1);
+}
+
+/* Terminal prompt character */
+.command-bar-prompt {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  user-select: none;
+  line-height: 1;
+}
+
+/* Single line text input */
+.command-bar-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  padding: 0;
+}
+
+.command-bar-input::placeholder {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* Kbd hint / execute glyph */
+.command-bar-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1px 4px;
+  user-select: none;
+  line-height: 1.2;
+}
+
+/* Unrecognized command: muted-red border flash + subtle instrument shake */
+@keyframes cmd-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+.command-bar-row.shake {
+  border-color: var(--danger) !important;
+  animation: cmd-shake 320ms ease-in-out;
+  box-shadow: 0 0 0 1px var(--danger);
+}
+
+/* Successful command: sage pulse */
+@keyframes cmd-pulse {
+  0% {
+    box-shadow: 0 0 0 2px var(--comfort);
+    border-color: var(--comfort);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    border-color: var(--border);
+  }
+}
+
+.command-bar-row.success-pulse {
+  animation: cmd-pulse 360ms ease-out;
+}
+
+/* One-line inline result readout under the bar */
+.command-bar-feedback {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.35;
+  box-shadow: var(--shadow-sm);
+  z-index: 120;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.command-bar-feedback.idle {
+  background: var(--surface-1);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+.command-bar-feedback.success {
+  background: var(--sage-soft);
+  color: var(--comfort);
+  border-color: var(--comfort);
+}
+
+.command-bar-feedback.error {
+  background: var(--ice-soft);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.command-bar-feedback-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}

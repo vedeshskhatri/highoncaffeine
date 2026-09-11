@@ -12,6 +12,8 @@ import SimulateCanvas from './components/SimulateCanvas';
 import OptimizeCanvas from './components/OptimizeCanvas';
 import InspectorPanel from './components/InspectorPanel';
 import WatchView from './components/WatchView';
+import CommandBar from './components/CommandBar';
+import { SITE_PRESETS, FALLBACK_MATERIALS } from './lib/presets';
 
 const STEPS = [
   { id: 'design',   label: 'Design Studio', number: 1 },
@@ -88,12 +90,13 @@ export default function App() {
     );
   }, []);
 
-  const handleSimulate = useCallback(async () => {
+  const handleSimulate = useCallback(async (customRequest) => {
+    const req = (customRequest && customRequest.location) ? customRequest : simulateRequest;
     try {
       const resp = await fetch('http://localhost:8000/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(simulateRequest),
+        body: JSON.stringify(req),
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -107,6 +110,83 @@ export default function App() {
     }
     setCurrentStep('simulate');
   }, [simulateRequest]);
+
+  const handleCommand = useCallback((action) => {
+    if (!action || !action.type) return;
+
+    // Trigger brief visual instrument pulse on canvas
+    const canvas = document.getElementById('main-canvas');
+    if (canvas) {
+      canvas.classList.remove('instrument-pulse');
+      void canvas.offsetWidth; // Force reflow
+      canvas.classList.add('instrument-pulse');
+      setTimeout(() => canvas.classList.remove('instrument-pulse'), 380);
+    }
+
+    switch (action.type) {
+      case 'NAVIGATE_STEP': {
+        if (action.step === 'validation panel toggle') {
+          setCurrentStep('simulate');
+          setTimeout(() => {
+            const el = document.getElementById('validation-panel');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 80);
+        } else if (accessibleSteps.has(action.step)) {
+          setCurrentStep(action.step);
+        }
+        break;
+      }
+      case 'SET_SITE_AND_NAVIGATE': {
+        const updatedReq = {
+          ...simulateRequest,
+          location: {
+            lat: action.site.lat,
+            lon: action.site.lon,
+            altitude_m: action.site.altitude_m,
+          },
+        };
+        setSimulateRequest(updatedReq);
+        setCurrentStep('simulate');
+        handleSimulate(updatedReq);
+        break;
+      }
+      case 'SET_SITE_AND_MATERIAL_AND_NAVIGATE': {
+        const updatedWalls = simulateRequest.envelope.walls.map((w, idx) =>
+          idx === 0 ? { ...w, material: action.material.id } : w
+        );
+        const updatedReq = {
+          ...simulateRequest,
+          location: {
+            lat: action.site.lat,
+            lon: action.site.lon,
+            altitude_m: action.site.altitude_m,
+          },
+          envelope: {
+            ...simulateRequest.envelope,
+            walls: updatedWalls,
+          },
+        };
+        setSimulateRequest(updatedReq);
+        setCurrentStep('simulate');
+        handleSimulate(updatedReq);
+        break;
+      }
+      case 'COMPARE_MATERIALS': {
+        setCurrentStep('simulate');
+        setTimeout(() => {
+          const compPanel = document.getElementById('design-comparison-panel');
+          if (compPanel) {
+            compPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 80);
+        break;
+      }
+      default:
+        break;
+    }
+  }, [simulateRequest, accessibleSteps, handleSimulate]);
 
   if (viewTokens) {
     return <TokensPage />;
@@ -133,6 +213,14 @@ export default function App() {
               {floorArea} m² ({simulateRequest.geometry.length_m}m × {simulateRequest.geometry.width_m}m × {simulateRequest.geometry.height_m}m)
             </span>
           </div>
+        </div>
+
+        {/* ── Center Terminal Command Bar ─────────────────────────────── */}
+        <div className="topbar-center">
+          <CommandBar
+            context={{ sitePresets: SITE_PRESETS, materialIds: FALLBACK_MATERIALS }}
+            onCommand={handleCommand}
+          />
         </div>
 
         <div className="topbar-right">

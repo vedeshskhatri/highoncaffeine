@@ -22,26 +22,8 @@ import EnvelopeBuilder  from './EnvelopeBuilder';
 import CrossSectionSVG  from './CrossSectionSVG';
 import { validateRequest, fieldError } from './validation';
 
-/* ── Presets ────────────────────────────────────────────────────────────── */
-const SITE_PRESETS = [
-  { label: 'Leh',     lat: 34.1526, lon: 77.5771, altitude_m: 3500 },
-  { label: 'Kargil',  lat: 34.5539, lon: 76.1349, altitude_m: 2676 },
-  { label: 'Manali',  lat: 32.2396, lon: 77.1887, altitude_m: 2050 },
-  { label: 'Keylong', lat: 32.5726, lon: 76.9950, altitude_m: 3094 },
-];
-
-/* ── Fallback materials (when API unreachable) ─────────────────────────── */
-const FALLBACK_MATERIALS = [
-  { id: 'mud_brick',    name: 'Mud brick (adobe)' },
-  { id: 'rammed_earth', name: 'Rammed earth' },
-  { id: 'stone',        name: 'Stone (local)' },
-  { id: 'concrete',     name: 'Concrete' },
-  { id: 'eps',          name: 'EPS insulation' },
-  { id: 'xps',          name: 'XPS insulation' },
-  { id: 'timber',       name: 'Timber (softwood)' },
-  { id: 'plywood',      name: 'Plywood' },
-  { id: 'polythene',    name: 'Polythene sheet' },
-];
+import { SITE_PRESETS, FALLBACK_MATERIALS } from '../lib/presets';
+export { SITE_PRESETS, FALLBACK_MATERIALS };
 
 const GLAZING_OPTIONS = [
   { value: 'single_pane', label: 'Single pane' },

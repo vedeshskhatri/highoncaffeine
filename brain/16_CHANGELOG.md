@@ -38,6 +38,7 @@ Format:
 [2026-09-11 15:30] VEDESH P6 — Design Library: versioned standard drawings (Rapid Glamping, DIHAR Trombe), side-by-side comparison, and one-click site rollout with automatic re-evaluation
 [2026-09-11 15:38] VEDESH P7 — Static & Ancillary Platform Pages: Editorial Engineering landing page (/), Seasonal Sortie Forecast (/forecast), Materials Availability (/materials), Formal Submission Pack Report (/reports/:id), Physics Formulation & Standards (/method), Empirical Validation Suite (/validation), and React Router wiring
 [2026-09-11 15:45] FEATURE 3 — 365-day annual comfort scan in engine/annual_scan.py, fetch_nasa_power_year in api/weather.py with SQLite cache, POST /annual_scan endpoint in api/main.py, and AnnualComfortHeatmap UI component
+[2026-09-11 16:48] FEATURE 4 — Deterministic offline command bar in web/src/components/CommandBar.jsx, commandParser in web/src/lib/commandParser.js, wired into App.jsx with instrument scan animations and table-driven tests
 ```
 
 ---
