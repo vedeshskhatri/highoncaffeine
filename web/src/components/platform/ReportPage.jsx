@@ -8,17 +8,32 @@ export default function ReportPage() {
   const navigate = useNavigate();
 
   const [site, setSite] = useState(null);
+  const [allSites, setAllSites] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetch('http://127.0.0.1:8000/sites')
+      .then(r => r.json())
+      .then(data => setAllSites(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     fetch(`http://127.0.0.1:8000/sites/${id}`)
       .then(r => r.json())
       .then(data => {
-        setSite(data);
+        setSite(data && data.id ? data : null);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setSite(null);
+        setLoading(false);
+      });
   }, [id]);
 
   const handlePrint = () => {
@@ -30,7 +45,40 @@ export default function ReportPage() {
   }
 
   if (!site) {
-    return <div className="error-state">Site record not found.</div>;
+    return (
+      <div className="report-picker-card">
+        <h2 className="report-picker-title">Official Engineering Submission Packs</h2>
+        <p className="report-picker-subtitle">
+          Select an outpost or relief station to generate a print-ready technical pack and compliance dossier.
+        </p>
+
+        <div className="report-site-selector">
+          <label htmlFor="report-site-select">Select Registered Site:</label>
+          <select
+            id="report-site-select"
+            className="report-select-input"
+            defaultValue=""
+            onChange={e => {
+              if (e.target.value) navigate(`/reports/${e.target.value}`);
+            }}
+          >
+            <option value="" disabled>Choose an outpost...</option>
+            {allSites.map(s => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.district} · {s.altitude_m}m · {s.estate} Estate)
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="report-picker-actions">
+          <button type="button" className="secondary-btn" onClick={() => navigate('/sites')}>
+            <ArrowLeft size={14} />
+            <span>Return to Site Registry</span>
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const ev = site.evaluation || {};

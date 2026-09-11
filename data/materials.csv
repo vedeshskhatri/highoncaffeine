@@ -17,6 +17,7 @@ double_glass,Double glazing 4-12-4 air,glazing,1.0,2500,840,0.10,0.84,0.76,2.8,3
 double_pane,Double glazing (4-12-4 air),glazing,1.0,2500,840,,0.84,0.76,2.8,3200,Market survey Leh,sealed unit timber frame,1,ISO 52016-1:2017 Table B.14
 double_glass_night_shutter,Double glazing with insulated night shutter,glazing,1.0,2500,840,0.10,0.84,0.76,1.1,42000,,IGU with deployable foam-core shutter,1,ASHRAE HoF 2021 Ch.15 Tbl 4 & ISO 6946
 double_pane_shutter,Double glazing with night shutter,glazing,1.0,2500,840,,0.84,0.76,1.1,3700,,operable internal insulated shutter,1,ISO 52016-1:2017 Table B.14
+triple_pane,Triple glazing (4-12-4-12-4 argon/air),glazing,1.0,2500,840,,0.84,0.68,1.4,5400,Market survey Leh,sealed triple unit timber frame,1,ISO 52016-1:2017 Table B.14 & ASHRAE HoF 2021 Ch.15
 dense_concrete,Heavyweight reinforced concrete,mass,1.75,2300,1000,0.65,0.90,,,6500,CPWD DSR 2023,cast-in-place thermal mass slab,1,ASHRAE HoF 2021 Ch.26 Tbl 1
 concrete,Heavyweight concrete,mass,1.75,2300,1000,0.65,0.90,,,5500,CPWD DSR 2023,cast in place,1,ASHRAE HoF 2021 Ch.26 Tbl 1
 stone_floor,Dressed stone floor slab,mass,2.00,2500,850,0.70,0.90,,,5500,CPWD DSR 2023,laid on sand bed over sub-base,1,ASHRAE HoF 2021 Ch.26 Tbl 1

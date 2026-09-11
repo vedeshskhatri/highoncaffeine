@@ -43,12 +43,31 @@ export default function PlatformLayout() {
       .catch(() => {});
   }, [estate]);
 
-  // Determine active title
+  // Determine active title and dynamic breadcrumbs
   let activeTitle = PAGE_TITLES[location.pathname] || 'Platform';
+  let breadcrumbs = [];
+
   if (location.pathname.startsWith('/sites/') && location.pathname !== '/sites') {
     activeTitle = 'Site Hub & Diagnostics';
+    const siteId = location.pathname.replace('/sites/', '');
+    breadcrumbs = [
+      { label: 'Site Registry', to: '/sites' },
+      { label: siteId.replace('site_', '').replace(/_/g, ' ').toUpperCase() },
+    ];
   } else if (location.pathname.startsWith('/reports/')) {
     activeTitle = 'Official Submission Pack';
+    const siteId = location.pathname.replace('/reports/', '');
+    breadcrumbs = [
+      { label: 'Site Registry', to: '/sites' },
+      { label: siteId.replace('site_', '').replace(/_/g, ' ').toUpperCase(), to: `/sites/${siteId}` },
+      { label: 'Submission Pack' },
+    ];
+  } else if (location.pathname === '/reports') {
+    activeTitle = 'Official Submission Pack';
+    breadcrumbs = [
+      { label: 'Site Registry', to: '/sites' },
+      { label: 'Select Site' },
+    ];
   }
 
   return (
@@ -64,6 +83,7 @@ export default function PlatformLayout() {
           onOpenCmd={() => setCmdOpen(true)}
           estate={estate}
           activeTitle={activeTitle}
+          breadcrumbs={breadcrumbs}
         />
 
         <main className="platform-page-content">

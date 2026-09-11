@@ -32,6 +32,8 @@ import './DemoModeController.css';
 export default function DemoModeController({
   onExitDemo,
   onApplyScenarioToBuilder,
+  onSimulationCompleted,
+  onOptimizationCompleted,
 }) {
   const [stageIndex, setStageIndex] = useState(0);
   const [selectedScenario, setSelectedScenario] = useState(SCENARIO_LIBRARY[0]);
@@ -64,6 +66,7 @@ export default function DemoModeController({
 
       const data = await resp.json();
       setSimResult(data);
+      if (onSimulationCompleted) onSimulationCompleted(data);
       setDataSource('live');
       setStageIndex(2); // Advance to SHOW RESULTS
     } catch (err) {
@@ -75,6 +78,8 @@ export default function DemoModeController({
         setSimResult(APPROVED_SIMULATE_FIXTURE);
         setRetrofitResult(APPROVED_RETROFIT_FIXTURE);
         setOptimizeResult(APPROVED_OPTIMIZE_FIXTURE);
+        if (onSimulationCompleted) onSimulationCompleted(APPROVED_SIMULATE_FIXTURE);
+        if (onOptimizationCompleted) onOptimizationCompleted(APPROVED_OPTIMIZE_FIXTURE);
         setDataSource('fixture');
       } else {
         setDataSource('failed');
@@ -83,13 +88,15 @@ export default function DemoModeController({
     } finally {
       setIsSimulating(false);
     }
-  }, [selectedScenario, allowFixtureFallback]);
+  }, [selectedScenario, allowFixtureFallback, onSimulationCompleted, onOptimizationCompleted]);
 
   // Handle manual loading of approved repository fixture
   const handleLoadApprovedFixture = () => {
     setSimResult(APPROVED_SIMULATE_FIXTURE);
     setRetrofitResult(APPROVED_RETROFIT_FIXTURE);
     setOptimizeResult(APPROVED_OPTIMIZE_FIXTURE);
+    if (onSimulationCompleted) onSimulationCompleted(APPROVED_SIMULATE_FIXTURE);
+    if (onOptimizationCompleted) onOptimizationCompleted(APPROVED_OPTIMIZE_FIXTURE);
     setDataSource('fixture');
     setActualError(null);
     setStageIndex(2);

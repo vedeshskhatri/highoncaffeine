@@ -32,6 +32,8 @@
   --bg-card:        var(--cream-2);
   --surface-1:      var(--cream);
   --surface-2:      var(--cream-2);
+  --surface-card:   var(--cream-2);
+  --surface-dark:   var(--espresso);
   --border:         var(--rule);
   --border-strong:  var(--espresso-40);
 

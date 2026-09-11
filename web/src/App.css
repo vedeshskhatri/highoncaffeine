@@ -23,6 +23,28 @@
   gap: var(--space-3);
 }
 
+.studio-exit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.studio-exit-btn:hover {
+  background: var(--surface-1);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .app-wordmark {
   font-family: var(--font-heading);
   font-size: 16px;
@@ -198,12 +220,13 @@
   transform: translateY(-1px);
 }
 
+
 .topbar-demo-btn {
   height: 34px;
   padding: 0 14px;
-  background: rgba(56, 189, 248, 0.12);
-  color: var(--accent, #38bdf8);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   border-radius: var(--radius-full);
   font-family: var(--font-heading);
   font-size: 12px;
@@ -216,15 +239,16 @@
 }
 
 .topbar-demo-btn:hover {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: rgba(56, 189, 248, 0.6);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface-1);
 }
 
 .topbar-demo-btn.active {
-  background: #38bdf8;
-  color: #0b0f17;
-  border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(247, 115, 49, 0.35);
 }
 
 .topbar-demo-btn .demo-dot {

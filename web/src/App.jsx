@@ -2,9 +2,10 @@
  * App.jsx — THERMA High-Altitude Architectural Shelter Studio
  * Inspired by contemporary architectural 3D CAD design tools ("hut.").
  */
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, SlidersHorizontal } from 'lucide-react';
+import { Play, SlidersHorizontal, ArrowLeft } from 'lucide-react';
 import './App.css';
 import TokensPage from './TokensPage';
 import DesignCanvas from './components/DesignCanvas';
@@ -61,6 +62,9 @@ const INITIAL_SIMULATE_REQUEST = {
 };
 
 export default function App() {
+  const { id: siteId } = useParams();
+  const navigate = useNavigate();
+
   // Check if viewing /tokens
   const viewTokens =
     typeof window !== 'undefined' &&
@@ -77,11 +81,21 @@ export default function App() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
 
+  // Ensure dark mode attributes and storage are completely removed
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.removeAttribute('data-theme');
+      document.documentElement.classList.remove('dark');
+      localStorage.removeItem('therma_theme');
+    }
+  }, []);
+
   const accessibleSteps = useMemo(() => new Set(['design', 'simulate', 'optimize', 'watch']), []);
 
   const handleStepClick = useCallback((stepId) => {
     if (accessibleSteps.has(stepId)) {
       setCurrentStep(stepId);
+      setDemoMode(false); // Seamlessly exit demo mode so the chosen step view is shown
       setMobileDrawerOpen(false);
     }
   }, [accessibleSteps]);
@@ -95,13 +109,13 @@ export default function App() {
   const handleSimulate = useCallback(async (customRequest) => {
     const req = (customRequest && customRequest.location) ? customRequest : simulateRequest;
     try {
-      const resp = await fetch('http://localhost:8000/simulate', {
+      const res = await fetch('http://127.0.0.1:8000/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),
       });
-      if (resp.ok) {
-        const data = await resp.json();
+      if (res.ok) {
+        const data = await res.json();
         setSimulateResult(data);
         if (data?.weather_provenance?.grid_note) {
           setGridNote(data.weather_provenance.grid_note);
@@ -214,6 +228,17 @@ export default function App() {
       {/* ── 1. Top Navigation Bar ──────────────────────────────────────── */}
       <header className="app-topbar" role="banner">
         <div className="topbar-left">
+          {/* Exit / Return to Platform Navigation */}
+          <button
+            type="button"
+            className="studio-exit-btn"
+            onClick={() => navigate(siteId ? `/sites/${siteId}` : '/dashboard')}
+            title="Exit Shelter Studio and return to THERMA Platform"
+          >
+            <ArrowLeft size={14} />
+            <span>Exit to Platform</span>
+          </button>
+
           <div className="app-wordmark" aria-label="THERMA application">
             <span>THERMA</span>
             <span className="wordmark-dot">.</span>
@@ -234,8 +259,8 @@ export default function App() {
           {/* Step Pill Rail */}
           <nav className="step-rail" aria-label="Application steps">
             {STEPS.map((step) => {
-              const isActive = step.id === currentStep;
-              const isClickable = accessibleSteps.has(step.id) && !isActive;
+              const isActive = !demoMode && step.id === currentStep;
+              const isClickable = accessibleSteps.has(step.id);
               return (
                 <button
                   key={step.id}
@@ -259,6 +284,7 @@ export default function App() {
               );
             })}
           </nav>
+
 
           {/* Demo Mode Toggle Button */}
           <button
@@ -313,6 +339,15 @@ export default function App() {
                 onExitDemo={() => setDemoMode(false)}
                 onApplyScenarioToBuilder={(cfg) => {
                   setSimulateRequest(cfg);
+                }}
+                onSimulationCompleted={(data) => {
+                  setSimulateResult(data);
+                  if (data?.weather_provenance?.grid_note) {
+                    setGridNote(data.weather_provenance.grid_note);
+                  }
+                }}
+                onOptimizationCompleted={(optData) => {
+                  setOptimizeResult(optData);
                 }}
               />
             </div>
