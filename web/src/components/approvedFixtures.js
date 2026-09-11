@@ -1,0 +1,157 @@
+/**
+ * APPROVED REPOSITORY FIXTURES (Phase 11 Demo Mode)
+ * Single source of truth: data/fixtures/
+ * 
+ * Rules:
+ * - When live backend fails, demo mode MAY use these approved fixtures IF approved fallback is enabled.
+ * - Whenever fixture data is used, an indicator banner MUST be prominently displayed:
+ *   "[DEMO FIXTURE DATA IN USE]"
+ * - If fixture fallback is disabled or unapproved, the ACTUAL backend error must be displayed.
+ * - Never fabricate fake successful simulation output.
+ */
+
+export const APPROVED_SIMULATE_FIXTURE = {
+  _stub: true,
+  refused: false,
+  refusal_reason: null,
+  weather_provenance: {
+    provider: 'open-meteo',
+    is_live: true,
+    grid_note: 'Weather from regional grid estimate (ERA5 archive). Repository demo fixture.',
+    fetched_at: '2026-09-11T04:12:00Z',
+  },
+  series: [
+    { hour: 0, t_out: -21.3, t_in: 4.8, t_operative: 3.9, ghi: 0.0, delta_ambient: 26.1, t_in_lo: 3.6, t_in_hi: 6.0 },
+    { hour: 1, t_out: -22.0, t_in: 4.3, t_operative: 3.4, ghi: 0.0, delta_ambient: 26.3, t_in_lo: 3.1, t_in_hi: 5.5 },
+    { hour: 2, t_out: -22.5, t_in: 3.9, t_operative: 3.0, ghi: 0.0, delta_ambient: 26.4, t_in_lo: 2.7, t_in_hi: 5.1 },
+    { hour: 3, t_out: -23.1, t_in: 3.6, t_operative: 2.7, ghi: 0.0, delta_ambient: 26.7, t_in_lo: 2.4, t_in_hi: 4.8 },
+    { hour: 4, t_out: -23.6, t_in: 3.3, t_operative: 2.4, ghi: 0.0, delta_ambient: 26.9, t_in_lo: 2.1, t_in_hi: 4.5 },
+    { hour: 5, t_out: -24.0, t_in: 3.1, t_operative: 2.2, ghi: 0.0, delta_ambient: 27.1, t_in_lo: 1.9, t_in_hi: 4.3 },
+    { hour: 6, t_out: -23.8, t_in: 3.1, t_operative: 2.2, ghi: 15.0, delta_ambient: 26.9, t_in_lo: 1.9, t_in_hi: 4.3 },
+    { hour: 7, t_out: -21.5, t_in: 4.2, t_operative: 3.5, ghi: 120.0, delta_ambient: 25.7, t_in_lo: 3.0, t_in_hi: 5.4 },
+    { hour: 8, t_out: -18.2, t_in: 6.8, t_operative: 6.2, ghi: 340.0, delta_ambient: 25.0, t_in_lo: 5.5, t_in_hi: 8.1 },
+    { hour: 9, t_out: -14.5, t_in: 10.4, t_operative: 10.0, ghi: 580.0, delta_ambient: 24.9, t_in_lo: 8.9, t_in_hi: 11.9 },
+    { hour: 10, t_out: -11.2, t_in: 14.1, t_operative: 13.9, ghi: 760.0, delta_ambient: 25.3, t_in_lo: 12.4, t_in_hi: 15.8 },
+    { hour: 11, t_out: -9.0, t_in: 17.2, t_operative: 17.1, ghi: 850.0, delta_ambient: 26.2, t_in_lo: 15.3, t_in_hi: 19.1 },
+    { hour: 12, t_out: -8.1, t_in: 19.1, t_operative: 19.0, ghi: 870.0, delta_ambient: 27.2, t_in_lo: 17.0, t_in_hi: 21.2 },
+    { hour: 13, t_out: -8.5, t_in: 19.4, t_operative: 19.2, ghi: 810.0, delta_ambient: 27.9, t_in_lo: 17.2, t_in_hi: 21.6 },
+    { hour: 14, t_out: -9.8, t_in: 18.5, t_operative: 18.2, ghi: 670.0, delta_ambient: 28.3, t_in_lo: 16.3, t_in_hi: 20.7 },
+    { hour: 15, t_out: -12.1, t_in: 16.8, t_operative: 16.3, ghi: 460.0, delta_ambient: 28.9, t_in_lo: 14.7, t_in_hi: 18.9 },
+    { hour: 16, t_out: -14.6, t_in: 14.2, t_operative: 13.5, ghi: 210.0, delta_ambient: 28.8, t_in_lo: 12.3, t_in_hi: 16.1 },
+    { hour: 17, t_out: -17.0, t_in: 11.5, t_operative: 10.7, ghi: 30.0, delta_ambient: 28.5, t_in_lo: 9.8, t_in_hi: 13.2 },
+    { hour: 18, t_out: -18.5, t_in: 9.3, t_operative: 8.4, ghi: 0.0, delta_ambient: 27.8, t_in_lo: 7.8, t_in_hi: 10.8 },
+    { hour: 19, t_out: -19.4, t_in: 7.8, t_operative: 6.9, ghi: 0.0, delta_ambient: 27.2, t_in_lo: 6.4, t_in_hi: 9.2 },
+    { hour: 20, t_out: -20.1, t_in: 6.8, t_operative: 5.9, ghi: 0.0, delta_ambient: 26.9, t_in_lo: 5.4, t_in_hi: 8.2 },
+    { hour: 21, t_out: -20.6, t_in: 6.1, t_operative: 5.2, ghi: 0.0, delta_ambient: 26.7, t_in_lo: 4.8, t_in_hi: 7.4 },
+    { hour: 22, t_out: -21.0, t_in: 5.5, t_operative: 4.6, ghi: 0.0, delta_ambient: 26.5, t_in_lo: 4.2, t_in_hi: 6.8 },
+    { hour: 23, t_out: -21.2, t_in: 5.0, t_operative: 4.1, ghi: 0.0, delta_ambient: 26.2, t_in_lo: 3.8, t_in_hi: 6.2 },
+  ],
+  summary: {
+    t_in_min_c: 3.1,
+    t_in_min_hour: 6,
+    t_in_max_c: 19.4,
+    comfort_hours_ratio: 0.21,
+    hours_below_health_threshold: 17,
+    solar_gain_kwh: 18.7,
+    heat_loss_kwh: {
+      walls: 12.1,
+      roof: 9.4,
+      glazing: 7.8,
+      infiltration: 4.2,
+      sky_radiation: 6.9,
+    },
+    backup_heat: {
+      peak_kw: 1.1,
+      hours: 6.5,
+      kerosene_litres_per_night: 0.9,
+    },
+    impact: {
+      kerosene_litres_per_year: 1310.0,
+      cost_inr_per_year: 3144000.0,
+      co2_kg_per_year: 3275.0,
+      payback_years: null,
+    },
+    freeze_risk: [
+      {
+        location: 'north wall interior surface',
+        below_zero_from_hour: 2,
+        min_c: -1.8,
+      },
+    ],
+  },
+};
+
+export const APPROVED_RETROFIT_FIXTURE = {
+  _stub: true,
+  baseline: {
+    t_in_min_c: 3.1,
+    hours_below_health_threshold: 17,
+  },
+  interventions: [
+    {
+      rank: 1,
+      label: 'Night shutters, south windows',
+      delta_t_min_c: 6.1,
+      cost_inr: 500.0,
+      degrees_per_1000_inr: 12.2,
+      cost_basis: 'estimate',
+      cumulative_cost_inr: 500.0,
+      cumulative_t_min_c: 9.2,
+      safety_status: 'SAFE',
+    },
+    {
+      rank: 2,
+      label: 'Low-e coating on roof exterior (e=0.25)',
+      delta_t_min_c: 3.8,
+      cost_inr: 4200.0,
+      degrees_per_1000_inr: 0.905,
+      cost_basis: 'sourced',
+      cumulative_cost_inr: 4700.0,
+      cumulative_t_min_c: 13.0,
+      safety_status: 'SAFE',
+    },
+    {
+      rank: 3,
+      label: '50 mm EPS external insulation on north wall',
+      delta_t_min_c: 2.4,
+      cost_inr: 8500.0,
+      degrees_per_1000_inr: 0.282,
+      cost_basis: 'sourced',
+      cumulative_cost_inr: 13200.0,
+      cumulative_t_min_c: 15.4,
+      safety_status: 'SAFE',
+    },
+  ],
+  within_budget_count: 3,
+};
+
+export const APPROVED_OPTIMIZE_FIXTURE = {
+  _stub: true,
+  evaluated: 3000,
+  refused_unsafe: 412,
+  elapsed_s: 4.1,
+  baseline: {
+    comfort_hours_ratio: 0.21,
+    t_in_min_c: 3.1,
+    cost_inr: 180000.0,
+  },
+  pareto: [
+    { design_id: 'd_0412', comfort_hours_ratio: 0.86, cost_inr: 318000.0, t_in_min_c: 17.2 },
+    { design_id: 'd_1098', comfort_hours_ratio: 0.75, cost_inr: 240000.0, t_in_min_c: 14.8 },
+    { design_id: 'd_2841', comfort_hours_ratio: 0.62, cost_inr: 195000.0, t_in_min_c: 11.5 },
+  ],
+  top: [
+    {
+      rank: 1,
+      design_id: 'd_0412',
+      summary: {
+        t_in_min_c: 17.2,
+        t_in_min_hour: 6,
+        t_in_max_c: 21.8,
+        comfort_hours_ratio: 0.86,
+        hours_below_health_threshold: 3,
+        solar_gain_kwh: 26.4,
+      },
+    },
+  ],
+};

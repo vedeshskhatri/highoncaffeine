@@ -54,21 +54,28 @@ export default function TopThreeCards({ designs = DEFAULT_TOP_DESIGNS, onApplyDe
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div>
-          <h3 style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 'var(--text-subhead-size)',
-            color: 'var(--text-primary)',
-            margin: 0,
-          }}>
-            Top 3 Recommended Shelter Envelopes
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: 'var(--text-subhead-size)',
+              color: 'var(--text-primary)',
+              margin: 0,
+            }}>
+              Top 3 Recommended Shelter Envelopes
+            </h3>
+            {items === DEFAULT_TOP_DESIGNS && (
+              <span className="mono" style={{ fontSize: '10px', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.15)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                [DEMO FIXTURE DATA]
+              </span>
+            )}
+          </div>
           <p style={{
             fontFamily: 'var(--font-body)',
             fontSize: 'var(--text-caption-size)',
             color: 'var(--text-muted)',
             margin: '2px 0 0',
           }}>
-            Evaluated across 3,200 permutations · Demonstrating distinct operational trade-offs
+            Evaluated across candidate permutations · Demonstrating distinct operational trade-offs
           </p>
         </div>
       </div>

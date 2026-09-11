@@ -37,29 +37,10 @@ export default function OptimizeCanvas({ result, request }) {
   // ---------------------------------------------------------------------------
   const baselineSummary = optimizerResult?.baseline ?? null;
 
-  // Build a 24-point series for the selected/rank-1 design from its summary
-  // The optimizer returns summary stats, not a full series. Fetch the full
-  // simulate series for the selected design when available.
-  // Until then, derive a schematic series from t_in_min / t_in_max.
-  function _schematicSeries(t_min, t_max) {
-    if (t_min == null || t_max == null) return null;
-    // Rough diurnal shape: min at hour 6, max at hour 13
-    const range = t_max - t_min;
-    return Array.from({ length: 24 }, (_, h) => {
-      const phase = Math.sin(Math.PI * (h - 6) / 12);
-      const t_in = parseFloat((t_min + range * Math.max(0, phase)).toFixed(2));
-      return { hour: h, t_in };
-    });
-  }
-
+  // Render real series if returned by the solver; never reconstruct missing series from final values
   const rank1 = optimizerResult?.top?.[0] ?? null;
-  const optimizedSeries = rank1?.summary
-    ? _schematicSeries(rank1.summary.t_in_min_c, rank1.summary.t_in_max_c)
-    : null;
-
-  const baselineSeries = baselineSummary
-    ? _schematicSeries(baselineSummary.t_in_min_c, baselineSummary.t_in_min_c != null ? baselineSummary.t_in_min_c + 16 : null)
-    : null;
+  const optimizedSeries = rank1?.series ?? null;
+  const baselineSeries = baselineSummary?.series ?? null;
 
   // Pareto points for ParetoPlot (from optimizer response)
   // API returns pareto[] + top[] — combine them

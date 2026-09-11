@@ -3,16 +3,20 @@ import './ReportSection.css';
 
 export default function ReportSection({ scenario, simulateResult }) {
   const summary = simulateResult?.summary || {};
-  const tMin = summary.t_in_min_c ?? -32.28;
-  const tMax = summary.t_in_max_c ?? -26.11;
-  const comfortRatio = summary.comfort_hours_ratio ?? 0.0;
-  const heatLoss = summary.heat_loss_kwh || { walls: 1.95, roof: 7.77, glazing: 0.77, infiltration: 0.69, sky_radiation: 4.17 };
-  const backup = summary.backup_heat || { peak_kw: 2.4, hours: 14.0, kerosene_litres_per_night: 5.8 };
-  const impact = summary.impact || { kerosene_litres_per_year: 696.0, cost_inr_per_year: 1670400, co2_kg_per_year: 1740.0 };
+  const tMin = summary.t_in_min_c ?? null;
+  const tMax = summary.t_in_max_c ?? null;
+  const comfortRatio = summary.comfort_hours_ratio ?? null;
+  const heatLoss = summary.heat_loss_kwh || null;
+  const backup = summary.backup_heat || null;
+  const impact = summary.impact || null;
 
   const handlePrint = () => {
     window.print();
   };
+
+  const statusStr = simulateResult
+    ? (simulateResult.refused ? 'STATUS: REFUSED FOR SAFETY' : 'STATUS: SIMULATED')
+    : 'STATUS: PENDING SIMULATION';
 
   return (
     <section className="report-section" id="spec-sheet">
@@ -25,7 +29,7 @@ export default function ReportSection({ scenario, simulateResult }) {
           </div>
           <div className="report-meta-right">
             <span className="report-ref mono">DOC REF: TH-2026-PS26051-DRDO</span>
-            <span className="report-rev mono">REV: 04 · STATUS: VALIDATED PASS</span>
+            <span className="report-rev mono">REV: 04 · {statusStr}</span>
             <button type="button" className="print-btn no-print" onClick={handlePrint}>
               ⎙ Print Spec Sheet (Cmd+P)
             </button>

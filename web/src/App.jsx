@@ -14,6 +14,7 @@ import InspectorPanel from './components/InspectorPanel';
 import WatchView from './components/WatchView';
 import CommandBar from './components/CommandBar';
 import { SITE_PRESETS, FALLBACK_MATERIALS } from './lib/presets';
+import DemoModeController from './components/DemoModeController';
 
 const STEPS = [
   { id: 'design',   label: 'Design Studio', number: 1 },
@@ -74,6 +75,7 @@ export default function App() {
   const [optimizeResult, setOptimizeResult] = useState(null);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
 
   const accessibleSteps = useMemo(() => new Set(['design', 'simulate', 'optimize', 'watch']), []);
 
@@ -253,6 +255,17 @@ export default function App() {
             })}
           </nav>
 
+          {/* Demo Mode Toggle Button */}
+          <button
+            className={`topbar-demo-btn ${demoMode ? 'active' : ''}`}
+            id="topbar-demo-mode-btn"
+            onClick={() => setDemoMode(d => !d)}
+            title="Toggle 8-Stage Deterministic Demo Mode"
+          >
+            <span className="demo-dot" />
+            <span>{demoMode ? 'Exit Demo' : 'Demo Mode'}</span>
+          </button>
+
           {/* Primary Action Button */}
           <button
             className="topbar-action-btn"
@@ -278,32 +291,45 @@ export default function App() {
         )}
 
         {/* Main Canvas Area */}
-        <main className="canvas-area" id="main-canvas" aria-label={`${currentStep} canvas`}>
-          {currentStep === 'design' && (
-            <DesignCanvas request={simulateRequest} onSimulate={handleSimulate} />
-          )}
-
-          {currentStep === 'simulate' && (
-            <div className="step-results-wrapper">
-              <SimulateCanvas result={simulateResult} request={simulateRequest} />
+        <main className="canvas-area" id="main-canvas" aria-label={demoMode ? 'demo mode canvas' : `${currentStep} canvas`}>
+          {demoMode ? (
+            <div className="step-results-wrapper" style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: 'var(--space-2) 0' }}>
+              <DemoModeController
+                onExitDemo={() => setDemoMode(false)}
+                onApplyScenarioToBuilder={(cfg) => {
+                  setSimulateRequest(cfg);
+                }}
+              />
             </div>
-          )}
+          ) : (
+            <>
+              {currentStep === 'design' && (
+                <DesignCanvas request={simulateRequest} onSimulate={handleSimulate} />
+              )}
 
-          {currentStep === 'optimize' && (
-            <div className="step-results-wrapper">
-              <OptimizeCanvas result={optimizeResult} request={simulateRequest} />
-            </div>
-          )}
+              {currentStep === 'simulate' && (
+                <div className="step-results-wrapper">
+                  <SimulateCanvas result={simulateResult} request={simulateRequest} />
+                </div>
+              )}
 
-          {currentStep === 'watch' && (
-            <div className="step-results-wrapper" style={{ padding: 'var(--space-3) 0' }}>
-              <WatchView design={simulateRequest} />
-            </div>
+              {currentStep === 'optimize' && (
+                <div className="step-results-wrapper">
+                  <OptimizeCanvas result={optimizeResult} request={simulateRequest} />
+                </div>
+              )}
+
+              {currentStep === 'watch' && (
+                <div className="step-results-wrapper" style={{ padding: 'var(--space-3) 0' }}>
+                  <WatchView design={simulateRequest} />
+                </div>
+              )}
+            </>
           )}
         </main>
 
         {/* Right Inspector Panel (Step 1: Design Studio) */}
-        {currentStep === 'design' && (
+        {!demoMode && currentStep === 'design' && (
           <div className={`inspector-wrapper ${mobileDrawerOpen ? 'mobile-open' : ''}`}>
             <InspectorPanel
               request={simulateRequest}
@@ -318,7 +344,7 @@ export default function App() {
       </div>
 
       {/* Mobile Inspector Drawer Toggle */}
-      {currentStep === 'design' && (
+      {!demoMode && currentStep === 'design' && (
         <button
           className="drawer-toggle-btn"
           id="drawer-toggle"
