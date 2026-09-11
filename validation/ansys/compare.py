@@ -15,7 +15,7 @@ Outputs:
   - Exit code 1 if any case exceeds maximum allowed tolerance
 
 Usage:
-  python -m validation.ansys.compare --synthetic
+  python -m validation.ansys.compare --synthetic-selftest
   python -m validation.ansys.compare --case case1 --ansys-csv path/to/export.csv
   python -m validation.ansys.compare --all
 """
@@ -269,12 +269,21 @@ def plot_overlay(comp: Dict[str, Any], output_png: Path) -> None:
     plt.close(fig)
 
 
-def print_agreement_table(comparisons: List[Dict[str, Any]]) -> None:
+BANNER_SYNTHETIC_SELFTEST = """
+================================================================================
+SYNTHETIC SELF-TEST -- NOT ANSYS DATA.
+These values are the Python solver plus injected noise, used only to verify the
+comparison harness works.
+================================================================================
+"""
+
+
+def print_agreement_table(comparisons: List[Dict[str, Any]], is_synthetic: bool = False) -> None:
     """Print standard agreement table matching brain/ANSYS_REFERENCE.md Section 7."""
     print("\n" + "=" * 80)
     print("           THERMA vs ANSYS REFERENCE MODEL AGREEMENT REPORT")
     print("=" * 80)
-    print(f"{'Case ID':<8} | {'Description':<32} | {'Max Delta':<10} | {'RMSE':<8} | {'Tolerance':<10} | {'Status':<6}")
+    print(f"{'Case ID':<8} | {'Description':<32} | {'Max Delta':<10} | {'RMSE':<8} | {'Tolerance':<10} | {'Status':<16}")
     print("-" * 80)
 
     case_descs = {
@@ -288,6 +297,19 @@ def print_agreement_table(comparisons: List[Dict[str, Any]]) -> None:
         "CASE3": 1.50,
     }
 
+    if is_synthetic:
+        # Table shell stays empty for ANSYS agreement because no real ANSYS runs exist
+        for cid in ["CASE1", "CASE2", "CASE3"]:
+            desc = case_descs.get(cid, cid)
+            tol = tolerances.get(cid, 1.0)
+            print(f"{cid:<8} | {desc:<32} | {'[EMPTY]':<10} | {'[EMPTY]':<8} | {tol:>6.2f} C    | PENDING REAL CSV")
+        print("=" * 80)
+        print("NOTICE: Synthetic self-test verified comparison math and time interpolation logic.")
+        print("The agreement table shell stays empty because physical ANSYS Mechanical runs")
+        print("have not been performed and no real ANSYS probe CSV exports exist in this repo.")
+        print("=" * 80 + "\n")
+        return
+
     all_passed = True
     for comp in comparisons:
         cid = comp["case_id"]
@@ -299,7 +321,7 @@ def print_agreement_table(comparisons: List[Dict[str, Any]]) -> None:
         if not passed:
             all_passed = False
         status_str = "PASS" if passed else "FAIL"
-        print(f"{cid:<8} | {desc:<32} | {max_d:>6.2f} C    | {rmse:>5.2f} C | {tol:>6.2f} C    | {status_str:<6}")
+        print(f"{cid:<8} | {desc:<32} | {max_d:>6.2f} C    | {rmse:>5.2f} C | {tol:>6.2f} C    | {status_str:<16}")
 
     print("=" * 80)
     print("Runtimes: THERMA Python < 0.05 s / case | ANSYS Mechanical ~45-180 s / case")
@@ -308,21 +330,39 @@ def print_agreement_table(comparisons: List[Dict[str, Any]]) -> None:
 
 
 def run_all(
-    synthetic: bool = False,
+    synthetic_selftest: bool = False,
     custom_csv: Optional[Path] = None,
     target_case: Optional[str] = None,
     plot: bool = True,
     tolerance_override: Optional[float] = None,
 ) -> int:
     """Execute reference comparison workflow."""
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
-
     cases_to_run = ["case1", "case2", "case3"]
     if target_case:
         cases_to_run = [target_case.lower()]
 
-    comparisons: List[Dict[str, Any]] = []
+    if synthetic_selftest:
+        print(BANNER_SYNTHETIC_SELFTEST)
+        # Refuse to write any output files that could be mistaken for real ANSYS results
+        comparisons: List[Dict[str, Any]] = []
+        for cname in cases_to_run:
+            cpath = CASES_DIR / f"{cname}.json"
+            if not cpath.exists():
+                print(f"Error: Case config not found: {cpath}", file=sys.stderr)
+                return 1
+            py_res = run_python_case(cpath)
+            case_id = py_res["metadata"]["case_id"]
+            ansys_data = generate_synthetic_ansys_data(py_res, case_id)
+            comp = compare_series(py_res["series"], ansys_data, case_id)
+            comparisons.append(comp)
+        
+        print_agreement_table(comparisons, is_synthetic=True)
+        return 0
+
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    comparisons = []
     overall_pass = True
 
     for cname in cases_to_run:
@@ -337,18 +377,14 @@ def run_all(
 
         ansys_csv_path = custom_csv if (custom_csv and target_case) else RESULTS_DIR / f"ansys_{cname}_export.csv"
 
-        if synthetic or not ansys_csv_path.exists():
-            ansys_data = generate_synthetic_ansys_data(py_res, case_id)
-            # Cache synthetic csv for inspection
-            synth_csv = RESULTS_DIR / f"synthetic_{cname}.csv"
-            with open(synth_csv, "w", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                writer.writerow(["Time [s]", "Probe_Indoor_Air [C]"])
-                for r in ansys_data:
-                    writer.writerow([r["time_s"], r["t_in_c"]])
-        else:
-            ansys_data = parse_ansys_csv(ansys_csv_path)
+        if not ansys_csv_path.exists():
+            print(f"\n[NOTICE] Real ANSYS probe CSV not found: {ansys_csv_path}")
+            print(f"Real ANSYS simulation runs for {case_id} have not yet been performed.")
+            print(f"Follow brain/ANSYS_REFERENCE.md to solve in ANSYS Mechanical and export CSV.\n")
+            print_agreement_table([], is_synthetic=True)
+            return 0
 
+        ansys_data = parse_ansys_csv(ansys_csv_path)
         comp = compare_series(py_res["series"], ansys_data, case_id)
         comparisons.append(comp)
 
@@ -364,14 +400,18 @@ def run_all(
         if comp["max_delta_c"] > tol:
             overall_pass = False
 
-    print_agreement_table(comparisons)
+    print_agreement_table(comparisons, is_synthetic=False)
     return 0 if overall_pass else 1
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="THERMA vs ANSYS Reference Model Comparator")
     parser.add_argument("--all", action="store_true", help="Run all canonical reference cases")
-    parser.add_argument("--synthetic", action="store_true", help="Generate synthetic ANSYS data for testing")
+    parser.add_argument(
+        "--synthetic-selftest",
+        action="store_true",
+        help="Execute comparison harness self-test with injected synthetic noise (NOT ANSYS data)",
+    )
     parser.add_argument("--case", type=str, choices=["case1", "case2", "case3"], help="Run a specific canonical case")
     parser.add_argument("--ansys-csv", type=Path, help="Path to ANSYS exported CSV")
     parser.add_argument("--no-plot", action="store_true", help="Disable matplotlib overlay plots")
@@ -379,7 +419,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     exit_code = run_all(
-        synthetic=args.synthetic,
+        synthetic_selftest=args.synthetic_selftest,
         custom_csv=args.ansys_csv,
         target_case=args.case,
         plot=not args.no_plot,

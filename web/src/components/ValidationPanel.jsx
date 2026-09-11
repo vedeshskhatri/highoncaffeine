@@ -106,7 +106,7 @@ export default function ValidationPanel({ initialExpanded = false }) {
               margin: '2px 0 0',
             }}>
               {isValidationRun
-                ? 'Axis 1 Published Field Studies (DRDO DIHAR & Leh) · Axis 2 3D Continuum FEM (ANSYS Mechanical)'
+                ? 'Published Field Studies (DRDO DIHAR Leh Pilot & Leh Passive Housing Studies)'
                 : 'Validation status: Validation not run.'}
             </p>
           </div>
@@ -301,72 +301,7 @@ export default function ValidationPanel({ initialExpanded = false }) {
                 </div>
               )}
 
-              {/* Axis 2: ANSYS Continuum Finite Element Verification */}
-              <div style={{
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)',
-                padding: 'var(--space-3)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--space-2)',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <h4 style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: '13px',
-                    color: 'var(--text-primary)',
-                    margin: 0,
-                  }}>
-                    Axis 2: First-Principles Numerical FEM (ANSYS Mechanical Transient Thermal)
-                  </h4>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
-                    brain/ANSYS_REFERENCE.md
-                  </span>
-                </div>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: 'var(--space-2)',
-                }}>
-                  <div style={{ background: 'var(--surface-1)', padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      Case 1: Bare Box (Conduction)
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--comfort)', margin: '2px 0' }}>
-                      Max ΔT: 0.18 °C (Tol: ≤ 0.50 °C)
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--text-muted)' }}>
-                      1D lumped vs 3D continuum FEM conduction & storage
-                    </div>
-                  </div>
-
-                  <div style={{ background: 'var(--surface-1)', padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      Case 2: Multi-Layer Diurnal Lag
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--comfort)', margin: '2px 0' }}>
-                      Max ΔT: 0.42 °C (Tol: ≤ 1.00 °C)
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--text-muted)' }}>
-                      Multi-layer Fourier node splitting & dynamic thermal phase delay
-                    </div>
-                  </div>
-
-                  <div style={{ background: 'var(--surface-1)', padding: 'var(--space-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      Case 3: Solar Flux + Sky Sub-Cooling
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--comfort)', margin: '2px 0' }}>
-                      Max ΔT: 0.74 °C (Tol: ≤ 1.50 °C)
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--text-muted)' }}>
-                      Swinbank sub-cooling & surface radiative balance equilibrium
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Open Assumptions Disclosure */}
               <div style={{

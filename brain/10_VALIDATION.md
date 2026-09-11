@@ -9,14 +9,9 @@ Every other feature — optimizer, retrofit, sensitivity, relief mode, the whole
 **The difference between "we validated it" and showing the validation chart is the difference between being believed and not.**
 
 ### Two Independent Validation Axes
-We validate our fast Python surrogate against **two independent references**:
-1. **Axis 1 (Empirical):** Published measured field data from DRDO DIHAR and LEDeG Ladakh field studies (Aman's Gate 3).
-2. **Axis 2 (First-Principles Numerical):** 3D continuum finite element simulation in **ANSYS Mechanical Transient Thermal** (Vedesh's Reference Track, Decision D16).
-
-**Why two axes are stronger than one:**
-- Field data confirms that the model captures real high-altitude shelters with real ground snow reflections and cold-climate air densities.
-- Numerical ANSYS simulation proves that the 1D RC discretization does not sacrifice mathematical rigor against full spatial finite-element conduction, dynamic Fourier lag, and radiative boundary equilibrium.
-- Matching both empirical field data and first-principles FEM establishes complete authority when evaluating thousands of design variants.
+We validate our fast Python solver against **two independent references**:
+1. **Axis 1 (Empirical — Active & Verified):** Published measured field data from DRDO DIHAR and LEDeG Ladakh field studies (Aman's Gate 3).
+2. **Axis 2 (First-Principles Numerical — Specification & Harness Built):** 3D continuum finite element simulation in **ANSYS Mechanical Transient Thermal** (Vedesh's Reference Track, Decision D16). Physical ANSYS runs are pending workstation execution.
 
 ---
 
@@ -35,13 +30,13 @@ We validate our fast Python surrogate against **two independent references**:
 
 Authoritative reference: [brain/ANSYS_REFERENCE.md](ANSYS_REFERENCE.md). Execution script: `validation/ansys/compare.py`.
 
-Three canonical cases benchmark the 1D RC surrogate against 3D continuum FEM in ANSYS Mechanical Transient Thermal:
+Three canonical cases benchmark the 1D RC solver against 3D continuum FEM in ANSYS Mechanical Transient Thermal (cases and comparison harness built; physical ANSYS runs pending real probe CSV exports):
 
 | Case | Scenario | Physical Mechanism Tested | Max Allowed ΔT | Target RMSE | Status |
 |---|---|---|---|---|---|
-| **Case 1** | Bare Box (Conduction only) | 1D lumped vs 3D FEM conduction & storage | $\le 0.50\ ^\circ\text{C}$ | $\le 0.30\ ^\circ\text{C}$ | Built & verified |
-| **Case 2** | Multi-layer Wall + Diurnal | Multi-layer Fourier node splitting & phase lag | $\le 1.00\ ^\circ\text{C}$ | $\le 0.60\ ^\circ\text{C}$ | Built & verified |
-| **Case 3** | Solar Flux + Sky Radiation | Radiative sub-cooling & surface flux coupling | $\le 1.50\ ^\circ\text{C}$ | $\le 0.90\ ^\circ\text{C}$ | Built & verified |
+| **Case 1** | Bare Box (Conduction only) | 1D lumped vs 3D FEM conduction & storage | $\le 0.50\ ^\circ\text{C}$ | $\le 0.30\ ^\circ\text{C}$ | Harness built; ANSYS run pending |
+| **Case 2** | Multi-layer Wall + Diurnal | Multi-layer Fourier node splitting & phase lag | $\le 1.00\ ^\circ\text{C}$ | $\le 0.60\ ^\circ\text{C}$ | Harness built; ANSYS run pending |
+| **Case 3** | Solar Flux + Sky Radiation | Radiative sub-cooling & surface flux coupling | $\le 1.50\ ^\circ\text{C}$ | $\le 0.90\ ^\circ\text{C}$ | Harness built; ANSYS run pending |
 
 ## 3. The ordering requirement — non-negotiable
 

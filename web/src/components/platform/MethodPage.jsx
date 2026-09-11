@@ -808,11 +808,10 @@ export default function MethodPage() {
           <div className="limitation-item">
             <h4 className="limitation-item-title">
               <span className="limitation-num">05</span>
-              <span>Validation Benchmark Secondary Data</span>
+              <span>Validation Scope & Reference Model Status</span>
             </h4>
             <p>
-              Empirical validation relies on published field trials from DRDO DIHAR Leh and LEDeG studies alongside ANSYS FEM.
-              THERMA has not yet deployed its own dedicated instrumented physical shelter hardware (planned for Phase 2).
+              ANSYS reference model: the three canonical cases and the comparison harness are built. The ANSYS runs have not been performed. Cross-validation against ANSYS Transient Thermal is the next step. Our current validation is against published measured data from DIHAR Leh and Leh passive solar housing studies.
             </p>
           </div>
 

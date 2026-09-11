@@ -1098,9 +1098,8 @@ export default function VerifyPage() {
         </h3>
         <p className="honest-text">
           THERMA models shelters using rigorous ISO 52016-1 transient physics validated against published peer-reviewed
-          measurements from DRDO DIHAR Leh and LEDeG passive solar studies, as well as first-principles ANSYS Mechanical
-          transient thermal FEM benchmarks. We do not operate our own physical instrumented sensor shelter; deploying
-          continuous IoT datalogging hardware at Leh military garrisons is scheduled under Phase 2 field deployment.
+          measurements from DRDO DIHAR Leh and LEDeG passive solar studies. We do not operate our own physical instrumented
+          sensor shelter; deploying continuous IoT datalogging hardware at Leh military garrisons is scheduled under Phase 2 field deployment.
         </p>
       </section>
     </div>
