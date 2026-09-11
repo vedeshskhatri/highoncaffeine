@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bot, 
+  Search,
   Sparkles, 
   RefreshCw,
   Send, 
@@ -12,8 +13,12 @@ import {
   RotateCcw,
   CheckCircle2,
   AlertTriangle,
-  ChevronDown,
+  Thermometer,
+  Activity,
+  Zap,
   ShieldAlert,
+  FileText,
+  Boxes,
   MapPin
 } from 'lucide-react';
 import { VoicePoweredOrb } from '@/components/ui/voice-powered-orb';
@@ -50,36 +55,50 @@ const HIMALAYAN_SCENARIO_LOCATIONS = [
 ];
 
 const SUGGESTED_QUERIES = [
-  {
-    tag: 'Siachen Base Camp',
-    query: 'What is the predicted indoor temperature for a shelter in Siachen Base Camp with stone masonry and 0.5 ACH?',
-  },
-  {
-    tag: 'Dras Sector',
-    query: 'What is the predicted performance in Dras at -25°C with PUF sandwich panels and 0.35 ACH?',
-  },
-  {
-    tag: 'Leh Bottleneck',
-    query: 'What will be the dominant heat loss bottleneck in Leh with mud brick walls?',
-  },
-  {
-    tag: 'Life Safety',
-    query: 'Is an unflued combustion heater safe with 0.2 ACH in Siachen?',
-  },
+  'What is the predicted indoor temperature for a shelter in Siachen Base Camp with stone masonry and 0.5 ACH?',
+  'What is the predicted performance in Dras at -25°C with PUF sandwich panels and 0.35 ACH?',
+  'What will be the dominant heat loss bottleneck in Leh with mud brick walls?',
+  'Is an unflued combustion heater safe with 0.2 ACH in Siachen?',
+  'Compare thermal performance of 50mm PUF vs 100mm EPS in Daulat Beg Oldie',
+  'What are the recommended wall materials for Galwan Valley at 4350m altitude?',
 ];
 
 const FLUX_META = {
-  sky_longwave_loss_W: { label: 'Sky Radiative', color: '#3B82F6' },
-  wall_conduction_W: { label: 'Wall Conduction', color: '#EA580C' },
-  glazing_conduction_W: { label: 'Glazing Conduction', color: '#D97706' },
-  roof_conduction_W: { label: 'Roof Conduction', color: '#9A3412' },
-  infiltration_heat_loss_W: { label: 'Air Infiltration', color: '#64748B' },
-  floor_conduction_W: { label: 'Ground Slab', color: '#78716C' },
+  sky_longwave_loss_W: {
+    label: 'Sky Longwave Radiative Loss',
+    sub: 'Radiative cooling exchange with clear celestial sky dome',
+    color: '#3B82F6',
+  },
+  wall_conduction_W: {
+    label: 'Wall Fabric Conduction',
+    sub: 'Conductive heat transmission across exterior vertical envelope',
+    color: '#C2410C',
+  },
+  glazing_conduction_W: {
+    label: 'Glazing Assembly Conduction',
+    sub: 'Direct conductive loss through window glazing panes',
+    color: '#D97706',
+  },
+  roof_conduction_W: {
+    label: 'Roof Assembly Conduction',
+    sub: 'Heat transmission through ceiling insulation & CGI roof sheet',
+    color: '#9A3412',
+  },
+  infiltration_heat_loss_W: {
+    label: 'Infiltration Air Leakage',
+    sub: 'Sensible convective enthalpy loss from sub-zero air exchange',
+    color: '#64748B',
+  },
+  floor_conduction_W: {
+    label: 'Permafrost / Ground Conduction',
+    sub: 'Sub-structure heat flux transmission into frozen ground slab',
+    color: '#78716C',
+  },
 };
 
 function formatInlineMathAndBold(text) {
   if (!text) return text;
-  const cleaned = text
+  let cleaned = text
     .replace(/\(\$T_\{?in\}?\$\)/g, '(Tin)')
     .replace(/\(\$T_\{?op\}?\$\)/g, '(Top)')
     .replace(/\(\$T_\{?mrt\}?\$\)/g, '(Tmrt)')
@@ -92,7 +111,7 @@ function formatInlineMathAndBold(text) {
       return <strong key={idx}>{part.slice(2, -2)}</strong>;
     }
     if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={idx} className="mono-chip">{part.slice(1, -1)}</code>;
+      return <code key={idx} className="mono-code-chip mono">{part.slice(1, -1)}</code>;
     }
     return part;
   });
@@ -107,7 +126,7 @@ function RenderDiagnosticAnswer({ text }) {
   const flushList = () => {
     if (currentList.length > 0) {
       elements.push(
-        <ul key={`list-${elements.length}`} className="chat-answer-list">
+        <ul key={`list-${elements.length}`} className="diagnostic-bullet-list">
           {currentList.map((item, i) => (
             <li key={i}>{formatInlineMathAndBold(item)}</li>
           ))}
@@ -126,24 +145,25 @@ function RenderDiagnosticAnswer({ text }) {
 
     if (trimmed.startsWith('### ') || trimmed.startsWith('#### ')) {
       flushList();
+      const title = trimmed.replace(/^#+\s*/, '');
       elements.push(
-        <h5 key={`head-${idx}`} className="chat-answer-subhead">
-          {trimmed.replace(/^#+\s*/, '')}
-        </h5>
+        <h4 key={`head-${idx}`} className="diagnostic-section-title">
+          {title}
+        </h4>
       );
     } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       currentList.push(trimmed.slice(2));
     } else if (/^\d+\.\s/.test(trimmed)) {
       flushList();
       elements.push(
-        <div key={`step-${idx}`} className="chat-numbered-step">
+        <div key={`step-${idx}`} className="diagnostic-numbered-item">
           {formatInlineMathAndBold(trimmed)}
         </div>
       );
     } else {
       flushList();
       elements.push(
-        <p key={`p-${idx}`} className="chat-answer-paragraph">
+        <p key={`p-${idx}`} className="diagnostic-prose">
           {formatInlineMathAndBold(trimmed)}
         </p>
       );
@@ -151,7 +171,7 @@ function RenderDiagnosticAnswer({ text }) {
   });
 
   flushList();
-  return <div className="chat-answer-prose">{elements}</div>;
+  return <div className="diagnostic-answer-container">{elements}</div>;
 }
 
 export default function FloatingChatOrb() {
@@ -159,8 +179,7 @@ export default function FloatingChatOrb() {
   const [queryInput, setQueryInput] = useState('');
   const [selectedSite, setSelectedSite] = useState('all');
   const [aiLoading, setAiLoading] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [expandedFluxId, setExpandedFluxId] = useState(null);
+  const [aiResponse, setAiResponse] = useState(null);
   const [isListening, setIsListening] = useState(false);
   const [placement, setPlacement] = useState({ v: 'bottom', h: 'right' });
 
@@ -171,7 +190,7 @@ export default function FloatingChatOrb() {
   const chatWindowRef = useRef(null);
   const recognitionRef = useRef(null);
 
-  // Background Scroll Isolation
+  // Isolate scroll: when scrolling inside the chat window, lock background website movement
   useEffect(() => {
     if (!isOpen) return;
 
@@ -179,8 +198,9 @@ export default function FloatingChatOrb() {
       const windowEl = chatWindowRef.current;
       if (!windowEl) return;
 
+      // Only intervene if user's cursor is over the floating AI chatbox
       if (!windowEl.contains(e.target)) {
-        return; // Mouse outside chatbox -> background page scrolls naturally
+        return; // Cursor is outside the AI chatbox -> let background page scroll normally
       }
 
       const scrollBody = contentBodyRef.current;
@@ -191,7 +211,7 @@ export default function FloatingChatOrb() {
 
       const { deltaY, deltaX } = e;
 
-      // Block horizontal gestures over the chatbox
+      // Block horizontal gestures over the chatbox from triggering browser back/forward or horizontal shift
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
         e.preventDefault();
         return;
@@ -200,20 +220,25 @@ export default function FloatingChatOrb() {
       if (deltaY === 0) return;
 
       const maxScroll = scrollBody.scrollHeight - scrollBody.clientHeight;
+
+      // If chatbox content is not scrollable, lock background scroll completely
       if (maxScroll <= 0) {
         e.preventDefault();
         return;
       }
 
-      // If scrolling over topbar or bottom input, scroll message feed directly
+      // If user is hovering over topbar, actions, or search form (outside scrollBody),
+      // smoothly scroll the body directly and prevent background window scroll
       if (!scrollBody.contains(e.target)) {
         e.preventDefault();
         scrollBody.scrollTop = Math.max(0, Math.min(maxScroll, scrollBody.scrollTop + deltaY));
         return;
       }
 
-      // Inside scroll area: clamp boundaries to lock background
+      // User is scrolling directly inside scrollBody:
+      // Lock background by preventing boundary overshoot / scroll chaining
       if (deltaY > 0) {
+        // Scrolling down
         if (scrollBody.scrollTop >= maxScroll) {
           e.preventDefault();
         } else if (scrollBody.scrollTop + deltaY >= maxScroll) {
@@ -221,6 +246,7 @@ export default function FloatingChatOrb() {
           scrollBody.scrollTop = maxScroll;
         }
       } else if (deltaY < 0) {
+        // Scrolling up
         if (scrollBody.scrollTop <= 0) {
           e.preventDefault();
         } else if (scrollBody.scrollTop + deltaY <= 0) {
@@ -255,7 +281,7 @@ export default function FloatingChatOrb() {
     };
   }, [isOpen]);
 
-  // Update placement relative to screen edges
+  // Update placement relative to screen edges so chat window never clips
   const updatePlacement = useCallback(() => {
     if (!orbRef.current) return;
     const rect = orbRef.current.getBoundingClientRect();
@@ -269,41 +295,13 @@ export default function FloatingChatOrb() {
     return () => window.removeEventListener('resize', updatePlacement);
   }, [updatePlacement]);
 
-  // Auto-scroll to bottom of messages
-  const scrollToBottom = useCallback((smooth = true) => {
-    setTimeout(() => {
-      if (contentBodyRef.current) {
-        contentBodyRef.current.scrollTo({
-          top: contentBodyRef.current.scrollHeight,
-          behavior: smooth ? 'smooth' : 'auto',
-        });
-      }
-    }, 50);
-  }, []);
-
   // Submit AI Query
   const handleAiSubmit = useCallback(async (qText, siteOverride) => {
-    const q = (qText || queryInput).trim();
-    if (!q) return;
+    const q = qText || queryInput;
+    if (!q || !q.trim()) return;
+    setAiLoading(true);
 
     const siteToUse = siteOverride !== undefined ? siteOverride : selectedSite;
-    setQueryInput('');
-
-    const userMsgId = `user-${Date.now()}`;
-    const assistantMsgId = `asst-${Date.now()}`;
-
-    const userMsg = {
-      id: userMsgId,
-      role: 'user',
-      content: q,
-      site: siteToUse !== 'all' ? siteToUse.replace(/_/g, ' ') : null,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages(prev => [...prev, userMsg]);
-    setAiLoading(true);
-    scrollToBottom();
-
     const payload = {
       question: q,
       use_ollama: true,
@@ -319,44 +317,33 @@ export default function FloatingChatOrb() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-
-      const asstMsg = {
-        id: assistantMsgId,
-        role: 'assistant',
-        text: data.answer,
-        predictions: data.predictions,
-        resolved: data.resolved_parameters,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-
-      setMessages(prev => [...prev, asstMsg]);
+      setAiResponse(data);
     } catch (err) {
       console.error('Prediction Error', err);
-      setMessages(prev => [
-        ...prev,
-        {
-          id: assistantMsgId,
-          role: 'assistant',
-          text: `Physics Engine Offline: Unable to query ${API_BASE}. Ensure the local FastAPI server is running.`,
-          predictions: null,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
+      setAiResponse({
+        question: q,
+        answer: `Connection Error: Failed to contact ${API_BASE}. Make sure the backend server is running.`,
+        predictions: {},
+        resolved_parameters: {},
+        recommendations: [],
+      });
     } finally {
       setAiLoading(false);
-      scrollToBottom();
     }
-  }, [queryInput, selectedSite, scrollToBottom]);
+  }, [queryInput, selectedSite]);
 
   // Listen to open-therma-orb global events
   useEffect(() => {
     const handleExternalOpen = (e) => {
       setIsOpen(true);
       updatePlacement();
-      const q = e.detail?.query || SUGGESTED_QUERIES[0].query;
+      const q = e.detail?.query || '';
       const s = e.detail?.site || 'all';
-      setSelectedSite(s);
-      handleAiSubmit(q, s);
+      if (q) {
+        setQueryInput(q);
+        setSelectedSite(s);
+        handleAiSubmit(q, s);
+      }
     };
 
     window.addEventListener('open-therma-orb', handleExternalOpen);
@@ -395,7 +382,9 @@ export default function FloatingChatOrb() {
     }
 
     if (isListening) {
-      if (recognitionRef.current) recognitionRef.current.stop();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
       setIsListening(false);
       return;
     }
@@ -406,17 +395,30 @@ export default function FloatingChatOrb() {
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onstart = () => setIsListening(true);
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
       recognition.onresult = (event) => {
-        const transcript = Array.from(event.results).map(r => r[0].transcript).join('');
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('');
         setQueryInput(transcript);
       };
-      recognition.onerror = () => setIsListening(false);
-      recognition.onend = () => setIsListening(false);
+
+      recognition.onerror = (err) => {
+        console.warn('Speech recognition error:', err);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
 
       recognitionRef.current = recognition;
       recognition.start();
-    } catch {
+    } catch (err) {
+      console.warn('Speech recognition init error:', err);
       setIsListening(false);
     }
   };
@@ -454,10 +456,10 @@ export default function FloatingChatOrb() {
             {isOpen && (
               <motion.div
                 ref={chatWindowRef}
-                initial={{ opacity: 0, scale: 0.94, y: placement.v === 'top' ? -12 : 12 }}
+                initial={{ opacity: 0, scale: 0.9, y: placement.v === 'top' ? -15 : 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.94, y: 12 }}
-                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ opacity: 0, scale: 0.9, y: 15 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="floating-chat-window"
                 style={{
                   position: 'absolute',
@@ -465,20 +467,20 @@ export default function FloatingChatOrb() {
                   ...(placement.h === 'left' ? { left: '0' } : { right: '0' }),
                 }}
               >
-                {/* Clean Executive Header */}
+                {/* Executive Window Header */}
                 <div className="chat-window-topbar">
                   <div className="chat-topbar-info">
-                    <div className="chat-topbar-avatar">
-                      <Bot size={16} />
+                    <div className="chat-topbar-icon">
+                      <Sparkles size={16} />
                     </div>
                     <div>
                       <div className="chat-topbar-title">
-                        THERMA Engineering AI
-                        <span className="chat-topbar-badge">DRDO PS 26051</span>
+                        THERMA Grounded Thermal AI
+                        <span className="chat-topbar-tag">DRDO PS 26051</span>
                       </div>
                       <div className="chat-topbar-sub">
                         <span className="floating-orb-status-dot" />
-                        5 Surrogate ML Models · 120,000 Timesteps · R² 0.968
+                        5 Surrogate ML Models · 120,000 Timesteps · R²: 0.968
                       </div>
                     </div>
                   </div>
@@ -488,13 +490,12 @@ export default function FloatingChatOrb() {
                       type="button"
                       className="chat-icon-btn"
                       onClick={() => {
-                        setMessages([]);
                         setQueryInput('');
-                        setExpandedFluxId(null);
+                        setAiResponse(null);
                       }}
-                      title="Clear conversation"
+                      title="Reset / Clear Search"
                     >
-                      <RotateCcw size={13} />
+                      <RotateCcw size={14} />
                     </button>
 
                     <button
@@ -503,7 +504,7 @@ export default function FloatingChatOrb() {
                       onClick={() => setIsOpen(false)}
                       title="Minimize"
                     >
-                      <Minus size={13} />
+                      <Minus size={14} />
                     </button>
 
                     <button
@@ -512,216 +513,55 @@ export default function FloatingChatOrb() {
                       onClick={() => setIsOpen(false)}
                       title="Close"
                     >
-                      <X size={13} />
+                      <X size={14} />
                     </button>
                   </div>
                 </div>
 
-                {/* Conversation Feed */}
+                {/* Scrollable Chatbox Body */}
                 <div ref={contentBodyRef} className="chat-window-body">
-                  {messages.length === 0 ? (
-                    <div className="chat-welcome-container">
-                      <div className="chat-welcome-badge">
-                        <ShieldAlert size={14} />
-                        <span>HIGH-ALTITUDE THERMAL COMFORT & SAFETY</span>
-                      </div>
-                      <h3 className="chat-welcome-heading">How can I assist your shelter design?</h3>
-                      <p className="chat-welcome-sub">
-                        Direct physics predictions, insulation evaluations, and life-safety checks grounded across 39 Himalayan border scenario posts.
-                      </p>
+                  {/* Sample Grounded Inquiries */}
+                  <div className="prompt-chips-label">Sample Grounded Inquiries (Final Dataset)</div>
+                  <div className="prompt-chips-group">
+                    {SUGGESTED_QUERIES.map((sq, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="prompt-chip"
+                        onClick={() => {
+                          setQueryInput(sq);
+                          handleAiSubmit(sq);
+                        }}
+                      >
+                        {sq}
+                      </button>
+                    ))}
+                  </div>
 
-                      <div className="chat-starters-label">Suggested Queries</div>
-                      <div className="chat-starters-grid">
-                        {SUGGESTED_QUERIES.map((sq, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            className="chat-starter-btn"
-                            onClick={() => handleAiSubmit(sq.query)}
-                          >
-                            <span className="starter-tag">{sq.tag}</span>
-                            <span className="starter-query">{sq.query}</span>
-                          </button>
-                        ))}
-                      </div>
+                  {/* Search Form Strip */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleAiSubmit();
+                    }}
+                    className="cpwd-search-strip"
+                    style={{ marginTop: '14px', marginBottom: '16px' }}
+                  >
+                    <div className="cpwd-input-box">
+                      <Search size={16} className="cpwd-input-icon" />
+                      <input
+                        type="text"
+                        placeholder="Ask any shelter thermal performance, temperature, heat loss, comfort, or safety question..."
+                        value={queryInput}
+                        onChange={(e) => setQueryInput(e.target.value)}
+                      />
                     </div>
-                  ) : (
-                    <div className="chat-messages-stream">
-                      {messages.map((msg) => (
-                        <div key={msg.id} className={`chat-message-row ${msg.role}`}>
-                          {msg.role === 'user' ? (
-                            <div className="user-message-bubble">
-                              {msg.site && (
-                                <div className="user-site-tag">
-                                  <MapPin size={10} />
-                                  <span>{msg.site}</span>
-                                </div>
-                              )}
-                              <div className="user-text-content">{msg.content}</div>
-                              <div className="user-timestamp">{msg.timestamp}</div>
-                            </div>
-                          ) : (
-                            <div className="assistant-message-bubble">
-                              {/* Assistant Message Header */}
-                              <div className="asst-header">
-                                <div className="asst-avatar">
-                                  <Sparkles size={13} />
-                                </div>
-                                <span className="asst-author">THERMA Surrogate AI</span>
-                                <span className="asst-time">{msg.timestamp}</span>
-                              </div>
 
-                              {/* Natural Answer Prose */}
-                              <RenderDiagnosticAnswer text={msg.text} />
-
-                              {/* Compact Telemetry Strip */}
-                              {msg.predictions && msg.predictions.indoor_temperature_C !== undefined && (
-                                <div className="chat-telemetry-strip">
-                                  <div className="telemetry-item">
-                                    <span className="telemetry-label">Indoor Air (Tin)</span>
-                                    <div className="telemetry-val-group">
-                                      <span className="telemetry-val mono">
-                                        {msg.predictions.indoor_temperature_C.toFixed(1)}°C
-                                      </span>
-                                      {msg.predictions.temperature_lift_C !== undefined && (
-                                        <span className="telemetry-lift-badge mono">
-                                          +{msg.predictions.temperature_lift_C.toFixed(1)}°C lift
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className="telemetry-item">
-                                    <span className="telemetry-label">Operative (Top)</span>
-                                    <span className="telemetry-val mono">
-                                      {msg.predictions.operative_temperature_C?.toFixed(1) ?? '—'}°C
-                                    </span>
-                                  </div>
-
-                                  <div className="telemetry-item">
-                                    <span className="telemetry-label">Primary Bottleneck</span>
-                                    <span className="telemetry-val bottleneck">
-                                      {msg.predictions.dominant_heat_loss?.toUpperCase() ?? 'SKY'}
-                                    </span>
-                                  </div>
-
-                                  <div className="telemetry-item">
-                                    <span className="telemetry-label">Life Safety</span>
-                                    <span className={`telemetry-status-pill ${msg.predictions.safety_status === 'PASS' ? 'pass' : 'fail'} mono`}>
-                                      {msg.predictions.safety_status === 'PASS' ? (
-                                        <>
-                                          <CheckCircle2 size={11} />
-                                          <span>PASS</span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <AlertTriangle size={11} />
-                                          <span>FAIL</span>
-                                        </>
-                                      )}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Interactive Expandable Heat Loss Breakdown */}
-                              {msg.predictions?.heat_loss_fluxes_W && (
-                                <div className="flux-disclosure-box">
-                                  <button
-                                    type="button"
-                                    className="flux-disclosure-btn"
-                                    onClick={() => setExpandedFluxId(expandedFluxId === msg.id ? null : msg.id)}
-                                  >
-                                    <span>
-                                      {expandedFluxId === msg.id 
-                                        ? 'Hide Heat Loss Spectrum' 
-                                        : 'View Building Heat Loss Distribution (Watts & %)'}
-                                    </span>
-                                    <ChevronDown size={13} className={expandedFluxId === msg.id ? 'rotate-180' : ''} />
-                                  </button>
-
-                                  {expandedFluxId === msg.id && (
-                                    <div className="flux-breakdown-details">
-                                      {/* Proportional Spectrum Bar */}
-                                      <div className="stacked-flux-bar">
-                                        {Object.entries(msg.predictions.heat_loss_fluxes_W)
-                                          .filter(([k]) => k !== 'total_heat_loss_W')
-                                          .map(([k, v]) => {
-                                            const totalW = msg.predictions.heat_loss_fluxes_W.total_heat_loss_W || 1;
-                                            const pct = (v / totalW) * 100;
-                                            const meta = FLUX_META[k] || { label: k, color: '#64748B' };
-                                            return (
-                                              <div
-                                                key={k}
-                                                className="stacked-flux-segment"
-                                                style={{ width: `${Math.max(1.5, pct)}%`, backgroundColor: meta.color }}
-                                                title={`${meta.label}: ${v.toFixed(1)} W (${pct.toFixed(1)}%)`}
-                                              />
-                                            );
-                                          })}
-                                      </div>
-
-                                      {/* Component Rows */}
-                                      <div className="flux-component-rows">
-                                        {Object.entries(msg.predictions.heat_loss_fluxes_W)
-                                          .filter(([k]) => k !== 'total_heat_loss_W')
-                                          .map(([k, v]) => {
-                                            const totalW = msg.predictions.heat_loss_fluxes_W.total_heat_loss_W || 1;
-                                            const pct = ((v / totalW) * 100).toFixed(1);
-                                            const meta = FLUX_META[k] || { label: k, color: '#64748B' };
-                                            return (
-                                              <div key={k} className="flux-component-item">
-                                                <div className="flux-item-left">
-                                                  <span className="flux-dot" style={{ backgroundColor: meta.color }} />
-                                                  <span className="flux-name">{meta.label}</span>
-                                                </div>
-                                                <div className="flux-item-right mono">
-                                                  <span>{v.toFixed(0)} W</span>
-                                                  <span className="flux-pct">({pct}%)</span>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-
-                      {/* Loading State */}
-                      {aiLoading && (
-                        <div className="chat-message-row assistant">
-                          <div className="assistant-message-bubble loading-state">
-                            <div className="asst-header">
-                              <div className="asst-avatar spin">
-                                <RefreshCw size={13} />
-                              </div>
-                              <span className="asst-author">Evaluating High-Altitude Physics...</span>
-                            </div>
-                            <div className="chat-typing-dots">
-                              <span />
-                              <span />
-                              <span />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Modern Bottom Input Bar */}
-                <div className="chat-window-input-dock">
-                  <div className="input-location-row">
-                    <span className="location-tag-label">Sector Context:</span>
                     <select
+                      className="cpwd-select"
                       value={selectedSite}
                       onChange={(e) => setSelectedSite(e.target.value)}
-                      className="location-select-chip"
+                      aria-label="Location Scope"
                     >
                       {HIMALAYAN_SCENARIO_LOCATIONS.map((loc) => (
                         <option key={loc.id} value={loc.id}>
@@ -729,42 +569,322 @@ export default function FloatingChatOrb() {
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleAiSubmit();
-                    }}
-                    className="chat-compose-form"
-                  >
-                    <input
-                      type="text"
-                      value={queryInput}
-                      onChange={(e) => setQueryInput(e.target.value)}
-                      placeholder="Ask about shelter thermal comfort, insulation, heating safety..."
-                      className="chat-compose-input"
-                      disabled={aiLoading}
-                    />
 
                     <button
                       type="button"
+                      className={`cpwd-btn-secondary ${isListening ? 'active' : ''}`}
                       onClick={toggleSpeechRecognition}
-                      className={`chat-compose-btn mic-btn ${isListening ? 'active' : ''}`}
-                      title={isListening ? 'Stop recording' : 'Voice input'}
+                      title={isListening ? 'Stop listening' : 'Speak inquiry'}
+                      style={{ padding: '0 12px' }}
                     >
-                      {isListening ? <MicOff size={15} /> : <Mic size={15} />}
+                      {isListening ? <MicOff size={15} className="text-emerald-500" /> : <Mic size={15} />}
                     </button>
 
-                    <button
-                      type="submit"
-                      disabled={aiLoading || !queryInput.trim()}
-                      className="chat-compose-btn send-btn"
-                      title="Send question"
-                    >
-                      {aiLoading ? <RefreshCw size={14} className="spin" /> : <Send size={14} />}
+                    <button type="submit" className="cpwd-btn-primary" disabled={aiLoading}>
+                      {aiLoading ? <RefreshCw size={15} className="spin" /> : <Sparkles size={15} />}
+                      <span>{aiLoading ? 'Predicting...' : 'Query Thermal AI'}</span>
                     </button>
                   </form>
+
+                  {/* Empty State when no question asked yet */}
+                  {!aiResponse && !aiLoading && (
+                    <div className="chatbox-empty-state">
+                      <div className="empty-state-icon">
+                        <Bot size={30} />
+                      </div>
+                      <h4 className="empty-state-title">Awaiting Thermal Performance Inquiry</h4>
+                      <p className="empty-state-desc">
+                        Enter any question regarding high-altitude shelter indoor temperature, envelope insulation materials, heat loss bottlenecks, or safety compliance. You can also click any sample inquiry chip above.
+                      </p>
+                      <div className="empty-state-badges">
+                        <span className="empty-badge mono">5 ML Surrogates (CatBoost, RF, MLP)</span>
+                        <span className="empty-badge mono">120,000 Hourly Timesteps</span>
+                        <span className="empty-badge mono">DRDO PS 26051 Grounded</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Loading State while evaluating models */}
+                  {aiLoading && (
+                    <div className="chatbox-loading-state">
+                      <RefreshCw size={28} className="spin" style={{ color: '#0284c7' }} />
+                      <h4 className="loading-state-title">Evaluating Thermodynamic Surrogate Models...</h4>
+                      <p className="loading-state-desc mono">
+                        Simulating building envelope conduction, radiation, air infiltration, and operative comfort.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Grounded Response Diagnostic Console */}
+                  {aiResponse && !aiLoading && (
+                    <div className="ai-diagnostic-console" style={{ marginTop: '0' }}>
+                      {/* Executive Header */}
+                      <div className="diagnostic-header-bar">
+                        <div className="diagnostic-header-left">
+                          <div className="diagnostic-engine-pill">
+                            <CheckCircle2 size={13} className="text-comfort" />
+                            <span>DRDO PS 26051 · ML Surrogate Diagnostic</span>
+                          </div>
+                          <div className="diagnostic-benchmark-pill mono">
+                            <span>SURROGATE R²: 0.968</span>
+                            <span className="dot-divider">·</span>
+                            <span>120,000 TIMESTEPS</span>
+                          </div>
+                        </div>
+
+                        <div className="diagnostic-header-right mono">
+                          {aiResponse.resolved_parameters?.location && (
+                            <span className="diagnostic-site-tag">
+                              {aiResponse.resolved_parameters.location.replace(/_/g, ' ')} · {aiResponse.resolved_parameters.altitude_m?.toFixed(0)}m AMSL · Ambient {aiResponse.resolved_parameters.outdoor_temperature_C?.toFixed(1)}°C
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Envelope Design Parameters Strip */}
+                      {aiResponse.resolved_parameters?.wall_material && (
+                        <div className="diagnostic-specs-strip">
+                          <div className="spec-item">
+                            <span className="spec-k">Wall Assembly:</span>
+                            <span className="spec-v">{aiResponse.resolved_parameters.wall_material.replace(/_/g, ' ').toUpperCase()}</span>
+                          </div>
+                          <div className="spec-item">
+                            <span className="spec-k">Wall Insulation:</span>
+                            <span className="spec-v mono">{(aiResponse.resolved_parameters.wall_insulation_thickness_m * 1000).toFixed(0)} mm</span>
+                          </div>
+                          <div className="spec-item">
+                            <span className="spec-k">Air Infiltration:</span>
+                            <span className="spec-v mono">{aiResponse.resolved_parameters.ach} ACH</span>
+                          </div>
+                          <div className="spec-item">
+                            <span className="spec-k">Design Occupancy:</span>
+                            <span className="spec-v mono">{aiResponse.resolved_parameters.occupants} Troops</span>
+                          </div>
+                          <div className="spec-item">
+                            <span className="spec-k">Region:</span>
+                            <span className="spec-v">{aiResponse.resolved_parameters.region || 'Ladakh'}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 4 Primary Precision Metric Tiles */}
+                      {aiResponse.predictions?.indoor_temperature_C !== undefined && (
+                        <div className="thermal-metrics-grid">
+                          <div className="thermal-metric-tile">
+                            <div className="metric-header-row">
+                              <span className="thermal-metric-label">INDOOR EQUILIBRIUM TEMP (Tin)</span>
+                              <Thermometer size={14} className="text-secondary" />
+                            </div>
+                            <div className="thermal-metric-value mono">
+                              {aiResponse.predictions.indoor_temperature_C.toFixed(2)} °C
+                            </div>
+                            <div className="thermal-lift-badge">
+                              <span>Passive Lift:</span>
+                              <strong className="mono">+{aiResponse.predictions.temperature_lift_C.toFixed(2)} °C</strong>
+                              <span>above ambient</span>
+                            </div>
+                          </div>
+
+                          <div className="thermal-metric-tile">
+                            <div className="metric-header-row">
+                              <span className="thermal-metric-label">OPERATIVE COMFORT (Top)</span>
+                              <Activity size={14} className="text-secondary" />
+                            </div>
+                            <div className="thermal-metric-value mono">
+                              {aiResponse.predictions.operative_temperature_C.toFixed(2)} °C
+                            </div>
+                            <div className="thermal-metric-sub mono">
+                              Mean Radiant (Tmrt): {aiResponse.predictions.mean_radiant_temperature_C.toFixed(2)} °C
+                            </div>
+                          </div>
+
+                          <div className="thermal-metric-tile">
+                            <div className="metric-header-row">
+                              <span className="thermal-metric-label">THERMAL BOTTLENECK</span>
+                              <Zap size={14} className="text-orange" />
+                            </div>
+                            <div className="thermal-metric-value bottleneck-val">
+                              {aiResponse.predictions.dominant_heat_loss.replace(/_/g, ' ').toUpperCase()}
+                            </div>
+                            <div className="thermal-metric-sub">
+                              Primary thermodynamic dissipation vector
+                            </div>
+                          </div>
+
+                          <div className="thermal-metric-tile">
+                            <div className="metric-header-row">
+                              <span className="thermal-metric-label">COMFORT & LIFE SAFETY</span>
+                              <ShieldAlert size={14} className={aiResponse.predictions.safety_status === 'PASS' ? 'text-comfort' : 'text-danger'} />
+                            </div>
+                            <div className="safety-badges-row">
+                              <span
+                                className={`thermal-badge ${
+                                  aiResponse.predictions.comfort_status === 'COMFORT'
+                                    ? 'comfort'
+                                    : aiResponse.predictions.comfort_status === 'WARM'
+                                    ? 'warm'
+                                    : 'cold'
+                                }`}
+                              >
+                                {aiResponse.predictions.comfort_status}
+                              </span>
+                              <span
+                                className={`thermal-badge ${
+                                  aiResponse.predictions.safety_status === 'PASS' ? 'pass' : 'refused'
+                                }`}
+                              >
+                                {aiResponse.predictions.safety_status}
+                              </span>
+                            </div>
+                            <div className="thermal-metric-sub">
+                              Risk Class: <strong className="mono">{aiResponse.predictions.thermal_risk_class}</strong>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Architectural Heat Loss Flux Breakdown */}
+                      {aiResponse.predictions?.heat_loss_fluxes_W && (() => {
+                        const fluxes = aiResponse.predictions.heat_loss_fluxes_W;
+                        const totalW = fluxes.total_heat_loss_W || 1;
+                        const fluxEntries = Object.entries(fluxes).filter(([k]) => k !== 'total_heat_loss_W');
+
+                        return (
+                          <div className="flux-diagnostic-card">
+                            <div className="flux-diagnostic-header">
+                              <div>
+                                <h3 className="flux-diagnostic-title">Predicted Envelope Heat Loss Flux Breakdown</h3>
+                                <p className="flux-diagnostic-sub">
+                                  Quantified thermal flux distribution across envelope components under steady-state simulation.
+                                </p>
+                              </div>
+                              <div className="total-flux-badge mono">
+                                <span className="total-flux-label">TOTAL BUILDING FLUX</span>
+                                <span className="total-flux-val">{totalW.toLocaleString()} W</span>
+                              </div>
+                            </div>
+
+                            {/* Proportional Stacked Spectrum Bar */}
+                            <div className="stacked-flux-bar" title="Building Heat Loss Distribution (100%)">
+                              {fluxEntries.map(([k, v]) => {
+                                const pct = (v / totalW) * 100;
+                                const meta = FLUX_META[k] || { label: k, color: '#64748B' };
+                                return (
+                                  <div
+                                    key={k}
+                                    className="stacked-flux-segment"
+                                    style={{
+                                      width: `${Math.max(1, pct)}%`,
+                                      backgroundColor: meta.color,
+                                    }}
+                                    title={`${meta.label}: ${v.toFixed(1)} W (${pct.toFixed(1)}%)`}
+                                  />
+                                );
+                              })}
+                            </div>
+
+                            {/* Detail Component Rows */}
+                            <div className="flux-components-grid">
+                              {fluxEntries.map(([k, v]) => {
+                                const pct = ((v / totalW) * 100).toFixed(1);
+                                const meta = FLUX_META[k] || {
+                                  label: k.replace(/_/g, ' ').replace(' W', ''),
+                                  sub: 'Thermodynamic loss component',
+                                  color: '#64748B',
+                                };
+                                const isDominant = k.toLowerCase().includes(aiResponse.predictions.dominant_heat_loss.toLowerCase());
+
+                                return (
+                                  <div key={k} className={`flux-item-row ${isDominant ? 'is-dominant-loss' : ''}`}>
+                                    <div className="flux-item-indicator" style={{ backgroundColor: meta.color }} />
+                                    <div className="flux-item-info">
+                                      <div className="flux-item-name-row">
+                                        <span className="flux-item-label">{meta.label}</span>
+                                        {isDominant && <span className="bottleneck-chip">PRIMARY BOTTLENECK</span>}
+                                      </div>
+                                      <span className="flux-item-sub">{meta.sub}</span>
+                                    </div>
+
+                                    <div className="flux-item-track-box">
+                                      <div className="flux-item-track">
+                                        <div
+                                          className="flux-item-fill"
+                                          style={{
+                                            width: `${Math.min(100, Math.max(3, pct))}%`,
+                                            backgroundColor: meta.color,
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="flux-item-numbers">
+                                      <span className="flux-item-watts mono">{v.toFixed(1)} W</span>
+                                      <span className="flux-item-pct mono">{pct}%</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Natural Synthesized Engineering Narrative */}
+                      {aiResponse.answer && (
+                        <div className="diagnostic-narrative-card">
+                          <div className="narrative-card-header">
+                            <span className="narrative-tag">EXECUTIVE BUILDING PHYSICS ASSESSMENT</span>
+                            <span className="narrative-engine-meta mono">Grounding: 5 ML Surrogates (Decision Tree, RF, GBDT, MLP, CatBoost)</span>
+                          </div>
+
+                          <div className="narrative-body-content">
+                            <RenderDiagnosticAnswer text={aiResponse.answer} />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actionable Engineering Recommendations */}
+                      {aiResponse.recommendations && aiResponse.recommendations.length > 0 && (
+                        <div className="diagnostic-recommendations-card">
+                          <div className="recommendations-header">
+                            <h4 className="recommendations-title">Verified High-Altitude Engineering Directives</h4>
+                            <span className="recommendations-sub">Priority interventions ordered by expected passive thermal gain</span>
+                          </div>
+
+                          <div className="recommendations-grid">
+                            {aiResponse.recommendations.map((rec, rIdx) => (
+                              <div key={rIdx} className="recommendation-card-item">
+                                <div className="rec-number-box mono">#{rIdx + 1}</div>
+                                <div className="rec-text-box">
+                                  <p className="rec-text-paragraph">{rec}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Official Source Document Traceability */}
+                      <div className="citations-container">
+                        <div className="citations-title">Official Scientific Dataset Traceability</div>
+                        <div className="citations-list">
+                          <div className="citation-pill">
+                            <strong>master_timeseries.csv</strong>
+                            <span>· 120,000 Hourly Timesteps</span>
+                            <span>· DRDO PS 26051 Benchmark</span>
+                          </div>
+                          <div className="citation-pill">
+                            <strong>locations.csv</strong>
+                            <span>· 39 Himalayan Scenario Sites</span>
+                          </div>
+                          <div className="citation-pill">
+                            <strong>materials.csv</strong>
+                            <span>· 102 Envelope Materials</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
