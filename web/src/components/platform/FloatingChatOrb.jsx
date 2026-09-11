@@ -314,7 +314,7 @@ export default function FloatingChatOrb() {
                     <div>
                       <div className="chat-header-title">
                         THERMA AI
-                        <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">
+                        <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 font-mono">
                           v2.4
                         </span>
                       </div>
@@ -514,7 +514,7 @@ export default function FloatingChatOrb() {
 
                   <div className="chat-footer-hint">
                     <span>Press Enter to send • Drag orb to reposition</span>
-                    <span className="text-cyan-400 font-semibold">{HUE_PRESETS[hueIndex].label}</span>
+                    <span className="text-sky-600 font-semibold">{HUE_PRESETS[hueIndex].label}</span>
                   </div>
                 </div>
               </motion.div>
@@ -526,7 +526,7 @@ export default function FloatingChatOrb() {
             ref={orbRef}
             onClick={handleOrbClick}
             className={`floating-orb-button ${isListening ? 'voice-active' : ''}`}
-            title="THERMA AI • Drag anywhere • Click to chat"
+            title="THERMA Chat • Drag anywhere • Click to open"
           >
             {/* The WebGL VoicePoweredOrb Canvas */}
             <div className="floating-orb-canvas-container">
@@ -539,23 +539,12 @@ export default function FloatingChatOrb() {
               />
             </div>
 
-            {/* AI Status Badge */}
-            <div className="floating-orb-badge">
-              <span className="floating-orb-status-dot" />
-              <span>AI</span>
-            </div>
-
-            {/* Draggable Grip Visual Cue */}
-            <div className="floating-orb-drag-hint">
-              <GripVertical size={10} />
-            </div>
-
             {/* Tooltip on Hover (hidden when open) */}
             {!isOpen && (
               <div className="floating-orb-tooltip">
                 <div className="flex items-center gap-1.5">
-                  <Sparkles size={12} className="text-cyan-400" />
-                  <span>THERMA AI</span>
+                  <Sparkles size={12} className="text-sky-600" />
+                  <span>THERMA Assistant</span>
                   <span className="text-slate-400 font-mono text-[9px]">• Drag anywhere</span>
                 </div>
               </div>
