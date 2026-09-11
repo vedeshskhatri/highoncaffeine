@@ -60,24 +60,6 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
             <span className="brand-org">DRDO · SIH 26051</span>
           </div>
         </NavLink>
-
-        {/* Compact Segmented Estate Scope Switcher */}
-        <div className="sidebar-scope-switcher">
-          <button
-            type="button"
-            className={`scope-btn ${estate === 'Ladakh' ? 'active' : ''}`}
-            onClick={() => onEstateChange('Ladakh')}
-          >
-            Ladakh (11)
-          </button>
-          <button
-            type="button"
-            className={`scope-btn ${estate === 'Nepal Relief' ? 'active' : ''}`}
-            onClick={() => onEstateChange('Nepal Relief')}
-          >
-            Nepal (1)
-          </button>
-        </div>
       </div>
 
       {/* 2. Spacious Clean Navigation Groups */}
