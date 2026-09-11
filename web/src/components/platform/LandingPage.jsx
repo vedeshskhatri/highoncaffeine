@@ -2,159 +2,299 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowRight, 
-  Shield,
-  ShieldAlert, 
+  Shield, 
   Sun, 
-  Cpu, 
-  Compass, 
-  Activity, 
-  FileText, 
+  Play, 
+  Layers, 
   Flame, 
-  Building2, 
-  Layers 
+  Compass, 
+  ChevronRight,
+  ThermometerSnowflake,
+  ShieldCheck
 } from 'lucide-react';
 import FloatingChatOrb from './FloatingChatOrb';
+import AlpineSolarBackground from './AlpineSolarBackground';
 import './LandingPage.css';
 
 export default function LandingPage() {
   return (
-    <div className="editorial-landing">
-      {/* Top Editorial Nav */}
-      <header className="editorial-nav">
-        <Link to="/" className="editorial-brand">
-          <div className="brand-shield-box">
-            <Shield size={16} />
-          </div>
-          <span className="editorial-logo">THERMA</span>
-          <div className="brand-thermometer-sticker" title="High-Altitude Thermal Monitor">
-            <img
-              src="/thermometer_sticker.png"
-              alt="Thermometer Sticker"
-              className="thermometer-sticker-img"
-            />
-          </div>
-        </Link>
-        <div className="editorial-nav-links">
-          <Link to="/dashboard" className="editorial-nav-cta">
-            <span>Enter Platform</span>
-            <ArrowRight size={14} />
+    <div className="landing-root">
+      {/* ───────────────────────────────────────────────────────────
+          1. Minimalist Architectural Header
+          ─────────────────────────────────────────────────────────── */}
+      <header className="landing-nav">
+        <div className="nav-container">
+          <Link to="/" className="brand-group">
+            <div className="brand-logo-box">
+              <img 
+                src="/thermometer_sticker.png" 
+                alt="THERMA Thermometer Logo" 
+                className="brand-thermometer-img" 
+              />
+            </div>
+            <span className="brand-title">THERMA</span>
+            <span className="brand-pill">DRDO PS 26051</span>
           </Link>
+
+          <nav className="nav-links">
+            <Link to="/dashboard" className="nav-link">Dashboard</Link>
+            <Link to="/sites" className="nav-link">Outposts</Link>
+            <Link to="/sites/site_siachen_base/design" className="nav-link">3D Studio</Link>
+            <Link to="/programme" className="nav-link">Retrofit</Link>
+            <Link to="/validation" className="nav-link">Validation</Link>
+          </nav>
+
+          <div className="nav-actions">
+            <Link to="/dashboard" className="nav-cta-btn">
+              <span>Enter Platform</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Main Editorial Hero */}
-      <section className="editorial-hero">
-        <h1 className="editorial-hero-title">
-          It costs <em>₹2,400</em> to deliver one litre of kerosene to Siachen.
-        </h1>
-
-        <p className="editorial-hero-dek">
-          At 5,400 metres, light helicopters operate near their structural ceiling carrying hundreds of kilograms of fuel just to warm uninsulated corrugated tin. THERMA turns passive solar physics into an estate-wide asset management system for high-altitude defence and relief shelters.
-        </p>
-
-        <div className="editorial-hero-actions">
-          <Link to="/dashboard" className="btn-primary-editorial">
-            <span>Open Estate Dashboard</span>
-            <ArrowRight size={16} />
-          </Link>
-          <Link to="/sites/site_siachen_base/design" className="btn-secondary-editorial">
-            <span>Launch Interactive Shelter Studio</span>
-          </Link>
-        </div>
-      </section>
-
-      {/* Headline Metric Strip */}
-      <section className="editorial-strip">
-        <div className="editorial-strip-inner">
-          <div className="strip-stat">
-            <span className="strip-value">12</span>
-            <span className="strip-label">Frontier military outposts & relief sites monitored</span>
+      {/* ───────────────────────────────────────────────────────────
+          2. Hero Section: Focused, Minimal, Grand Typography (Inspo Style)
+          ─────────────────────────────────────────────────────────── */}
+      <section className="hero-section">
+        <AlpineSolarBackground />
+        <div className="hero-container">
+          
+          <div className="hero-kicker">
+            <span className="kicker-pill">HIMALAYAN PASSIVE SOLAR ARCHITECTURE</span>
+            <span className="kicker-meta">SIH 2026 · DRDO DIHAR Leh Field Benchmark</span>
           </div>
-          <div className="strip-stat">
-            <span className="strip-value">228,800 L <span className="estimate-chip">estimate</span></span>
-            <span className="strip-label">Annual baseline kerosene exposure across active Ladakh posts</span>
-          </div>
-          <div className="strip-stat">
-            <span className="strip-value">508 <span className="estimate-chip">estimate</span></span>
-            <span className="strip-label">Helicopter sorties required annually (@ 450 L useful load)</span>
-          </div>
-          <div className="strip-stat">
-            <span className="strip-value">18.0 °C</span>
-            <span className="strip-label">WHO Housing and Health habitability baseline guaranteed</span>
-          </div>
-        </div>
-      </section>
 
-      {/* Narrative Section: The Contrast */}
-      <section className="editorial-narrative">
-        <div className="narrative-card danger">
-          <span className="narrative-kicker danger">The Logistics Crisis</span>
-          <h2 className="narrative-title">The 04:00 AM Thermal Collapse</h2>
-          <p className="narrative-body">
-            Standard corrugated galvanized iron (CGI) shelters lack thermal capacitance and nighttime radiative suppression. When high-altitude plateaus experience clear-sky sub-zero radiation (-35 °C sky temperatures), internal air collapses below freezing in the early morning hours, forcing round-the-clock bukhari stove operation and severe carbon monoxide hazard.
+          <h1 className="hero-headline">
+            It costs <span className="highlight-terracotta">₹2,400</span> to lift one litre of fuel to Siachen.
+          </h1>
+
+          <p className="hero-subtext">
+            At 5,400 metres, helicopters fly at their ceiling carrying kerosene just to heat uninsulated tin. 
+            THERMA uses passive solar thermodynamics to engineer zero-fuel thermal habitability across the Himalayan frontier.
           </p>
-        </div>
 
-        <div className="narrative-card accent">
-          <span className="narrative-kicker accent">The Engineering Intervention</span>
-          <h2 className="narrative-title">Passive Solar Architecture as Logistics Relief</h2>
-          <p className="narrative-body">
-            By coupling direct solar gain through oriented double glazing, high thermal inertia mass walls (mud-brick, stone masonry), exterior expanded polystyrene (EPS) wraps, and insulated night shutters, internal shelter temperatures remain above the WHO 18.0 °C standard throughout the night with zero active fuel combustion.
-          </p>
-        </div>
-      </section>
+          <div className="hero-cta-bar">
+            <Link to="/dashboard" className="btn-pill-primary" id="hero-enter-platform">
+              <span>Explore Platform</span>
+              <div className="play-circle">
+                <Play size={11} fill="currentColor" />
+              </div>
+            </Link>
 
-      {/* Platform Capabilities Grid */}
-      <section className="editorial-features">
-        <div className="features-header">
-          <h2>Thermal Asset Management at Scale</h2>
-          <p>THERMA shifts operations from a single-room thermal calculator to an estate-level planning system for commanders, engineers, and coordinators.</p>
-        </div>
-
-        <div className="features-grid">
-          <div className="feature-box">
-            <div className="feature-icon"><Building2 size={20} /></div>
-            <h3>Estate Multi-Tenancy</h3>
-            <p>Partition logistics between distinct operational theaters — Ladakh Northern Command defence posts vs. Nepal humanitarian relief camps.</p>
+            <Link to="/sites/site_siachen_base/design" className="btn-pill-secondary" id="hero-launch-studio">
+              <span>3D Shelter Studio</span>
+              <ArrowRight size={15} />
+            </Link>
           </div>
 
-          <div className="feature-box">
-            <div className="feature-icon"><Flame size={20} /></div>
-            <h3>Retrofit Programme Planner</h3>
-            <p>Input sanctioned capital budgets (e.g. ₹2.0 Cr) and automatically rank posts by kerosene litres saved per rupee invested.</p>
+          {/* 3 Clean Focal Pillars (No Data Overload) */}
+          <div className="hero-pillars">
+            <div className="pillar-item">
+              <span className="pillar-num">₹2,400<small> / L</small></span>
+              <span className="pillar-title">Helicopter Fuel Cost</span>
+              <span className="pillar-desc">Aviation supply burden eliminated</span>
+            </div>
+
+            <div className="pillar-item">
+              <span className="pillar-num highlight">+18.0 °C</span>
+              <span className="pillar-title">WHO Habitability</span>
+              <span className="pillar-desc">Maintained 100% passively</span>
+            </div>
+
+            <div className="pillar-item">
+              <span className="pillar-num">0 Litres</span>
+              <span className="pillar-title">Fuel Required</span>
+              <span className="pillar-desc">Zero soot, zero carbon monoxide risk</span>
+            </div>
           </div>
 
-          <div className="feature-box">
-            <div className="feature-icon"><ShieldAlert size={20} /></div>
-            <h3>Cold Snap Warning System</h3>
-            <p>Live meteorological ingestion triggers habitability risk alerts when ambient temperatures threaten hypothermia thresholds.</p>
-          </div>
-
-          <div className="feature-box">
-            <div className="feature-icon"><Layers size={20} /></div>
-            <h3>Standard Drawing Library</h3>
-            <p>Version-controlled CAD drawings (Rapid Glamping, DIHAR Solar Trombe) with one-click bulk rollout to matching field outposts.</p>
-          </div>
-
-          <div className="feature-box">
-            <div className="feature-icon"><Cpu size={20} /></div>
-            <h3>EN ISO 52016-1 Engine</h3>
-            <p>Transient 5R1C lumped capacitance solver validated against real empirical field trials at DIHAR Leh and ASHRAE benchmarks.</p>
-          </div>
-
-          <div className="feature-box">
-            <div className="feature-icon"><FileText size={20} /></div>
-            <h3>Formal Submission Packs</h3>
-            <p>Instant print-ready engineering reports detailing heat loss balances, design specs, and verified fuel paybacks for military procurement.</p>
-          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="editorial-footer">
-        <div className="editorial-footer-inner">
-          <div>THERMA Platform · High-Altitude Solar Shelter Thermal Comfort Engineering</div>
-          <div>Autonomous Engineering Systems · Defence & Humanitarian Thermal Architecture</div>
+      {/* ───────────────────────────────────────────────────────────
+          3. The Core Challenge: Clear, Human Storytelling
+          ─────────────────────────────────────────────────────────── */}
+      <section className="story-section">
+        <div className="story-container">
+          
+          <div className="story-header">
+            <span className="section-eyebrow">THE FRONTIER PROBLEM</span>
+            <h2 className="story-title">The 04:00 AM Thermal Collapse</h2>
+            <p className="story-dek">
+              Clear Himalayan skies radiate heat directly into deep space (-35 °C effective sky temperature). 
+              Standard corrugated iron shelters have zero thermal capacitance — by dawn, inside temperatures crash below freezing.
+            </p>
+          </div>
+
+          <div className="story-comparison">
+            {/* Standard Shelter */}
+            <div className="story-card problem">
+              <div className="story-card-top">
+                <span className="story-badge red">CURRENT BASELINE</span>
+                <span className="story-tag">Corrugated Galvanized Iron (CGI)</span>
+              </div>
+              <h3 className="card-title">Continuous Fuel Combustion</h3>
+              <p className="card-body">
+                Lacking insulation or thermal mass, barracks bleed heat immediately. Troops must run bukhari stoves 24/7, 
+                consuming hundreds of kilograms of kerosene and exposing personnel to toxic carbon monoxide accumulation.
+              </p>
+              <div className="card-metric-row">
+                <div className="metric-pill">
+                  <span className="metric-v red">-18 °C</span>
+                  <span className="metric-l">Unheated Dawn T_in</span>
+                </div>
+                <div className="metric-pill">
+                  <span className="metric-v red">24/7 Stove</span>
+                  <span className="metric-l">CO & Soot Hazard</span>
+                </div>
+              </div>
+            </div>
+
+            {/* THERMA Shelter */}
+            <div className="story-card solution">
+              <div className="story-card-top">
+                <span className="story-badge green">THERMA INTERVENTION</span>
+                <span className="story-tag">Passive Solar Mass Wall</span>
+              </div>
+              <h3 className="card-title">Stored Solar Inertia</h3>
+              <p className="card-body">
+                South-facing double glazing harvests intense high-altitude daytime radiation. A 300mm local stone or mud-brick mass wall 
+                stores the thermal energy, and insulated nocturnal shutters lock it in — gently discharging heat throughout the night.
+              </p>
+              <div className="card-metric-row">
+                <div className="metric-pill">
+                  <span className="metric-v green">+18 °C</span>
+                  <span className="metric-l">Guaranteed Dawn T_in</span>
+                </div>
+                <div className="metric-pill">
+                  <span className="metric-v green">0 Litres</span>
+                  <span className="metric-l">Combustion Free</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ───────────────────────────────────────────────────────────
+          4. 3 Core Platform Capabilities (Not 9 Cluttered Cards)
+          ─────────────────────────────────────────────────────────── */}
+      <section className="modules-section">
+        <div className="modules-container">
+          
+          <div className="modules-header">
+            <span className="section-eyebrow">ENGINEERING PLATFORM</span>
+            <h2 className="modules-title">Built for High-Altitude Command & Design</h2>
+          </div>
+
+          <div className="modules-grid">
+            {/* 1. 3D Architectural Studio */}
+            <Link to="/sites/site_siachen_base/design" className="module-card">
+              <div className="module-icon-box">
+                <Layers size={22} />
+              </div>
+              <h3 className="module-name">Interactive 3D Shelter Studio</h3>
+              <p className="module-desc">
+                Tune building geometry, orientation, mass wall thickness, and nocturnal shutters with real-time 5R1C lumped capacitance thermal simulation.
+              </p>
+              <span className="module-link">
+                <span>Launch 3D Studio</span>
+                <ArrowRight size={14} />
+              </span>
+            </Link>
+
+            {/* 2. Outpost Portfolio */}
+            <Link to="/sites" className="module-card">
+              <div className="module-icon-box">
+                <Compass size={22} />
+              </div>
+              <h3 className="module-name">Frontier Outpost Registry</h3>
+              <p className="module-desc">
+                Monitors 12 critical forward posts from Siachen Base Camp (5,400m) to Daulat Beg Oldie and DIHAR Leh with real-time solar tracking.
+              </p>
+              <span className="module-link">
+                <span>View 12 Outposts</span>
+                <ArrowRight size={14} />
+              </span>
+            </Link>
+
+            {/* 3. Retrofit Programme */}
+            <Link to="/programme" className="module-card">
+              <div className="module-icon-box">
+                <Flame size={22} />
+              </div>
+              <h3 className="module-name">₹2.0 Cr Capital Allocator</h3>
+              <p className="module-desc">
+                Budget-constrained retrofit optimization: ranks forward posts by kerosene litres saved per rupee invested, proving fast capital payback.
+              </p>
+              <span className="module-link">
+                <span>Run Allocator</span>
+                <ArrowRight size={14} />
+              </span>
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ───────────────────────────────────────────────────────────
+          5. Minimal, Clean Call to Action
+          ─────────────────────────────────────────────────────────── */}
+      <section className="cta-strip-section">
+        <div className="cta-strip-container">
+          <div className="cta-strip-content">
+            <h2 className="cta-strip-title">Ready to explore the thermal management platform?</h2>
+            <p className="cta-strip-desc">
+              Access the live estate dashboard, outposts telemetry, and 3D architectural solver.
+            </p>
+            <div className="cta-strip-actions">
+              <Link to="/dashboard" className="btn-pill-primary">
+                <span>Open Estate Dashboard</span>
+                <ArrowRight size={15} />
+              </Link>
+              <Link to="/sites/site_siachen_base/design" className="btn-pill-secondary">
+                <span>Open 3D Studio</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ───────────────────────────────────────────────────────────
+          6. Clean, Grounded Footer
+          ─────────────────────────────────────────────────────────── */}
+      <footer className="landing-footer">
+        <div className="footer-container">
+          <div className="footer-left">
+            <div className="footer-brand">
+              <div className="footer-logo-box">
+                <img 
+                  src="/thermometer_sticker.png" 
+                  alt="THERMA Logo" 
+                  className="footer-thermometer-img" 
+                />
+              </div>
+              <span className="brand-title">THERMA</span>
+              <span className="footer-sep">·</span>
+              <span className="footer-tag">SIH 2026 Grand Final</span>
+              <span className="footer-sep">·</span>
+              <span className="footer-tag">DRDO PS 26051</span>
+            </div>
+            <p className="footer-sub">
+              Area-specific high-altitude passive solar shelter engineering for defence outposts and humanitarian relief.
+            </p>
+          </div>
+
+          <div className="footer-links">
+            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/sites">Outposts</Link>
+            <Link to="/sites/site_siachen_base/design">3D Studio</Link>
+            <Link to="/programme">Retrofit</Link>
+            <Link to="/method">Physics</Link>
+            <Link to="/validation">Validation</Link>
+          </div>
         </div>
       </footer>
 
