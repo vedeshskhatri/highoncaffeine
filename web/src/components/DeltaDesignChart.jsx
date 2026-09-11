@@ -59,8 +59,8 @@ export default function DeltaDesignChart({
   // Compute difference series
   const data = (series && series.length > 0 ? series : []).map((pt, i) => {
     const basePt = baselineSeries[i];
-    const tB = typeof pt.t_in === 'number' ? pt.t_in : null;
-    const tA = typeof basePt?.t_in === 'number' ? basePt.t_in : (tB != null ? tB - 4.5 : null);
+    const tB = typeof pt?.t_in === 'number' ? pt.t_in : null;
+    const tA = typeof basePt?.t_in === 'number' ? basePt.t_in : null;
     const diff = (tB != null && tA != null) ? tB - tA : 0;
 
     return {
