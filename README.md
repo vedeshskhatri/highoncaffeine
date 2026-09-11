@@ -1315,8 +1315,8 @@ In strict adherence to engineering ethics and **PRD Section 9**, we document our
 
 # 38. Future Roadmap
 
-- **Phase 5 (Pareto Frontier & Budget Optimization):** Interactive budget-constrained capital allocation engine.
-- **Phase 6 (Design Doctor & Retrofit Mode):** Automated component-level retrofit recommendation generator.
+- **Phase 5 (Pareto Frontier & Budget Optimization):** **COMPLETED** — Mathematical Pareto non-dominated sorting, budget filtering with zero-feasible detection, and interactive frontier exploration.
+- **Phase 6 (Design Doctor & Retrofit Mode):** **COMPLETED** — 7-Stage clinical workflow (`CURRENT CONDITION` → `DIAGNOSIS` → `RECOMMENDED RETROFITS` → `COST` → `EXPECTED EFFECT` → `SAFETY` → `RATIONALE`), cost-efficiency ranking by $\text{degrees\_per\_1000\_inr} = \Delta T_{in,min} / (\text{cost\_inr} / 1000.0)$, and ASHRAE 62.2 safety interlocks.
 - **3D CFD Microclimate Meshing:** Real-time interior air stratification using WebAssembly Navier-Stokes solvers.
 - **Edge LoRa Sensor Telemetry:** Direct hardware integration with remote LoRaWAN temperature probes deployed across high-altitude border posts.
 - **Microgrid Hybrid Sizing:** Sizing rooftop photovoltaic panels, battery energy storage systems (BESS), and thermal heat pumps.
@@ -1336,6 +1336,8 @@ highoncaffeine/
 ├── engine/                          # Authoritative Computational Core
 │   ├── solver.py                    # 1D multi-node RC heat diffusion solver
 │   ├── optimizer.py                 # Vectorized Latin Hypercube & Pareto engine
+│   ├── pareto.py                    # Pareto non-dominated sorting & frontier extractor
+│   ├── design_doctor.py             # 7-stage Design Doctor & budget retrofit engine
 │   ├── comparison.py                # Multi-design comparison & Utopia distance
 │   ├── what_if.py                   # Single-variable sensitivity sandbox
 │   ├── diagnosis.py                 # Thermal diagnosis & 100% loss attribution

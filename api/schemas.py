@@ -367,6 +367,14 @@ class RetrofitInterventionSchema(BaseModel):
     cost_basis: str
     cumulative_cost_inr: float
     cumulative_t_min_c: float
+    # Extended Design Doctor fields
+    affected_component: Optional[str] = None
+    baseline_value: Optional[str] = None
+    proposed_value: Optional[str] = None
+    delta: Optional[str] = None
+    safety_status: Optional[str] = "SAFE"
+    explanation: Optional[str] = None
+    within_budget: Optional[bool] = True
 
 
 class RetrofitBaselineSchema(BaseModel):
@@ -380,6 +388,13 @@ class RetrofitResponse(BaseModel):
     baseline: RetrofitBaselineSchema
     interventions: List[RetrofitInterventionSchema]
     within_budget_count: int
+    # Extended Design Doctor 7-Stage fields
+    current_condition: Optional[Dict[str, Any]] = None
+    diagnosis: Optional[Dict[str, Any]] = None
+    cost_summary: Optional[Dict[str, Any]] = None
+    expected_effect: Optional[Dict[str, Any]] = None
+    safety_assessment: Optional[Dict[str, Any]] = None
+    rationale: Optional[str] = None
 
 
 class WeatherCsvResponse(BaseModel):

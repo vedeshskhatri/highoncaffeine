@@ -610,39 +610,43 @@ def retrofit(request: RetrofitRequest) -> Dict[str, Any]:
         from api.weather import load_fallback_csv
         weather_rows = load_fallback_csv()
 
-    existing_design = dict_to_design(
-        request.existing if isinstance(request.existing, dict) else request.existing
-    )
+    from engine.design_doctor import diagnose_and_prescribe_retrofits
+    from engine.optimizer import dict_to_design
+
+    existing_dict = request.existing if isinstance(request.existing, dict) else request.existing
     try:
-        sol = run_single(existing_design, weather_rows, opts={
-            "altitude_m": request.location.altitude_m,
-            "lat": request.location.lat,
-            "lon": request.location.lon,
-            "date": request.weather.date,
-        })
-        t_in_list = [r["t_in_c"] for r in sol["series"]]
-        baseline_t_min_c = round(min(t_in_list), 2)
-        baseline_hours_below_health = int(sum(1 for t in t_in_list if t < HEALTH_THRESHOLD_C))
+        existing_design = dict_to_design(existing_dict)
     except Exception:
-        # Only acceptable fallback: if degenerate envelope given, propagate as 400
         raise HTTPException(
             status_code=400,
             detail="Could not simulate existing shelter. Ensure walls, roof, and floor are non-empty.",
         )
 
-    interventions = [
-        {"label": "Night shutters, south windows", "delta_t_min_c": 6.1, "cost_inr": 500, "cost_basis": "estimate"},
-        {"label": "Weather-stripping & door sweeps (-0.3 ACH)", "delta_t_min_c": 2.8, "cost_inr": 800, "cost_basis": "estimate"},
-        {"label": "South glazing expansion (+2.0 m²)", "delta_t_min_c": 4.3, "cost_inr": 6400, "cost_basis": "sourced"},
-        {"label": "Roof insulation (50 mm EPS)", "delta_t_min_c": 2.4, "cost_inr": 12000, "cost_basis": "sourced"},
-        {"label": "Wall insulation (50 mm EPS)", "delta_t_min_c": 1.9, "cost_inr": 18000, "cost_basis": "sourced"},
-    ]
-    result = rank_retrofits(
-        baseline_t_min_c=baseline_t_min_c,
-        baseline_hours_below_health=baseline_hours_below_health,
-        interventions=interventions,
-        budget_inr=request.budget_inr,
-    )
+    heater_type = "none"
+    if isinstance(existing_dict, dict):
+        heater_type = existing_dict.get("ventilation", {}).get("heater_type", "none")
+
+    opts = {
+        "altitude_m": request.location.altitude_m,
+        "lat": request.location.lat,
+        "lon": request.location.lon,
+        "date": request.weather.date,
+    }
+
+    try:
+        result = diagnose_and_prescribe_retrofits(
+            existing=existing_design,
+            weather_series=weather_rows,
+            budget_inr=request.budget_inr,
+            opts=opts,
+            heater_type=heater_type,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not evaluate retrofit for existing shelter: {e}",
+        )
+
     result = _to_python(result)
     result["_stub"] = False
     return result
