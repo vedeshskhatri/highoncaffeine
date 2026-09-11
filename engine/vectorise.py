@@ -100,6 +100,7 @@ def pack(
     dt_s: float = DT_INTERNAL_S,
     fo_target: float = FO_TARGET,
     initial_temp_k: float = 253.15,
+    q_internal_w: float = 0.0,
 ) -> PackedNodeArray:
     """Pack N design specifications into a single vectorized PackedNodeArray structure.
 
@@ -110,13 +111,14 @@ def pack(
         dt_s: Internal simulation time step [s]
         fo_target: Fourier stability target
         initial_temp_k: Initial temperature for all nodes [K]
+        q_internal_w: Internal heat gain per design in Watts
 
     Returns:
         PackedNodeArray ready for vectorized matrix time stepping
     """
-    if materials_db is None:
-        from engine import materials as mats
-        materials_db = mats
+    if materials_db is None or not hasattr(materials_db, "__getitem__"):
+        from engine.materials import load as load_mats
+        materials_db = load_mats()
 
     N = len(designs)
     if N == 0:
@@ -149,7 +151,7 @@ def pack(
     C_air = np.zeros(N, dtype=np.float64)
     ach = np.zeros(N, dtype=np.float64)
     volume_m3 = np.zeros(N, dtype=np.float64)
-    q_internal_w = np.zeros(N, dtype=np.float64)
+    q_internal_w_arr = np.full(N, q_internal_w, dtype=np.float64)
 
     k_glazing_day = np.zeros(N, dtype=np.float64)
     k_glazing_night = np.zeros(N, dtype=np.float64)
@@ -302,7 +304,7 @@ def pack(
         C_air=C_air,
         ach=ach,
         volume_m3=volume_m3,
-        q_internal_w=q_internal_w,
+        q_internal_w=q_internal_w_arr,
         k_glazing_day=k_glazing_day,
         k_glazing_night=k_glazing_night,
         glazing_ag=glazing_ag,

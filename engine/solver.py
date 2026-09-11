@@ -320,6 +320,13 @@ def run_single(
     loss_joules_sky = 0.0
     total_solar_gain_joules = 0.0
 
+    ua_roof = 0.0
+    for s in active_surfaces:
+        if s.name == "roof":
+            r_tot = (1.0 / s.K_int) + sum(1.0 / k for k in s.K_inter) + (1.0 / s.K_ext)
+            ua_roof = 1.0 / r_tot if r_tot > 0.0 else 0.0
+            break
+
     hourly_results = []
     substeps_per_hour = int(round(3600.0 / dt))
     global_step = 0
@@ -422,9 +429,6 @@ def run_single(
                             h_r = calculate_hr_linearised(eps_s, t_s_outer, t_sky_k)
                         q_sky_outer = h_r * surf.net_area_m2 * f_sky * (t_s_outer - t_sky_k)
 
-                        if is_retained_period:
-                            loss_joules_sky += max(0.0, q_sky_outer) * dt
-
                 # Conduction from outdoor air to Node 0
                 q_from_ext = surf.K_ext * (t_out - t_nodes[0])
 
@@ -450,11 +454,16 @@ def run_single(
                 t_nodes += dt * dt_nodes
 
                 if is_retained_period:
-                    q_loss_surface_w = surf.K_ext * max(0.0, t_nodes[0] - t_out)
+                    inner_node_idx = last_idx if n_nodes > 1 else 0
+                    q_loss_surface = max(0.0, surf.K_int * (t_in - t_nodes[inner_node_idx]))
                     if "wall" in surf.name:
-                        loss_joules_walls += q_loss_surface_w * dt
+                        loss_joules_walls += q_loss_surface * dt
                     elif surf.name == "roof":
-                        loss_joules_roof += q_loss_surface_w * dt
+                        delta_t_sky = max(0.0, t_out - t_nodes[0])
+                        q_sky_coupled = ua_roof * delta_t_sky
+                        q_sky_loss = min(q_loss_surface, q_sky_coupled)
+                        loss_joules_sky += q_sky_loss * dt
+                        loss_joules_roof += (q_loss_surface - q_sky_loss) * dt
 
             # Air node heat flow
             q_glazing_to_air = k_glazing_hour * (t_out - t_in)
@@ -742,7 +751,7 @@ def run_batch(
                     f_s = f_sky[s]
                     eps_s = emissivity[s]
                     # 06_PHYSICS_SPEC.md Section 5.2 vectorized linearised h_r [W/(m^2*K)]
-                    h_r = eps_s * SIGMA_SB * (T_out_surf ** 2 + t_sky_k ** 2) * (T_out_surf + t_sky_k)
+                    h_r = 4.0 * SIGMA_SB * eps_s * (((T_out_surf + t_sky_k) / 2.0) ** 3)
                     q_sky = h_r * A_surf[s] * f_s * (T_out_surf - t_sky_k)
                 else:
                     q_sky = 0.0

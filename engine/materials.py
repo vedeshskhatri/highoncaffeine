@@ -66,6 +66,9 @@ def _parse_optional_float(val: Optional[str]) -> Optional[float]:
     return float(s) if s else None
 
 
+_CACHED_MATERIALS: Optional[Dict[str, Material]] = None
+
+
 def load(csv_path: Optional[str | Path] = None) -> Dict[str, Material]:
     """
     Load materials from CSV file into a dictionary keyed by material ID.
@@ -80,6 +83,10 @@ def load(csv_path: Optional[str | Path] = None) -> Dict[str, Material]:
         UnsourcedMaterialError: If any row has an empty, whitespace, or missing 'source' column.
         FileNotFoundError: If the CSV file does not exist.
     """
+    global _CACHED_MATERIALS
+    if csv_path is None and _CACHED_MATERIALS is not None:
+        return _CACHED_MATERIALS
+
     if csv_path is None:
         # Resolve path relative to this file: engine/../data/materials.csv
         csv_path = Path(__file__).resolve().parent.parent / "data" / "materials.csv"
@@ -142,6 +149,9 @@ def load(csv_path: Optional[str | Path] = None) -> Dict[str, Material]:
                 source=source,
             )
             materials[mat_id] = mat
+
+    if csv_path == Path(__file__).resolve().parent.parent / "data" / "materials.csv":
+        _CACHED_MATERIALS = materials
 
     return materials
 
