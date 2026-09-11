@@ -1,1 +1,1 @@
-"""THERMA thermal simulation engine."""
+"""THERMA thermal simulation engine package."""
