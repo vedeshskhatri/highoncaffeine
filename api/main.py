@@ -9,9 +9,10 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-from fastapi import FastAPI, Body, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.db import DB_PATH, query_all, query_one
 from api.schemas import (
     SimulateRequest,
     SimulateResponse,
@@ -63,7 +64,7 @@ def _load_fixture(filename: str) -> Dict[str, Any]:
     summary="Simulate thermal performance for a shelter design",
 )
 def simulate(request: SimulateRequest) -> Dict[str, Any]:
-    """Simulate transient indoor temperature and heat flows."""
+    """Simulate transient indoor temperature and heat flows (stub fixture)."""
     return _load_fixture("fixture_simulate_response.json")
 
 
@@ -73,7 +74,7 @@ def simulate(request: SimulateRequest) -> Dict[str, Any]:
     summary="Search parameter space and find Pareto-optimal designs",
 )
 def optimize(request: OptimizeRequest) -> Dict[str, Any]:
-    """Evaluate candidate designs and return Pareto frontier + top 3."""
+    """Evaluate candidate designs and return Pareto frontier + top 3 (stub fixture)."""
     return _load_fixture("fixture_optimize_response.json")
 
 
@@ -83,7 +84,7 @@ def optimize(request: OptimizeRequest) -> Dict[str, Any]:
     summary="Screen design levers by thermal impact",
 )
 def sensitivity(request: SensitivityRequest) -> Dict[str, Any]:
-    """Morris elementary effects screening of envelope parameters."""
+    """Morris elementary effects screening of envelope parameters (stub fixture)."""
     return _load_fixture("fixture_sensitivity_response.json")
 
 
@@ -93,7 +94,7 @@ def sensitivity(request: SensitivityRequest) -> Dict[str, Any]:
     summary="Rank retrofit interventions by degrees gained per rupee",
 )
 def retrofit(request: RetrofitRequest) -> Dict[str, Any]:
-    """Rank retrofit interventions for an existing shelter."""
+    """Rank retrofit interventions for an existing shelter (stub fixture)."""
     return _load_fixture("fixture_retrofit_response.json")
 
 
@@ -103,18 +104,34 @@ def retrofit(request: RetrofitRequest) -> Dict[str, Any]:
     summary="Ingest user-pasted weather CSV data",
 )
 async def weather_csv(request: Request) -> Dict[str, Any]:
-    """Ingest user-supplied weather CSV and return a user_csv_id."""
+    """Ingest user-supplied weather CSV and return a user_csv_id (stub fixture)."""
     return _load_fixture("fixture_weather_csv_response.json")
 
 
 @app.get(
     "/materials",
     response_model=MaterialsResponse,
-    summary="Get library of materials with cited thermal properties",
+    summary="Get library of materials with cited thermal properties from database",
 )
 def materials() -> Dict[str, Any]:
-    """Fetch all materials with physical properties and citations."""
-    return _load_fixture("fixture_materials_response.json")
+    """Fetch all materials with physical properties and citations from SQLite."""
+    rows = query_all("SELECT * FROM materials ORDER BY category, name")
+    items = []
+    for r in rows:
+        cost_basis = "sourced" if r.get("cost_source") else "estimate"
+        items.append({
+            "id": r["id"],
+            "name": r["name"],
+            "category": r["category"],
+            "k": float(r["k"]),
+            "rho": float(r["rho"]),
+            "cp": float(r["cp"]),
+            "cost_per_m3": float(r["cost_per_m3"]) if r["cost_per_m3"] is not None else None,
+            "cost_basis": cost_basis,
+            "locally_available": bool(r["locally_available"]),
+            "source": r["source"],
+        })
+    return {"materials": items, "_stub": False}
 
 
 @app.get(
@@ -134,4 +151,19 @@ def validation() -> Dict[str, Any]:
 )
 def health() -> Dict[str, Any]:
     """Health check for service, db connectivity, and offline capability."""
-    return _load_fixture("fixture_health_response.json")
+    db_ok = DB_PATH.exists()
+    cache_count = 0
+    if db_ok:
+        try:
+            row = query_one("SELECT COUNT(*) as cnt FROM weather_cache")
+            cache_count = row["cnt"] if row else 0
+        except Exception:
+            db_ok = False
+
+    return {
+        "ok": True,
+        "db": db_ok,
+        "weather_cache_rows": cache_count,
+        "offline_capable": True,
+        "_stub": False,
+    }

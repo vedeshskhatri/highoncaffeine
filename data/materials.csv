@@ -1,0 +1,20 @@
+id,name,category,k,rho,cp,absorptivity,emissivity,g_value,u_value,cost_per_m3,cost_source,install_note,locally_available,source
+mud_brick,Mud brick (adobe),structural,0.75,1700,880,0.70,0.90,,,2400,CPWD DSR 2023,local mason 1-2 days,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+rammed_earth,Rammed earth,structural,1.10,1900,840,0.65,0.90,,,2100,CPWD DSR 2023,formwork and local compaction,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+stone_masonry,Stone masonry (granite/slate),structural,2.20,2400,800,0.60,0.90,,,3800,CPWD DSR 2023,quarried local stone,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+cgi_sheet,Corrugated galvanized iron (CGI) sheet,structural,50.0,7800,480,0.65,0.25,,,1800,Local market survey Leh,fast mechanical fastening,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+prefab_sandwich,Prefab sandwich panel (PUF/EPS),structural,0.035,45,1400,0.50,0.85,,,7500,Manufacturer catalog 2024,modular assembly airlift needed,0,ASHRAE HoF 2021 Ch.26 Tbl 1
+eps,Expanded polystyrene (EPS),insulation,0.038,25,1400,0.30,0.90,,,4500,CPWD DSR 2023,adhesive/pin fixing,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+rockwool,Stone wool / Rockwool,insulation,0.040,40,840,0.30,0.90,,,6000,CPWD DSR 2023,batts in timber/metal stud,0,ASHRAE HoF 2021 Ch.26 Tbl 1
+straw_bale,Compacted straw bale,insulation,0.070,110,1800,0.50,0.90,,,1200,,local agricultural residue,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+air_gap,Unventilated air cavity (25mm),insulation,0.150,1.2,1005,0.00,0.90,,,0,,formed between wall wythes,1,ISO 6946:2017 Table 9
+single_pane,Single clear glass 4mm,glazing,1.0,2500,840,,0.84,0.85,5.7,1500,,standard glazing bead,1,ISO 52016-1:2017 Table B.14
+double_pane,Double glazing (4-12-4 air),glazing,1.0,2500,840,,0.84,0.76,2.8,3200,Market survey Leh,sealed unit timber frame,1,ISO 52016-1:2017 Table B.14
+double_pane_shutter,Double glazing with night shutter,glazing,1.0,2500,840,,0.84,0.76,1.1,3700,,operable internal insulated shutter,1,ISO 52016-1:2017 Table B.14
+concrete,Heavyweight concrete,mass,1.75,2300,1000,0.65,0.90,,,5500,CPWD DSR 2023,cast in place,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+water_wall,Water thermal mass container,mass,0.60,1000,4186,0.85,0.95,,,2000,,sealed drums against south glazing,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+stone_floor,Slate stone floor slab,mass,2.00,2300,850,0.70,0.90,,,3200,CPWD DSR 2023,laid over gravel bed,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+tarpaulin,Heavy duty HDPE tarpaulin,relief,0.19,950,1800,0.75,0.90,,,650,UNHCR relief specs,tied over timber poles,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+plastic_sheeting,Polyethylene relief sheeting 200mu,relief,0.33,920,1900,0.30,0.90,,,400,UNHCR relief specs,inner thermal liner,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+blanket_layer,Woolen felt / relief blanket,relief,0.045,120,1360,0.60,0.90,,,900,Red Cross relief item,hung as insulating curtain,1,ASHRAE HoF 2021 Ch.26 Tbl 1
+mud_skirt,Packed earth/mud perimeter skirt,relief,0.85,1600,880,0.70,0.90,,,200,,banked against tent base,1,ASHRAE HoF 2021 Ch.26 Tbl 1
