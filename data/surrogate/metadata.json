@@ -1,0 +1,39 @@
+{
+  "n_samples": 10000,
+  "n_climates": 25,
+  "designs_per_climate": 400,
+  "generation_wall_clock_s": 48.53,
+  "rate_runs_per_s": 206.06,
+  "feature_names": [
+    "orientation_deg",
+    "length_m",
+    "width_m",
+    "height_m",
+    "wall_thick_m",
+    "wall_k",
+    "wall_rhocp",
+    "insul_thick_m",
+    "insul_k",
+    "roof_thick_m",
+    "floor_thick_m",
+    "south_glazing_m2",
+    "glazing_u_value",
+    "glazing_g_value",
+    "night_shutter",
+    "roof_emissivity",
+    "ach",
+    "t_out_mean_c",
+    "t_out_swing_c",
+    "peak_dni",
+    "altitude_m"
+  ],
+  "target_names": [
+    "t_in_min_c",
+    "t_in_max_c",
+    "t_in_mean_c",
+    "comfort_hours_ratio",
+    "hours_below_health"
+  ],
+  "solver": "EN ISO 52016-1 5R1C multi-node dynamic RC network (engine.solver.run_batch)",
+  "source": "synthetic_iso52016_vectorised_batch"
+}

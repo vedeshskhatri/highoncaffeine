@@ -64,3 +64,39 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--border-strong);
   border-radius: var(--radius-sm);
 }
+
+/* Semantic Model Badges per Decision D20 */
+.chip-surrogate,
+.badge-surrogate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: var(--orange-soft);
+  color: var(--orange);
+  border: 1px solid rgba(247, 115, 49, 0.3);
+}
+
+.chip-simulation,
+.badge-simulation,
+.chip-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: var(--sage-soft);
+  color: var(--sage);
+  border: 1px solid rgba(74, 124, 89, 0.3);
+}

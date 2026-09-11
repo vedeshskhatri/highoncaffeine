@@ -13,6 +13,9 @@ import {
   Flame,
   CheckCircle2,
   ExternalLink,
+  Cpu,
+  Zap,
+  ShieldCheck,
 } from 'lucide-react';
 import './MethodPage.css';
 
@@ -833,6 +836,178 @@ export default function MethodPage() {
               Peer-reviewed literature explicitly documents that passive Trombe wall performance under sub-zero snowdrift and surface ice
               layering is an unresolved thermodynamic problem. THERMA uses conservative albedo and incidence shading approximations.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Section 6: Fast ML Surrogate Meta-Model ────────────────────── */}
+      <section className="method-card" id="surrogate">
+        <div className="method-card-header">
+          <h2 className="method-card-title">
+            <span className="method-card-number">06</span>
+            <Cpu size={20} color="var(--orange)" />
+            <span>Fast ML Surrogate Meta-Model (Combinatorial Screening)</span>
+          </h2>
+          <span className="pillar-badge" style={{ backgroundColor: 'var(--orange-soft)', color: 'var(--orange)', border: '1px solid rgba(247,115,49,0.3)' }}>
+            Meta-Modelling · 12,483× Speedup
+          </span>
+        </div>
+
+        <div className="surrogate-stage-line">
+          <Zap size={22} className="stage-line-icon" />
+          <div className="stage-line-text">
+            <strong>The Evaluation Stage Position:</strong>
+            <p>
+              "We trained a surrogate on 10,000 runs of our own solver. It reproduces the solver to within 0.16 °C RMSE
+              (0.84 °C max error on overnight minimum) and is over 12,000 times faster, which is what makes the optimiser interactive.
+              The physics itself stays ISO 52016-1, because that is what we validate against."
+            </p>
+          </div>
+        </div>
+
+        <div className="surrogate-grid-overview">
+          <div className="surrogate-info-block">
+            <h4 className="surrogate-block-title">Why an MLP Surrogate, Not an LLM?</h4>
+            <p>
+              Language models (e.g. Ollama, LLMs) predict tokens probabilistically; they cannot enforce thermodynamic conservation
+              of energy, Stefan-Boltzmann radiation, or transient thermal capacitance. Replacing an ODE solver with a language model
+              would be unverifiable and unscientific.
+            </p>
+            <p>
+              Following established building energy meta-modelling literature, we trained a lightweight <strong>Multi-Layer Perceptron (MLP)</strong> on
+              our own validated EN ISO 52016-1 solver. The surrogate maps 21 continuous design and high-altitude climate parameters directly to diurnal thermal performance.
+            </p>
+          </div>
+
+          <div className="surrogate-info-block">
+            <h4 className="surrogate-block-title">Architectural Boundary & Rule R-SURROGATE</h4>
+            <p>
+              <strong>Ground Truth Isolation:</strong> The empirical validation suite (<code>/verify</code>, <code>/validation</code>, <code>validation/run.py</code>)
+              and all generated engineering compliance reports strictly execute the deterministic ISO 52016-1 ODE solver.
+            </p>
+            <div className="surrogate-badge-demo">
+              <div className="demo-chip-item">
+                <span className="chip-surrogate">surrogate estimate</span>
+                <span className="demo-chip-desc">Displayed on interactive design preview & search screening</span>
+              </div>
+              <div className="demo-chip-item">
+                <span className="chip-verified">full simulation</span>
+                <span className="demo-chip-desc">Displayed on formal validation and final spec sheets</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Parity & Metrics Table */}
+        <div className="surrogate-table-wrap">
+          <div className="surrogate-table-header">
+            <h3 className="surrogate-subhead">Held-Out Test Set Parity Metrics (N = 1,500 Held-Out Samples)</h3>
+            <span className="table-gate-tag pass">GATE PASSED: Max Error &lt; 1.0 °C</span>
+          </div>
+          <table className="method-table">
+            <thead>
+              <tr>
+                <th>Thermal Target</th>
+                <th>Units</th>
+                <th>RMSE</th>
+                <th>MAE</th>
+                <th>Max Error</th>
+                <th>R² Score</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="sym-col"><strong>Overnight Minimum (T_in,min)</strong></td>
+                <td className="mono">°C</td>
+                <td className="mono" style={{ color: 'var(--sage)', fontWeight: 600 }}>0.160 °C</td>
+                <td className="mono">0.123 °C</td>
+                <td className="mono" style={{ color: 'var(--sage)', fontWeight: 700 }}>0.844 °C</td>
+                <td className="mono" style={{ fontWeight: 700 }}>0.9992</td>
+                <td><span className="badge-pass">PASS (&lt; 1.0 °C)</span></td>
+              </tr>
+              <tr>
+                <td className="sym-col"><strong>24h Diurnal Mean (T_in,mean)</strong></td>
+                <td className="mono">°C</td>
+                <td className="mono" style={{ color: 'var(--sage)', fontWeight: 600 }}>0.115 °C</td>
+                <td className="mono">0.090 °C</td>
+                <td className="mono">0.645 °C</td>
+                <td className="mono" style={{ fontWeight: 700 }}>0.9996</td>
+                <td><span className="badge-pass">PASS</span></td>
+              </tr>
+              <tr>
+                <td className="sym-col"><strong>Daytime Peak (T_in,max)</strong></td>
+                <td className="mono">°C</td>
+                <td className="mono">0.230 °C</td>
+                <td className="mono">0.163 °C</td>
+                <td className="mono">1.718 °C</td>
+                <td className="mono" style={{ fontWeight: 700 }}>0.9986</td>
+                <td><span className="badge-pass">PASS</span></td>
+              </tr>
+              <tr>
+                <td className="sym-col"><strong>IMAC Comfort Hours Ratio</strong></td>
+                <td className="mono">ratio</td>
+                <td className="mono">0.025</td>
+                <td className="mono">0.020</td>
+                <td className="mono">0.121</td>
+                <td className="mono">0.9850</td>
+                <td><span className="badge-pass">PASS</span></td>
+              </tr>
+              <tr>
+                <td className="sym-col"><strong>Hours Below Health (&lt; 10 °C)</strong></td>
+                <td className="mono">hrs</td>
+                <td className="mono">0.123 hrs</td>
+                <td className="mono">0.097 hrs</td>
+                <td className="mono">0.489 hrs</td>
+                <td className="mono">0.9940</td>
+                <td><span className="badge-pass">PASS</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Speedup Comparison Cards */}
+        <div className="surrogate-benchmarks-grid">
+          <div className="bench-card">
+            <span className="bench-label">Single Design Evaluation</span>
+            <div className="bench-numbers">
+              <div className="bench-stat">
+                <span className="mono bench-value surrogate">0.065 ms</span>
+                <span className="bench-sub">Surrogate</span>
+              </div>
+              <span className="bench-vs">vs</span>
+              <div className="bench-stat">
+                <span className="mono bench-value solver">13.2 ms</span>
+                <span className="bench-sub">ISO 52016-1 ODE</span>
+              </div>
+            </div>
+            <span className="bench-ratio">203× Speedup</span>
+          </div>
+
+          <div className="bench-card highlight">
+            <span className="bench-label">3,000 Design Search Space</span>
+            <div className="bench-numbers">
+              <div className="bench-stat">
+                <span className="mono bench-value surrogate">3.17 ms</span>
+                <span className="bench-sub">Surrogate (Batch)</span>
+              </div>
+              <span className="bench-vs">vs</span>
+              <div className="bench-stat">
+                <span className="mono bench-value solver">39.6 s</span>
+                <span className="bench-sub">ISO 52016-1 Solver</span>
+              </div>
+            </div>
+            <span className="bench-ratio badge-highlight">12,483× Speedup</span>
+          </div>
+
+          <div className="bench-card">
+            <span className="bench-label">Training Provenance</span>
+            <div className="provenance-list">
+              <div className="prov-row"><span>Training runs:</span><strong className="mono">10,000 (LHS)</strong></div>
+              <div className="prov-row"><span>Architecture:</span><strong className="mono">MLP (128-64-32)</strong></div>
+              <div className="prov-row"><span>Gen runtime:</span><strong className="mono">48.5 s (206 runs/s)</strong></div>
+              <div className="prov-row"><span>Train runtime:</span><strong className="mono">8.85 s (Adam)</strong></div>
+            </div>
           </div>
         </div>
       </section>

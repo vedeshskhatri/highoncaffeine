@@ -662,6 +662,67 @@ class ScenarioLibraryResponse(BaseModel):
     stub: Optional[bool] = Field(default=False, alias="_stub", serialization_alias="_stub")
 
 
+# ─── ML Surrogate Model Schemas ──────────────────────────────────────────
+
+class SurrogateTargetMetricSchema(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    rmse: float
+    mae: float
+    max_error: float
+    r2: float
+
+
+class SurrogateMetricsResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    trained_on_samples: int
+    train_duration_s: float
+    t_in_min_c_max_error: float
+    acceptance_passed: bool
+    targets: Dict[str, SurrogateTargetMetricSchema]
+    benchmarks: Dict[str, Any]
+    solver_reference: str
+    source_statement: str
+
+
+class SurrogatePredictRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    orientation_deg: float = 180.0
+    length_m: float = 6.0
+    width_m: float = 4.0
+    height_m: float = 2.6
+    wall_material_id: str = "mud_brick"
+    wall_thickness_m: float = 0.30
+    insulation_thickness_m: float = 0.05
+    roof_thickness_m: float = 0.15
+    floor_thickness_m: float = 0.10
+    south_glazing_m2: float = 4.0
+    glazing_type: str = "double_pane"
+    night_shutter: bool = False
+    roof_emissivity: float = 0.90
+    ach: float = 0.60
+    t_out_mean_c: float = -15.0
+    t_out_swing_c: float = 12.0
+    peak_dni: float = 650.0
+    altitude_m: float = 3500.0
+
+
+class SurrogatePredictResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    source: str = "surrogate_estimate"
+    is_surrogate: bool = True
+    badge: str = "surrogate estimate"
+    t_in_min_c: float
+    t_in_max_c: float
+    t_in_mean_c: float
+    comfort_hours_ratio: float
+    hours_below_health: float
+    timing_ms: float
+    disclaimer: str = (
+        "ML surrogate estimate trained on ISO 52016-1 solver runs. "
+        "Approximates physics for interactive screening; validation and final spec sheets strictly use the ISO 52016-1 ODE solver."
+    )
+
+
 
 
 

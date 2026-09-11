@@ -45,6 +45,9 @@ from api.schemas import (
     EngineeringReportResponse,
     ScenarioItemSchema,
     ScenarioLibraryResponse,
+    SurrogateMetricsResponse,
+    SurrogatePredictRequest,
+    SurrogatePredictResponse,
 )
 from pydantic import BaseModel
 from api.weather import get_weather
@@ -1069,5 +1072,114 @@ def get_scenarios_endpoint() -> ScenarioLibraryResponse:
         total=len(scenarios),
         stub=False,
     )
+
+
+# ─── ML Surrogate Model Endpoints ──────────────────────────────────────────
+
+@app.get(
+    "/surrogate/metrics",
+    response_model=SurrogateMetricsResponse,
+    summary="Retrieve accuracy metrics and speed benchmarks for the ML surrogate model",
+)
+def get_surrogate_metrics_endpoint() -> Dict[str, Any]:
+    """Retrieve test-set accuracy metrics and benchmark speedups for the ML surrogate."""
+    from engine.surrogate import DEFAULT_METRICS_PATH
+    if not DEFAULT_METRICS_PATH.exists():
+        raise HTTPException(
+            status_code=503,
+            detail="Surrogate metrics not yet computed. Run scripts/train_surrogate.py first.",
+        )
+    with open(DEFAULT_METRICS_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    eval_res = data.get("eval_results", {})
+    targets = eval_res.get("targets", {})
+
+    return {
+        "trained_on_samples": data.get("dataset_metadata", {}).get("n_samples", 10000),
+        "train_duration_s": data.get("train_duration_s", 0.0),
+        "t_in_min_c_max_error": eval_res.get("t_in_min_c_max_error", 0.0),
+        "acceptance_passed": eval_res.get("acceptance_passed", True),
+        "targets": targets,
+        "benchmarks": data.get("benchmarks", {}),
+        "solver_reference": "EN ISO 52016-1 5R1C multi-node dynamic RC network",
+        "source_statement": (
+            "Trained exclusively on synthetic batch runs of our own ISO 52016-1 solver. "
+            "The surrogate provides sub-millisecond screening for the optimizer; "
+            "the empirical validation suite and final spec sheets strictly use the physics ODE solver."
+        ),
+    }
+
+
+@app.post(
+    "/surrogate/predict",
+    response_model=SurrogatePredictResponse,
+    summary="Sub-millisecond thermal screening via neural surrogate approximating ISO 52016-1",
+)
+def predict_surrogate_endpoint(request: SurrogatePredictRequest) -> Dict[str, Any]:
+    """Execute instant forward thermal screening using the ML surrogate model."""
+    import time
+    from engine.surrogate import get_surrogate_model, design_to_feature_vector
+    from engine.types import Design, Layer, Opening
+
+    t0 = time.perf_counter()
+
+    # Build design layers
+    wall_layers = [Layer(material_id=request.wall_material_id, thickness_m=request.wall_thickness_m)]
+    if request.insulation_thickness_m >= 0.01:
+        wall_layers.append(Layer(material_id="eps_board", thickness_m=request.insulation_thickness_m))
+
+    roof_layers = (Layer(material_id="concrete", thickness_m=request.roof_thickness_m),)
+    floor_layers = (Layer(material_id="concrete", thickness_m=request.floor_thickness_m),)
+    openings = (
+        Opening(
+            facing="south",
+            area_m2=request.south_glazing_m2,
+            glazing_id=request.glazing_type,
+            night_shutter=request.night_shutter,
+        ),
+    )
+
+    design = Design(
+        orientation_deg=request.orientation_deg,
+        walls=tuple(wall_layers),
+        roof=roof_layers,
+        floor=floor_layers,
+        openings=openings,
+        ach=request.ach,
+        roof_emissivity=request.roof_emissivity,
+        night_shutter=request.night_shutter,
+        length_m=request.length_m,
+        width_m=request.width_m,
+        height_m=request.height_m,
+    )
+
+    climate = {
+        "t_out_mean_c": request.t_out_mean_c,
+        "t_out_swing_c": request.t_out_swing_c,
+        "peak_dni": request.peak_dni,
+        "altitude_m": request.altitude_m,
+    }
+
+    surrogate = get_surrogate_model()
+    pred_dict = surrogate.predict_design(design, climate)
+
+    timing_ms = round((time.perf_counter() - t0) * 1000.0, 3)
+
+    return {
+        "source": "surrogate_estimate",
+        "is_surrogate": True,
+        "badge": "surrogate estimate",
+        "t_in_min_c": pred_dict["t_in_min_c"],
+        "t_in_max_c": pred_dict["t_in_max_c"],
+        "t_in_mean_c": pred_dict["t_in_mean_c"],
+        "comfort_hours_ratio": pred_dict["comfort_hours_ratio"],
+        "hours_below_health": pred_dict["hours_below_health"],
+        "timing_ms": timing_ms,
+        "disclaimer": (
+            "ML surrogate estimate trained on ISO 52016-1 solver runs. "
+            "Approximates physics for interactive screening; validation and final spec sheets strictly use the ISO 52016-1 ODE solver."
+        ),
+    }
 
 

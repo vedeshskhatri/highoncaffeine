@@ -663,3 +663,231 @@
     padding: var(--space-3) var(--space-2);
   }
 }
+
+/* ── Section 6: Surrogate Meta-Model ─────────────────────────────────────── */
+.surrogate-stage-line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  background-color: var(--orange-soft);
+  border: 1px solid rgba(247, 115, 49, 0.35);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.stage-line-icon {
+  color: var(--orange);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stage-line-text strong {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--orange);
+  margin-bottom: 4px;
+}
+
+.stage-line-text p {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--espresso);
+  margin: 0;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.surrogate-grid-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.surrogate-info-block {
+  background-color: var(--cream-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.surrogate-block-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0;
+}
+
+.surrogate-info-block p {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--espresso-70);
+  margin: 0;
+}
+
+.surrogate-badge-demo {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--rule);
+  padding-top: var(--space-2);
+}
+
+.demo-chip-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.demo-chip-desc {
+  font-size: 12px;
+  color: var(--espresso-70);
+}
+
+.surrogate-table-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow-x: auto;
+}
+
+.surrogate-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.surrogate-subhead {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--espresso);
+  margin: 0;
+}
+
+.table-gate-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.table-gate-tag.pass {
+  background-color: var(--sage-soft);
+  color: var(--sage);
+  border: 1px solid rgba(74, 124, 89, 0.3);
+}
+
+.surrogate-benchmarks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: var(--space-3);
+}
+
+.bench-card {
+  background-color: var(--surface-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.bench-card.highlight {
+  border-color: var(--orange);
+  background-color: #FFFDF9;
+}
+
+.bench-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--espresso-70);
+}
+
+.bench-numbers {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  background-color: var(--cream);
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+}
+
+.bench-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.bench-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.bench-value.surrogate {
+  color: var(--orange);
+}
+
+.bench-value.solver {
+  color: var(--espresso-70);
+}
+
+.bench-sub {
+  font-size: 10px;
+  color: var(--espresso-40);
+}
+
+.bench-vs {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--espresso-40);
+}
+
+.bench-ratio {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sage);
+}
+
+.bench-ratio.badge-highlight {
+  color: var(--orange);
+  font-size: 14px;
+}
+
+.provenance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.prov-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed var(--rule);
+  padding-bottom: 2px;
+}
+
+.prov-row span {
+  color: var(--espresso-70);
+}
+
+.prov-row strong {
+  color: var(--espresso);
+}
