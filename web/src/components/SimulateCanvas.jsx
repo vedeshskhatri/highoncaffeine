@@ -27,6 +27,7 @@ import {
   ThermalDiagnosisPanel,
   PhysiologicalRiskPanel,
   WhatIfPanel,
+  DesignComparisonPanel,
 } from './results';
 
 // Realistic sample simulation result when testing offline or before first execution
@@ -195,6 +196,12 @@ export default function SimulateCanvas({ result, request }) {
         request={request}
         result={data}
         baselineData={data}
+      />
+
+      {/* 6d. Multi-Design Comparison & Trade-Offs (Phase 4) */}
+      <DesignComparisonPanel
+        request={request}
+        baselineResult={data}
       />
 
       {/* 7. Validation & Export (Wrapped Section) */}

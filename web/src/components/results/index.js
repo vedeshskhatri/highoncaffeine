@@ -7,3 +7,4 @@ export { default as ResultsTestView } from './ResultsTestView';
 export { default as ThermalDiagnosisPanel } from './ThermalDiagnosisPanel';
 export { default as PhysiologicalRiskPanel } from './PhysiologicalRiskPanel';
 export { default as WhatIfPanel } from './WhatIfPanel';
+export { default as DesignComparisonPanel } from './DesignComparisonPanel';

@@ -477,6 +477,57 @@ def what_if_analysis(req: WhatIfExecutionRequest) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# DESIGN COMPARISON ENDPOINTS (Phase 4)
+# ---------------------------------------------------------------------------
+
+class CompareDesignsRequest(BaseModel):
+    designs: List[SimulateRequest]
+    design_names: Optional[List[str]] = None
+
+
+CompareDesignsRequest.model_rebuild()
+
+
+@app.post(
+    "/compare",
+    summary="Compare 2 to 4 independently simulated shelter designs",
+)
+def compare_designs(req: CompareDesignsRequest) -> Dict[str, Any]:
+    """
+    Simulates 2-4 design configurations authoritatively on the server,
+    discloses explicit cost bases (SOURCED/ESTIMATE/UNAVAILABLE),
+    enforces safety interlocks, and computes multi-criteria rankings
+    (Best Comfort, Lowest Cost, Best Trade-Off via Utopia distance).
+    """
+    from engine.comparison import evaluate_design_comparison
+
+    if len(req.designs) < 2 or len(req.designs) > 4:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Design comparison requires 2 to 4 designs. Provided: {len(req.designs)}",
+        )
+
+    entries = []
+    for idx, d_req in enumerate(req.designs):
+        d_name = (
+            req.design_names[idx]
+            if req.design_names and idx < len(req.design_names) and req.design_names[idx]
+            else f"Design {chr(65 + idx)}"
+        )
+        sim_res = _simulate_internal(d_req)
+        entries.append({
+            "id": f"design_{idx + 1}",
+            "name": d_name,
+            "request": d_req.model_dump(),
+            "result": sim_res,
+        })
+
+    result = evaluate_design_comparison(entries)
+    result["_stub"] = False
+    return result
+
+
+# ---------------------------------------------------------------------------
 # POST /optimize — real engine, no fixture fallback (Tier 0)
 # A3-1: use fixed geometry; A2-1: baseline is required (schema enforces it)
 # ---------------------------------------------------------------------------
