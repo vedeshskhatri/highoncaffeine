@@ -35,14 +35,6 @@ export default function LandingPage() {
             <span className="brand-title">THERMA</span>
           </Link>
 
-          <nav className="nav-links">
-            <Link to="/dashboard" className="nav-link">Dashboard</Link>
-            <Link to="/sites" className="nav-link">Outposts</Link>
-            <Link to="/sites/site_siachen_base/design" className="nav-link">3D Studio</Link>
-            <Link to="/programme" className="nav-link">Retrofit</Link>
-            <Link to="/validation" className="nav-link">Validation</Link>
-          </nav>
-
           <div className="nav-actions">
             <Link to="/dashboard" className="nav-cta-btn">
               <span>Enter Platform</span>
