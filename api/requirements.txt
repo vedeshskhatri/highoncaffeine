@@ -1,6 +1,4 @@
 # Runtime production dependencies for THERMA API on Vercel
-# Kept strictly under serverless size limits (< 225 MB)
-
 numpy>=1.26.0
 fastapi>=0.110.0
 uvicorn>=0.28.0
