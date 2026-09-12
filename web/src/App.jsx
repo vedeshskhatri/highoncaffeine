@@ -331,11 +331,14 @@ export default function App() {
             <span>Platform</span>
           </button>
 
+          <span className="topbar-divider" aria-hidden="true" />
+
           <div className="app-wordmark" aria-label="THERMA application">
             <span>THERMA</span>
-            <span className="wordmark-dot">·</span>
             <span className="app-badge">STUDIO</span>
           </div>
+
+          <span className="topbar-divider" aria-hidden="true" />
 
           {/* Active Shelter Configuration Pill */}
           <div
@@ -349,19 +352,11 @@ export default function App() {
           >
             <span className="config-dot" />
             <span className="config-name">{activeSiteName || 'Alpine Field Post'}</span>
-            <span className="config-meta">{simulateRequest.location.altitude_m}m ASL · {floorArea} m²</span>
+            <span className="config-sep">·</span>
+            <span className="config-meta">{simulateRequest.location.altitude_m}m ASL</span>
             {siteWeather?.metrics && (
               <span
-                className="config-weather-badge mono"
-                style={{
-                  fontSize: 10,
-                  padding: '1px 6px',
-                  borderRadius: 4,
-                  background: siteWeather.metrics.t_air_min < 0 ? 'rgba(56, 189, 248, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-                  color: siteWeather.metrics.t_air_min < 0 ? '#38bdf8' : '#f59e0b',
-                  fontWeight: 600,
-                  marginLeft: 4,
-                }}
+                className={`config-weather-badge ${siteWeather.metrics.t_air_min < 0 ? 'cold' : 'mild'}`}
               >
                 {siteWeather.metrics.t_air_min > 0 ? `+${siteWeather.metrics.t_air_min}` : siteWeather.metrics.t_air_min}°C
               </span>

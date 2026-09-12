@@ -22,24 +22,24 @@
   width: 100%;
   display: flex;
   align-items: center;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid var(--border, #E2E8F0);
+  border-radius: 6px;
   padding: 0 10px;
   height: 32px;
   gap: 8px;
   box-sizing: border-box;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .command-bar-main:hover {
-  background: var(--surface-1);
-  border-color: var(--border-strong);
+  background: #FFFFFF;
+  border-color: #CBD5E1;
 }
 
 .command-bar-main:focus-within {
-  border-color: var(--accent);
-  background: var(--surface-1);
+  border-color: var(--accent, #C2410C);
+  background: #FFFFFF;
   box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.12);
 }
 

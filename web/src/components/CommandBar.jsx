@@ -136,7 +136,7 @@ export default function CommandBar({ context = {}, onCommand }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Command or search (e.g. simulate Kargil, compare mud brick)..."
+            placeholder="Search or command (e.g. simulate Ladakh)..."
             autoComplete="off"
             spellCheck="false"
             aria-label="Type command"
