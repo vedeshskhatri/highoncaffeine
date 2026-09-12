@@ -43,7 +43,7 @@ export default function ForecastPage() {
       <div className="forecast-header">
         <div>
           <div className="forecast-tag-row">
-            <span className="drdo-section-badge">AVIATION LOGISTICS</span>
+            <span className="drdo-section-badge">DRDO PS 26051 · AVIATION LOGISTICS</span>
             <span className="forecast-estate-tag mono">{estate.toUpperCase()} THEATRE</span>
           </div>
           <h2 className="forecast-title">Seasonal Kerosene Demand & Sortie Logistics</h2>

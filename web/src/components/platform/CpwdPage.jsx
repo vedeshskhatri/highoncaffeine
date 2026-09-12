@@ -253,7 +253,7 @@ export default function CpwdPage() {
         <div className="cpwd-title-group">
           <span className="cpwd-badge-tag">
             <Brain size={12} />
-            SURROGATE AI ENGINE
+            DRDO PS 26051 · SURROGATE AI ENGINE
           </span>
           <h1 className="cpwd-title">THERMA Thermal AI & High-Altitude Knowledge Engine</h1>
           <p className="cpwd-subtitle">
@@ -640,7 +640,7 @@ export default function CpwdPage() {
         <section className="cpwd-card">
           <div className="registry-header">
             <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 6px 0' }}>
-              THERMA Final Master ML Dataset Registry
+              THERMA Final Master ML Dataset Registry (DRDO PS 26051)
             </h2>
             <p style={{ fontSize: '13.5px', color: 'var(--espresso-70)', margin: 0 }}>
               Official physics-grounded dataset specifications partitioned strictly by simulation ID with zero data leakage.

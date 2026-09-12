@@ -25,7 +25,6 @@ export default function LandingPage() {
       <header className="landing-nav">
         <div className="nav-container">
           <Link to="/" className="brand-group">
-            <span className="brand-title">THERMA</span>
             <div className="brand-logo-box">
               <img 
                 src="/thermometer_sticker.png" 
@@ -33,7 +32,17 @@ export default function LandingPage() {
                 className="brand-thermometer-img" 
               />
             </div>
+            <span className="brand-title">THERMA</span>
+            <span className="brand-pill">DRDO PS 26051</span>
           </Link>
+
+          <nav className="nav-links">
+            <Link to="/dashboard" className="nav-link">Dashboard</Link>
+            <Link to="/sites" className="nav-link">Outposts</Link>
+            <Link to="/sites/site_siachen_base/design" className="nav-link">3D Studio</Link>
+            <Link to="/programme" className="nav-link">Retrofit</Link>
+            <Link to="/validation" className="nav-link">Validation</Link>
+          </nav>
 
           <div className="nav-actions">
             <Link to="/dashboard" className="nav-cta-btn">
@@ -53,6 +62,7 @@ export default function LandingPage() {
           
           <div className="hero-kicker">
             <span className="kicker-pill">HIMALAYAN PASSIVE SOLAR ARCHITECTURE</span>
+            <span className="kicker-meta">SIH 2026 · DRDO DIHAR Leh Field Benchmark</span>
           </div>
 
           <h1 className="hero-headline">
@@ -277,7 +287,6 @@ export default function LandingPage() {
         <div className="footer-container">
           <div className="footer-left">
             <div className="footer-brand">
-              <span className="brand-title">THERMA</span>
               <div className="footer-logo-box">
                 <img 
                   src="/thermometer_sticker.png" 
@@ -285,6 +294,11 @@ export default function LandingPage() {
                   className="footer-thermometer-img" 
                 />
               </div>
+              <span className="brand-title">THERMA</span>
+              <span className="footer-sep">·</span>
+              <span className="footer-tag">SIH 2026 Grand Final</span>
+              <span className="footer-sep">·</span>
+              <span className="footer-tag">DRDO PS 26051</span>
             </div>
             <p className="footer-sub">
               Area-specific high-altitude passive solar shelter engineering for defence outposts and humanitarian relief.

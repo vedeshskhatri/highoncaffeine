@@ -103,7 +103,7 @@ export default function ProgrammePage() {
       <div className="programme-header">
         <div>
           <div className="programme-tag-row">
-            <span className="drdo-section-badge">PORTFOLIO OPTIMIZER</span>
+            <span className="drdo-section-badge">DRDO PS 26051 · PORTFOLIO OPTIMIZER</span>
             <span className="programme-estate-tag mono">{estate.toUpperCase()} ESTATE</span>
           </div>
           <h2 className="programme-title">Retrofit Programme Planner</h2>

@@ -475,7 +475,7 @@ export default function FloatingChatOrb() {
                     <div>
                       <div className="chat-topbar-title">
                         THERMA Grounded Thermal AI
-                        <span className="chat-topbar-tag">SURROGATE ML</span>
+                        <span className="chat-topbar-tag">DRDO PS 26051</span>
                       </div>
                       <div className="chat-topbar-sub">
                         <span className="floating-orb-status-dot" />
@@ -604,7 +604,7 @@ export default function FloatingChatOrb() {
                         <div className="diagnostic-header-left">
                           <div className="diagnostic-engine-pill">
                             <CheckCircle2 size={13} className="text-comfort" />
-                            <span>Physics Surrogate Diagnostic</span>
+                            <span>DRDO PS 26051 · ML Surrogate Diagnostic</span>
                           </div>
                           <div className="diagnostic-benchmark-pill mono">
                             <span>SURROGATE R²: 0.968</span>
@@ -852,7 +852,7 @@ export default function FloatingChatOrb() {
                           <div className="citation-pill">
                             <strong>master_timeseries.csv</strong>
                             <span>· 120,000 Hourly Timesteps</span>
-                            <span>· DRDO DIHAR Field Benchmark</span>
+                            <span>· DRDO PS 26051 Benchmark</span>
                           </div>
                           <div className="citation-pill">
                             <strong>locations.csv</strong>

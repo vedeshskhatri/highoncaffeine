@@ -27,10 +27,9 @@
 }
 
 .nav-container {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 14px clamp(20px, 3.5vw, 48px);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -635,10 +634,9 @@
 }
 
 .footer-container {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 0 clamp(20px, 3.5vw, 48px);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
