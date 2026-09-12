@@ -1,5 +1,5 @@
 # THERMA — Area-Specific Shelter Design for Thermal Comfort Maintenance
-### Smart India Hackathon 2026 · Problem Statement PS 26051 · Ministry of Defence / DRDO
+### Smart India Hackathon 2026 · Problem Statement PS 26051 · Ministry of Defence/DRDO
 #### Grand Finale Submission · High-Altitude Passive Solar Shelter Engineering & Decision-Support Platform
 
 [![SIH 2026](https://img.shields.io/badge/SIH-2026%20Grand%20Finale-orange.svg?style=flat-square)](https://sih.gov.in)
