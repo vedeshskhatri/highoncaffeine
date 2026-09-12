@@ -100,8 +100,9 @@ export default function CanvasToolbar({
           className={`cad-tool-btn ${showDimensions ? 'active' : ''}`}
           onClick={onToggleDimensions}
           aria-label="Toggle Dimensions"
+          title="Toggle Dimensions (D)"
         >
-          <Ruler size={17} />
+          <Ruler size={16} />
           <span className="cad-tool-tooltip">Dimensions & Bounds</span>
         </button>
 
@@ -110,8 +111,9 @@ export default function CanvasToolbar({
           className={`cad-tool-btn ${viewMode === 'exploded' ? 'active' : ''}`}
           onClick={() => onViewModeChange(viewMode === 'exploded' ? 'solid' : 'exploded')}
           aria-label="Toggle Exploded Layers"
+          title="Toggle Exploded Layers (E)"
         >
-          <Layers size={17} />
+          <Layers size={16} />
           <span className="cad-tool-tooltip">
             {viewMode === 'exploded' ? 'Solid Envelope' : 'Exploded Layers View'}
           </span>
@@ -122,18 +124,22 @@ export default function CanvasToolbar({
           className={`cad-tool-btn ${showSolarRays ? 'active' : ''}`}
           onClick={onToggleSolarRays}
           aria-label="Toggle Solar Ray Simulation"
+          title="Toggle Solar Trajectory (S)"
         >
-          <Sun size={17} />
-          <span className="cad-tool-tooltip">Winter Solar Trajectory</span>
+          <Sun size={16} />
+          <span className="cad-tool-tooltip">Solar Vector Arc</span>
         </button>
+
+        <div className="cad-tool-divider" />
 
         {/* Thermal Heatmap Mode */}
         <button
           className={`cad-tool-btn ${viewMode === 'thermal' ? 'active' : ''}`}
           onClick={() => onViewModeChange(viewMode === 'thermal' ? 'solid' : 'thermal')}
           aria-label="Toggle Thermal Heatmap"
+          title="Toggle Thermal Gradient (T)"
         >
-          <Flame size={17} />
+          <Flame size={16} />
           <span className="cad-tool-tooltip">
             {viewMode === 'thermal' ? 'Realistic Materials' : 'Thermal Heatmap Mode'}
           </span>
@@ -144,9 +150,10 @@ export default function CanvasToolbar({
           className={`cad-tool-btn ${snowCover ? 'active' : ''}`}
           onClick={onToggleSnowCover}
           aria-label="Toggle Ground Snow Cover"
+          title="Toggle Snow Ground (N)"
         >
-          <Snowflake size={17} />
-          <span className="cad-tool-tooltip">Ground Snow Albedo (0.80)</span>
+          <Snowflake size={16} />
+          <span className="cad-tool-tooltip">Ground Snow Albedo</span>
         </button>
       </div>
 

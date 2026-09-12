@@ -26,6 +26,8 @@ import {
   Shield,
   Home,
   Building2,
+  Globe,
+  Maximize2,
 } from 'lucide-react';
 import CompassControl from './CompassControl';
 import EnvelopeBuilder from './EnvelopeBuilder';
@@ -118,6 +120,9 @@ export default function InspectorPanel({
   gridNote,
   collapsed = false,
   onToggleCollapse,
+  activeSiteName,
+  siteWeather,
+  onOpenTacticalMap,
 }) {
   const [activeTab, setActiveTab] = useState('properties');
   const [envelopeSurface, setEnvelopeSurface] = useState('walls');
@@ -339,6 +344,22 @@ export default function InspectorPanel({
                     })}
                   </div>
 
+                  {/* Full-Screen Tactical Planetary Map Trigger */}
+                  {onOpenTacticalMap && (
+                    <button
+                      type="button"
+                      className="tactical-full-map-trigger-btn"
+                      onClick={onOpenTacticalMap}
+                      title="Open full-screen planetary tactical map with GPS lock and blurred backdrop"
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <Globe size={13} style={{ color: 'var(--solar, #C2410C)' }} />
+                        <span>Open Planetary Tactical Map &amp; GPS</span>
+                      </div>
+                      <Maximize2 size={13} style={{ color: 'var(--text-muted)' }} />
+                    </button>
+                  )}
+
                   {/* Expandable Custom Search / Map Accordion */}
                   <button
                     type="button"
@@ -362,6 +383,7 @@ export default function InspectorPanel({
                           location={request.location}
                           onChange={(locUpdates) => setLoc(locUpdates)}
                           errors={errors}
+                          onOpenTacticalMap={onOpenTacticalMap}
                         />
                       </motion.div>
                     )}

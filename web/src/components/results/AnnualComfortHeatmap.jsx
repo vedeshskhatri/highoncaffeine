@@ -517,13 +517,21 @@ export default function AnnualComfortHeatmap({ request, scanResult }) {
                 const isHovered =
                   hoveredCell?.monthIdx === mIdx && hoveredCell?.hour === hour;
 
-                // Tokens color mapping:
-                // Comfort => var(--comfort) / var(--sage-soft)
-                // Cold Deficit => var(--danger) / var(--ice-soft)
-                const bgColor = isComfort ? 'var(--comfort)' : 'var(--danger)';
-                const opacity = isComfort
-                  ? 0.4 + cell.comfort_ratio * 0.5
-                  : Math.max(0.35, Math.min(0.85, (18.0 - cell.t_in_c) / 25.0));
+                // Nuanced architectural thermal scale:
+                // Comfort (>=18°C): calm emerald
+                // Cool buffer (14-17.9°C): soft muted slate/cyan
+                // Cold deficit (8-13.9°C): muted amber
+                // Severe cold (<8°C): soft rose/crimson
+                let cellBg = '#059669';
+                if (cell.t_in_c >= 18.0) {
+                  cellBg = `rgba(16, 185, 129, ${0.45 + cell.comfort_ratio * 0.45})`;
+                } else if (cell.t_in_c >= 14.0) {
+                  cellBg = 'rgba(100, 116, 139, 0.55)'; // soft slate
+                } else if (cell.t_in_c >= 8.0) {
+                  cellBg = 'rgba(217, 119, 6, 0.55)'; // soft amber
+                } else {
+                  cellBg = 'rgba(225, 29, 72, 0.65)'; // soft crimson
+                }
 
                 return (
                   <div
@@ -531,15 +539,16 @@ export default function AnnualComfortHeatmap({ request, scanResult }) {
                     onMouseEnter={() => setHoveredCell(cell)}
                     onMouseLeave={() => setHoveredCell(null)}
                     style={{
-                      height: 14,
-                      borderRadius: 2,
-                      backgroundColor: bgColor,
-                      opacity: isHovered ? 1.0 : opacity,
+                      height: 16,
+                      borderRadius: 3,
+                      backgroundColor: cellBg,
+                      opacity: isHovered ? 1.0 : 0.88,
                       border: isHovered
                         ? '1.5px solid var(--accent)'
-                        : '1px solid transparent',
+                        : '1px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: isHovered ? '0 0 0 2px rgba(194, 65, 12, 0.25)' : 'none',
                       cursor: 'pointer',
-                      transition: 'all 0.1s ease',
+                      transition: 'all 0.12s ease',
                     }}
                     title={`${cell.month} ${String(hour).padStart(2, '0')}:00 | T_in: ${cell.t_in_c} °C | T_out: ${cell.t_out_c} °C | Comfort: ${isComfort ? 'Yes' : 'No'}`}
                   />
@@ -634,35 +643,60 @@ export default function AnnualComfortHeatmap({ request, scanResult }) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--space-3)',
+            gap: '12px',
             fontFamily: 'var(--font-mono)',
             fontSize: 10,
             color: 'var(--text-secondary)',
+            flexWrap: 'wrap',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span
               style={{
-                width: 10,
-                height: 10,
+                width: 9,
+                height: 9,
                 borderRadius: 2,
-                backgroundColor: 'var(--comfort)',
+                backgroundColor: 'rgba(16, 185, 129, 0.9)',
                 display: 'inline-block',
               }}
             />
-            <span>Comfort (IMAC Band)</span>
+            <span>Comfort (≥18°C)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span
               style={{
-                width: 10,
-                height: 10,
+                width: 9,
+                height: 9,
                 borderRadius: 2,
-                backgroundColor: 'var(--danger)',
+                backgroundColor: 'rgba(100, 116, 139, 0.7)',
                 display: 'inline-block',
               }}
             />
-            <span>Cold Deficit</span>
+            <span>Cool Buffer (14–18°C)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span
+              style={{
+                width: 9,
+                height: 9,
+                borderRadius: 2,
+                backgroundColor: 'rgba(217, 119, 6, 0.7)',
+                display: 'inline-block',
+              }}
+            />
+            <span>Cold (8–14°C)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span
+              style={{
+                width: 9,
+                height: 9,
+                borderRadius: 2,
+                backgroundColor: 'rgba(225, 29, 72, 0.7)',
+                display: 'inline-block',
+              }}
+            />
+            <span>Severe (&lt;8°C)</span>
           </div>
         </div>
       </div>

@@ -3,8 +3,8 @@ import { parseCommand } from '../lib/commandParser.js';
 import './CommandBar.css';
 
 /**
- * CommandBar.jsx — Field-instrument terminal command input.
- * Parses natural deterministic commands to drive the existing UI/state directly.
+ * CommandBar.jsx — Integrated header search and field command prompt.
+ * Seamlessly parses natural deterministic commands or searches presets.
  * Fully offline, zero LLM, strictly token colors.
  *
  * Props:
@@ -26,14 +26,18 @@ export default function CommandBar({ context = {}, onCommand }) {
     };
   }, []);
 
-  // Global hotkey: press '/' to focus command bar when not inside another input
+  // Global hotkey: press '/' or 'Ctrl+K' / 'Cmd+K' to focus command bar when not inside another input
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
-      if (e.key === '/' && document.activeElement !== inputRef.current) {
+      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+      const isSlash = e.key === '/' && document.activeElement !== inputRef.current;
+
+      if (isCmdK || isSlash) {
         const tagName = document.activeElement?.tagName?.toLowerCase();
         if (tagName !== 'input' && tagName !== 'textarea' && !document.activeElement?.isContentEditable) {
           e.preventDefault();
           inputRef.current?.focus();
+          inputRef.current?.select();
         }
       }
     };
@@ -42,7 +46,7 @@ export default function CommandBar({ context = {}, onCommand }) {
   }, []);
 
   const handleSubmit = useCallback((e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     const raw = query.trim();
     if (!raw) return;
 
@@ -78,6 +82,7 @@ export default function CommandBar({ context = {}, onCommand }) {
       setStatus('success');
       setFeedback(msg);
       setAnimating('pulse');
+      setQuery('');
 
       if (typeof onCommand === 'function') {
         onCommand(action);
@@ -86,24 +91,23 @@ export default function CommandBar({ context = {}, onCommand }) {
       // Reset animation state after ~380ms
       setTimeout(() => setAnimating(null), 380);
 
-      // Auto-hide feedback after 6 seconds
+      // Auto-hide feedback after 4.5 seconds
       timerRef.current = setTimeout(() => {
         setFeedback('');
         setStatus('idle');
-      }, 6000);
+      }, 4500);
     } else {
       // 2. Unrecognized / Ambiguous command
       setStatus('error');
-      setFeedback(`Command not recognized: "${raw}" — try 'simulate <site> with <material>' or 'go to <step>'`);
+      setFeedback(`Unrecognized: "${raw}" — try 'simulate Leh', 'compare mud brick vs eps', 'go to optimize'`);
       setAnimating('shake');
 
-      // Reset animation state after ~340ms
       setTimeout(() => setAnimating(null), 340);
 
       timerRef.current = setTimeout(() => {
         setFeedback('');
         setStatus('idle');
-      }, 6000);
+      }, 5000);
     }
   }, [query, context, onCommand]);
 
@@ -116,14 +120,14 @@ export default function CommandBar({ context = {}, onCommand }) {
   };
 
   return (
-    <div className="app-command-strip" role="search" aria-label="Terminal command bar">
+    <div className="topbar-command-bar" role="search" aria-label="Terminal command bar">
       <form onSubmit={handleSubmit} className="command-bar-form">
         <div
           className={`command-bar-main ${
             animating === 'shake' ? 'shake' : animating === 'pulse' ? 'success-pulse' : ''
           }`}
         >
-          <span className="command-bar-prompt" aria-hidden="true">❯</span>
+          <span className="command-bar-prompt" aria-hidden="true">⌘</span>
           <input
             ref={inputRef}
             type="text"
@@ -132,39 +136,37 @@ export default function CommandBar({ context = {}, onCommand }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="simulate Kargil with stone walls · go to optimize · compare mud brick vs eps · show validation"
+            placeholder="Command or search (e.g. simulate Kargil, compare mud brick)..."
             autoComplete="off"
             spellCheck="false"
             aria-label="Type command"
           />
-          <button
-            type="submit"
-            className="command-bar-submit-btn"
-            title="Press Enter or click to execute command"
-            aria-label="Execute command"
-          >
-            ↵
-          </button>
+          {query.trim() ? (
+            <button
+              type="submit"
+              className="command-bar-submit-btn"
+              title="Press Enter to execute command"
+              aria-label="Execute command"
+            >
+              ↵
+            </button>
+          ) : (
+            <kbd className="command-bar-kbd">/</kbd>
+          )}
         </div>
       </form>
 
-      <div className="command-bar-right">
-        {feedback ? (
-          <div
-            className={`command-bar-feedback ${status}`}
-            role="status"
-            aria-live="polite"
-            title={feedback}
-          >
-            <span className="command-bar-feedback-dot" aria-hidden="true" />
-            <span>{feedback}</span>
-          </div>
-        ) : (
-          <span className="command-bar-idle-hint">
-            field console <kbd className="command-bar-kbd">/</kbd>
-          </span>
-        )}
-      </div>
+      {feedback && (
+        <div
+          className={`command-bar-feedback-floating ${status}`}
+          role="status"
+          aria-live="polite"
+          title={feedback}
+        >
+          <span className="command-bar-feedback-dot" aria-hidden="true" />
+          <span>{feedback}</span>
+        </div>
+      )}
     </div>
   );
 }

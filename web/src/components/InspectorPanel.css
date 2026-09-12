@@ -589,6 +589,33 @@
   color: var(--text-muted, #94A3B8);
 }
 
+.tactical-full-map-trigger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 8px;
+  background: var(--surface-2, #F8FAFC);
+  border: 1px solid var(--border-strong, #CBD5E1);
+  border-radius: 6px;
+  color: var(--text-primary, #0F172A);
+  font-family: var(--font-body, inherit);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.tactical-full-map-trigger-btn:hover {
+  background: #FFFFFF;
+  border-color: var(--solar, #C2410C);
+  color: var(--solar, #C2410C);
+  box-shadow: 0 2px 8px rgba(194, 65, 12, 0.15);
+  transform: translateY(-1px);
+}
+
 .custom-loc-toggle-btn {
   display: flex;
   align-items: center;

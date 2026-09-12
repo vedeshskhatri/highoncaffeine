@@ -213,33 +213,36 @@ export default function OptimizeCanvas({ result, request }) {
       {/* Top Banner & Trigger Bar */}
       <div style={{
         background: 'var(--surface-1)',
-        border: 'var(--border-width) solid var(--border)',
-        borderRadius: 'var(--radius-md)',
-        padding: 'var(--space-3)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md, 8px)',
+        padding: '14px 18px',
         display: 'flex',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: 'var(--space-2)',
+        gap: '12px',
+        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
       }}>
         <div>
           <h2 style={{
             fontFamily: 'var(--font-heading)',
-            fontSize: 'var(--text-title-size)',
+            fontSize: '18px',
+            fontWeight: 800,
             color: 'var(--text-primary)',
             margin: 0,
+            letterSpacing: '-0.02em',
           }}>
-            Pareto Optimization Suite
+            Pareto Envelope Optimization
           </h2>
           <p style={{
             fontFamily: 'var(--font-body)',
-            fontSize: 'var(--text-caption-size)',
+            fontSize: '12px',
             color: 'var(--text-muted)',
-            margin: '2px 0 0',
+            margin: '3px 0 0',
           }}>
             {optimizerResult
-              ? `Evaluated ${optimizerResult.evaluated ?? '—'} designs · ${optimizerResult.elapsed_s?.toFixed(1) ?? '—'}s`
-              : 'Multi-objective exploration across 3,000 shelter envelope permutations'}
+              ? `Evaluated ${optimizerResult.evaluated ?? '—'} candidate permutations · Solved in ${optimizerResult.elapsed_s?.toFixed(1) ?? '—'}s`
+              : 'Multi-objective exploration across 3,000 architectural permutations (Cost vs Thermal Comfort)'}
           </p>
         </div>
 
@@ -250,19 +253,34 @@ export default function OptimizeCanvas({ result, request }) {
             handleTriggerReoptimize().finally(handleOptimizationComplete);
           }}
           style={{
-            background: 'var(--accent)',
-            color: 'var(--bg-base)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            padding: 'var(--space-2) var(--space-3)',
-            fontFamily: 'var(--font-body)',
-            fontSize: 'var(--text-body-size)',
-            fontWeight: 600,
+            background: '#0F172A',
+            color: '#FFFFFF',
+            border: '1px solid #1E293B',
+            borderRadius: '6px',
+            padding: '8px 16px',
+            fontFamily: 'var(--font-heading)',
+            fontSize: '12px',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
             cursor: 'pointer',
-            transition: 'opacity 0.1s',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.15)',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#C2410C';
+            e.currentTarget.style.borderColor = '#C2410C';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#0F172A';
+            e.currentTarget.style.borderColor = '#1E293B';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}
         >
-          {optimizerResult ? '↻ Re-run Search' : '▶ Run 3,000 Searches'}
+          {optimizerResult ? '↻ Re-evaluate Search' : '▶ Run 3,000 Searches'}
         </button>
       </div>
 

@@ -308,15 +308,45 @@
 /* ── Coordinate Inputs Grid ───────────────────────────────────────────────── */
 .loc-fields-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
-  margin-top: 4px;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .loc-field {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+}
+
+.loc-field.full-width {
+  grid-column: span 2;
+}
+
+.loc-launch-modal-btn {
+  width: 100%;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--solar, #c2410c);
+  border: 1px solid #ea580c;
+  border-radius: 6px;
+  color: #ffffff;
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(194, 65, 12, 0.25);
+  transition: all 0.15s ease;
+  margin-bottom: 8px;
+}
+
+.loc-launch-modal-btn:hover {
+  background: #ea580c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(194, 65, 12, 0.35);
 }
 
 .loc-label-row {

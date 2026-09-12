@@ -23,6 +23,7 @@ import {
   X,
   Compass,
   Mountain,
+  Maximize2,
 } from 'lucide-react';
 import TacticalWorldMap from './TacticalWorldMap';
 import EarthGlobe3D from './EarthGlobe3D';
@@ -77,7 +78,7 @@ const COMPREHENSIVE_PRESETS = [
   { label: 'London', cat: 'plains', lat: 51.5074, lon: -0.1278, altitude_m: 25, desc: 'Oceanic Basin · 25m' },
 ];
 
-export default function LocationPicker({ location, onChange, errors = {} }) {
+export default function LocationPicker({ location, onChange, errors = {}, onOpenTacticalMap }) {
   const [activeTab, setActiveTab] = useState('search'); // 'search' | 'map' | 'manual'
   const [mapSubView, setMapSubView] = useState('tactical'); // 'tactical' | '3d'
   const [activePresetCategory, setActivePresetCategory] = useState('all');
@@ -345,7 +346,13 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
         <button
           type="button"
           className={`loc-tab ${activeTab === 'map' ? 'active' : ''}`}
-          onClick={() => setActiveTab('map')}
+          onClick={() => {
+            if (onOpenTacticalMap) {
+              onOpenTacticalMap();
+            } else {
+              setActiveTab('map');
+            }
+          }}
         >
           <Globe size={12} />
           World Map
@@ -434,6 +441,19 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
       {/* ── 2. Click-Anywhere World Map (Tactical Leaflet / 3D Globe) ───────── */}
       {activeTab === 'map' && (
         <div className="loc-section map-mode">
+          {onOpenTacticalMap && (
+            <button
+              type="button"
+              className="loc-launch-modal-btn"
+              onClick={onOpenTacticalMap}
+              title="Expand into full-screen planetary map with blurred backdrop"
+            >
+              <Globe size={13} />
+              <span>Launch Full-Screen Planetary Map</span>
+              <Maximize2 size={12} />
+            </button>
+          )}
+
           <div className="map-mode-header">
             <span className="map-hint">
               {mapSubView === 'tactical'
@@ -464,6 +484,7 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
               onCoordsChange={(lat, lon) => lookupElevation(lat, lon)}
               placeName={placeName}
               elevation_m={location.altitude_m}
+              onExpand={onOpenTacticalMap}
             />
           ) : (
             <EarthGlobe3D
@@ -512,9 +533,9 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
           />
         </div>
 
-        <div className="loc-field">
+        <div className="loc-field full-width">
           <div className="loc-label-row">
-            <label className="loc-label" htmlFor="field-alt">Elevation (m)</label>
+            <label className="loc-label" htmlFor="field-alt">Elevation (m ASL)</label>
             <button
               type="button"
               className="elev-refresh-btn"
@@ -522,7 +543,7 @@ export default function LocationPicker({ location, onChange, errors = {} }) {
               title="Lookup elevation from Open-Elevation / Open-Meteo"
             >
               <RefreshCw size={10} className={elevLoading ? 'spin-icon' : ''} />
-              Resolve
+              Resolve Elevation
             </button>
           </div>
           <input

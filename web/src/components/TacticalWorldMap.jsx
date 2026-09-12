@@ -27,9 +27,9 @@ const TILE_PRESETS = {
   dark: {
     id: 'dark',
     label: 'Tactical Dark',
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: '© OpenStreetMap, © CARTO',
-    subdomains: 'abcd',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Esri, HERE, Garmin, © OpenStreetMap',
+    subdomains: '',
   },
   satellite: {
     id: 'satellite',
@@ -41,9 +41,9 @@ const TILE_PRESETS = {
   topo: {
     id: 'topo',
     label: 'Topographic Relief',
-    url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-    attribution: '© OpenStreetMap contributors, Humanitarian Team',
-    subdomains: 'abc',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Esri, HERE, Garmin, USGS',
+    subdomains: '',
   },
   osm: {
     id: 'osm',
@@ -69,6 +69,8 @@ export default function TacticalWorldMap({
   onCoordsChange,
   placeName,
   elevation_m,
+  onExpand,
+  fullScreen = false,
 }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -203,7 +205,7 @@ export default function TacticalWorldMap({
   };
 
   return (
-    <div className="tactical-world-map-root">
+    <div className={`tactical-world-map-root ${fullScreen ? 'full-screen' : ''}`}>
       {/* ── 1. Map Container ── */}
       <div className="map-canvas-container" ref={mapContainerRef} />
 
@@ -274,8 +276,18 @@ export default function TacticalWorldMap({
         ))}
       </div>
 
-      {/* ── 5. Action Corner (Center Pin, Zoom In/Out) ── */}
+      {/* ── 5. Action Corner (Center Pin, Zoom In/Out, Expand) ── */}
       <div className="map-action-stack">
+        {onExpand && (
+          <button
+            type="button"
+            className="action-icon-btn"
+            onClick={onExpand}
+            title="Expand to Full-Screen Planetary Map"
+          >
+            <Maximize2 size={13} />
+          </button>
+        )}
         <button
           type="button"
           className="action-icon-btn"

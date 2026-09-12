@@ -55,8 +55,21 @@ export default function DesignCanvas({
             <span className="telemetry-name">{activeSiteName || 'Site Location'}</span>
           </div>
           <span className="telemetry-coord mono">
-            {request?.location?.lat?.toFixed(2)}°N, {request?.location?.lon?.toFixed(2)}°E · {request?.location?.altitude_m}m ASL
+            {request?.location?.altitude_m}m ASL · {request?.location?.lat?.toFixed(1)}°N, {request?.location?.lon?.toFixed(1)}°E
           </span>
+          {siteWeather?.metrics && (
+            <div className="telemetry-quick-pills">
+              <span className="telemetry-tag-pill" style={{ color: siteWeather.metrics.t_air_min < 0 ? '#0284C7' : 'inherit' }}>
+                {siteWeather.metrics.t_air_min > 0 ? `+${siteWeather.metrics.t_air_min}` : siteWeather.metrics.t_air_min}°C
+              </span>
+              <span className="telemetry-tag-pill" style={{ color: '#D97706' }}>
+                {Math.round(siteWeather.metrics.solar_dni_peak_wm2)} W/m² DNI
+              </span>
+              {siteWeather.metrics.snow_cover && (
+                <span className="telemetry-tag-pill snow">Snow</span>
+              )}
+            </div>
+          )}
           {onOpenLocation && (
             <button
               type="button"
@@ -64,45 +77,10 @@ export default function DesignCanvas({
               onClick={onOpenLocation}
               title="Change Site Location & Weather"
             >
-              <span>Switch Site</span>
+              <span>Switch</span>
             </button>
           )}
         </div>
-
-        {siteWeather?.metrics && (
-          <div className="telemetry-metrics-row">
-            <div className="telemetry-metric-item" title="Minimum Diurnal Air Temperature">
-              <span className="metric-tag">T_MIN</span>
-              <span className="metric-val mono" style={{ color: siteWeather.metrics.t_air_min < 0 ? '#38bdf8' : 'inherit' }}>
-                {siteWeather.metrics.t_air_min > 0 ? `+${siteWeather.metrics.t_air_min}` : siteWeather.metrics.t_air_min}°C
-              </span>
-            </div>
-            <div className="telemetry-metric-sep" />
-            <div className="telemetry-metric-item" title="Mean Diurnal Air Temperature">
-              <span className="metric-tag">T_MEAN</span>
-              <span className="metric-val mono">{siteWeather.metrics.t_air_mean}°C</span>
-            </div>
-            <div className="telemetry-metric-sep" />
-            <div className="telemetry-metric-item" title="Maximum Diurnal Air Temperature">
-              <span className="metric-tag">T_MAX</span>
-              <span className="metric-val mono">{siteWeather.metrics.t_air_max > 0 ? `+${siteWeather.metrics.t_air_max}` : siteWeather.metrics.t_air_max}°C</span>
-            </div>
-            <div className="telemetry-metric-sep" />
-            <div className="telemetry-metric-item" title="Direct Normal Solar Irradiance Peak">
-              <span className="metric-tag">DNI_PEAK</span>
-              <span className="metric-val mono" style={{ color: '#f59e0b' }}>
-                {Math.round(siteWeather.metrics.solar_dni_peak_wm2)} W/m²
-              </span>
-            </div>
-            <div className="telemetry-metric-sep" />
-            <div className="telemetry-metric-item" title="Snow Cover Status">
-              <span className="metric-tag">SNOW</span>
-              <span className="metric-val" style={{ color: siteWeather.metrics.snow_cover ? '#38bdf8' : '#64748b' }}>
-                {siteWeather.metrics.snow_cover ? 'Active' : 'None'}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ── 1. Main Viewport (3D or 2D) ─────────────────────────────────── */}

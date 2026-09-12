@@ -1332,51 +1332,53 @@ export default function Shelter3DCanvas({
                 <span className="hotspot-dot" />
                 <span className="hotspot-label">{pin.label}</span>
 
-                {selectedPin?.id === pin.id && (
-                  <div className="hotspot-popover" onClick={(e) => e.stopPropagation()}>
-                    <div className="popover-header">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <h4 className="popover-title">{pin.label}</h4>
-                        <span className="popover-badge">{pin.category}</span>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedPin(null);
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--text-muted)',
-                          padding: 2,
-                        }}
-                        aria-label="Close"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                    <p className="popover-desc">{pin.spec.description}</p>
-                    {pin.spec.whyUse && (
-                      <div style={{ marginTop: 6, padding: '6px 8px', background: '#F8FAFC', borderRadius: 4, borderLeft: '2px solid #C2410C', fontSize: 11, color: '#334155' }}>
-                        <div style={{ fontWeight: 700, fontSize: 9, textTransform: 'uppercase', color: '#64748B' }}>
-                          Engineering Intent:
+                {selectedPin?.id === pin.id && (() => {
+                  const isTop = pin.screenY < 280;
+                  const containerW = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+                  const isLeft = pin.screenX < 190;
+                  const isRight = pin.screenX > containerW - 190;
+                  const posClass = `${isTop ? 'open-below' : 'open-above'} ${isLeft ? 'align-left' : isRight ? 'align-right' : 'align-center'}`;
+
+                  return (
+                    <div className={`hotspot-popover ${posClass}`} onClick={(e) => e.stopPropagation()}>
+                      <div className="popover-header">
+                        <div className="popover-title-row">
+                          <h4 className="popover-title">{pin.label}</h4>
+                          <span className="popover-badge">{pin.category}</span>
                         </div>
-                        <div style={{ marginTop: 2, lineHeight: 1.4 }}>{pin.spec.whyUse}</div>
+                        <button
+                          className="popover-close-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPin(null);
+                          }}
+                          aria-label="Close"
+                        >
+                          <X size={14} />
+                        </button>
                       </div>
-                    )}
-                    <div className="popover-grid" style={{ marginTop: 8 }}>
-                      <div className="popover-stat">
-                        <span className="popover-stat-label">Thickness</span>
-                        <span className="popover-stat-val">{pin.spec.thickness_mm} mm</span>
-                      </div>
-                      <div className="popover-stat">
-                        <span className="popover-stat-label">R-Value</span>
-                        <span className="popover-stat-val">{pin.spec.rVal} m²K/W</span>
+                      <p className="popover-desc">{pin.spec.description}</p>
+                      {pin.spec.whyUse && (
+                        <div className="popover-intent-card">
+                          <div className="popover-intent-label">
+                            Engineering Intent
+                          </div>
+                          <div className="popover-intent-text">{pin.spec.whyUse}</div>
+                        </div>
+                      )}
+                      <div className="popover-grid">
+                        <div className="popover-stat">
+                          <span className="popover-stat-label">Thickness</span>
+                          <span className="popover-stat-val">{pin.spec.thickness_mm} mm</span>
+                        </div>
+                        <div className="popover-stat">
+                          <span className="popover-stat-label">R-Value</span>
+                          <span className="popover-stat-val">{pin.spec.rVal} m²K/W</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             )
         )}

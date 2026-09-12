@@ -1,0 +1,500 @@
+/* TacticalMapModal.css — Full-Screen Tactical Planetary Map with Blurred Backdrop */
+
+.tactical-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.22s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tactical-modal-window {
+  width: min(1480px, 95vw);
+  height: min(880px, 92vh);
+  background: #090d16;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 14px;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Top Tactical HUD Header ────────────────────────────────────────────── */
+.tactical-modal-header {
+  height: 56px;
+  background: rgba(11, 19, 41, 0.95);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.tactical-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+}
+
+.tactical-modal-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+}
+
+.tactical-modal-title {
+  font-family: var(--font-heading, Inter, sans-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tactical-modal-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(194, 65, 12, 0.18);
+  color: #fb923c;
+  border: 1px solid rgba(194, 65, 12, 0.35);
+  letter-spacing: 0.04em;
+}
+
+.tactical-modal-subtitle {
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ── Place Search Bar ───────────────────────────────────────────────────── */
+.tactical-modal-search {
+  position: relative;
+  flex: 1;
+  max-width: 480px;
+}
+
+.modal-search-input-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 36px;
+  transition: all 0.15s ease;
+}
+
+.modal-search-input-wrap:focus-within {
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+  background: rgba(15, 23, 42, 0.98);
+}
+
+.modal-search-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.modal-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 12px;
+  color: #f8fafc;
+}
+
+.modal-search-input::placeholder {
+  color: #64748b;
+}
+
+.modal-search-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-search-clear:hover {
+  color: #f8fafc;
+}
+
+.modal-search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #0f172a;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+  max-height: 280px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 4px;
+  margin: 0;
+  z-index: 200;
+}
+
+.modal-search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #e2e8f0;
+  font-size: 11.5px;
+  transition: background 0.1s ease;
+}
+
+.modal-search-item:hover,
+.modal-search-item.selected {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.modal-search-item-title {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.modal-search-item-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-left: 6px;
+}
+
+.modal-search-item-elev {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ── Header Action Buttons ──────────────────────────────────────────────── */
+.tactical-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tactical-gps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 6px;
+  color: #38bdf8;
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tactical-gps-btn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+  color: #ffffff;
+}
+
+.tactical-gps-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tactical-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 16px;
+  background: var(--solar, #c2410c);
+  border: 1px solid #ea580c;
+  border-radius: 6px;
+  color: #ffffff;
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(194, 65, 12, 0.3);
+  transition: all 0.15s ease;
+}
+
+.tactical-confirm-btn:hover {
+  background: #ea580c;
+  box-shadow: 0 4px 14px rgba(194, 65, 12, 0.45);
+  transform: translateY(-1px);
+}
+
+.tactical-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tactical-close-btn:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Main Map Canvas Stage ──────────────────────────────────────────────── */
+.tactical-modal-body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+}
+
+.tactical-modal-map-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.tactical-modal-map-wrap .tactical-world-map-root {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+}
+
+/* ── Floating Mathematical Microclimate & Materials Card ───────────────── */
+.modal-climate-hud-card {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 340px;
+  max-width: calc(100% - 28px);
+  background: rgba(11, 19, 41, 0.94);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  color: #f8fafc;
+  pointer-events: auto;
+}
+
+.hud-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hud-place-title {
+  font-family: var(--font-heading, Inter, sans-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.hud-biome-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.hud-card-coords-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.hud-coords-dot {
+  color: #475569;
+}
+
+.hud-elev-pill {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+/* ── Meteorological Stats Grid ─────────────────────────────────────────── */
+.hud-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.hud-stat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-stat-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.hud-stat-val {
+  font-family: var(--font-heading, Inter, sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.hud-stat-val.cold {
+  color: #38bdf8;
+}
+
+.hud-stat-val.solar {
+  color: #f59e0b;
+}
+
+/* ── Material Recommendation Box ───────────────────────────────────────── */
+.hud-material-box {
+  background: rgba(30, 41, 59, 0.5);
+  border-left: 3px solid var(--solar, #c2410c);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.hud-material-box-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fb923c;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.hud-material-box-spec {
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.hud-apply-material-btn {
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(194, 65, 12, 0.15);
+  border: 1px solid rgba(194, 65, 12, 0.4);
+  border-radius: 5px;
+  color: #fb923c;
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hud-apply-material-btn:hover {
+  background: rgba(194, 65, 12, 0.28);
+  border-color: #ea580c;
+  color: #ffffff;
+}
+
+.hud-card-hint {
+  font-size: 10px;
+  color: #64748b;
+  text-align: center;
+  margin-top: 6px;
+}

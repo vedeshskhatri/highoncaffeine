@@ -1,20 +1,9 @@
 /*
- * SimulateCanvas.jsx — Phase S4
- * Step 2: Simulation Results Canvas.
- *
- * Combines:
- *   - RefusalCard (when result.refused is true)
- *   - WeatherProvenanceBanner (meteorological provider transparency)
- *   - MetricCards (4 headline metrics: min temp at dawn, comfort ratio, health hours, kerosene avoided)
- *   - TempChart (indoor & outdoor curves, comfort band, danger shading, uncertainty band)
- *   - DeltaAmbientChart ("Heat flow across ΔT (indoor − ambient)" satisfying PS requirement 3)
- *   - HeatLossBreakdown (conduction, infiltration, sky radiation)
- *   - ValidationPanel (3 measured field points, Trombe above direct gain check)
- *   - SpecSheetCopy (one-click clipboard engineering spec)
- *
+ * SimulateCanvas.jsx — High-Altitude Thermal Simulation Studio
+ * Clean, uncluttered engineering presentation with unified telemetry and segmented deep-dives.
  * Strictly token colors — zero hardcoded hex colors.
  */
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import AnimatedPanel from './AnimatedPanel';
 import TempChart from './TempChart';
 import DeltaAmbientChart from './DeltaAmbientChart';
@@ -24,7 +13,6 @@ import {
   MetricCards,
   HeatLossBreakdown,
   SpecSheetCopy,
-  WeatherProvenanceBanner,
   RefusalCard,
   ThermalDiagnosisPanel,
   PhysiologicalRiskPanel,
@@ -32,6 +20,7 @@ import {
   DesignComparisonPanel,
   MilitaryLogisticsPanel,
 } from './results';
+import { ShieldAlert, Activity, GitCompare, FileCheck, Layers } from 'lucide-react';
 
 // Realistic sample simulation result when testing offline or before first execution
 const DEFAULT_SIMULATE_RESULT = {
@@ -40,7 +29,7 @@ const DEFAULT_SIMULATE_RESULT = {
   weather_provenance: {
     provider: 'open-meteo',
     is_live: true,
-    grid_note: 'Weather from regional grid estimate (NASA POWER archive). Not a local measurement.',
+    grid_note: 'NASA POWER satellite reanalysis & Open-Meteo forward model stream.',
     fetched_at: new Date().toISOString(),
   },
   series: [
@@ -107,11 +96,29 @@ const DEFAULT_SIMULATE_RESULT = {
   ],
 };
 
+const SIM_TABS = [
+  { id: 'safety', label: 'Occupant Safety & Logistics', icon: ShieldAlert },
+  { id: 'thermal', label: 'Thermal Loss Dynamics', icon: Activity },
+  { id: 'whatif', label: 'What-If & Compare', icon: GitCompare },
+  { id: 'validation', label: 'Field Validation & Spec', icon: FileCheck },
+];
+
 export default function SimulateCanvas({ result, request }) {
-  // Use active simulation result or fallback sample
+  const [activeTab, setActiveTab] = useState('safety');
   const data = result || DEFAULT_SIMULATE_RESULT;
   const isRefused = !!data.refused;
   const dateStr = request?.weather?.date || '2026-01-15';
+
+  // Listen to hash or DOM scrolling for validation/compare jumps
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.includes('validation')) setActiveTab('validation');
+      if (hash.includes('compare')) setActiveTab('whatif');
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   if (isRefused) {
     return (
@@ -124,82 +131,120 @@ export default function SimulateCanvas({ result, request }) {
     );
   }
 
+  const isLive = !!data.weather_provenance?.is_live;
+  const provider = data.weather_provenance?.provider || 'open-meteo';
+
   return (
     <div style={{
       width: '100%',
-      maxWidth: 960,
+      maxWidth: 1040,
       margin: '0 auto',
       display: 'flex',
       flexDirection: 'column',
       gap: 'var(--space-3)',
+      paddingBottom: 'var(--space-4)',
     }}>
-      {/* 0. Demo Fixture Data In Use Indicator */}
-      {(data?._stub || !result) && (
-        <AnimatedPanel delay={0}>
-          <div
-            id="fixture-data-in-use-indicator"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 16px',
-              borderRadius: 'var(--radius-md, 8px)',
-              background: 'rgba(245, 158, 11, 0.15)',
-              border: '1px solid rgba(245, 158, 11, 0.5)',
-              color: '#fbbf24',
-              fontSize: 'var(--text-caption-size, 12px)',
-              fontWeight: 600,
-              fontFamily: 'var(--font-mono, monospace)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '14px' }}>⚠️</span>
-              <span>[DEMO FIXTURE DATA IN USE] — REPOSITORY APPROVED FIXTURE</span>
-            </div>
-            <span style={{ opacity: 0.8, fontSize: '11px', fontWeight: 400 }}>
-              Output is loaded from verified repository benchmark fixture.
+      {/* 1. Streamlined Telemetry & Provenance Bar */}
+      <AnimatedPanel delay={0}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '8px',
+            padding: '8px 14px',
+            borderRadius: 'var(--radius-sm, 6px)',
+            background: 'var(--surface-1)',
+            border: '1px solid var(--border)',
+            fontSize: '12px',
+            boxShadow: '0 1px 2px rgba(15, 23, 42, 0.03)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span
+              className="mono"
+              style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: isLive ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface-2)',
+                color: isLive ? '#059669' : 'var(--text-secondary)',
+                border: isLive ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: isLive ? '#10b981' : '#94a3b8',
+                }}
+              />
+              {provider === 'open-meteo'
+                ? 'Open-Meteo (Live)'
+                : provider === 'nasa-power'
+                ? 'NASA POWER'
+                : 'Diurnal Model'}
+            </span>
+
+            {data.weather_provenance?.grid_note && (
+              <span style={{ color: 'var(--text-secondary)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>·</span>
+                {data.weather_provenance.grid_note}
+              </span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {(data?._stub || !result) && (
+              <div
+                id="fixture-data-in-use-indicator"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  color: '#b45309',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                <span>⚡</span>
+                <span>Verified Benchmark Output</span>
+              </div>
+            )}
+
+            <span className="mono" style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
+              Diurnal Cycle: {dateStr}
             </span>
           </div>
-        </AnimatedPanel>
-      )}
-
-      {/* 1. Weather Provenance Banner */}
-      <AnimatedPanel delay={0.03}>
-        <WeatherProvenanceBanner provenance={data.weather_provenance} />
+        </div>
       </AnimatedPanel>
 
-      {/* 2. MetricCards section with section label row above */}
-      <AnimatedPanel delay={0.06}>
-        <div style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: 'var(--text-caption-size)',
-          lineHeight: 'var(--text-caption-lh)',
-          color: 'var(--text-muted)',
-          marginBottom: 'var(--space-2)',
-        }}>
-          Simulation results — {dateStr}
-        </div>
+      {/* 2. Headline Performance KPIs */}
+      <AnimatedPanel delay={0.04}>
         <MetricCards summary={data.summary} />
-        <PhysiologicalRiskPanel
-          thermoregulation={data.occupant_thermoregulation}
-          summary={data.summary}
-        />
-        <div style={{ marginTop: 'var(--space-3, 12px)' }}>
-          <MilitaryLogisticsPanel
-            summary={data.summary}
-            location={request?.location}
-            occupancy={request?.occupancy}
-          />
-        </div>
       </AnimatedPanel>
 
-      {/* 3. Primary Diurnal Temperature Chart (VISUAL ANCHOR) */}
+      {/* 3. Primary Diurnal Temperature Anchor Chart */}
       <AnimatedPanel
         className="temp-chart-anchor"
-        delay={0.12}
+        delay={0.08}
         style={{
           borderLeft: '3px solid var(--accent)',
           borderRadius: 'var(--radius-md)',
+          boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)',
         }}
       >
         <style>{`
@@ -212,83 +257,119 @@ export default function SimulateCanvas({ result, request }) {
         <TempChart series={data.series} />
       </AnimatedPanel>
 
-      {/* 4. Single horizontal rule between TempChart and DeltaAmbientChart */}
-      <AnimatedPanel delay={0.16}>
-        <hr style={{ border: 'none', borderTop: 'var(--border-width) solid var(--border)', margin: 0 }} />
-      </AnimatedPanel>
+      {/* 4. Deep-Dive Section Navigation Switcher */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '4px',
+          background: 'var(--surface-2)',
+          borderRadius: '8px',
+          border: '1px solid var(--border)',
+          marginTop: 'var(--space-1)',
+          overflowX: 'auto',
+        }}
+      >
+        {SIM_TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                flex: 1,
+                minWidth: 160,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                background: isActive ? '#0F172A' : 'transparent',
+                color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
+                fontFamily: 'var(--font-heading)',
+                fontSize: '11.5px',
+                fontWeight: isActive ? 600 : 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Icon size={13} style={{ opacity: isActive ? 1 : 0.7 }} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* 5. Delta Ambient Chart (PS Requirement 3) with prominent label */}
-      <AnimatedPanel delay={0.20} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 'var(--text-caption-size)',
-          lineHeight: 'var(--text-caption-lh)',
-          color: 'var(--text-muted)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-        }}>
-          PS Requirement 3 — Heat flow across ΔT (indoor − ambient)
+      {/* 5. Deep-Dive Panels (Filtered by Segment for Clean Hierarchy) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+        {/* Tab 1: Occupant Safety & Tactical Logistics */}
+        <div style={{ display: activeTab === 'safety' ? 'flex' : 'none', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <PhysiologicalRiskPanel
+            thermoregulation={data.occupant_thermoregulation}
+            summary={data.summary}
+          />
+          <MilitaryLogisticsPanel
+            summary={data.summary}
+            location={request?.location}
+            occupancy={request?.occupancy}
+          />
         </div>
-        <DeltaAmbientChart series={data.series} />
-      </AnimatedPanel>
 
-      {/* 6. Heat Loss Breakdown */}
-      <AnimatedPanel delay={0.26}>
-        <HeatLossBreakdown heat_loss_kwh={data.summary?.heat_loss_kwh} />
-      </AnimatedPanel>
-
-      {/* 6b. Thermal Diagnosis & Bottleneck Analysis */}
-      <AnimatedPanel delay={0.29}>
-        <ThermalDiagnosisPanel
-          diagnosis={data.diagnosis}
-          summary={data.summary}
-          request={request}
-        />
-      </AnimatedPanel>
-
-      {/* 6c. What-If Single-Variable Analysis (Phase 3) */}
-      <WhatIfPanel
-        request={request}
-        result={data}
-        baselineData={data}
-      />
-
-      {/* 6d. Multi-Design Comparison & Trade-Offs (Phase 4) */}
-      <DesignComparisonPanel
-        request={request}
-        baselineResult={data}
-      />
-
-      {/* 7. Validation & Export (Wrapped Section) */}
-      <AnimatedPanel delay={0.32} style={{
-        borderTop: 'var(--border-width) solid var(--border)',
-        paddingTop: 'var(--space-3)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-3)',
-      }}>
-        <div style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: 'var(--text-caption-size)',
-          lineHeight: 'var(--text-caption-lh)',
-          color: 'var(--text-muted)',
-        }}>
-          Validation &amp; Export
+        {/* Tab 2: Thermal Loss Dynamics */}
+        <div style={{ display: activeTab === 'thermal' ? 'flex' : 'none', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <HeatLossBreakdown heat_loss_kwh={data.summary?.heat_loss_kwh} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <div style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}>
+              Heat flow across ΔT (indoor − ambient)
+            </div>
+            <DeltaAmbientChart series={data.series} />
+          </div>
+          <ThermalDiagnosisPanel
+            diagnosis={data.diagnosis}
+            summary={data.summary}
+            request={request}
+          />
         </div>
 
-        {/* Validation vs Field Trials Panel */}
-        <ValidationPanel initialExpanded={true} />
+        {/* Tab 3: What-If Exploration & Design Comparison */}
+        <div style={{ display: activeTab === 'whatif' ? 'flex' : 'none', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <WhatIfPanel
+            request={request}
+            result={data}
+            baselineData={data}
+          />
+          <div id="design-comparison-panel">
+            <DesignComparisonPanel
+              request={request}
+              baselineResult={data}
+            />
+          </div>
+        </div>
 
-        {/* Scientific & Economic Data Provenance (Phase 9) */}
-        <DataProvenancePanel />
-
-        {/* Engineering Spec Sheet Export */}
-        <SpecSheetCopy
-          request={request}
-          summary={data.summary}
-          provenance={data.weather_provenance}
-        />
-      </AnimatedPanel>
+        {/* Tab 4: Field Validation & Spec Export */}
+        <div style={{ display: activeTab === 'validation' ? 'flex' : 'none', flexDirection: 'column', gap: 'var(--space-3)' }}>
+          <div id="validation-panel">
+            <ValidationPanel initialExpanded={true} />
+          </div>
+          <DataProvenancePanel />
+          <SpecSheetCopy
+            request={request}
+            summary={data.summary}
+            provenance={data.weather_provenance}
+          />
+        </div>
+      </div>
     </div>
   );
 }

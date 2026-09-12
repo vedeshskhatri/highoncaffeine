@@ -16,6 +16,7 @@ import WatchView from './components/WatchView';
 import CommandBar from './components/CommandBar';
 import { SITE_PRESETS, FALLBACK_MATERIALS } from './lib/presets';
 import DemoModeController from './components/DemoModeController';
+import TacticalMapModal from './components/TacticalMapModal';
 
 const STEPS = [
   { id: 'design', label: 'Design Studio', number: 1 },
@@ -44,8 +45,9 @@ const INITIAL_SIMULATE_REQUEST = {
   },
   envelope: {
     walls: [
-      { material: 'mud_brick', thickness_m: 0.30 },
-      { material: 'eps', thickness_m: 0.05 },
+      { material: 'adobe_block', thickness_m: 0.30 },
+      { material: 'eps', thickness_m: 0.10 },
+      { material: 'gypsum_board', thickness_m: 0.015 },
     ],
     roof: [{ material: 'concrete', thickness_m: 0.15 }],
     floor: [{ material: 'concrete', thickness_m: 0.10 }],
@@ -83,6 +85,7 @@ export default function App() {
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [tacticalMapOpen, setTacticalMapOpen] = useState(false);
 
   // Ensure dark mode attributes and storage are completely removed
   useEffect(() => {
@@ -366,6 +369,14 @@ export default function App() {
           </div>
         </div>
 
+        {/* Center: Sleek Unified Command & Search Dock */}
+        <div className="topbar-center">
+          <CommandBar
+            context={{ sitePresets: SITE_PRESETS, materialIds: FALLBACK_MATERIALS }}
+            onCommand={handleCommand}
+          />
+        </div>
+
         <div className="topbar-right">
           {/* Step Pill Rail */}
           <nav className="step-rail" aria-label="Application steps">
@@ -420,12 +431,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── 1b. Persistent Docked Command Bar (Field Instrument) ────────── */}
-      <CommandBar
-        context={{ sitePresets: SITE_PRESETS, materialIds: FALLBACK_MATERIALS }}
-        onCommand={handleCommand}
-      />
-
       {/* ── 2. Studio Body ─────────────────────────────────────────────── */}
       <div className="app-body">
         {/* Mobile Drawer Overlay */}
@@ -469,11 +474,7 @@ export default function App() {
                   onSimulate={handleSimulate}
                   activeSiteName={activeSiteName}
                   siteWeather={siteWeather}
-                  onOpenLocation={() => {
-                    setInspectorCollapsed(false);
-                    const el = document.getElementById('field-lat');
-                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }}
+                  onOpenLocation={() => setTacticalMapOpen(true)}
                   onApplyBuildUp={(updates) => {
                     setSimulateRequest((prev) => ({
                       ...prev,
@@ -518,10 +519,33 @@ export default function App() {
               gridNote={gridNote}
               collapsed={inspectorCollapsed}
               onToggleCollapse={() => setInspectorCollapsed(c => !c)}
+              activeSiteName={activeSiteName}
+              siteWeather={siteWeather}
+              onOpenTacticalMap={() => setTacticalMapOpen(true)}
             />
           </div>
         )}
       </div>
+
+      {/* Full-Screen Planetary Tactical Map Modal with Blurred Backdrop */}
+      <TacticalMapModal
+        isOpen={tacticalMapOpen}
+        onClose={() => setTacticalMapOpen(false)}
+        location={simulateRequest.location}
+        onSelectLocation={(loc) => {
+          updateRequest({ location: loc });
+        }}
+        onApplyRecommendedEnvelope={(envUpdates) => {
+          updateRequest((prev) => ({
+            ...prev,
+            envelope: {
+              ...prev.envelope,
+              ...envUpdates.envelope,
+            },
+          }));
+        }}
+        activeSiteName={activeSiteName}
+      />
 
       {/* Mobile Inspector Drawer Toggle */}
       {!demoMode && currentStep === 'design' && (
