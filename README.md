@@ -20,7 +20,7 @@
 
 ---
 
-# 🏛️ System Architecture
+# 🏛️ System Architecture.
 
 ![THERMA System Architecture](./docs/assets/system_architecture.svg)
 
