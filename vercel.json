@@ -1,31 +1,18 @@
 {
-  "version": 2,
   "buildCommand": "cd web && npm install && npm run build",
   "outputDirectory": "web/dist",
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxDuration": 60
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(health|simulate|optimize|sensitivity|retrofit|what-if|compare|annual_scan|forecast_watch|materials|validation|datasets|provenance|engineering_report|estate|sites|alerts|programme|forecast|designs|suggest-materials|location|surrogate|api)/(.*)",
-      "dest": "api/index.py"
+      "source": "/(health|simulate|optimize|sensitivity|retrofit|what-if|compare|annual_scan|forecast_watch|materials|validation|datasets|provenance|engineering_report|estate|sites|alerts|programme|forecast|designs|suggest-materials|location|surrogate|api)/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/(health|simulate|optimize|sensitivity|retrofit|what-if|compare|annual_scan|forecast_watch|materials|validation|datasets|provenance|engineering_report|estate|sites|alerts|programme|forecast|designs|suggest-materials|location|surrogate|api)",
-      "dest": "api/index.py"
+      "source": "/(health|simulate|optimize|sensitivity|retrofit|what-if|compare|annual_scan|forecast_watch|materials|validation|datasets|provenance|engineering_report|estate|sites|alerts|programme|forecast|designs|suggest-materials|location|surrogate|api)",
+      "destination": "/api/index.py"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api/|assets/|favicon.ico|.*\\..*).*)",
+      "destination": "/index.html"
     }
   ]
 }
