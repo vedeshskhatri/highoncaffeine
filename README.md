@@ -1,6 +1,6 @@
 # THERMA — Area-Specific Shelter Design for Thermal Comfort Maintenance
-### Smart India Hackathon 2026 · Problem Statement PS 26051 · Ministry of Defence / DRDO
-#### Grand Finale Submission · High-Altitude Passive Solar Shelter Engineering & Tactical C2 Decision-Support Platform
+### Smart India Hackathon 2026 · Problem Statement PS 26051 · Ministry of Defence/DRDO
+#### Grand Finale Submission · High-Altitude Passive Solar Shelter Engineering & Decision-Support Platform
 
 [![SIH 2026](https://img.shields.io/badge/SIH-2026%20Grand%20Finale-orange.svg?style=flat-square)](https://sih.gov.in)
 [![DRDO PS 26051](https://img.shields.io/badge/DRDO-PS%2026051-blue.svg?style=flat-square)](https://drdo.gov.in)
@@ -8,14 +8,11 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688.svg?style=flat-square)](https://fastapi.tiangolo.com)
 [![React 18](https://img.shields.io/badge/React-18.3-61DAFB.svg?style=flat-square)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6.1-646CFF.svg?style=flat-square)](https://vitejs.dev)
-[![Three.js](https://img.shields.io/badge/Three.js-WebGL%203D-black.svg?style=flat-square)](https://threejs.org)
-[![Scientific ML](https://img.shields.io/badge/Scientific%20ML-5%20Surrogates%20(R%C2%B2%3D0.968)-purple.svg?style=flat-square)](#5-scientific-ml-surrogate-engine--benchmarks)
-[![Pytest Tests](https://img.shields.io/badge/Pytest-195%2F195%20Passing-brightgreen.svg?style=flat-square)](#20-automated-test-suite--system-verification)
-[![Frontend Tests](https://img.shields.io/badge/Frontend-84%2F84%20Passing-brightgreen.svg?style=flat-square)](#20-automated-test-suite--system-verification)
-[![100% Offline](https://img.shields.io/badge/Offline-100%25%20Air--Gapped%20Ready-success.svg?style=flat-square)](#17-security-privacy--air-gapped-defense-isolation)
-[![Strict Physics Balance](https://img.shields.io/badge/%CE%A3Qin-%E2%89%A1%20%CE%94E%20%2B%20%CE%A3Qout-brightgreen.svg?style=flat-square)](#1-executive-summary--operational-context)
+[![Three.js](https://img.shields.io/badge/Three.js-WebGL-black.svg?style=flat-square)](https://threejs.org)
+[![100% Offline](https://img.shields.io/badge/Offline-100%25%20Air--Gapped%20Ready-success.svg?style=flat-square)](#30-security-privacy--air-gapped-defense-isolation)
+[![Strict Physics Balance](https://img.shields.io/badge/%CE%A3Qin-%E2%89%A1%20%CE%94E%20%2B%20%CE%A3Qout-brightgreen.svg?style=flat-square)](#1-project-overview--operational-context)
 
-> *"Other software grades a design you already picked. THERMA searches thousands of options across 39 defense outposts in seconds, selects the optimal passive envelope, provides instant sub-10ms scientific ML predictions, and demonstrates its mathematical working with zero hallucination."*
+> *"Other software grades a design you already picked. THERMA searches thousands and picks for you, then shows its working."*
 
 ---
 
@@ -23,83 +20,35 @@
 
 ---
 
-# 🏛️ System Architecture
+# 🏛️ System Architecture.
 
 ![THERMA System Architecture](./docs/assets/system_architecture.svg)
 
-```
-┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 TACTICAL CLIENT PRESENTATION LAYER                               │
-│                         React 18.3 · Vite 6.1 · TailwindCSS 3.4 · Three.js WebGL                 │
-├────────────────────────────────┬────────────────────────────────┬────────────────────────────────┤
-│ 17 OPERATIONAL PLATFORM VIEWS  │ INTERACTIVE 3D WEBGL STUDIO    │ VOICE DIAGNOSTIC ORB           │
-│ • Tactical C2 Dashboard        │ • Procedural Himalayan terrain │ • Web Speech API recognition   │
-│ • 39 Defense Outpost Network   │ • Dynamic shelter peel cutaway │ • Hands-free field inquiry     │
-│ • Architectural Design Studio  │ • Solar shadow projection      │ • Grounded physics synthesis   │
-│ • Scientific ML Predictor      │ • Dynamic wall cross-section   │ • Zero cloud API dependency    │
-└────────────────────────────────┴────────────────────────────────┴────────────────────────────────┘
-                                                 │
-                                 HTTP REST / JSON (:8000 / :5173)
-                                                 ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                               FASTAPI REST ORCHESTRATION GATEWAY                                 │
-│                   FastAPI 0.110 · Uvicorn ASGI · Pydantic v2 · Frozen API Contracts             │
-├────────────────────────────────┬────────────────────────────────┬────────────────────────────────┤
-│ CORE SIMULATION & PREDICTION   │ MULTI-CRITERIA DECISION (MCDA) │ LOGISTICS & KNOWLEDGE          │
-│ • POST /simulate               │ • POST /optimize (Pareto N≥3.2k)│ • GET  /sites (39 Outposts)    │
-│ • POST /ml/predict (Sub-10ms)  │ • POST /retrofit (Design Doctor)│ • POST /cpwd/chat (Ollama RAG) │
-│ • POST /what-if (24-hr Delta)  │ • POST /compare (Utopia Knee)  │ • POST /reports/dossier (BOQ)  │
-└────────────────────────────────┴────────────────────────────────┴────────────────────────────────┘
-                                                 │
-                                   In-Process Direct Python Calls
-                                                 ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                             AUTHORITATIVE COMPUTATIONAL CORE ENGINES                             │
-├────────────────────────────────┬────────────────────────────────┬────────────────────────────────┤
-│ 1. DETERMINISTIC 1D RC SOLVER  │ 2. SCIENTIFIC ML SURROGATES    │ 3. MULTI-OBJECTIVE MCDA        │
-│ • EN ISO 52016-1 discretization│ • 5 Model Ensemble (R²=0.968)  │ • Vectorized Pareto frontier   │
-│ • Fourier stability Fo ≤ 0.25  │ • 120,000 timestep dataset     │ • Normalized Utopia distance Di│
-│ • Barometric density scaling   │ • 40,000x faster than E+       │ • Morris sensitivity (r=20)    │
-│ • Swinbank nocturnal sky sink  │ • Multi-target heat flux watts │ • Asphyxiation safety lock     │
-└────────────────────────────────┴────────────────────────────────┴────────────────────────────────┘
-                                                 │
-                                     ACID Relational Persistence
-                                                 ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                LOCAL DATA & PROVENANCE STORAGE                                   │
-│  SQLite 3 (therma.db) · materials.csv (CPWD DSR 2023) · NASA POWER Cache · FTS5 Index            │
-└──────────────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
 <details open>
-<summary><b>🔍 View Full Component Flowchart (Mermaid)</b></summary>
+<summary><b>🔍 View Component Flowchart (Mermaid)</b></summary>
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Tactical Client Presentation Layer (React 18 + Vite :5173)"]
+    subgraph Client ["Client Presentation Layer (React 18 + Vite :5173)"]
         UI[Interactive UI Studio & Design Editor]
-        ORB[Voice Diagnostic Orb & AI Assistant]
-        CS[Dynamic Cross-Section SVG & Heat Flux Vectors]
+        CS[Dynamic Cross-Section SVG & Heat Flux Renderer]
         CH[Recharts 24-hr Diurnal Temperature Engine]
-        TH[Three.js 3D WebGL Himalayan Shelter Canvas]
-        MAP[Tactical Geospatial World & 3D Globe Map]
-        EXP[Engineering Spec Sheet & BOQ Dossier Export]
+        TH[Three.js 3D Shelter Inspector]
+        EXP[Engineering Spec Sheet & Audit Export]
     end
 
     subgraph API ["REST Routing & Orchestration Gateway (FastAPI :8000)"]
         RT_SIM["POST /simulate"]
-        RT_ML["POST /ml/predict"]
         RT_OPT["POST /optimize"]
         RT_SENS["POST /sensitivity"]
         RT_WIF["POST /what-if"]
         RT_CMP["POST /compare"]
         RT_RET["POST /retrofit"]
-        RT_CPWD["POST /cpwd/chat & /dossier"]
         RT_SITES["GET/POST /sites"]
-        VAL_GATE["Pydantic Validation & Safety Interlocks"]
+        VAL_GATE["Validation & Error Interlocks"]
     end
 
-    subgraph CoreEngine ["Authoritative Physics Core (Python)"]
+    subgraph CoreEngine ["Authoritative Physics & Optimization Core (Python)"]
         RC[1D Multi-Node RC Heat Diffusion Solver]
         SOLAR[Perez High-Altitude Solar Radiation Engine]
         SKY[Swinbank Linearized Long-Wave Sky Radiation]
@@ -111,17 +60,9 @@ flowchart TD
         SAFE[Safety Interlock & Asphyxiation Prevention]
     end
 
-    subgraph MLCore ["Scientific Machine Learning Surrogate Core"]
-        SURR_T[HistGBDT Indoor Temperature Predictor R²=0.968]
-        SURR_FLUX[MultiOutputRegressor Heat Loss Flux Watts]
-        SURR_COMF[Operative Comfort Hours Predictor]
-        SURR_SAFE[Deterministic Safety Classifier]
-        SURR_DIAG[Argmax Heat Flux Bottleneck Classifier]
-    end
-
     subgraph ValidationBench ["Empirical Validation & Numerical Grounding"]
         EMP[DRDO-DIHAR Leh Empirical Field Datasets V1-V4]
-        ANSYS[ANSYS Mechanical Reference Cases 1-3 Harness]
+        ANSYS[ANSYS Reference Cases 1-3 Comparison Harness]
         SANITY[10/10 Inviolable Physical Conservation Tests]
     end
 
@@ -129,14 +70,11 @@ flowchart TD
         DB[(SQLite therma.db Relational Store)]
         MAT[(materials.csv with CPWD DSR 2023 Citations)]
         WEATH[(NASA POWER & Synthetic Winter Night Cache)]
-        CPWD_FTS[(CPWD DSR/DAR FTS5 & Vector Store)]
     end
 
     UI -->|JSON Config| API
-    ORB -->|Voice Query| API
     API --> VAL_GATE
     VAL_GATE --> CoreEngine
-    VAL_GATE --> MLCore
     CoreEngine --> RC
     RC --> SOLAR
     RC --> SKY
@@ -148,55 +86,91 @@ flowchart TD
     CoreEngine --> SAFE
     CoreEngine <--> Storage
     CoreEngine <--> ValidationBench
-    MLCore <--> Storage
     CoreEngine -->|Authoritative Results| API
-    MLCore -->|Sub-10ms Inference| API
     API -->|Strict JSON Contract| Client
     Client --> CS
     Client --> CH
     Client --> TH
-    Client --> MAP
     Client --> EXP
 ```
 </details>
 
 ---
 
-## 📑 Table of Contents
+## Architecture Subsystems at a Glance
 
-1. [Executive Summary & Operational Context](#1-executive-summary--operational-context)
-2. [Problem Statement (PS 26051 · DRDO)](#2-problem-statement-ps-26051--drdo)
-3. [The Complete Solution: THERMA Platform](#3-the-complete-solution-therma-platform)
-4. [Complete 17-View Tactical Platform Tour](#4-complete-17-view-tactical-platform-tour)
-5. [Scientific ML Surrogate Engine & Benchmarks](#5-scientific-ml-surrogate-engine--benchmarks)
-6. [3D WebGL Studio & Dynamic Spatial Graphics](#6-3d-webgl-studio--dynamic-spatial-graphics)
-7. [Voice Diagnostic Orb & Tactical AI Assistant](#7-voice-diagnostic-orb--tactical-ai-assistant)
-8. [Local CPWD AI Knowledge & Procurement Engine](#8-local-cpwd-ai-knowledge--procurement-engine)
-9. [Governing Mathematical Formulations & Calculations](#9-governing-mathematical-formulations--calculations)
-10. [1D Multi-Node RC Transient Heat Transfer Solver](#10-1d-multi-node-rc-transient-heat-transfer-solver)
-11. [Solar Geometry & Perez High-Altitude Radiation](#11-solar-geometry--perez-high-altitude-radiation)
-12. [Rarefied Atmosphere, Sky Sink & Infiltration](#12-rarefied-atmosphere-sky-sink--infiltration)
-13. [Thermal Diagnosis & 100% Conservation Attribution](#13-thermal-diagnosis--100-conservation-attribution)
-14. [Vectorized Multi-Objective Pareto Optimization Engine](#14-vectorized-multi-objective-pareto-optimization-engine)
-15. [7-Stage Design Doctor & Retrofit Ranking](#15-7-stage-design-doctor--retrofit-ranking)
-16. [Combustion Safety Interlock & CO Asphyxiation Prevention](#16-combustion-safety-interlock--co-asphyxiation-prevention)
-17. [Security, Privacy & Air-Gapped Defense Isolation](#17-security-privacy--air-gapped-defense-isolation)
-18. [Siachen Helicopter Logistics & Kerosene Economics](#18-siachen-helicopter-logistics--kerosene-economics)
-19. [Field Trial Empirical Validation Suite & ANSYS Reference](#19-field-trial-empirical-validation-suite--ansys-reference)
-20. [Automated Test Suite & System Verification](#20-automated-test-suite--system-verification)
-21. [RESTful API Architecture & Frozen Contracts](#21-restful-api-architecture--frozen-contracts)
-22. [Project Directory Topology](#22-project-directory-topology)
-23. [Installation, Setup & Verification Guide](#23-installation-setup--verification-guide)
-24. [Live Hackathon Judging Walkthrough (90s Speedrun & 5m Deep Dive)](#24-live-hackathon-judging-walkthrough-90s-speedrun--5m-deep-dive)
-25. [Official Presentation Slides & Downloadable Artifacts](#25-official-presentation-slides--downloadable-artifacts)
+| Subsystem | Key Components | Protocols & Ports | Role in THERMA Platform |
+|:---|:---|:---|:---|
+| **Actors / Operators** | MES Military Engineers, Forward Post Commanders, Logistic Officers, Civilian Ladakh Builders | Browser / Localhost | Shelter configuration, retrofit prioritization, cold-alert response, and military spec generation. |
+| **Frontend Client** | React 18.3, Vite 6.1, TailwindCSS 3.4, Three.js WebGL, Recharts 2.15 | HTTP/2 (`:5173`, `:80`) | Interactive design studio, dynamic cross-section SVG with heat-flux vectors, diurnal curves, and what-if sliders. |
+| **Core Web API** | FastAPI 0.110, Uvicorn ASGI, Pydantic v2, Python 3.9+ | HTTP/1.1 REST (`:8000`) | Orchestration gateway, strict payload schema enforcement, frozen API contract adherence, and zero-leak error handling. |
+| **Physics Solver Core** | 1D Multi-Node RC Network, Crank-Nicolson / Fourier Diffusion, ISO 6946 Film Resistors | Native In-Process Python | Authoritative transient conduction solver. Evaluates envelope thermal mass, node capacitances, and surface fluxes. |
+| **Solar & Sky Radiation** | Perez Sky Diffuse Model, Hay-Davies, Swinbank Long-Wave Sky Model, Ground Snow Albedo | Native Python Math | Calculates high-altitude beam, diffuse, and snow-reflected ($ho=0.75$) solar gains plus radiative sub-cooling to cold skies. |
+| **Vectorized Optimizer** | Latin Hypercube Sampling (LHS), Multi-Objective Pareto Frontier, Morris Screening | Vectorized NumPy Core | Generates $\ge 3,200$ candidate designs in $<8$ seconds. Extracts Pareto-optimal frontier and mechanical explanations. |
+| **Thermal Diagnosis Engine** | Component Energy Attribution, 100% Conservation Invariant, Dominant Weakness Identifier | Internal REST (`/simulate`) | Breaks down heat loss into conduction, infiltration, glazing, and radiation. Prescribes physics-based fixes. |
+| **What-If Analysis Studio** | Schema Bounds Validator, Server Authoritative Re-Simulation, 24-hr $\Delta T$ Strip | Internal REST (`/what-if`) | Single-variable sensitivity investigation against baseline with strict server-side physics authority. |
+| **Multi-Design Comparison** | Normalized Utopia Distance Engine, Cost Basis Classifier (`SOURCED`/`ESTIMATE`/`UNAVAILABLE`) | Internal REST (`/compare`) | Compares 2 to 4 independent designs, detects safety refusals, and identifies true Pareto knee points without arbitrary weights. |
+| **Safety Interlock Guard** | Barometric Air-Density Scale, Combustion Hazard Detector ($ACH < 0.35$ Guardrail) | Engine Invariant Filter | Protects human life against optimizer over-sealing. Instantly refuses hazardous designs and blocks lethal CO poisoning. |
+| **Validation Benchmarks** | DRDO-DIHAR Leh Field Trials (V1–V4), ANSYS Reference Comparison Harness | Python Validation Suite | Ground-truth calibration against empirical measurements and comparison harness for continuum numerical simulations. |
+| **Estate Asset Platform** | Multi-District Defense Post Registry, 12 Evaluated Sites (Siachen, DBO, Galwan, Hanle) | Internal REST (`/sites`) | Portfolio-scale thermal asset management, cold-snap vulnerability sorting, and mission retrofit scheduling. |
+| **Storage & Data Layer** | SQLite 3 (`therma.db`), `materials.csv` (CPWD DSR 2023), NASA POWER EPW Cache | SQLite Driver / CSV | Relational persistence of sites, historical simulation runs, evaluated designs, and cited thermophysical constants. |
 
 ---
 
-# 1. Executive Summary & Operational Context
+# Table of Contents
 
-**THERMA** is an area-specific shelter thermal design and tactical decision-support software platform engineered specifically for the extreme high-altitude microclimates of the Indian Himalayas (Ladakh, Siachen, Galwan, Dras, Kargil, and Arunachal Pradesh).
+1. [Project Overview & Operational Context](#1-project-overview--operational-context)
+2. [Problem Statement (PS 26051 · DRDO)](#2-problem-statement-ps-26051--drdo)
+3. [The Solution: THERMA](#3-the-solution-therma)
+4. [Target Users & Operational Personas (RBAC / Scopes)](#4-target-users--operational-personas-rbac--scopes)
+5. [Key Product Capabilities](#5-key-product-capabilities)
+6. [Technology Stack](#6-technology-stack)
+7. [High-Level System Architecture](#7-high-level-system-architecture)
+8. [Complete 14-Step Engineering Data Pipeline](#8-complete-14-step-engineering-data-pipeline)
+9. [Materials Master Data Engine & Library](#9-materials-master-data-engine--library)
+10. [Solar Geometry & Perez Radiation Engine](#10-solar-geometry--perez-radiation-engine)
+11. [1D Multi-Node RC Transient Heat Transfer Physics Solver](#11-1d-multi-node-rc-transient-heat-transfer-physics-solver)
+12. [Sky Long-Wave Radiation & Radiative Sub-Cooling Engine](#12-sky-long-wave-radiation--radiative-sub-cooling-engine)
+13. [Altitude-Corrected Barometric Infiltration Model](#13-altitude-corrected-barometric-infiltration-model)
+14. [Thermal Diagnosis & Bottleneck Attribution Engine](#14-thermal-diagnosis--bottleneck-attribution-engine)
+15. [What-If Single-Variable Analysis Studio](#15-what-if-single-variable-analysis-studio)
+16. [Multi-Design Comparison & Trade-Off Matrix](#16-multi-design-comparison--trade-off-matrix)
+17. [Vectorized Multi-Objective Pareto Optimization Engine](#17-vectorized-multi-objective-pareto-optimization-engine)
+18. [Morris Elementary Effects Screening & Design Sensitivity](#18-morris-elementary-effects-screening--design-sensitivity)
+19. [Safety Interlocks & Carbon Monoxide Asphyxiation Prevention](#19-safety-interlocks--carbon-monoxide-asphyxiation-prevention)
+20. [Physiological Hypothermia Risk Modeling](#20-physiological-hypothermia-risk-modeling)
+21. [Forward Post Weather Engine & Microclimate Ingestion](#21-forward-post-weather-engine--microclimate-ingestion)
+22. [Estate Asset Management & Defense Post Monitoring](#22-estate-asset-management--defense-post-monitoring)
+23. [Field Trial Empirical Validation Suite & ANSYS Reference Track](#23-field-trial-empirical-validation-suite--ansys-reference-track)
+24. [Siachen Helicopter Logistics & Kerosene Economics](#24-siachen-helicopter-logistics--kerosene-economics)
+25. [Interactive 3D Studio & Dynamic Cross-Section Visualization](#25-interactive-3d-studio--dynamic-cross-section-visualization)
+26. [Engineering Spec Sheet & Provenance Audit Export](#26-engineering-spec-sheet--provenance-audit-export)
+27. [Database Schema & Data Architecture](#27-database-schema--data-architecture)
+28. [RESTful API Architecture & Frozen Contracts](#28-restful-api-architecture--frozen-contracts)
+29. [Authoritative Validation Architecture](#29-authoritative-validation-architecture)
+30. [Security, Privacy & Air-Gapped Defense Isolation](#30-security-privacy--air-gapped-defense-isolation)
+31. [UI/UX Design Philosophy & Visual Tokens](#31-uiux-design-philosophy--visual-tokens)
+32. [Screen-by-Screen ERP & Decision Platform Specification](#32-screen-by-screen-erp--decision-platform-specification)
+33. [End-to-End Operational Defense Scenario](#33-end-to-end-operational-defense-scenario)
+34. [Visual Workflow Diagram Gallery](#34-visual-workflow-diagram-gallery)
+35. [Live Hackathon Judging & Demo Walkthrough](#35-live-hackathon-judging--demo-walkthrough)
+36. [Architectural Differentiators](#36-architectural-differentiators)
+37. [Honest Engineering Limitations](#37-honest-engineering-limitations)
+38. [Future Roadmap](#38-future-roadmap)
+39. [Project Directory Topology](#39-project-directory-topology)
+40. [Core Development Principles (The Eight Inviolable Master Rules)](#40-core-development-principles-the-eight-inviolable-master-rules)
+41. [Installation, Setup & Verification](#41-installation-setup--verification)
+42. [Conclusion & Grand Finale Submission Summary](#42-conclusion--grand-finale-submission-summary)
+43. [Local CPWD AI Setup & Grounded RAG](#43-local-cpwd-ai-setup)
+44. [Official Presentation Slides & Downloadable Artifacts](#44-official-presentation-slides--downloadable-artifacts)
 
-High-altitude military outposts face an extraordinary physical paradox:
+---
+
+# 1. Project Overview & Operational Context
+
+**THERMA** is an area-specific shelter thermal design and decision-support software platform engineered specifically for the extreme high-altitude microclimates of the Indian Himalayas (Ladakh, Siachen, Kargil, and Arunachal Pradesh).
+
+High-altitude military outposts face an extraordinary paradox:
 - **Solar Abundance During Daylight:** Ladakh receives **1,900 to 2,100 kWh/m²/year** of horizontal solar irradiance with **~7.9 hours of daily sunshine** across **300+ cloud-free days**. During the day, raw solar radiation is plentiful.
 - **Catastrophic Nighttime Thermal Collapse:** After sunset, ambient temperatures plunge to **−20 °C to −40 °C**. The ultra-thin, low-humidity atmosphere acts as a blackbody radiative sink, draining thermal energy through roofs and uninsulated corrugated-iron walls. By 04:00 AM, indoor temperatures in standard shelters collapse to **−18 °C**.
 
@@ -216,9 +190,14 @@ This is not an energy generation failure; it is a **building physics and thermal
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-> **The Inviolable Core Thermodynamic Principle:**  
-> $$\sum Q_{\text{in}} \equiv \Delta E_{\text{stored}} + \sum Q_{\text{out}}$$  
-> Every thermal event in THERMA obeys first-principles thermodynamics. Heat cannot appear or disappear. Conduction, convection, radiation, and infiltration are evaluated through an exact thermal capacitance network down to the watt-hour. No numbers are invented; no outputs are faked.
+> **The Payoff is Logistics and Human Survival:**  
+> Every degree of passive heat retained means fewer helicopter sorties through hostile weather, fewer fuel convoys risking ambushes and avalanches, zero carbon monoxide fatalities, and operational self-sufficiency for forward troops.
+
+### The Inviolable Core Principle
+
+$$\sum Q_{\text{in}} \equiv \Delta E_{\text{stored}} + \sum Q_{\text{out}}$$
+
+Every thermal event in THERMA obeys first-principles thermodynamics. Heat cannot appear or disappear. Conduction, convection, radiation, and infiltration are evaluated through an exact thermal capacitance network down to the watt-hour. No numbers are invented; no outputs are faked.
 
 ---
 
@@ -228,6 +207,8 @@ This is not an energy generation failure; it is a **building physics and thermal
 **Organization:** Defence Research and Development Organisation (DRDO)  
 **Title:** Software Based Model Development for Design of Area Specific Shelter for Thermal Comfort Maintenance
 
+### PS Requirements vs. THERMA Implementations
+
 | PS Requirement | Technical Challenge | THERMA Engineering Implementation |
 |:---|:---|:---|
 | **Req 1: Predict Indoor Temperature Profile** | High thermal mass phase lag, sub-zero ambient swings, dynamic diurnal solar variations. | Multi-node 1D transient RC diffusion solver calculating hourly indoor air ($T_{\text{in}}$), mean radiant ($T_{\text{mrt}}$), and operative ($T_{\text{op}}$) temperatures over 24-hour horizons. |
@@ -235,337 +216,708 @@ This is not an energy generation failure; it is a **building physics and thermal
 | **Req 3: Heat Flow Across $\Delta T$ (Indoor − Ambient)** | Multi-path conductive, convective, and radiative heat exchange across extreme temperature gradients ($>40\text{ K}$). | Dedicated real-time computation of directional heat flux vectors ($\text{W/m}^2$) across walls, roof, glazing, infiltration, and sky radiation driven by $(T_{\text{in}} - T_{\text{out}})$. |
 | **Req 4: Most Efficient Material & Geometry Combination** | Combinatorial explosion of wall layers, insulation thickness, glazing apertures, and orientations. | Vectorized Latin Hypercube multi-objective Pareto optimizer searching $\ge 3,200$ permutations in $<8$ seconds to pinpoint the optimal thermal comfort vs. capital cost knee point. |
 
----
+### Traditional High-Altitude Building vs. THERMA Solution
 
-# 3. The Complete Solution: THERMA Platform
-
-THERMA converts complex building physics into automated, explainable military logistics decisions:
-
-![THERMA 14-Step Physics & Decision-Support Pipeline](./docs/assets/pipeline_flowchart.svg)
-
-1. **Precision First-Principles Physics:** Solves Fourier transient diffusion across layered walls, ground heat transfer, Perez solar gains, and sky radiation without heuristic shortcuts.
-2. **Scientific Machine Learning Surrogates:** 5 trained models ($R^2=0.968$) providing sub-10ms thermal inference, $40,000\times$ faster than legacy building tools.
-3. **Multi-Objective Pareto Decision-Support:** Vectorized Latin Hypercube exploration isolating non-dominated trade-offs between capital investment and troop comfort.
-4. **Clinical 7-Stage Design Doctor:** Evaluates existing substandard shelters and prescribes ranked interventions sorted by $^\circ\text{C}$ gained per ₹1,000.
-5. **Zero-Hallucination Life Safety Guard:** Deterministic interlocks preventing carbon monoxide asphyxiation by refusing over-sealed combustion heater configurations.
-6. **Tactical Military C2 Suite:** 17 integrated platform views, 3D WebGL Himalayan shelter inspection, voice diagnostic orb, and CPWD DSR/DAR procurement dossiers.
+| Operational Challenge | Traditional Approach in High Altitude | THERMA Engineering Solution |
+|:---|:---|:---|
+| **Envelope Selection** | Generic corrugated galvanized iron (CGI) sheets with thin fiberglass batts chosen by intuition. | Combinatorial search over local high-mass materials (mud brick, rammed earth, stone) paired with high-performance EPS insulation. |
+| **Night Heat Loss** | Single- or double-glazed windows act as open thermal cooling fins all night long. | Dynamic night shutters modeled with automated deployment between sunset and sunrise ($R_{\text{shutter}} \ge 0.50\ \text{m}^2\text{K/W}$). |
+| **Infiltration Modeling** | Evaluated with sea-level air densities ($\rho = 1.225\ \text{kg/m}^3$), overstating ventilation heat losses by ~35%. | Exact barometric altitude pressure scaling ($P = 101325 (1 - 2.25577 \times 10^{-5} h)^{5.25588}$) producing real high-altitude density ($\rho = 0.906\ \text{kg/m}^3$ at Leh). |
+| **Radiative Sub-Cooling** | Naive models assume sky temperature equals air temperature ($T_{\text{sky}} \approx T_{\text{air}}$), completely missing night radiative sink. | Swinbank clear-sky radiation model ($T_{\text{sky}} = 0.0552 T_{\text{air}}^{1.5}$) with linearized $h_r$ radiation coefficients and roof emissivity optimization. |
+| **Life Safety** | Sealing shelters to hold warmth causes deadly Carbon Monoxide (CO) buildup from kerosene heaters. | Automated Safety Interlock refusing any design with $\text{ACH} < 0.35$ when combustion heating is present. |
+| **Cost Transparency** | Opaque lump-sum contractor estimates without material citations or uncertainty disclaimers. | Explicit material cost basis tracking (`SOURCED` from CPWD DSR 2023 vs. `ESTIMATE` vs. `UNAVAILABLE`). |
 
 ---
 
-# 4. Complete 17-View Tactical Platform Tour
+# 3. The Solution: THERMA
 
-THERMA provides an exhaustive, specialized military and civilian decision platform:
+THERMA converts building physics into automated, explainable logistics decisions:
 
-| Screen View | Route URL | Purpose & Primary Capabilities | Key Technologies Used |
-|:---|:---|:---|:---|
-| **1. Landing Hub** | `/` | Immersive public hero, system metrics, live counter animations, architecture preview. | Three.js Solar Sky, CSS Tokens, React Router |
-| **2. Tactical C2 Dashboard** | `/dashboard` | Operational readiness overview, 39 forward posts monitoring, cold-alert sorting. | Recharts, Lucide Icons, Status Badges |
-| **3. Defense Estate Platform** | `/sites` | Portfolio view of 39 military outposts (Siachen, DBO, Galwan, Dras, Chushul, etc.). | Filter Grid, Dynamic Search, Altitude Scaling |
-| **4. Outpost Command Hub** | `/sites/:id` | Deep dive into single post: microclimate, active envelope, past runs, retrofit logs. | Time-series charts, Outpost Geo Intel |
-| **5. Architectural Studio** | `/design` | 4-step CAD-style envelope authoring: walls, roofs, solar glazing, air exchange, heating. | Dynamic SVG Cross-Section, Three.js 3D |
-| **6. Simulation Canvas** | `/design?step=simulate` | Authoritative 24-hr diurnal simulation, WHO $18^\circ\text{C}$ comfort band, heat flux breakdown. | Multi-Node RC Core, Recharts Diurnal Plot |
-| **7. Multi-Objective Optimizer**| `/design?step=optimize` | 3,200 Latin Hypercube sample scatter, non-dominated Pareto frontier, top 3 designs. | Vectorized NumPy Core, Pareto Scatter |
-| **8. Forecast Watch** | `/design?step=watch` | 7-day microclimate risk tracking, dawn freezing threshold breach predictions. | NASA POWER Cache, Extreme Night Model |
-| **9. Design Doctor (Retrofit)** | `/design` (Panel) | 7-stage clinical intervention ranking upgrades by $^\circ\text{C}$ gained per ₹1,000 spent. | Cost-Efficiency Formula, Budget Bounds |
-| **10. Scientific ML Predictor** | `/ml-predictor` | Real-time multi-slider parameter exploration with sub-10ms neural/tree surrogate inference.| 5 Model Ensemble, HistGBDT, MultiOutput |
-| **11. Local CPWD AI Assistant** | `/cpwd` | Grounded DSR/DAR cost assistant, vector + FTS5 retrieval, exact page citations. | Ollama Llama-3.2, Nomic Embeddings |
-| **12. Procurement Dossier** | `/reports` | MES specification sheet, Bill of Quantities (BOQ), CPWD DSR code export. | Markdown Exporter, PDF Generator |
-| **13. Defence Programme Rollout**| `/programme` | Multi-phase construction schedule, budget allocation, logistics prioritization. | Gantt Timeline, Sortie Allocator |
-| **14. Severe Cold & Safety Alerts**| `/alerts` | Real-time hypothermia and CO asphyxiation warnings with escalation protocols. | Threat Matrix, Acknowledgment Engine |
-| **15. Shelter Archetype Library**| `/library` | Pre-engineered military shelter archetypes (FRP, CGI Bunkhouse, Rammed Earth). | Comparative Spec Cards, Baseline Tags |
-| **16. Diurnal Weather Forecast** | `/forecast` | High-altitude diurnal temperatures, solar irradiation, barometric density curves. | Perez Decomposition, Diurnal Curves |
-| **17. Materials Master Catalog** | `/materials` | 102 envelope materials with verified $k, \rho, c_p$, solar $\alpha$, and CPWD cost basis. | CPWD DSR 2023 DB, Filter Taxonomy |
-| **18. Physics Methodology** | `/method` | Mathematical formulations, RC discretization proof, Swinbank clear-sky formulas. | LaTeX Mathtext, Governing Equations |
-| **19. Empirical Validation Bench**| `/validation` | DRDO-DIHAR Leh field trial comparison (V1–V4), ANSYS Mechanical reference track. | Gate 3 Harness, Pass/Fail Indicators |
-| **20. System Verification Suite** | `/verify` | Automated test runner displaying live pass/fail counts for 195 backend & 84 frontend tests.| Pytest Telemetry, Jest Output |
-| **21. Voice Diagnostic Orb** | Universal Modal | Hands-free voice recognition and speech synthesis for field engineers. | Web Speech API, Local AI Integration |
-| **22. Tactical Command Palette** | `Ctrl/Cmd + K` | Fast keyboard shortcut navigation across all 17 platform views and site presets. | Fuzzy Match Index, Keyboard Handler |
+```
+[ MATERIALS ] ──► [ WEATHER ] ──► [ PHYSICS ENGINE ] ──► [ SIMULATION ] ──► [ VALIDATION ]
+                                                                                   │
+[ WHAT-IF ANALYSIS ] ◄── [ THERMAL DIAGNOSIS ] ◄───────────────────────────────────┘
+         │
+         ▼
+[ OPTIMIZATION ] ──► [ PARETO FRONTIER ] ──► [ RETROFIT DOCTOR ] ──► [ SAFETY INTERLOCK ]
+                                                                             │
+[ AUDIT TRAIL ] ◄── [ ENGINEERING SPEC ] ◄── [ EXPLAINABLE REASONING ] ◄─────┘
+```
+
+1. **Precision Physics Solver:** Solves Fourier transient thermal diffusion across layered walls, ground heat transfer, Perez solar gains, and sky radiation without heuristic shortcuts.
+2. **Deterministic Optimizer:** Evaluates thousands of designs simultaneously using vectorized NumPy routines, returning the non-dominated Pareto frontier of Thermal Comfort vs. Capital Cost.
+3. **Safety First:** Hard-coded safety interlocks prevent death from asphyxiation by refusing over-sealed designs with combustion heaters.
+4. **Transparent & Grounded:** Every single constant is cited (Rule R1). Every validation benchmark is grounded against published DRDO DIHAR Leh field data (V1–V4). ANSYS Mechanical reference cases and comparison harness are built for workstation cross-validation.
+5. **100% Offline & Defense Ready:** Operates without internet connectivity, cloud APIs, or external telemetry. Ready for deployment on air-gapped military field laptops.
 
 ---
 
-# 5. Scientific ML Surrogate Engine & Benchmarks
+# 4. Target Users & Operational Personas (RBAC / Scopes)
 
-To eliminate the 30-minute simulation lag associated with legacy building energy tools (e.g. EnergyPlus), THERMA features a **Scientific Machine Learning Surrogate Core** trained on a 120,000-timestep physics-grounded master dataset:
+THERMA provides role-tailored workflows and strict data scoping across defense and civilian operations:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    SCIENTIFIC ML SURROGATE BENCHMARKS                       │
+│                          OPERATIONAL USER PERSONAS                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  Dataset Dimension         : 120,000 Timesteps across 39 Defense Outposts   │
-│  Physics Sampling Space    : Latin Hypercube (Orientation, Mass, Glazing)   │
-│  Inference Latency         : 8.2 milliseconds per design (Sub-10ms)        │
-│  Speedup vs EnergyPlus     : > 40,000x Speedup                              │
-│  Temperature R² Score      : 0.968 (Mean Absolute Error < 0.8 °C)           │
-│  Multi-Target Flux R²      : 0.962 (Walls, Roof, Glazing, Infiltration, Sky)│
-│  Operative Comfort R²      : 0.974 (Hours within 18 °C - 27 °C band)        │
-│  Safety Classification     : 100.0% Precision / Recall on Combustion Locks │
+│ 1. MES Military Engineer (Corps of Engineers):                              │
+│    Needs exact structural envelope specifications for newly sanctioned      │
+│    border posts. Exports signed military spec sheets with BOM and R-values. │
+│                                                                             │
+│ 2. Logistics & Supply Officer (HQ 14 Corps):                                │
+│    Oversees seasonal fuel procurement. Uses the Estate Platform to forecast │
+│    kerosene demand, helicopter sorties saved, and heating budget outlays.   │
+│                                                                             │
+│ 3. Forward Post Commander (Company Operating Base):                         │
+│    Monitors 24-hour weather alerts, cold-snap warnings, and indoor dawn     │
+│    temperature forecasts to protect troops from acute hypothermia.          │
+│                                                                             │
+│ 4. Humanitarian Relief Coordinator (Disaster Management):                   │
+│    Evaluates rapid-deployment emergency shelters (straw bale, CGI, PUF)     │
+│    for post-earthquake relief in sub-zero Himalayan valleys (e.g. Nepal).   │
+│                                                                             │
+│ 5. Local Ladakhi Builder / Householder:                                     │
+│    Uses the Retrofit Doctor to identify the single highest °C-gain per      │
+│    rupee intervention (e.g. night shutters vs. mud-brick mass).             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 5 Surrogate Model Ensemble (`ml/training/`)
-1. `model_temperature.pkl` — **HistGradientBoostingRegressor:** Predicts 24-hour minimum, maximum, and mean indoor air temperatures ($T_{in,min}, T_{in,max}, T_{in,mean}$).
-2. `model_heat_loss.pkl` — **MultiOutputRegressor:** Simultaneously outputs continuous directional heat loss flux watts for walls, roof, glazing, infiltration, and sky radiation.
-3. `model_comfort.pkl` — **RandomForestRegressor:** Predicts operative comfort hours meeting ASHRAE/WHO standards ($18^\circ\text{C} \le T_{op} \le 27^\circ\text{C}$).
-4. `model_safety.pkl` — **Deterministic Safety Classifier:** Flags dangerous combustion and ventilation pairings ($ACH < 0.35$).
-5. `model_diagnosis.pkl` — **Argmax Flux Classifier:** Instantly pinpoints the dominant heat loss bottleneck ($k^* = \operatorname{argmax}_k P_k$).
+### Operational Permissions & Scopes Matrix
+
+| Feature / Capability | MES Engineer | Logistics Officer | Post Commander | Relief Logistician | Civilian Builder |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| **Full Thermal Simulation (`/simulate`)** | Full | View | View | Full | Full |
+| **Pareto Optimizer (`/optimize`)** | Full | View Only | Denied | Full | Manage |
+| **Single-Variable What-If (`/what-if`)** | Full | Full | View | Full | Full |
+| **Multi-Design Comparison (`/compare`)** | Full | Full | View | Full | Manage |
+| **Retrofit Ranking (`/retrofit`)** | Full | Manage | View | Full | Full |
+| **Safety Interlock Override** | **BLOCKED** | **BLOCKED** | **BLOCKED** | **BLOCKED** | **BLOCKED** |
+| **Military Spec Export** | Full | View | Denied | Denied | Denied |
+| **Estate Asset Manager (`/sites`)** | Full | Full | Scoped Post | Relief Scope | Denied |
+| **Database DDL / Material Library** | Manage | View | Denied | View | View |
 
 ---
 
-# 6. 3D WebGL Studio & Dynamic Spatial Graphics
+# 5. Key Product Capabilities
 
-THERMA integrates cutting-edge WebGL visualization built on **Three.js 0.185**:
+### A. Advanced Physics & Computational Engineering
+- **Exact 1D Multi-Node RC Thermal Discretization:** Walls, roofs, and floors are divided into dynamic finite-difference capacitive nodes following strict Fourier and Biot number stability criteria ($\text{Fo} \le 0.25$).
+- **High-Altitude Perez Radiation Model:** Accurately decomposes global horizontal irradiance (GHI) into direct normal (DNI) and diffuse horizontal (DHI) components, incorporating circumsolar brightening, horizon brightening, and isotropic background diffuse radiation.
+- **Ground Snow Reflection Multiplier:** Models fresh high-altitude Himalayan snow cover with an albedo of $\rho_{\text{ground}} = 0.75$, capturing significant shortwave reflections onto vertical solar apertures.
+- **Swinbank Clear-Sky Radiative Sinks:** Computes long-wave radiation heat transfer to outer space based on altitude-thinned atmospheres, capturing severe nocturnal radiative chilling.
+- **Barometric Air-Density Correction:** Corrects indoor air heat capacitance and natural infiltration rates for atmospheric pressure drops at altitudes exceeding $3,500\ \text{m}$ to $5,400\ \text{m}$.
 
-- **Procedural Himalayan Terrain:** Custom WebGL vertex shader generating snow-covered Himalayan ridgelines and realistic atmospheric haze matching the outpost altitude.
-- **Interactive Envelope Peel Cutaway:** Multi-stage inspection allowing military engineers to "peel" outer protective cladding, reveal expanded polystyrene (EPS) insulation cores, and inspect interior structural masonry layers.
-- **Dynamic Solar Shadow Projection:** Simulates real-time sun angles based on Julian date and solar hour, casting accurate geometric shadows across surrounding terrain.
-- **Dynamic SVG Cross-Section:** Live vector rendering of wall layers with proportional millimeter thicknesses, temperature gradient isotherms, and animated directional heat flux arrows.
-
----
-
-# 7. Voice Diagnostic Orb & Tactical AI Assistant
-
-Field engineers operating in freezing conditions often wear heavy arctic mittens that make keyboard typing difficult. THERMA incorporates a **Voice-Powered AI Diagnostic Orb**:
-
-- **Hands-Free Field Inquiry:** Uses native Web Speech API recognition to transcribe spoken engineering queries (e.g. *"What is the dawn temperature at Daulat Beg Oldie with 150mm EPS?"*).
-- **Grounded Physics Synthesis:** Synthesizes clear verbal and textual responses powered by local Ollama (Llama-3.2) or fast heuristic fallbacks, strictly grounded in simulation results.
-- **Speech Synthesis (TTS):** Speaks answers back to the operator with clear audio articulation.
-- **Zero Cloud Leakage:** Audio processing and text inference operate 100% locally on the device.
-
----
-
-# 8. Local CPWD AI Knowledge & Procurement Engine
-
-THERMA incorporates a complete offline **CPWD Delhi Schedule of Rates (DSR), Analysis of Rates (DAR), and Specifications Knowledge System**:
-
-- **Multi-Year Document Corpus:** Indexes CPWD DSR 2016, 2018, 2020, and 2025 schedules.
-- **Hybrid Retrieval Architecture:** Combines SQLite FTS5 BM25 full-text search with local Nomic vector embeddings for semantic query matching.
-- **Exact Page Citations:** Every retrieved rate displays official CPWD item numbers, sub-heads, specifications, and volume/page citations.
-- **Deterministic Rate Arithmetic:** Material quantities, unit rates, and carriage surcharges are computed in pure Python code with zero LLM math hallucination.
-- **Automated Military Procurement Dossier:** Generates complete MES-compliant Bill of Quantities (BOQ) with official item descriptions ready for tendering.
+### B. Decision-Support & Optimization Innovations
+- **Vectorized Latin Hypercube Pareto Optimizer:** Searches $\ge 3,200$ envelope combinations across orientation, glazing ratio, wall build-up, insulation, and roof emissivity in $<8$ seconds.
+- **Morris Elementary Effects Sensitivity Screener:** Evaluates parameter importance across 20 trajectories ($r=20$) to isolate the vital few levers driving $94\%$ of thermal performance variability.
+- **Thermal Diagnosis & Bottleneck Engine:** Breaks down 24-hour heat loss into discrete conduction, infiltration, glazing, and radiation components with mathematical $100\%$ conservation.
+- **What-If Single-Variable Sandbox:** Permits rapid exploratory testing of single envelope levers with strict server-side schema bounds and interactive 24-hour diurnal delta curves ($\Delta T(t)$).
+- **Multi-Design Comparison Matrix:** Ranks 2 to 4 independent designs for Best Thermal Comfort, Lowest Capital Cost, and Best Trade-Off (Pareto Knee Point via Normalized Utopia Distance).
+- **Automated Life-Safety Interlock:** Automatically detects combustion heater configurations and halts evaluation if air changes fall below the life-safety threshold ($\text{ACH} < 0.35$).
+- **Physiological Hypothermia Exposure Index:** Evaluates human core body temperature decline, shivering thermogenesis onset, and cumulative hours spent below the WHO $18\ ^\circ\text{C}$ health threshold.
+- **Forward Post Estate Asset Manager:** Provides multi-district surveillance of defense shelters across Ladakh and Nepal, flagging impending cold breaches and scheduling retrofit deployments.
 
 ---
 
-# 9. Governing Mathematical Formulations & Calculations
+# 6. Technology Stack
 
-All calculations in THERMA strictly follow authoritative physics and engineering literature (ASHRAE, EN ISO 52016-1, Duffie & Beckman, Swinbank, and DRDO standards):
+THERMA is deployed as a high-performance, containerized local software stack:
 
-![Complete Technical Approach & Mathematics Board](./docs/presentation_assets/technical_approach_slide_3.png)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              CLIENT FRONTEND LAYER                          │
+│     React 18.3 · TypeScript 5.7 / JS ES2024 · Vite 6.1 · Tailwind CSS 3.4   │
+│     Three.js 0.185 (WebGL 3D Studio) · Recharts 2.15 (Diurnal Plotting)     │
+│     Lucide Icons · Design Tokens (Montserrat, DM Sans, JetBrains Mono)     │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                         REST JSON over HTTP (:5000 / :8000)
+                                      │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            REST API GATEWAY LAYER                           │
+│     FastAPI 0.110 · Uvicorn ASGI Server · Pydantic v2 (Strict Typing)       │
+│     Frozen API Contract (07_API_CONTRACT.md) · Stateless Request Pipeline   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                          In-Process Direct Python Calls
+                                      │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       COMPUTATIONAL CORE & PHYSICS ENGINE                   │
+│     Python 3.9+ · NumPy 1.26 (Vectorized Math) · SciPy (Interpolation)      │
+│     1D Multi-Node RC Transient Heat Transfer · Perez Solar Model            │
+│     Vectorized Latin Hypercube Optimizer · Morris Elementary Effects        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                         Parameterized SQLite Operations
+                                      │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             LOCAL PERSISTENCE LAYER                         │
+│     SQLite 3 (therma.db) · Real Materials Database (materials.csv)         │
+│     NASA POWER Synthesized Climate Cache · Zero Cloud API Dependencies      │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Stack Component Details
+
+| Layer | Technology | Version | Purpose in THERMA Platform |
+|:---|:---|:---|:---|
+| **Frontend Framework** | React | 18.3.1 | High-responsiveness reactive UI rendering and state management. |
+| **Build & Bundler** | Vite | 6.1.0 | Fast HMR development server and minified production asset packaging. |
+| **Styling & Tokens** | Tailwind CSS & CSS Tokens | 3.4.17 | Strict zero-drift design tokens (`tokens.css`) following Editorial Engineering principles. |
+| **3D Graphics Engine** | Three.js | 0.185.1 | WebGL interactive 3D spatial shelter and envelope layer visualization. |
+| **Data Visualization** | Recharts & Custom SVG | 2.15.4 | 24-hour diurnal temperature plots, heat flow $\Delta T$ charts, and SVG cross-section. |
+| **API Runtime** | Python & FastAPI | 3.9+ / 0.110 | Asynchronous REST service exposing authoritative calculation endpoints. |
+| **Data Schema Validation** | Pydantic v2 | 2.6+ | Inviolable input parsing, boundary validation, and frozen schema enforcement. |
+| **Vectorized Computation** | NumPy | 1.26.4 | Parallel batch simulation of thousands of candidate designs simultaneously. |
+| **Relational Database** | SQLite 3 | 3.43+ | Local, ACID-compliant persistence of materials, weather caches, sites, and audit logs. |
+| **Validation Runner** | Pytest & Custom Testbench | 8.4.2 | 75+ automated physics sanity, contract, and validation test cases. |
+| **Finite Element Reference** | ANSYS Mechanical | 2024 R1 | Reference track specification & comparison harness for continuum numerical cross-validation. |
 
 ---
 
-# 10. 1D Multi-Node RC Transient Heat Transfer Solver
+# 7. High-Level System Architecture
 
-The thermal core models dynamic heat diffusion through multi-layered building envelopes using a multi-node resistor-capacitor (RC) network:
+The following diagram illustrates how user inputs are transformed into authoritative physics simulations, multi-objective Pareto trade-offs, and logistics specifications:
 
-$$\rho c_p \frac{\partial T}{\partial t} = \frac{\partial}{\partial x}\left(k \frac{\partial T}{\partial x}\right)$$
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Eng as Forward Engineer
+    participant UI as React 18 UI Studio
+    participant API as FastAPI Gateway (:8000)
+    participant Core as Engine Physics Core
+    participant Opt as Pareto Optimizer
+    participant Val as Validation Engine
+    participant DB as SQLite therma.db
 
-### 1. Spatial Discretization & Fourier Stability Ceiling
-To prevent numerical instability in explicit finite-difference time-stepping, spatial step size $\Delta x$ is dynamically bounded by the Fourier stability criterion ($Fo \le 0.25$):
+    Eng->>UI: Select Location (Leh 3,500m), Materials & Glazing
+    UI->>API: POST /simulate (SimulateRequest JSON)
+    API->>Core: Parse Envelope, Altitude, & Weather
+    Core->>DB: Load Thermophysical Properties (materials.csv)
+    DB-->>Core: k, rho, cp, cost_per_m3, cost_source
+    Core->>Core: Discretize Layers into Capacitance Nodes (Fo <= 0.25)
+    Core->>Core: Compute Solar Angles, Perez Irradiance & Sky Sink
+    Core->>Core: Solve 3-Day Spinup + 24-Hour Transient RC Diffusion
+    Core-->>API: 24-hr Series (Tin, Tout, Top), Heat Flows, Summary
+    API-->>UI: Authoritative Simulation JSON
+    UI->>Eng: Render TempChart, Dynamic Cross-Section, & Metric Cards
 
-$$\Delta x_{\max} = \sqrt{\frac{\alpha \Delta t}{Fo_{\text{target}}}} \quad \text{where } \alpha = \frac{k}{\rho c_p}$$
-
-$$N_{\text{nodes}} = \max\left(1,\ \left\lceil \frac{L}{\Delta x_{\max}} \right\rceil\right), \quad \Delta x = \frac{L}{N_{\text{nodes}}}$$
-
-### 2. Discretized Nodal Capacitance & Conductance
-- **Thermal Capacitance:** $C_i = \rho c_p \Delta x A \quad [\text{J/K}]$
-- **Thermal Conductance:** $K_{i, i+1} = \frac{k A}{\Delta x} \quad [\text{W/K}]$
-
-### 3. Inter-Layer Boundary Conductance
-Between heterogeneous layers $a$ and $b$, conductances combine in series:
-
-$$K_{\text{interface}} = \frac{A}{\frac{\Delta x_a / 2}{k_a} + \frac{\Delta x_b / 2}{k_b}} \quad [\text{W/K}]$$
-
-### 4. Boundary Film Resistances (ISO 6946)
-- Interior Film Resistance: $R_{si} = 0.13\ \text{m}^2\text{K/W}$
-- Exterior Film Resistance: $R_{se} = 0.04\ \text{m}^2\text{K/W}$
-- Overall Envelope U-Value: $U = \frac{1}{R_{si} + \sum \frac{L_j}{k_j} + R_{se}} \quad [\text{W/m}^2\text{K}]$
+    opt Multi-Objective Design Search
+        Eng->>UI: Trigger Multi-Objective Search (Budget, Local Materials)
+        UI->>API: POST /optimize (OptimizeRequest JSON)
+        API->>Opt: Sample 3,200 Designs via Latin Hypercube
+        Opt->>Opt: Filter Unsafe Combustion ACH < 0.35
+        Opt->>Core: Vectorized Run Batch (N=3,200)
+        Core-->>Opt: Vectorized Thermal Series (24, 3200)
+        Opt->>Opt: Extract Non-Dominated Pareto Frontier & Rank Top 3
+        Opt-->>API: Pareto Points + Top 3 Designs + Mechanical 'Why'
+        API-->>UI: Optimization Response
+        UI->>Eng: Interactive Pareto Scatter & Top 3 Winning Cards
+    end
+```
 
 ---
 
-# 11. Solar Geometry & Perez High-Altitude Radiation
+# 8. Complete 14-Step Engineering Data Pipeline
 
-Computes the exact astronomical solar position and incident shortwave radiation across tilted envelope facets:
+THERMA processes every design through an end-to-end, deterministic engineering pipeline:
 
-### 1. Solar Angles (Duffie & Beckman / NOAA)
-$$\delta = 23.45^\circ \sin\left(\frac{360^\circ}{365}(284 + n)\right) \quad \text{(Declination Angle)}$$
+![THERMA 14-Step Physics & Decision-Support Pipeline](./docs/assets/pipeline_flowchart.svg)
+
+<details open>
+<summary><b>🔍 View Step-by-Step Data Flow (Mermaid)</b></summary>
+
+```mermaid
+flowchart TD
+    S1[1. MATERIALS<br/>CPWD DSR 2023 & Cited k, rho, cp] --> S2[2. WEATHER<br/>NASA POWER & Cold Night Extreme]
+    S2 --> S3[3. PHYSICS ENGINE<br/>Multi-Node RC Discretization]
+    S3 --> S4[4. SIMULATION<br/>3-Day Spin-Up + 24h Diffusion]
+    S4 --> S5[5. VALIDATION<br/>Gate 3 DIHAR Empirical Benchmarks]
+    S5 --> S6[6. THERMAL DIAGNOSIS<br/>100% Heat Loss Attribution]
+    S6 --> S7[7. WHAT-IF ANALYSIS<br/>Single-Variable Sensitivity]
+    S7 --> S8[8. OPTIMIZATION<br/>Latin Hypercube Sampling N=3200]
+    S8 --> S9[9. PARETO / BUDGET<br/>Non-Dominated Knee Point Search]
+    S9 --> S10[10. RETROFIT DOCTOR<br/>Ranked °C-gain per Rupee]
+    S10 --> S11[11. SAFETY INTERLOCK<br/>Combustion ACH >= 0.35 Filter]
+    S11 --> S12[12. IMPACT TRANSLATION<br/>Kerosene Litres & ₹ Saved]
+    S12 --> S13[13. EXPLAINABLE REC<br/>Deterministic 'Why' Synthesis]
+    S13 --> S14[14. REPORT / AUDIT<br/>Military Spec & JSON Provenance]
+```
+</details>
+
+---
+
+# 9. Materials Master Data Engine & Library
+
+Master data represents the foundation of physical truth in THERMA. In accordance with **Rule R1 ("Never invent a number")**, every material property is linked to an authoritative publication:
+
+### Cited Building Materials Library (`data/materials.csv`)
+
+| Material ID | Material Name | Category | $k\ (\text{W/m}\cdot\text{K})$ | $\rho\ (\text{kg/m}^3)$ | $c_p\ (\text{J/kg}\cdot\text{K})$ | Solar $\alpha$ | Cost Basis | Authoritative Citation |
+|:---|:---|:---|:---:|:---:|:---:|:---:|:---:|:---|
+| `mud_brick` | Sun-Dried Mud Brick (Adobe) | Structural Mass | 0.750 | 1,700 | 1,000 | 0.70 | `SOURCED` | ASHRAE HoF 2021 Ch.26 Table 1; CPWD DSR 2023 |
+| `rammed_earth` | Stabilized Rammed Earth | Structural Mass | 1.100 | 1,900 | 1,150 | 0.65 | `SOURCED` | IS 2110:1980; Auroville Earth Institute |
+| `stone_masonry` | Granite/Basalt Local Rubble | Structural Mass | 1.800 | 2,400 | 850 | 0.60 | `SOURCED` | CPWD DSR 2023 Item 7.1; IS 1905:1987 |
+| `dense_concrete` | Reinforced Cement Concrete | Structural Deck | 1.400 | 2,300 | 1,000 | 0.65 | `SOURCED` | IS 456:2000; CPWD DSR 2023 Item 4.1 |
+| `eps` | Expanded Polystyrene (EPS) | Insulation | 0.035 | 20 | 1,400 | 0.20 | `SOURCED` | IS 4671:1984; CPWD DSR 2023 Item 12.4 |
+| `puf_sandwich` | Polyurethane Foam Core Panel | Prefab Panel | 0.024 | 40 | 1,500 | 0.30 | `SOURCED` | IS 12436:1988; CPWD DSR 2023 Item 12.18 |
+| `straw_bale` | Compressed Straw Bale | Bio-Insulation | 0.065 | 110 | 1,800 | 0.40 | `ESTIMATE` | Fasba E.V. Thermal Conductivity Tests (2018) |
+| `wood_pine` | Himalayan Pine (Kail Timber) | Structural/Frame| 0.130 | 500 | 1,600 | 0.60 | `SOURCED` | Forest Research Institute (FRI) Dehradun |
+| `glass_double` | Double Glazed Unit (4-12-4) | Glazing Aperture| — | — | — | — | `SOURCED` | IS 3548:1988 ($U=2.8\ \text{W/m}^2\text{K},\ g=0.75$) |
+| `shutter_foam` | Insulating Night Shutter | Thermal Barrier | — | — | — | — | `SOURCED` | CPWD DSR 2023 ($R_{\text{shutter}} = 0.55\ \text{m}^2\text{K/W}$) |
+
+```
+Important
+Cost Basis Transparency:
+• SOURCED: Every material in the assembly has an official citation from the CPWD Delhi Schedule of Rates (DSR 2023).
+• ESTIMATE: Materials derived from local empirical field estimates or research literature lacking CPWD DSR codification.
+• UNAVAILABLE: Cost could not be determined; no pricing assumptions made.
+```
+
+---
+
+# 10. Solar Geometry & Perez Radiation Engine
+
+The solar module computes the real-time position of the sun and the radiation incident on any arbitrarily tilted and oriented envelope surface:
+
+### 1. Solar Position Algorithm (NOAA Solar Geometry)
+Given latitude $\phi$, longitude $L$, Julian day $n$, and local solar hour $t_{\text{solar}}$:
+
+$$\delta = 23.45^\circ \sin\left(\frac{360}{365}(284 + n)\right) \quad \text{(Solar Declination)}$$
 
 $$\omega = 15^\circ \times (t_{\text{solar}} - 12) \quad \text{(Hour Angle)}$$
 
 $$\sin\alpha_s = \sin\phi\sin\delta + \cos\phi\cos\delta\cos\omega \quad \text{(Solar Altitude)}$$
 
-### 2. Mandatory Surface Incidence Angle Clamping
+$$\cos\gamma_s = \frac{\sin\alpha_s\sin\phi - \sin\delta}{\cos\alpha_s\cos\phi} \quad \text{(Solar Azimuth)}$$
+
+### 2. Mandatory Incidence Angle Clamping
+
 $$\cos\theta = \sin\alpha_s\cos\beta + \cos\alpha_s\sin\beta\cos(\gamma_s - \gamma_{\text{surface}})$$
 
-$$\cos\theta_{\text{clamped}} = \max(\cos\theta,\ 0.0)$$
+$$\cos\theta_{\text{clamped}} = \max\left(\cos\theta,\ 0.0\right)$$
 
-> **Why Clamping is Mandatory:** When the sun dips behind a building facet, $\cos\theta < 0$. Without clamping to zero, direct solar radiation becomes negative, artificially cooling the structure.
+> **Why Clamping is Non-Negotiable:**  
+> If $\cos\theta$ is negative, the surface faces away from the sun. Without clamping, direct solar gain becomes negative, causing opaque walls to artificially refrigerate the building.
 
-### 3. Total Absorbed Solar Irradiance
-$$I_{\text{total}} = I_{\text{beam}}\cos\theta_{\text{clamped}} + I_{\text{diffuse}}\left(\frac{1 + \cos\beta}{2}\right) + \text{GHI} \cdot \rho_{\text{snow}}\left(\frac{1 - \cos\beta}{2}\right)$$
+### 3. Perez High-Altitude Radiation Decomposition
+Total incident irradiance on a surface tilted at angle $\beta$:
 
-Where ground snow reflection albedo is set to $\rho_{\text{snow}} = 0.75$, reflecting up to **35% additional solar flux** onto vertical south-facing glazing.
+$$I_{\text{total}} = I_{\text{beam}} + I_{\text{diffuse}} + I_{\text{ground}}$$
+
+$$I_{\text{beam}} = \text{DNI} \times \cos\theta_{\text{clamped}}$$
+
+$$I_{\text{diffuse}} = \text{DHI} \left[ (1 - F_1)\left(\frac{1 + \cos\beta}{2}\right) + F_1\frac{a}{b} + F_2\sin\beta \right]$$
+
+$$I_{\text{ground}} = \text{GHI} \times \rho_{\text{ground}} \times \left(\frac{1 - \cos\beta}{2}\right)$$
+
+In high Himalayan winter conditions, ground reflection from snow ($\rho_{\text{ground}} = 0.75$) contributes up to **35% of total radiation** captured by south-facing vertical glazing.
 
 ---
 
-# 12. Rarefied Atmosphere, Sky Sink & Infiltration
+# 11. 1D Multi-Node RC Transient Heat Transfer Physics Solver
 
-At high Himalayan elevations ($3,500\ \text{m}$ to $5,400\ \text{m}$), barometric pressure drops substantially, fundamentally changing convective and radiative heat exchange:
+The thermal core uses a multi-node resistor-capacitor (RC) network to solve transient Fourier heat diffusion across multi-layered building elements:
 
-### 1. Barometric Pressure vs Altitude
-$$P(h) = 101325 \times \left(1 - 2.25577 \times 10^{-5} \times h\right)^{5.25588} \quad [\text{Pa}]$$
+$$\rho c_p \frac{\partial T}{\partial t} = \frac{\partial}{\partial x}\left(k \frac{\partial T}{\partial x}\right)$$
 
-### 2. Temperature-Corrected Air Density
-$$\rho_{\text{alt}}(h, T) = \frac{P(h)}{287.058 \times T_{\text{air}}} \quad [\text{kg/m}^3]$$
+### Discretization & Stability Criteria
+To prevent numerical instability while resolving rapid temperature transients, spatial step size $\Delta x$ is bounded by the Fourier target number ($\text{Fo} \le 0.25$):
 
-At Leh ($3,500\ \text{m}$), air density plunges to **$\approx 0.81\ \text{kg/m}^3$**, reducing natural convective infiltration heat loss by **$35\%$** compared to naive sea-level models ($1.225\ \text{kg/m}^3$).
+$$\Delta x_{\max} = \sqrt{\frac{\alpha \Delta t}{\text{Fo}_{\text{target}}}} \quad \text{where } \alpha = \frac{k}{\rho c_p}$$
 
-### 3. Sensible Infiltration Heat Loss
-$$Q_{\text{inf}} = \frac{\text{ACH} \times V \times \rho_{\text{alt}} \times c_{p,\text{air}} \times (T_{\text{in}} - T_{\text{out}})}{3600} \quad [\text{W}]$$
+$$N_{\text{nodes}} = \max\left(1,\ \left\lceil \frac{L}{\Delta x_{\max}} \right\rceil\right), \quad \Delta x = \frac{L}{N_{\text{nodes}}}$$
 
-### 4. Swinbank Nocturnal Clear-Sky Radiation Sink
-In dry high-altitude atmospheres, the clear sky acts as an extreme subzero radiative blackbody sink:
+For each discrete node $i$:
+- **Thermal Capacitance:** $C_i = \rho c_p \Delta x A\quad [\text{J/K}]$
+- **Thermal Conductance:** $K_{i, i+1} = \frac{k A}{\Delta x}\quad [\text{W/K}]$
 
-$$T_{\text{sky}} = 0.0552 \times T_{\text{air}}^{1.5} \quad [\text{K}]$$
+### Inter-Layer Interface Conductance
+Between heterogeneous layers $a$ and $b$, conductances combine in series:
+
+$$K_{\text{interface}} = \frac{1}{\frac{1}{K_a} + \frac{1}{K_b}} = \frac{A}{\frac{\Delta x_a / 2}{k_a} + \frac{\Delta x_b / 2}{k_b}}$$
+
+### Film Resistances (ISO 6946)
+- **Interior Horizontal Resistance:** $R_{si} = 0.13\ \text{m}^2\text{K/W}$
+- **Exterior Film Resistance:** $R_{se} = 0.04\ \text{m}^2\text{K/W}$
+
+---
+
+# 12. Sky Long-Wave Radiation & Radiative Sub-Cooling Engine
+
+At high Himalayan altitudes ($>3,500\ \text{m}$), the atmosphere contains minimal water vapor, turning the clear sky into an intense blackbody radiative sink:
+
+### 1. Swinbank Clear-Sky Temperature Model
+
+$$T_{\text{sky}} = 0.0552 \times T_{\text{air}}^{1.5} \quad (T \text{ in Kelvin})$$
+
+At an ambient temperature of $T_{\text{air}} = -20\ ^\circ\text{C}\ (253.15\ \text{K})$, the apparent clear sky temperature plunges to:
+
+$$T_{\text{sky}} = 0.0552 \times (253.15)^{1.5} \approx 222.3\ \text{K} \approx -50.8\ ^\circ\text{C}$$
+
+The sky is **$30.8\ \text{K}$ colder than the air**, causing dramatic nocturnal radiative freezing of shelter roofs.
+
+### 2. Linearized Long-Wave Radiation Exchange
 
 $$h_r = \varepsilon \sigma (T_{\text{surface}}^2 + T_{\text{sky}}^2)(T_{\text{surface}} + T_{\text{sky}}) \quad [\text{W/m}^2\text{K}]$$
 
 $$Q_{\text{sky}} = h_r \times A \times F_{\text{sky}} \times (T_{\text{surface}} - T_{\text{sky}}) \quad [\text{W}]$$
 
-Where Stefan-Boltzmann constant $\sigma = 5.670374 \times 10^{-8}\ \text{W/m}^2\text{K}^4$, and sky view factors are $F_{\text{sky}} = 1.0$ (roof) and $F_{\text{sky}} = 0.5$ (walls).
+Where:
+- Stefan-Boltzmann Constant: $\sigma = 5.670374 \times 10^{-8}\ \text{W/m}^2\text{K}^4$
+- Sky View Factor: $F_{\text{sky}} = 1.0$ (horizontal roof), $F_{\text{sky}} = 0.5$ (vertical walls)
+
+> **Key Engineering Takeaway:**  
+> Applying a low-emissivity coating ($\varepsilon \le 0.25$) to a galvanized metal roof reduces nocturnal sky radiation losses by **over 60%**, often outperforming an additional $50\ \text{mm}$ of conventional insulation.
 
 ---
 
-# 13. Thermal Diagnosis & 100% Conservation Attribution
+# 13. Altitude-Corrected Barometric Infiltration Model
 
-Breaks down total 24-hour heat dissipation into discrete components obeying an exact mathematical invariant:
+Standard building simulation software assumes sea-level atmospheric pressure ($101.325\ \text{kPa}$ and $\rho = 1.225\ \text{kg/m}^3$). Running sea-level assumptions at high Himalayan altitudes introduces massive errors.
 
-$$\sum Q_{\text{loss}} = Q_{\text{walls}} + Q_{\text{roof}} + Q_{\text{floor}} + Q_{\text{glazing}} + Q_{\text{inf}} + Q_{\text{sky}}$$
+### 1. Barometric Pressure vs. Altitude ($h$ in meters)
 
-$$P_k = \frac{Q_k}{\sum Q_{\text{loss}}} \times 100\% \quad \text{such that } \sum P_k = 100.0\% \pm 0.1\%$$
+$$P(h) = 101325 \times \left(1 - 2.25577 \times 10^{-5} \times h\right)^{5.25588} \quad [\text{Pa}]$$
 
-### Dominant Bottleneck Identification
-$$k^* = \arg\max_k (P_k)$$
+### 2. High-Altitude Air Density Calculation
 
-The system automatically flags the single greatest thermodynamic vulnerability and prescribes targeted engineering retrofits:
-- If Glazing $>25\%$ $\to$ Deploy automated night shutter ($R \ge 0.5\ \text{m}^2\text{K/W}$).
-- If Roof $>25\%$ $\to$ Apply low-emissivity coating ($\varepsilon \le 0.25$) or $100\ \text{mm}$ EPS insulation.
-- If Infiltration $>20\%$ $\to$ Install perimeter silicone draft gaskets.
+$$\rho_{\text{alt}} = \frac{P(h)}{R_{\text{specific}} \times T_{\text{air}}} \quad \text{where } R_{\text{specific}} = 287.058\ \text{J/kg}\cdot\text{K}$$
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      AIR DENSITY COMPARISON AT -20 °C                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Sea Level (0 m)    :  P = 101,325 Pa  ──►  rho = 1.395 kg/m3               │
+│  Leh (3,500 m)      :  P =  65,800 Pa  ──►  rho = 0.906 kg/m3 (Ratio: 0.65) │
+│  Siachen (5,400 m)  :  P =  51,200 Pa  ──►  rho = 0.704 kg/m3 (Ratio: 0.50) │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+$$Q_{\text{inf}} = \frac{\text{ACH} \times V \times \rho_{\text{alt}} \times c_{p,\text{air}} \times (T_{\text{in}} - T_{\text{out}})}{3600} \quad [\text{W}]$$
+
+> **Critical Distinction:**  
+> Infiltration heat loss at $3,500\ \text{m}$ is **35% lower** than sea-level models predict. Naive software overstates required heating systems by one-third.
 
 ---
 
-# 14. Vectorized Multi-Objective Pareto Optimization Engine
+# 14. Thermal Diagnosis & Bottleneck Attribution Engine
 
-Searches $\ge 3,200$ candidate envelope combinations simultaneously using vectorized NumPy routines:
+The Thermal Diagnosis Engine decomposes 24-hour simulation results into an explainable energy balance breakdown:
+
+![Component-Level 24-Hour Heat Loss Attribution](./docs/assets/heat_loss_chart.svg)
+
+### Heat Loss Path Breakdown ($100\%$ Conservation Invariant)
+
+$$\sum Q_{\text{loss}} = Q_{\text{walls}} + Q_{\text{roof}} + Q_{\text{floor}} + Q_{\text{glazing}} + Q_{\text{infiltration}} + Q_{\text{sky}}$$
+
+$$\text{Percentage Share } P_k = \frac{Q_k}{\sum Q_{\text{loss}}} \times 100\% \quad \text{such that } \sum P_k = 100.0\% \pm 0.1\%$$
 
 ```
-[ Parameter Space Bounds ] ──► [ Latin Hypercube Sampling (N=3,200) ]
-                                             │
-[ Non-Dominated Pareto Sort ] ◄── [ Vectorized 1D RC Batch Solver ]
-             │
-             ├──► Frontier Visualization (Comfort vs. Capital Cost)
-             ├──► Top 3 Recommended Winning Designs
-             └──► Deterministic "Why This Won" Synthesis
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      TYPICAL LEH SHELTER HEAT LOSS PROFILE                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Uninsulated Walls (CGI / Concrete) :  ████████████████████ 34.2% (Dominant) │
+│  Night Glazing Conduction           :  █████████████ 22.4%                  │
+│  Roof Nocturnal Sky Radiation       :  ██████████ 18.6%                     │
+│  Air Infiltration (ACH = 0.8)       :  ████████ 14.1%                       │
+│  Uninsulated Perimeter Ground       :  █████ 10.7%                          │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1. Pareto Non-Dominated Sorting
-In multi-objective space minimizing Capital Cost ($K$) and Discomfort Hours ($D = 24 \times (1 - C)$):
+The engine pinpoints the **Dominant Weakness** and triggers deterministic engineering recommendations:
+- If Glazing $>25\%$ of total loss $\to$ "Install movable insulated night shutter ($R \ge 0.5\ \text{m}^2\text{K/W}$)."
+- If Roof $>25\%$ of total loss $\to$ "Apply low-emissivity coating ($\varepsilon \le 0.30$) or add $100\ \text{mm}$ EPS roof slab insulation."
+- If Infiltration $>20\%$ and $\text{ACH} > 0.6$ $\to$ "Apply silicone perimeter caulking to reach $\text{ACH} \le 0.40$ (safe electric heating only)."
 
-Design $A$ strictly dominates Design $B$ ($A \succ B$) if and only if:
-$$K_A \le K_B \quad \text{and} \quad D_A \le D_B \quad \text{and} \quad (K_A < K_B \lor D_A < D_B)$$
+---
 
-### 2. Normalized Utopia Distance (Pareto Knee Point)
-To select the single best balanced trade-off design without arbitrary subjective weights, THERMA computes the normalized Euclidean distance to the ideal Utopia point ($C^* = 1.0, K^* = 0.0$):
+# 15. What-If Single-Variable Analysis Studio
 
-$$c_i^* = \frac{C_i - C_{\min}}{C_{\max} - C_{\min}}, \quad k_i^* = \frac{K_i - K_{\min}}{K_{\max} - K_{\min}}$$
+The What-If Studio (`/what-if`) enables engineers to isolate and adjust exactly one parameter at a time against an active baseline:
 
-$$D_i = \sqrt{(1.0 - c_i^*)^2 + (k_i^* - 0.0)^2} \to \min$$
+### Supported Variables & Schema Constraints
+
+| Variable Key | Parameter Name | Physical Unit | Valid Range | Step | Engineering Target |
+|:---|:---|:---:|:---:|:---:|:---|
+| `wall_thickness` | Primary Wall Layer | meters ($\text{m}$) | $[0.05,\ 1.50]$ | $0.05$ | Thermal mass flywheel optimization |
+| `roof_thickness` | Structural Roof Slab | meters ($\text{m}$) | $[0.05,\ 1.00]$ | $0.05$ | Structural stability and heat storage |
+| `insulation` | EPS Insulation Layer | meters ($\text{m}$) | $[0.00,\ 0.25]$ | $0.025$ | Conduction attenuation |
+| `glazing_area` | South Solar Window | square meters ($\text{m}^2$) | $[0.0,\ 20.0]$ | $0.50$ | Passive solar heat gain aperture |
+| `orientation` | Azimuth Alignment | degrees ($^\circ$) | $[0.0,\ 360.0]$ | $15.0$ | Direct solar alignment ($180^\circ = \text{South}$) |
+| `ach` | Air Exchange Rate | $\text{ACH}$ | $[0.10,\ 5.00]$ | $0.05$ | Ventilation balance vs. life safety |
+| `shading` | Insulating Night Shutter | boolean | `true` / `false` | — | Nocturnal window insulation barrier |
+| `material` | Wall Masonry Library | ID string | 6 options | — | Local stone, mud, rammed earth, PUF |
+
+### Diurnal Delta Curve Formulation
+The server returns a 24-hour diurnal delta array:
+
+$$\Delta T(t) = T_{\text{in, variant}}(t) - T_{\text{in, baseline}}(t) \quad \text{for } t \in [0, 23]$$
+
+Displayed as an interactive green/red delta strip showing exact hourly thermal gains across the diurnal cycle.
+
+![24-Hour Diurnal Temperature Profile: Standard Prefab vs. THERMA Optimized Shelter](./docs/assets/diurnal_curve.svg)
+
+---
+
+# 16. Multi-Design Comparison & Trade-Off Matrix
+
+Engineers can compare **2 to 4 independently simulated designs** side-by-side:
+
+### Mathematical Definition of "Best Trade-Off" (Pareto Knee Point)
+To eliminate arbitrary, subjective weighting scores, THERMA computes the **Normalized Euclidean Distance to the Ideal Utopia Point** $(C^* = 1.0,\ K^* = 0.0)$:
+
+$$c_i^* = \frac{C_i - C_{\min}}{C_{\max} - C_{\min}} \quad \text{(Normalized Comfort Hours Ratio)}$$
+
+$$k_i^* = \frac{K_i - K_{\min}}{K_{\max} - K_{\min}} \quad \text{(Normalized Capital Cost)}$$
+
+$$D_i = \sqrt{\left(1.0 - c_i^*\right)^2 + \left(k_i^* - 0.0\right)^2}$$
 
 $$\text{Best Trade-Off Design} = \arg\min_{i \in \text{Safe Designs}} D_i$$
 
+![Multi-Criteria Decision Analysis: Pareto Knee Point & Utopia Distance](./docs/assets/comparison_tradeoff.svg)
+
+```
+                                  UTOPIA POINT (Comfort=1.0, Cost=0.0)
+                                            ★
+                                           / \
+                                          /   \
+                         High-Cost       /     \     BEST TRADE-OFF
+                         Over-Engineered/       \    (Minimum Di)
+                         (C=0.95, K=0.90)        \   ● (C=0.88, K=0.25)
+                                                  \ /
+                                                   ● Uninsulated Cheap
+                                                     (C=0.15, K=0.05)
+```
+
+- **Disqualification Rule:** Any design with `safety_status === 'REFUSED'` is strictly disqualified from winning any category.
+- **Cost Basis Reporting:** Displays transparent badges: `SOURCED` (green), `ESTIMATE` (amber), or `UNAVAILABLE` (slate).
+
 ---
 
-# 15. 7-Stage Design Doctor & Retrofit Ranking
+# 17. Vectorized Multi-Objective Pareto Optimization Engine
 
-The Design Doctor provides a structured clinical workflow for renovating existing substandard military outposts:
+Rather than forcing users to guess parameter combinations, the optimizer searches the space automatically:
 
 ```
-[ 1. CURRENT CONDITION ] ──► [ 2. THERMAL DIAGNOSIS ] ──► [ 3. RECOMMENDED RETROFITS ]
-                                                                      │
-[ 7. SCIENTIFIC RATIONALE ] ◄── [ 6. SAFETY CHECK ] ◄── [ 5. EXPECTED EFFECT ] ◄─ [ 4. ESTIMATED COST ]
+[ Search Space Definition ] ──► [ Latin Hypercube Sampling (N=3,200) ]
+                                                │
+[ Non-Dominated Pareto Sort ] ◄── [ Vectorized 1D RC Batch Solver ]
+            │
+            ├──► Frontier Visualization (Comfort vs. Cost)
+            ├──► Top 3 Recommended Designs
+            └──► Deterministic "Why This Won" Synthesis
 ```
 
-### Cost-Efficiency Metric
-All physical retrofits are evaluated and ranked strictly by **temperature gain per ₹1,000 invested**:
+### 1. Latin Hypercube Parameter Sampling
+Samples $\ge 3,200$ parameter combinations uniformly across:
+- Orientation: $[150^\circ,\ 210^\circ]$ (South-facing window search)
+- South Glazing Area: $[0.0,\ 12.0]\ \text{m}^2$
+- Wall Insulation (EPS): $[0.00,\ 0.20]\ \text{m}$
+- Roof Insulation (EPS): $[0.00,\ 0.20]\ \text{m}$
+- Night Shutter: $\{0,\ 1\}$
+- Roof Emissivity: $[0.20,\ 0.90]$
 
-$$\text{Efficiency} = \frac{\Delta T_{\text{in,min}}\ [^\circ\text{C}]}{\text{Cost}\ [₹] / 1000.0} \quad [^\circ\text{C} / ₹1,000]$$
+### 2. High-Speed Vectorized Simulation
+The solver packs all $N$ designs into contiguous NumPy arrays of shape $(N_{\text{nodes}}, N)$, evaluating the 3-day spinup and 24-hour diurnal cycle in **under 6 seconds** on standard CPU hardware.
 
-Top-ranked retrofits (e.g. insulating night shutters at $12.2^\circ\text{C}/₹1,000$) consistently outrank heavy structural alterations, delivering massive thermal improvements on modest defense budgets.
+### 3. Pareto Non-Dominated Sorting ($X = \text{Cost}$, $Y = \text{Discomfort}$)
+In multi-objective minimization space, both Capital Cost ($K$) and Thermal Discomfort ($D = 24 \times (1 - C)$) are to be minimized:
+
+A design $A$ strictly Pareto-dominates design $B$ ($A \succ B$) if and only if:
+
+$$K_A \le K_B \quad \text{and} \quad D_A \le D_B \quad \text{and} \quad (K_A < K_B \lor D_A < D_B)$$
+
+- **Identical Designs:** If $K_A = K_B$ and $D_A = D_B$, neither dominates the other ($A \not\succ B \land B \not\succ A$).
+- **Mutual Trade-Offs:** If $K_A < K_B$ and $D_A > D_B$, neither dominates the other (both lie on the non-dominated frontier).
+- **Missing Cost:** Any design with missing or non-positive cost cannot dominate and is excluded from the cost-discomfort frontier.
+- **Unsafe Disqualification:** Designs failing safety interlocks (`REFUSED`) cannot dominate safe designs and are strictly barred from the Pareto frontier.
+- **Budget Interaction:** Users can filter candidates by budget ($\text{cost} \le \text{budget}$). If no design is affordable, the system explicitly reports **`0 feasible designs within budget.`** without inventing fictional points or silently adjusting the threshold.
+- **Deterministic Verification:** Covered by 8/8 automated tests in `tests/test_pareto_dominance.py`.
 
 ---
 
-# 16. Combustion Safety Interlock & CO Asphyxiation Prevention
+# 18. Morris Elementary Effects Screening & Design Sensitivity
 
-A lethal vulnerability in naive optimization algorithms is sealing buildings airtight ($\text{ACH} \to 0$) to eliminate infiltration loss. At high-altitude military posts, soldiers burn unvented kerosene bukharis for heat. **Operating a fuel heater in an unventilated room causes rapid oxygen starvation and fatal Carbon Monoxide (CO) poisoning.**
+The sensitivity module screens envelope parameters by their global non-linear thermal impact using the **Morris Method of Elementary Effects** across $r = 20$ trajectories:
+
+$$EE_i = \frac{y(x_1, \dots, x_i + \Delta, \dots, x_k) - y(x_1, \dots, x_k)}{\Delta}$$
+
+- **Mean Absolute Effect:** $\mu_i^* = \frac{1}{r} \sum_{j=1}^r |EE_{i,j}|$ (Overall influence on indoor minimum temperature)
+- **Standard Deviation:** $\sigma_i = \sqrt{\frac{1}{r-1} \sum_{j=1}^r (EE_{i,j} - \mu_i)^2}$ (Non-linear interactions with other parameters)
+
+### Parameter Sensitivity Ranking in High-Altitude Cold Climates
+
+| Rank | Parameter | Sensitivity $\mu^*\ (^\circ\text{C})$ | Interaction $\sigma$ | Practical Takeaway |
+|:---:|:---|:---:|:---:|:---|
+| **1** | **Night Shutter Deployment** | **$6.2\ ^\circ\text{C}$** | High | Most cost-effective intervention in sub-zero climates. |
+| **2** | **South Glazing Area** | **$4.8\ ^\circ\text{C}$** | High | Direct solar capture; requires shutters to avoid night losses. |
+| **3** | **Wall Insulation (EPS)** | **$3.9\ ^\circ\text{C}$** | Medium | Essential for holding interior mass warmth. |
+| **4** | **Roof Emissivity** | **$2.6\ ^\circ\text{C}$** | Low | Lowers nocturnal radiation loss to clear sky. |
+| **5** | **Orientation Azimuth** | **$1.8\ ^\circ\text{C}$** | Medium | Alignment within $\pm 15^\circ$ of True South is critical. |
+| **6** | **Infiltration Rate (ACH)** | **$1.5\ ^\circ\text{C}$** | Low | Controlled ventilation prevents excessive convective draft. |
+| **7** | **Wall Masonry Thickness** | **$0.4\ ^\circ\text{C}$** | Low | Adds dead airlift weight with diminishing thermal returns. |
+
+---
+
+# 19. Safety Interlocks & Carbon Monoxide Asphyxiation Prevention
+
+A dangerous flaw in naive energy optimization software is the tendency to minimize air infiltration ($\text{ACH} \to 0$) to reduce heat loss. In military forward shelters, troops burn kerosene bukharis inside the living space. **Sealing a shelter with an unvented combustion heater causes rapid oxygen depletion and fatal Carbon Monoxide (CO) poisoning.**
 
 ```
-                                 COMBUSTION SAFETY INTERLOCK
-                                              │
-                               [ Combustion Heater Active? ]
-                                         /         \
-                                       YES          NO
-                                       /             \
-                         [ ACH < 0.35 Safety Floor? ] [ Allow Full ACH Range ]
-                              /              \
-                            YES               NO
-                            /                  \
-                  ┌────────────────────┐    ┌────────────────────┐
-                  │  REFUSED (HTTP 400)│    │   PASS TO ENGINE   │
-                  │  Lethal CO Hazard  │    │   Run Simulation   │
-                  └────────────────────┘    └────────────────────┘
+                                 SAFETY INTERLOCK GATE
+                                           │
+                             [ Combustion Heater Present? ]
+                                      /         \
+                                    YES          NO
+                                    /             \
+                      [ ACH < 0.35 Floor? ]      [ Allow Any Valid ACH ]
+                           /         \
+                         YES          NO
+                         /             \
+                 ┌──────────────┐   ┌──────────────┐
+                 │ REFUSE (400) │   │ PASS TO CORE │
+                 │ CO Hazard    │   │ Solver Runs  │
+                 └──────────────┘   └──────────────┘
 ```
+
+### Mandatory Interlock Logic
 
 ```python
-ACH_MIN_COMBUSTION = 0.35  # IS 13730 / ASHRAE 62.1 Life Safety Minimum
+ACH_MIN_COMBUSTION = 0.35  # IS 13730 / ASHRAE 62.1 Life-Safety Minimum
 
 if heater_type in ['kerosene', 'unflued_combustion'] and ach < ACH_MIN_COMBUSTION:
     return {
-        "status": "REFUSED",
-        "reason": (
+        "refused": True,
+        "refusal_reason": (
             f"LIFE SAFETY REFUSAL: Infiltration rate ({ach} ACH) is below the "
             f"mandatory 0.35 ACH safety floor for combustion heating. "
-            f"Operating an unvented kerosene heater in an airtight space causes "
-            f"fatal Carbon Monoxide (CO) asphyxiation."
+            f"Operating an unvented fuel heater in an airtight space causes fatal "
+            f"Carbon Monoxide (CO) asphyxiation."
         )
     }
 ```
 
-THERMA's optimizer and ML surrogates will never recommend a lethal shelter design.
+THERMA's optimizer will never recommend a lethal shelter design.
 
 ---
 
-# 17. Security, Privacy & Air-Gapped Defense Isolation
+# 20. Physiological Hypothermia Risk Modeling
 
-Military software deployed near contested borders must withstand electronic warfare, network denial, and cyber threats:
+Thermal comfort in extreme cold is a medical and survivability metric. THERMA implements dynamic core temperature tracking based on the **Gagge Two-Node Human Thermoregulation Model**:
 
-- **100% Air-Gapped Operation:** Runs entirely from local storage. Zero external CDNs, tracking pixels, or external cloud API calls.
-- **Zero Cloud Telemetry:** No user inputs, troop deployments, site coordinates, or military shelter specifications ever leave the local machine.
-- **Defense-Grade Offline Resilience:** Weather datasets, material schedules, and validation benchmarks are pre-cached in local SQLite storage.
-- **Single-Port Dev Server Proxy:** FastAPI on port 8000 automatically redirects browser requests to Vite on port 5173, providing seamless single-port operation.
+### Physiological Heat Balance
+
+$$M - W - E_{\text{sk}} - C_{\text{res}} - E_{\text{res}} = R + C + S$$
+
+Where:
+- $M$: Metabolic rate ($100\ \text{W}$ at rest, up to $250\ \text{W}$ shivering)
+- $S$: Rate of body heat storage ($S < 0$ implies core cooling)
+- $R, C$: Radiant and convective surface heat losses scaled by clothing insulation ($I_{\text{clo}} = 2.5\ \text{clo}$ arctic gear)
+
+### Clinical Hypothermia Classification
+
+$$T_{\text{core}} = 37.0\ ^\circ\text{C} + \int \frac{S}{C_{\text{body}}}\ dt$$
+
+- **Normal Core:** $36.5\ ^\circ\text{C} \le T_{\text{core}} \le 37.5\ ^\circ\text{C}$
+- **Mild Hypothermia (Shivering Onset):** $35.0\ ^\circ\text{C} \le T_{\text{core}} < 36.5\ ^\circ\text{C}$
+- **Moderate Hypothermia (Apathy & Motor Impairment):** $32.0\ ^\circ\text{C} \le T_{\text{core}} < 35.0\ ^\circ\text{C}$
+- **Severe Hypothermia (Cardiac Arrest Risk):** $T_{\text{core}} < 32.0\ ^\circ\text{C}$
+
+The platform reports cumulative **Hours Below Health Threshold ($< 18\ ^\circ\text{C}$)** and flags any design where occupants risk entering clinical hypothermia during sleep.
 
 ---
 
-# 18. Siachen Helicopter Logistics & Kerosene Economics
+# 21. Forward Post Weather Engine & Microclimate Ingestion
+
+THERMA supports multiple climatic driving datasets, operating with complete autonomy offline:
+
+1. **NASA POWER Satellite Archive:** Climatological solar and temperature averages for high-altitude coordinates ($0.5^\circ \times 0.625^\circ$ global grid).
+2. **Design Winter Night (1st-Percentile Extreme):** Synthesizes a worst-case winter survival night based on the lowest 1st-percentile minimum temperature recorded over 20 years:
+   - Leh: $-22.0\ ^\circ\text{C}$
+   - Dras: $-35.0\ ^\circ\text{C}$
+   - Siachen Glacier: $-42.0\ ^\circ\text{C}$
+3. **EPW Microclimate Ingestion:** Full 8,760-hour EnergyPlus Weather file support for Leh, Srinagar, and Shimla.
+4. **Custom CSV Field Telemetry:** Direct drag-and-drop upload of localized Campbell Scientific / Onset HOBO weather station logs recorded at forward posts.
+
+---
+
+# 22. Estate Asset Management & Defense Post Monitoring
+
+The platform includes a specialized thermal asset management platform (`/sites`) managing 12 pre-evaluated defense posts across high-altitude border sectors:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    HIGH-ALTITUDE DEFENSE ESTATE INVENTORY                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  1. Siachen Base Camp    :  3,600 m  ·  16 Occupants  ·  Status: WARNING    │
+│  2. Daulat Beg Oldie     :  5,065 m  ·  24 Occupants  ·  Status: CRITICAL   │
+│  3. Galwan Post 4        :  4,350 m  ·  12 Occupants  ·  Status: COLD ALERT │
+│  4. Nyoma Advanced Base  :  4,180 m  ·  20 Occupants  ·  Status: STABLE     │
+│  5. Chushul Sector Post  :  4,350 m  ·  10 Occupants  ·  Status: WARNING    │
+│  6. Hanle Observatory    :  4,500 m  ·   8 Occupants  ·  Status: EVALUATED  │
+│  7. Dras Sector Base     :  3,280 m  ·  18 Occupants  ·  Status: WARNING    │
+│  8. Rezang La Memorial   :  4,850 m  ·  12 Occupants  ·  Status: CRITICAL   │
+│  9. Pangong North Outpost:  4,250 m  ·  14 Occupants  ·  Status: WARNING    │
+│ 10. Depsang Plains Staging: 4,920 m  ·  20 Occupants  ·  Status: CRITICAL   │
+│ 11. Kargil Ridge Post    :  2,670 m  ·  12 Occupants  ·  Status: STABLE     │
+│ 12. Rasuwa Relief Camp   :  2,100 m  ·  40 Occupants  ·  Status: EVALUATED  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+The system continuously scans site evaluations, sorting posts by nearest impending comfort breach and scheduling targeted retrofits.
+
+---
+
+# 23. Field Trial Empirical Validation Suite & ANSYS Reference Track
+
+Validation is the gate that establishes credibility. THERMA is grounded across **two validation tracks**:
+
+## Axis 1: Empirical DRDO-DIHAR Field Measurements (Gate 3)
+
+| Benchmark Target | Field Scenario & Location | Measured Field Performance | THERMA Model Prediction | Absolute Error ($\Delta T$) | Status |
+|:---|:---|:---:|:---:|:---:|:---:|
+| **Target V1** | **DIHAR Leh Solar-Heated Pilot** | Holds $15.0\ ^\circ\text{C} \text{ to } 20.0\ ^\circ\text{C}$ at $-19\ ^\circ\text{C}$ ambient | $16.04\ ^\circ\text{C} \text{ to } 18.38\ ^\circ\text{C}$ | Inside Target Band | **PASS** |
+| **Target V2** | **Leh Trombe Wall Room (Feb 2020)** | Monitored monthly mean: **$17.44\ ^\circ\text{C}$** | Model mean: **$16.29\ ^\circ\text{C}$** | $-1.15\ \text{K}$ (Tol: $\pm 2.0\ \text{K}$) | **PASS** |
+| **Target V3** | **Leh Direct-Gain Room (Feb 2020)** | Monitored monthly mean: **$14.81\ ^\circ\text{C}$** | Model mean: **$15.01\ ^\circ\text{C}$** | $+0.20\ \text{K}$ (Tol: $\pm 2.0\ \text{K}$) | **PASS** |
+| **Target V4** | **DIHAR / Sun Stellar ADM Block** | Holds $+20.0\ ^\circ\text{C}$ from 18:00 to 06:00 | Model at 06:00: **$18.88\ ^\circ\text{C}$** | $-1.12\ \text{K}$ (Tol: $\pm 2.0\ \text{K}$) | **PASS** |
+
+### Inviolable Physical Ordering Constraint
+
+$$\text{Model Mean}(V_2\text{ Trombe}) > \text{Model Mean}(V_3\text{ Direct Gain}) \quad \implies \quad 16.29\ ^\circ\text{C} > 15.01\ ^\circ\text{C} \quad (\mathbf{PASS})$$
+
+> **Why Ordering Matters More Than Absolute Numbers:**  
+> Absolute values can be matched through artificial calibration constants. Matching the correct performance ranking between two different passive designs under identical weather proves that the underlying thermal mass, phase lag, and convective loop physics are mathematically sound.
+
+---
+
+## Axis 2: ANSYS Mechanical Reference Track & Comparison Harness
+
+THERMA provides three canonical reference cases and an automated comparison harness (`validation/ansys/compare.py`) for cross-validation against ANSYS Mechanical Transient Thermal:
+
+> **Status Notice:** The canonical cases, meshing specifications, boundary conditions, and comparison harness are fully built. Physical ANSYS workstation runs have not yet been performed. The comparison table below will be populated once workstation probe CSVs are exported. Current numerical validation is grounded in published empirical field trials (Axis 1).
+
+| Case | Physical Mechanism | Target Tolerance | Status |
+|:---:|:---|:---|:---:|
+| **Case 1** | Pure Conduction & Thermal Storage | $\le 0.50\ ^\circ\text{C}$ | Harness built — Workstation run pending |
+| **Case 2** | Multi-Layer Wall & Diurnal Phase Lag | $\le 1.00\ ^\circ\text{C}$ | Harness built — Workstation run pending |
+| **Case 3** | Solar Radiation & Nocturnal Sky Cooling | $\le 1.50\ ^\circ\text{C}$ | Harness built — Workstation run pending |
+
+---
+
+# 24. Siachen Helicopter Logistics & Kerosene Economics
 
 THERMA converts every simulation result directly into real-world defense logistics metrics:
 
 ![High-Altitude Fuel Logistics & Defense Economic Payoff](./docs/assets/fuel_logistics_chart.svg)
 
-### Logistics Payoff Equations
+### Financial & Carbon Equations
+
 $$\text{Fuel Avoided } [\text{L/year}] = \frac{\Delta Q_{\text{heating}} [\text{kWh}] \times 3.6\ \text{MJ/kWh}}{37.0\ \text{MJ/L} \times \eta_{\text{stove}}}$$
 
-$$\text{Annual Financial Savings } [₹] = \text{Fuel Avoided } [\text{L}] \times ₹2,400/\text{L}\ \text{(Airlift Delivered Cost)}$$
+$$\text{Annual Financial Savings } [\text{₹}] = \text{Fuel Avoided } [\text{L}] \times \text{Airlift Cost per Litre } (₹2,400/\text{L})$$
 
-$$\text{Helicopter Sorties Avoided} = \left\lceil \frac{\text{Fuel Avoided } [\text{kg}]}{500\ \text{kg per Cheetah Sortie}} \right\rceil$$
+$$\text{Carbon Dioxide Mitigated } [\text{kg CO}_2] = \text{Fuel Avoided } [\text{L}] \times 2.52\ \text{kg CO}_2/\text{L}$$
 
 $$\text{Simple Payback Period } [\text{years}] = \frac{\text{Capital Cost of Retrofit } [₹]}{\text{Annual Fuel Savings } [₹]}$$
 
@@ -584,95 +936,402 @@ $$\text{Simple Payback Period } [\text{years}] = \frac{\text{Capital Cost of Ret
 
 ---
 
-# 19. Field Trial Empirical Validation Suite & ANSYS Reference
+# 25. Interactive 3D Studio & Dynamic Cross-Section Visualization
 
-Validation is the gate that establishes engineering credibility. THERMA is grounded across **two validation axes**:
+### 1. Dynamic SVG Wall Cross-Section
+- **Live Thickness Proportions:** SVG wall layers scale dynamically to match user inputs in millimeters.
+- **Directional Heat Flux Vectors:** Animated arrows render real-time conductive heat loss vectors across the wall profile.
+- **Sun & Shading Animation:** Solar incidence angle adjusts dynamically with orientation and time-of-day sliders.
 
-### Axis 1: Empirical DRDO-DIHAR Field Measurements (Gate 3)
-
-| Benchmark Target | Field Scenario & Location | Measured Field Performance | THERMA Model Prediction | Absolute Error ($\Delta T$) | Status |
-|:---|:---|:---:|:---:|:---:|:---:|
-| **Target V1** | **DIHAR Leh Solar-Heated Pilot** | Holds $15.0\ ^\circ\text{C} \text{ to } 20.0\ ^\circ\text{C}$ at $-19\ ^\circ\text{C}$ ambient | $16.04\ ^\circ\text{C} \text{ to } 18.38\ ^\circ\text{C}$ | Inside Target Band | **PASS** |
-| **Target V2** | **Leh Trombe Wall Room (Feb 2020)** | Monitored monthly mean: **$17.44\ ^\circ\text{C}$** | Model mean: **$16.29\ ^\circ\text{C}$** | $-1.15\ \text{K}$ (Tol: $\pm 2.0\ \text{K}$) | **PASS** |
-| **Target V3** | **Leh Direct-Gain Room (Feb 2020)** | Monitored monthly mean: **$14.81\ ^\circ\text{C}$** | Model mean: **$15.01\ ^\circ\text{C}$** | $+0.20\ \text{K}$ (Tol: $\pm 2.0\ \text{K}$) | **PASS** |
-| **Target V4** | **DIHAR / Sun Stellar ADM Block** | Holds $+20.0\ ^\circ\text{C}$ from 18:00 to 06:00 | Model at 06:00: **$18.88\ ^\circ\text{C}$** | $-1.12\ \text{K}$ (Tol: $\pm 2.0\ \text{K}$) | **PASS** |
-
-### Inviolable Physical Ordering Rule
-$$\text{Model Mean}(V_2\text{ Trombe}) > \text{Model Mean}(V_3\text{ Direct Gain}) \implies 16.29\ ^\circ\text{C} > 15.01\ ^\circ\text{C} \quad (\mathbf{PASS})$$
-
-Matching the physical performance ranking between two different passive solar architectures under identical weather conditions confirms that the underlying thermal mass, phase lag, and convective loop equations are mathematically sound.
-
-### Axis 2: ANSYS Mechanical Reference Track & Comparison Harness
-THERMA provides three canonical finite-element benchmark cases (`validation/ansys/`) and an automated comparison script (`validation/ansys/compare.py`) for cross-validation against ANSYS Mechanical Transient Thermal.
+### 2. Three.js WebGL 3D Shelter Inspector
+- **Orbital Spatial Controls:** 360-degree rotation and zoom examining building aspect ratios and roof slopes.
+- **Window Aperture Positioning:** Visualizes south-facing solar glazing arrays and night shutter deployment states.
+- **Thermal Shading Visualization:** Wireframe and solid heat-stress color mapping across building facets.
 
 ---
 
-# 20. Automated Test Suite & System Verification
+# 26. Engineering Spec Sheet & Provenance Audit Export
 
-The entire repository is guarded by rigorous, automated test suites verifying every layer of the platform:
-
-```bash
-# 1. Execute full Pytest backend test suite (195 tests)
-.venv/bin/pytest tests/ -v
-
-# 2. Run Gate 3 empirical validation checks vs. DRDO-DIHAR field trials
-PYTHONPATH=. .venv/bin/python validation/run.py --check
-
-# 3. Run frontend unit and component tests (84 tests)
-cd web && npm test -- --watchAll=false
-
-# 4. Run production frontend build verification
-npm run build
-```
+With a single click on **[Copy Military Specification]**, THERMA formats the entire architectural and thermal specification into standardized military engineering documentation:
 
 ```text
-============================== 195 passed in 10.42s ==============================
-VALIDATION RUN:
-  V1 DIHAR Leh        model 16.04-18.38 C   measured 15-20 C     PASS
-  V2 Trombe Feb       model 16.29 C        measured 17.44 C     PASS (delta -1.15)
-  V3 Direct gain Feb  model 15.01 C        measured 14.81 C     PASS (delta +0.20)
-  V4 ADM Block 06:00  model 18.88 C        measured 20 C        PASS (delta -1.12)
-  ORDERING            Trombe 16.29 > DG 15.01                   PASS
-  SANITY physics      tests 10/10                                PASS
-============================== 84 passed in 107ms ================================
-✓ built in 820ms
+================================================================================
+DEFENCE RESEARCH & DEVELOPMENT ORGANISATION (DRDO)
+MILITARY ENGINEERING SERVICES (MES) — PASSIVE SOLAR SPECIFICATION SHEET
+GENERATED BY THERMA PLATFORM · REPRODUCIBLE DETERMINISTIC RUN ID: 85de24f-2026
+================================================================================
+SITE IDENTIFIER         : Siachen Forward Support Base (Sector 4)
+GEOGRAPHIC COORDINATES  : Lat 35.2000° N, Lon 77.2100° E, Altitude 3,600 m
+CLIMATIC DESIGN BASIS   : Design Winter Night (-22.0 °C ambient, snow albedo 0.75)
+OCCUPANCY & DESIGN LOAD : 16 Soldiers, 1,600 W sensible internal gain
+--------------------------------------------------------------------------------
+ENVELOPE SPECIFICATION:
+  • North/East/West Walls: 300 mm Sun-Dried Mud Brick + 150 mm External EPS Board
+                           Overall U-Value = 0.21 W/m²K, Total Mass = 510 kg/m²
+  • South Solar Wall     : 400 mm Stabilized Rammed Earth + 50 mm External EPS
+  • Roof Assembly        : 150 mm Reinforced Concrete Deck + 120 mm EPS Insulation
+                           Exterior Finish: Low-Emissivity Al-Coating (eps <= 0.25)
+  • South Glazing        : 6.0 m² Double Glazed Unit (4-12-4 Air, Argon Filled)
+                           Equipped with Automated Insulating Night Shutter (R=0.55)
+  • Infiltration Control : Controlled Natural Ventilation, Sealed to 0.40 ACH
+--------------------------------------------------------------------------------
+THERMAL PERFORMANCE & LOGISTICS PAYOFF:
+  • Minimum Indoor Temp at Dawn : +17.2 °C (Holding above 18°C band with passive mass)
+  • Daytime Peak Indoor Temp    : +21.4 °C (No daytime overheating risk)
+  • Backup Kerosene Avoided     : 1,180 Litres / year / post
+  • Direct Logistics Cost Saved : ₹28,32,000 per year per shelter
+  • Capital Cost Payback        : 2.1 Years against Siachen airlift rates
+================================================================================
 ```
 
 ---
 
-# 21. RESTful API Architecture & Frozen Contracts
+# 27. Database Schema & Data Architecture
 
-All API routes strictly adhere to **`brain/07_API_CONTRACT.md`**. Request and response bodies are validated via Pydantic v2 schemas:
+THERMA utilizes an ACID-compliant local relational SQLite database (`data/therma.db`) structured across six primary operational tables:
 
-| Endpoint | Method | Purpose | Key Parameters |
-|:---|:---:|:---|:---|
-| `/simulate` | `POST` | Runs 24-hr transient simulation; indoor temperatures, heat loss, and diagnosis. | Location, Geometry, Envelope, Opening, Vent |
-| `/ml/predict` | `POST` | Sub-10ms Scientific ML surrogate prediction across 5 ensemble models. | Wall thickness, Insulation, Glazing, ACH |
-| `/ml/ask` | `POST` | Grounded AI assistant synthesizing conversational answers from physics runs. | Query string, Optional design payload |
-| `/optimize` | `POST` | Searches $\ge 3,200$ variants via Latin Hypercube; extracts Pareto frontier. | Budget, Locally available filter, Bounds |
-| `/sensitivity`| `POST` | Morris elementary effects screening ranking envelope levers by $\mu^*$ and $\sigma$.| Trajectories $r=20$, Bounded parameters |
-| `/what-if` | `POST` | Evaluates single parameter modification against baseline; returns diurnal $\Delta T$.| Variable key, Target value, Baseline JSON |
-| `/compare` | `POST` | Compares 2 to 4 designs; computes Utopia distance Pareto knee point. | List of 2 to 4 design payloads |
-| `/retrofit` | `POST` | Ranks physical interventions by $^\circ\text{C}$ gained per ₹1,000 invested. | Baseline shelter, Investment budget cap |
-| `/cpwd/chat` | `POST` | Local offline CPWD DSR/DAR assistant with vector + FTS5 retrieval and citations.| Query text, Edition year filter |
-| `/sites` | `GET` | Lists 39 defense posts across Ladakh, Siachen, Galwan, Dras, etc. | Sector filter, Estate name |
-| `/sites/:id` | `GET` | Retrieves full outpost microclimate, envelope profile, and active alerts. | Site ID string |
-| `/materials` | `GET` | Returns library of 102 envelope materials with cited thermophysical properties.| Category filter, Local availability |
-| `/validation` | `GET` | Serves committed field validation benchmarks (V1–V4) vs. DIHAR Leh trials. | — |
+```mermaid
+erDiagram
+    materials ||--o{ runs : "referenced in"
+    sites ||--o{ site_results : "evaluated by"
+    sites ||--o{ site_history : "audited by"
+    sites ||--o{ alerts : "triggers"
+    designs ||--o{ sites : "configured with"
+
+    materials {
+        text id PK
+        text name
+        text category
+        real k
+        real rho
+        real cp
+        real absorptivity
+        real emissivity
+        real cost_per_m3
+        text cost_source
+        integer locally_available
+        text source
+    }
+
+    sites {
+        text id PK
+        text name
+        text estate
+        real lat
+        real lon
+        real altitude_m
+        text district
+        text site_type
+        integer occupants
+        text current_design_json
+        text updated_at
+    }
+
+    site_results {
+        text site_id PK, FK
+        text computed_at
+        text weather_mode
+        text summary_json
+    }
+
+    designs {
+        text id PK
+        text name
+        integer revision
+        text status
+        text design_json
+        text author
+    }
+
+    alerts {
+        text id PK
+        text site_id FK
+        text kind
+        text severity
+        text window_start
+        text window_end
+        integer acknowledged
+    }
+```
 
 ---
 
-# 22. Project Directory Topology
+# 28. RESTful API Architecture & Frozen Contracts
+
+All API endpoints strictly adhere to **`brain/07_API_CONTRACT.md`**. Request and response bodies are validated via Pydantic models with zero silent fallback failures.
+
+### Primary Operational Endpoints
+
+| Endpoint | Method | Input Payload | Output Response | Function |
+|:---|:---:|:---|:---|:---|
+| `/simulate` | `POST` | `SimulateRequest` | `SimulateResponse` | Runs 24-hr transient simulation; produces indoor temperature series, heat loss breakdown, and diagnosis. |
+| `/optimize` | `POST` | `OptimizeRequest` | `OptimizeResponse` | Searches $\ge 3,200$ variants via Latin Hypercube; returns non-dominated Pareto front and top 3 designs with 'why'. |
+| `/sensitivity` | `POST` | `SensitivityRequest` | `SensitivityResponse` | Morris elementary effects screening ranking envelope levers by $\mu^*$ and $\sigma$. |
+| `/what-if` | `POST` | `WhatIfExecutionRequest`| `WhatIfResponse` | Evaluates single parameter modification against baseline; returns comparative metrics and diurnal delta curve. |
+| `/compare` | `POST` | `CompareDesignsRequest`| `CompareDesignsResponse`| Compares 2 to 4 designs; computes Utopia distance Pareto knee point and transparent cost basis chips. |
+| `/retrofit` | `POST` | `RetrofitRequest` | `RetrofitResponse` | Ranks physical interventions by $^\circ\text{C}$ gained per ₹1,000 invested. |
+| `/materials` | `GET` | — | `List[MaterialRecord]` | Returns library of materials with thermophysical properties and cost basis citations. |
+| `/validation` | `GET` | — | `ValidationSummary` | Serves committed field validation benchmarks (V1–V4) vs. DIHAR Leh trials. |
+| `/sites` | `GET` | `estate, district` | `List[SiteRecord]` | Lists defense posts across Ladakh/Nepal with real-time evaluation status and cold alerts. |
+
+---
+
+# 29. Authoritative Validation Architecture
+
+Validation follows an inviolable two-tier separation of concerns:
+
+```
+┌──────────────────────────────────────┐
+│       FRONTEND PRESENTATION LAYER    │
+│    Pure UI, Form Validation, Charts  │
+│    NO PHYSICS COMPUTED IN JS!        │
+└──────────────────────────────────────┘
+                   │
+                   ▼ (HTTP REST JSON)
+┌──────────────────────────────────────┐
+│        AUTHORITATIVE BACKEND         │
+│    1. Strict Pydantic Schema Parsing │
+│    2. Rule R1 Sourced Constants      │
+│    3. First-Principles RC Solver     │
+│    4. Safety Interlock Verification  │
+└──────────────────────────────────────┘
+```
+
+The browser is treated as an untrusted presentation surface. It is strictly forbidden from recalculating temperatures, deltas, or energy flows in client-side JavaScript. The server remains the single, inviolable authority.
+
+---
+
+# 30. Security, Privacy & Air-Gapped Defense Isolation
+
+Military software deployed near contested borders must withstand electronic warfare, network denial, and cyber threats:
+
+- **100% Air-Gapped Operation:** Runs entirely from local storage. Zero external CDNs, tracking pixels, or external API dependencies.
+- **Zero Cloud Telemetry:** No user data, site coordinates, or military shelter specifications ever leave the local hardware.
+- **Defense-Grade Offline Resilience:** Weather datasets, material schedules, and validation benchmarks are pre-cached in local SQLite storage.
+- **No Floating-Point Financial Leakage:** Capital expenditures and fuel costs are tracked with exact numeric precision, avoiding IEEE 754 drift.
+
+---
+
+# 31. UI/UX Design Philosophy & Visual Tokens
+
+THERMA features a custom, high-density design system (**Editorial Engineering**) implemented in `web/src/tokens.css`. It replaces generic dashboards with an austere, military-grade engineering interface:
+
+```css
+/* Core Color Tokens (tokens.css) */
+--cream:       #FFF9EB;   /* Majority reading surface */
+--cream-2:     #FBF2DE;   /* Raised panels, control strips */
+--espresso:    #200F07;   /* Primary high-contrast technical text */
+--espresso-70: #5A4A42;   /* Secondary annotations and subtitles */
+--rule:        #E8DCC4;   /* Hairline borders and structural dividers */
+--orange:      #F77331;   /* Solar gain highlights, primary call-to-action */
+--ice:         #2E6F8E;   /* Thermal losses, cold risks, sub-zero indicators */
+--sage:        #4A7C59;   /* Comfort band, verified validation pass */
+
+/* Typography Tokens */
+--font-heading: 'Montserrat', sans-serif;   /* Bold technical headings */
+--font-body:    'DM Sans', sans-serif;      /* Crisp legible body copy */
+--font-mono:    'JetBrains Mono', monospace;/* Monospaced temperatures and rupees */
+```
+
+- **Hairline Borders Only:** `box-shadow: none !important;` eliminates decorative drop shadows in favor of precise structural lines.
+- **Strict Numeric Monospacing:** Every temperature, rupee amount, and percentage is rendered in `JetBrains Mono` to prevent layout shift during updates.
+
+---
+
+# 32. Screen-by-Screen ERP & Decision Platform Specification
+
+| Screen View | Primary Purpose | Key Operator Inputs | System Outputs & Side Effects | Connected Modules |
+|:---|:---|:---|:---|:---|
+| **Design Studio** | Interactive envelope authoring | Orientation, wall layers, glazing, ACH, occupants | Real-time dynamic cross-section SVG, heat flux vectors, and thermal resistance ($R$). | Materials, Simulator |
+| **Simulate Canvas** | Complete 24-hr simulation output | Date mode, weather profile, simulation run CTA | `TempChart` (indoor/outdoor curves), `MetricCards`, `DeltaAmbientChart`, and spec copy. | RC Solver, Weather |
+| **Thermal Diagnosis** | Bottleneck loss attribution | Inspect active simulation results | Heat loss breakdown percentage bar, dominant weakness flag, and actionable prescription. | Diagnosis Engine |
+| **What-If Sandbox** | Single-variable sensitivity analysis | Variable dropdown, bounded range slider | Authoritative server re-simulation, side-by-side metric delta cards, and 24-hr $\Delta T$ strip. | What-If Engine |
+| **Comparison Matrix** | Multi-design side-by-side analysis | Add/remove designs (2 to 4), preset scenarios | Comparative table, Utopia distance Pareto knee point, cost basis chips, and SVG overlay. | Comparison Engine |
+| **Pareto Optimizer** | Multi-objective automated search | Budget cap, locally available material toggle | 3,200-point Pareto scatter plot, non-dominated frontier, top 3 designs, and 'why' string. | Vectorized Optimizer |
+| **Retrofit Doctor** | Existing building intervention | Existing shelter profile, investment budget | Ranked interventions sorted by $^\circ\text{C}$ gained per ₹1,000, cumulative gain curves. | Impact Engine |
+| **Validation Panel** | Empirical proof of model fidelity | Toggle validation benchmarks V1–V4 | Comparison chart vs. published DRDO-DIHAR field trials, pass/fail status indicator. | Validation Engine |
+| **Estate Watch Hub** | Multi-post surveillance & logistics | Sector filter (Ladakh / Nepal Relief) | Card grid of 12 defense posts, nearest cold-breach sorting, and alert dispatch. | Platform Engine |
+
+---
+
+# 33. End-to-End Operational Defense Scenario
+
+```
+OPERATIONAL SCENARIO: SIACHEN GLACIER SECTOR 4 (ALTITUDE: 4,800 M)
+Extreme Winter Infiltration and Sub-Zero Nighttime Collapse
+════════════════════════════════════════════════════════════════════════════════
+1. BASELINE STATUS (Standard Uninsulated Military Prefab)
+   • Exterior Ambient Temperature : Plunges to -32.0 °C at 05:00 AM.
+   • Indoor Temperature Collapse  : Drops below 0 °C by 23:00; hits -18.2 °C at dawn.
+   • Kerosene Consumption        : 140 Litres / month per 15-man unit.
+   • Fuel Cost per Post          : ₹3,36,000 / month (Airlift cost: ₹2,400/L).
+   • Soldier Health Threat       : 19 hours spent below WHO 18°C health threshold.
+
+2. RUNNING THERMA MULTI-OBJECTIVE PARETO OPTIMIZER
+   • Constraint Config           : Locally available materials in Ladakh only.
+   • Candidate Evaluations       : 3,200 permutations simulated in 5.4 seconds.
+   • Safety Filter Action        : 412 airtight combustion designs rejected (ACH < 0.35).
+   • Winner Selected             : Design #814 (High-mass rammed earth + EPS + shutter).
+
+3. OPTIMIZED ENVELOPE CONFIGURATION
+   • South Facet                 : 400 mm Stabilized Earth + 6.0 m² Double Glazed Aperture.
+   • Nocturnal Window Protection : Insulated Night Shutter deployed 18:00 to 06:00 (R=0.55).
+   • Roof Build-Up               : 150 mm Concrete Slab + 100 mm EPS + Low-E Roof (eps=0.25).
+   • Infiltration Control        : Perimeter silicone gaskets maintaining 0.40 ACH.
+
+4. POST-INTERVENTION THERMAL PERFORMANCE
+   • Dawn Minimum Inside Temp    : +17.2 °C (HELD STABLE WITH ZERO ACTIVE FUEL).
+   • Fuel Avoided per Year       : 1,220 Litres of kerosene eliminated per post.
+   • Annual Defense Cost Saved   : ₹29,28,000 / year / post.
+   • Logistics Payback Period    : 2.1 Years full capital return.
+   • Troop Survivability         : Zero hypothermia risk, zero CO asphyxiation risk.
+════════════════════════════════════════════════════════════════════════════════
+```
+
+---
+
+# 34. Visual Workflow Diagram Gallery
+
+### Diagram 1: 1D Transient RC Thermal Discretization
+
+```mermaid
+flowchart LR
+    subgraph Wall ["Composite Wall Facet (e.g. 300mm Mud Brick + 100mm EPS)"]
+        direction LR
+        S_OUT[Surface Ext<br/>Tse] --- N1((Node 1<br/>C1, T1))
+        N1 --- N2((Node 2<br/>C2, T2))
+        N2 --- N3((Node 3<br/>C3, T3))
+        N3 --- INT[Interface<br/>K_int]
+        INT --- N4((Node 4<br/>C4, T4))
+        N4 --- N5((Node 5<br/>C5, T5))
+        N5 --- S_IN[Surface Int<br/>Tsi]
+    end
+
+    EXT[Exterior Air Tout] -->|R_se Film| S_OUT
+    S_IN -->|R_si Film| AIR[Indoor Air Node Tin]
+    SOLAR[Solar Flux Absorbed] --> S_OUT
+    SKY[Sky Longwave Radiation] --> S_OUT
+    AIR -->|ACH Infiltration| EXT
+```
+
+---
+
+### Diagram 2: Multi-Objective Pareto Optimization Flowchart
+
+```mermaid
+flowchart TD
+    A[Start Optimization] --> B[Generate 3,200 Latin Hypercube Samples]
+    B --> C{Combustion Heater Present?}
+    C -- Yes --> D{ACH >= 0.35?}
+    D -- No --> E[Reject Design: Life Safety Refusal]
+    D -- Yes --> F[Retain Design]
+    C -- No --> F
+    F --> G[Pack Designs into Vectorized NumPy Tensors]
+    G --> H[Run 3-Day Spin-Up + 24-hr Diffusion Batch]
+    H --> I[Score Thermal Comfort & Compute Capital Cost]
+    I --> J[Perform Non-Dominated Sorting]
+    J --> K[Extract Pareto Frontier Curve]
+    K --> L[Select Top 3 Designs: Warmest, Cheapest, Best Trade-Off]
+    L --> M[Synthesize Deterministic 'Why' Explanation]
+```
+
+---
+
+### Diagram 3: Thermal Diagnosis Energy Balance Breakdown
+
+```mermaid
+flowchart TD
+    SIM[Simulation Run Complete] --> BAL[Extract Total 24h Heat Loss Sum]
+    BAL --> W[Walls Conduction Q_walls]
+    BAL --> R[Roof Conduction Q_roof]
+    BAL --> G[Glazing Conduction Q_glazing]
+    BAL --> I[Air Infiltration Q_inf]
+    BAL --> S[Roof Sky Radiation Q_sky]
+    W & R & G & I & S --> NORM[Normalize to Exactly 100%]
+    NORM --> DETECT{Identify Max Loss Component}
+    DETECT -- Glazing Dominant --> PRES1[Prescribe Insulated Night Shutters]
+    DETECT -- Roof Dominant --> PRES2[Prescribe Low-E Roof Coating eps <= 0.25]
+    DETECT -- Wall Dominant --> PRES3[Prescribe Exterior EPS Insulation]
+    DETECT -- Infiltration Dominant --> PRES4[Prescribe Silicone Caulking & Air Sealing]
+```
+
+---
+
+### Diagram 4: What-If Single-Variable Modification Cycle
+
+```mermaid
+flowchart LR
+    BASE[Active Baseline Request] --> MOD[User Adjusts Single Lever Slider]
+    MOD --> CHK{Schema Bounds Valid?}
+    CHK -- No --> ERR[Display Error & Revert]
+    CHK -- Yes --> API[POST /what-if]
+    API --> SOLVE[Authoritative Server Simulation]
+    SOLVE --> CMP[Calculate D-Tin, D-Cost, D-Fuel]
+    CMP --> DELTA[Compute 24h Hourly D-T Array]
+    DELTA --> UI[Update Side-by-Side Metric Cards & Diurnal Strip]
+```
+
+---
+
+# 35. Live Hackathon Judging & Demo Walkthrough
+
+Judges can verify the platform end-to-end in **under 90 seconds (or a detailed 5-minute deep-dive)** following this structured sequence:
+
+| Step | Action to Perform | What to Inspect on Screen | Technical Verification Point |
+|:---:|:---|:---|:---|
+| **1** | Open `http://localhost:5173` | Clean Editorial Engineering layout loads instantly | 100% local build, zero network requests, offline ready. |
+| **2** | Select **Leh (3,500 m)** & **Design Winter Night** | Ambient temperature falls to $-22\ ^\circ\text{C}$ at dawn | Altitude-adjusted air density ($\rho = 0.906\ \text{kg/m}^3$) loaded into solver. |
+| **3** | Click **[Run Simulation]** | Indoor temperature collapses to $-18.0\ ^\circ\text{C}$ on uninsulated hut | **PS Requirement 1 Satisfied:** Predicts accurate indoor thermal collapse. |
+| **4** | Inspect the **Diagnosis Panel** | Wall conduction ($34.2\%$) and Glazing ($22.4\%$) identified | Heat loss breakdown sums mathematically to $100.0\%$. |
+| **5** | Switch to **What-If Studio** | Slide EPS insulation from $0.00\ \text{m}$ to $0.15\ \text{m}$ | Server re-runs authoritative physics; diurnal delta strip shows $+8.2\ ^\circ\text{C}$ gain. |
+| **6** | Test **Safety Interlock** | Set $\text{ACH} = 0.20$ with Kerosene heater | Red **RefusalCard** appears blocking simulation due to CO asphyxiation hazard. |
+| **7** | Navigate to **Optimization Tab** | Click **[Run Multi-Objective Optimization]** | 3,200 designs evaluated in $<6$ seconds; Pareto frontier rendered on screen. |
+| **8** | Click **Rank #1 Design** | Steady green curve holds **$+17.2\ ^\circ\text{C}$** till sunrise | **PS Requirement 2 Satisfied:** Passive solar thermal retention without fuel. |
+| **9** | Inspect **Why This Won** & **Heat Flow** | Night shutter contributes $+6.1\ ^\circ\text{C}$ for ₹500 | **PS Requirement 3 Satisfied:** Real-time heat flow across $\Delta T$. |
+| **10**| Open **Validation Panel** | Inspect 4 empirical field points vs. DRDO-DIHAR | Matches field data within $1.2\ ^\circ\text{C}$; Trombe ranked above direct-gain ($V2 > V3$). |
+
+---
+
+# 36. Architectural Differentiators
+
+| Traditional Architecture (EnergyPlus / Naive Web Tools) | THERMA Architectural Innovation | Why THERMA Wins at the Defense Hackathon |
+|:---|:---|:---|
+| **Grades one design at a time** | **Searches 3,200+ variants in seconds** | Users need an automated answer, not a manual trial-and-error simulator. |
+| **Sea-level air assumptions** | **Exact barometric altitude density scaling** | Naive models overstate high-altitude infiltration losses by 35%. |
+| **Neglects night sky radiation** | **Swinbank linearized sub-cooling engine** | Captures the true physical mechanism causing nocturnal sub-zero collapse. |
+| **Blackbox LLM hallucinations** | **Deterministic Morris parameter diffs** | Explanations are mathematically derived from first-principles physics. |
+| **Unsafe optimization** | **Automated combustion safety interlocks** | Prevents soldiers from suffocating due to over-sealed airtight shelters. |
+| **Cloud-dependent APIs** | **100% offline, air-gapped container stack** | Ready for operational military deployment in remote tactical headquarters. |
+
+---
+
+# 37. Honest Engineering Limitations
+
+In strict adherence to engineering ethics and **PRD Section 9**, we document our model boundaries transparently:
+
+1. **1D Heat Diffusion vs. 3D Meshing:** THERMA solves 1D transient conduction per facet; corner thermal bridging at steel junctions is corrected via ISO 10211/14683 $\Psi$-factors rather than heavy 3D solid continuum meshes.
+2. **Single Well-Mixed Air Node:** Indoor air is modeled as a single well-mixed thermal capacitance; vertical temperature stratification is approximated rather than simulated via full 3D Navier-Stokes CFD.
+3. **Infiltration Model:** Natural air infiltration is scaled using barometric altitude air density and user-specified ACH, rather than continuous wind-tunnel pressure network simulations.
+4. **Validation Grounding:** Calibrated against published DRDO-DIHAR Leh empirical field data. The ANSYS Mechanical reference model and comparison harness are built with physical runs pending. Full-scale sensor instrumented field testing at Siachen represents our deployment roadmap milestone.
+
+---
+
+# 38. Future Roadmap
+
+- **Phase 5 (Pareto Frontier & Budget Optimization):** **COMPLETED** — Mathematical Pareto non-dominated sorting, budget filtering with zero-feasible detection, and interactive frontier exploration.
+- **Phase 6 (Design Doctor & Retrofit Mode):** **COMPLETED** — 7-Stage clinical workflow (`CURRENT CONDITION` → `DIAGNOSIS` → `RECOMMENDED RETROFITS` → `COST` → `EXPECTED EFFECT` → `SAFETY` → `RATIONALE`), cost-efficiency ranking by $\text{degrees\_per\_1000\_inr} = \Delta T_{in,min} / (\text{cost\_inr} / 1000.0)$, and ASHRAE 62.2 safety interlocks.
+- **3D CFD Microclimate Meshing:** Real-time interior air stratification using WebAssembly Navier-Stokes solvers.
+- **Edge LoRa Sensor Telemetry:** Direct hardware integration with remote LoRaWAN temperature probes deployed across high-altitude border posts.
+- **Microgrid Hybrid Sizing:** Sizing rooftop photovoltaic panels, battery energy storage systems (BESS), and thermal heat pumps.
+
+---
+
+# 39. Project Directory Topology
 
 ```text
 highoncaffeine/
 ├── api/                             # FastAPI REST Orchestration Layer
-│   ├── main.py                      # Main API gateway, frozen routing & dev proxy
-│   ├── cpwd/                        # Local CPWD DSR/DAR AI & Vector Retrieval
-│   │   ├── assistant.py             # Grounded AI assistant with exact citations
-│   │   ├── database.py              # SQLite + FTS5 full-text database
-│   │   ├── ingest.py                # Multi-year PDF/CSV ingestion pipeline
-│   │   └── models.py                # Pydantic schemas for CPWD items
+│   ├── main.py                      # Main API gateway & frozen endpoint routing
 │   ├── platform.py                  # Multi-district estate platform router
 │   ├── platform_schemas.py          # Pydantic models for sites and alerts
 │   ├── weather.py                   # Weather fetching, caching & CSV ingestion
@@ -693,64 +1352,73 @@ highoncaffeine/
 │   ├── radiation.py                 # Swinbank linearized sky radiation
 │   ├── types.py                     # Core dataclasses (Design, Layer, Opening)
 │   └── physics_constants.py         # Cited thermophysical constants (Rule R1)
-├── ml/                              # Scientific Machine Learning Surrogate Core
-│   ├── inference.py                 # Real-time sub-10ms inference pipeline
-│   ├── ask.py                       # Grounded conversational AI assistant
-│   ├── data_generation/             # 120,000 timestep dataset generator
-│   ├── preprocessing/               # Feature normalization and train/val/test splits
-│   └── training/                    # 5 Trained surrogate model artifacts (.pkl)
-├── web/                             # React 18 + Vite Frontend Application
+├── web/                             # React 18 Frontend Application
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── platform/            # Tactical C2 Platform Views (17 pages)
-│   │   │   │   ├── LandingPage.jsx  # Public interactive landing hub
-│   │   │   │   ├── DashboardPage.jsx# Strategic command overview
-│   │   │   │   ├── SitesPage.jsx    # 39 Defense outpost network
-│   │   │   │   ├── SiteHubPage.jsx  # Single outpost command center
-│   │   │   │   ├── MlPredictorPage.jsx # Scientific ML surrogate explorer
-│   │   │   │   ├── CpwdPage.jsx     # CPWD DSR/DAR AI Assistant
-│   │   │   │   ├── ReportPage.jsx   # Military spec & BOQ export
-│   │   │   │   ├── VerifyPage.jsx   # Live system verification harness
-│   │   │   │   ├── Interactive3DMap.jsx # Tactical geospatial map
-│   │   │   │   └── FloatingChatOrb.jsx # Interactive AI voice orb
 │   │   │   ├── results/             # Simulation output display panels
-│   │   │   │   ├── DesignComparisonPanel.jsx  # Multi-design trade-off matrix
+│   │   │   │   ├── DesignComparisonPanel.jsx  # Multi-design comparison
 │   │   │   │   ├── WhatIfPanel.jsx            # Single-variable sandbox
-│   │   │   │   ├── ThermalDiagnosisPanel.jsx  # 100% loss attribution
-│   │   │   │   ├── DesignDoctorPanel.jsx      # 7-stage clinical retrofit doctor
+│   │   │   │   ├── ThermalDiagnosisPanel.jsx  # Bottleneck analysis
 │   │   │   │   ├── MetricCards.jsx            # Headline KPI metrics
-│   │   │   │   └── RefusalCard.jsx            # Asphyxiation safety refusal
-│   │   │   ├── Shelter3DCanvas.jsx  # Three.js 3D WebGL shelter viewer
-│   │   │   ├── CrossSectionSVG.jsx  # Dynamic wall cross-section with flux vectors
-│   │   │   ├── DayScrubber.jsx      # 24-hr diurnal time scrubber
-│   │   │   ├── TempChart.jsx        # Diurnal temperature curve
-│   │   │   └── CommandBar.jsx       # Tactical hotkeys & command palette
+│   │   │   │   ├── HeatLossBreakdown.jsx      # Component loss breakdown
+│   │   │   │   └── SpecSheetCopy.jsx          # Military spec exporter
+│   │   │   ├── platform/            # Estate asset platform UI components
+│   │   │   ├── TempChart.jsx        # 24-hr diurnal indoor/outdoor plots
+│   │   │   ├── DeltaAmbientChart.jsx# Heat flow across delta T chart
+│   │   │   ├── SimulateCanvas.jsx   # Primary simulation layout canvas
+│   │   │   └── ValidationPanel.jsx  # Field trial validation interface
 │   │   ├── tokens.css               # Editorial Engineering design tokens
-│   │   ├── router.jsx               # React Router DOM configuration
-│   │   └── App.jsx                  # Main application orchestrator
-│   └── package.json                 # Frontend dependencies and test scripts
+│   │   └── index.css                # Global styles and resets
+│   └── package.json                 # Frontend dependencies and scripts
+├── brain/                           # Engineering Specifications & Master Rules
+│   ├── 00_MASTER_RULES.md           # Eight hard rules and anti-hallucination protocols
+│   ├── 01_PRD.md                    # Product requirements and honest limitations
+│   ├── 06_PHYSICS_SPEC.md           # Authoritative mathematical formulations
+│   ├── 07_API_CONTRACT.md           # Frozen REST API contract
+│   ├── 10_VALIDATION.md             # Gate 3 empirical validation criteria
+│   ├── 11_OPTIMIZER_SPEC.md         # Vectorized optimizer specifications
+│   └── ANSYS_REFERENCE.md           # ANSYS reference track & setup guide
+├── validation/                      # Empirical Benchmarks & Sanity Runner
+│   ├── run.py                       # Gate 3 automated validation execution
+│   └── ansys/                       # ANSYS cases and comparison harness
+├── tests/                           # Pytest Automated Test Suite
+│   ├── test_comparison.py           # Multi-design comparison test suite
+│   ├── test_what_if.py              # What-if sandbox test suite
+│   ├── test_diagnosis.py            # Thermal diagnosis test suite
+│   ├── test_optimizer.py            # Pareto optimizer test suite
+│   ├── test_physics_sanity.py       # 10/10 Inviolable physics sanity checks
+│   └── test_platform.py             # Defense estate platform tests
 ├── data/                            # Database & Static Master Datasets
-│   ├── materials.csv                # 102 cited materials (CPWD DSR 2023)
+│   ├── materials.csv                # Cited materials library (CPWD DSR 2023)
 │   └── therma.db                    # Relational SQLite database
-├── docs/presentation_assets/        # Presentation Boards & Generated Slides
-│   ├── SIH_2026_Idea_Presentation_THERMA.pdf # Complete 7-page SIH submission PDF
-│   ├── technical_approach_slide_3.pdf        # Standalone Slide 3 (960x540 pt)
-│   ├── technical_approach_slide_3.png        # High-resolution Slide 3 graphic
-│   └── 02_technical_approach_complete_board.png # 4800x2700 px master board
-├── tests/                           # Pytest Automated Test Suite (195 tests)
 └── README.md                        # Master Project Documentation
 ```
 
 ---
 
-# 23. Installation, Setup & Verification Guide
+# 40. Core Development Principles (The Eight Inviolable Master Rules)
+
+Every contributor and agent operates under eight strict engineering principles documented in **`brain/00_MASTER_RULES.md`**:
+
+1. **R1 — Never Invent a Number:** Every physical constant, material property, or cost figure must have an authoritative citation in `data/materials.csv` or `brain/05_DATA_SOURCES.md`. Guessing is strictly prohibited.
+2. **R2 — Never Fake a Return Value:** Stubs must raise `NotImplementedError` or return explicitly labeled fixtures. Banned: plausible-looking computed mock numbers.
+3. **R3 — The API Contract is Frozen:** `brain/07_API_CONTRACT.md` is the single source of truth. Amendments require a formal architectural change proposal and changelog entry.
+4. **R4 — Stay in Your Lane:** Modular code ownership is strictly enforced across engine, API, web, and validation domains.
+5. **R5 — Closed Dependencies:** Zero new packages without formal architectural approval. Protects build integrity at hour 20 of the hackathon.
+6. **R6 — Read Before You Write:** Always inspect specifications before implementing code. If code contradicts documentation, documentation wins.
+7. **R7 — Every Phase Ends with a Report:** A phase is not complete until verified, tested, and documented.
+8. **R8 — Uncertainty is Stated, Never Hidden:** If an engineering calculation is unverified, tag it as `[estimate]` or report it immediately.
+
+---
+
+# 41. Installation, Setup & Verification
 
 ### Prerequisites
-- **Python:** Version 3.9 or higher (Python 3.10 / 3.11 recommended)
+- **Python:** Version 3.9 or higher
 - **Node.js:** Version 18.0 or higher (npm 9+)
 - **Operating System:** Linux, macOS, or Windows (WSL2 recommended)
 
-### Quickstart Setup in Three Steps
+### Quickstart Setup in Two Commands
 
 ```bash
 # 1. Clone the repository
@@ -761,7 +1429,7 @@ cd highoncaffeine
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn api.main:app --port 8000 --reload
+uvicorn api.main:app --port 8000 --host 0.0.0.0 --reload
 
 # 3. In a second terminal, setup and launch React Web Studio (Port 5173)
 cd web
@@ -769,42 +1437,149 @@ npm install
 npm run dev
 ```
 
-Visit **`http://localhost:5173`** or **`http://localhost:8000`** in your browser.
+Visit **`http://localhost:5173`** in your browser.
 
 ---
 
-# 24. Live Hackathon Judging Walkthrough (90s Speedrun & 5m Deep Dive)
+### Verification & Automated Test Suites
 
-Judges can verify the platform end-to-end following this structured demonstration:
+To verify system integrity, run the automated test batteries:
 
-### 🚀 90-Second Speedrun
-1. **Open `http://localhost:5173`:** Observe the instant offline load, zero external network requests, and live system metrics on the landing hub.
-2. **Navigate to Design Studio (`/design`):** Select **Leh (3,500 m)** and **Design Winter Night** ($-22^\circ\text{C}$).
-3. **Click [Run Simulation]:** Observe the uninsulated hut collapse to $-18.0^\circ\text{C}$ at dawn (**Req 1 Satisfied**).
-4. **Switch to What-If Studio:** Slide EPS insulation from $0.00\ \text{m}$ to $0.15\ \text{m}$. Watch the server compute the authoritative diurnal delta strip, gaining $+8.2^\circ\text{C}$ instantly.
-5. **Test Safety Interlock:** Select kerosene heater and set $\text{ACH} = 0.20$. Watch the red **RefusalCard** block the design to prevent carbon monoxide poisoning.
-6. **Trigger Multi-Objective Optimizer:** Click **[Run Optimization]**. Evaluate 3,200 designs in $<6$ seconds and select the Rank #1 winner holding **$+17.2^\circ\text{C}$** at dawn with zero fuel (**Req 2 & 4 Satisfied**).
-7. **Open Validation Panel (`/validation`):** Inspect 4 empirical field points vs. DRDO-DIHAR Leh field trials; verify all 4 PASS and Trombe wall is ranked above direct-gain.
+```bash
+# 1. Execute full Pytest backend test suite (75+ tests)
+.venv/bin/pytest tests/ -v
 
-### 🔍 5-Minute Deep Dive
-- **3D WebGL Shelter Inspector:** Toggle the outer wall layer to peel the facade and examine the EPS insulation and structural adobe mass.
-- **Scientific ML Predictor (`/ml-predictor`):** Drag sliders across wall thickness, glazing area, and orientation; see instant sub-10ms predictions from the 5-model surrogate ensemble.
-- **CPWD DSR Assistant (`/cpwd`):** Ask *"What is the rate for 100mm EPS insulation under DSR 2023?"* and inspect the exact page citation and item code.
-- **Military Spec Export:** Click **[Copy Military Specification]** and inspect the formatted MES Bill of Quantities (BOQ).
+# 2. Run Gate 3 empirical validation checks vs. DRDO-DIHAR field trials
+PYTHONPATH=. .venv/bin/python validation/run.py --check
+
+# 3. Run frontend unit tests and production build verification
+cd web
+npm test
+npm run build
+```
+
+Expected output:
+```text
+============================== 75 passed in 11.04s ==============================
+VALIDATION RUN:
+  V1 DIHAR Leh        model 16.04-18.38 C   measured 15-20 C     PASS
+  V2 Trombe Feb       model 16.29 C        measured 17.44 C     PASS (delta -1.15)
+  V3 Direct gain Feb  model 15.01 C        measured 14.81 C     PASS (delta +0.20)
+  V4 ADM Block 06:00  model 18.88 C        measured 20 C        PASS (delta -1.12)
+  ORDERING            Trombe 16.29 > DG 15.01                   PASS
+  SANITY physics      tests 10/10                                PASS
+============================== 29 passed in 68ms ================================
+✓ built in 546ms
+```
 
 ---
 
-# 25. Official Presentation Slides & Downloadable Artifacts
+# 42. Conclusion & Grand Finale Submission Summary
+
+**THERMA** delivers an end-to-end, scientifically defensible solution for **DRDO Problem Statement PS 26051**.
+
+By replacing crude intuition and sea-level software with high-altitude barometric physics, long-wave sky radiation models, snow albedo reflections, and vectorized multi-objective Pareto optimization, THERMA transforms thermal engineering into automated logistics decisions.
+
+- **For the Soldier:** Prevents hypothermia, holds $+17.2\ ^\circ\text{C}$ at dawn without fuel, and prevents carbon monoxide poisoning.
+- **For the Logistics Commander:** Eliminates $>1,180\ \text{L}$ of airlifted kerosene per shelter, saves $>₹28\ \text{Lakh}$ annually per post, and frees up critical rotary-wing air assets.
+- **For the Evaluator:** Grounded in published DRDO-DIHAR empirical trials, complete with ANSYS reference comparison harness, and 100% operational offline.
+
+---
+
+# 43. LOCAL CPWD AI SETUP
+
+THERMA incorporates a grounded, 100% local CPWD Delhi Schedule of Rates (DSR), Analysis of Rates (DAR), and Specifications Knowledge & Estimation System powered by **Ollama** and **SQLite + FTS5 + Vector Retrieval**.
+
+The system strictly adheres to the official CPWD source documents (2016, 2018, 2020 PDFs and 2025 structured data), guarantees zero hallucinations, isolates rates by edition year, provides exact page citations, and computes all arithmetic (Quantity × Rate and % Rate Changes) deterministically in Python backend code.
+
+### 1. Prerequisites & Dependencies
+Ensure Python 3.9+ virtual environment is active and dependencies are installed:
+```bash
+# In highoncaffeine root
+.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install pypdf
+```
+
+### 2. Ollama Local Setup
+Ollama serves as the local offline LLM inference engine without sending documents to cloud APIs:
+```bash
+# 1. Install Ollama (macOS)
+brew install ollama
+
+# 2. Start local Ollama daemon
+ollama serve
+
+# 3. Pull recommended chat and embedding models
+ollama pull llama3.2
+ollama pull nomic-embed-text
+```
+
+*Note: If Ollama is offline or models are not yet pulled, the system runs in high-reliability deterministic mode without crashing, serving exact database lookups, deterministic math, and citations.*
+
+### 3. Environment Variables (Optional Config)
+```bash
+export OLLAMA_BASE_URL="http://localhost:11434"
+export OLLAMA_CHAT_MODEL="llama3.2"
+export OLLAMA_EMBED_MODEL="nomic-embed-text"
+export OLLAMA_TEMPERATURE="0.0"
+```
+
+### 4. PDF & CSV Ingestion Pipeline
+To ingest and index the CPWD DSR/DAR/Specifications documents from the dataset directory (`/Users/cooldude69/Desktop/dataset`):
+```bash
+# Ingest 2016, 2018, 2020 PDFs and 2025 CSV
+.venv/bin/python -m api.cpwd.ingest
+```
+Expected output:
+```text
+Executing CPWD Ingestion Pipeline...
+{
+  "documents_processed": 4,
+  "total_pages_processed": 1686,
+  "items_extracted": 4154,
+  "rates_extracted": 4154,
+  "labour_records": 71,
+  "material_records": 1866,
+  "plant_records": 943,
+  "specification_records": 64,
+  "analysis_records": 3060,
+  "chunks_indexed": 2008,
+  "duration_seconds": 6.1
+}
+```
+
+### 5. Running the Application
+```bash
+# Terminal 1 — Start FastAPI Backend
+.venv/bin/uvicorn api.main:app --port 8000 --reload
+
+# Terminal 2 — Start Vite React Frontend
+cd web
+npm run dev
+```
+Open **`http://localhost:5173/cpwd`** or click **CPWD Rates & AI** in the platform sidebar.
+
+### 6. Running Automated Tests
+Run the 15 dedicated CPWD AI tests covering exact code retrieval, year differentiation, rate arithmetic, citations, and hallucination interlocks:
+```bash
+.venv/bin/pytest tests/test_cpwd_ai.py -v
+```
+
+---
+
+# 44. Official Presentation Slides & Downloadable Artifacts
 
 The repository includes high-resolution presentation boards and the official Smart India Hackathon 2026 presentation PDF:
 
-- 📄 **Complete 7-Page Submission Presentation:** [`SIH_2026_Idea_Presentation_THERMA.pdf`](file:///Users/cooldude69/Desktop/SIH/highoncaffeine/docs/presentation_assets/SIH_2026_Idea_Presentation_THERMA.pdf)  
+- 📄 **Complete 7-Page Submission Presentation:** [`SIH_2026_Idea_Presentation_THERMA.pdf`](./docs/presentation_assets/SIH_2026_Idea_Presentation_THERMA.pdf)  
   *Official SIH 2026 presentation slide deck with Page 3 updated with the complete Technical Approach board.*
-- 🖼️ **Standalone Slide 3 PDF (960 x 540 pt):** [`technical_approach_slide_3.pdf`](file:///Users/cooldude69/Desktop/SIH/highoncaffeine/docs/presentation_assets/technical_approach_slide_3.pdf)
-- 🖼️ **Standalone Slide 3 High-Res PNG:** [`technical_approach_slide_3.png`](file:///Users/cooldude69/Desktop/SIH/highoncaffeine/docs/presentation_assets/technical_approach_slide_3.png)
-- 📐 **Ultra-HD 4800 x 2700 px Master Board:** [`02_technical_approach_complete_board.png`](file:///Users/cooldude69/Desktop/SIH/highoncaffeine/docs/presentation_assets/02_technical_approach_complete_board.png)
+- 🖼️ **Standalone Slide 3 PDF (960 x 540 pt):** [`technical_approach_slide_3.pdf`](./docs/presentation_assets/technical_approach_slide_3.pdf)
+- 🖼️ **Standalone Slide 3 High-Res PNG:** [`technical_approach_slide_3.png`](./docs/presentation_assets/technical_approach_slide_3.png)
+- 📐 **Ultra-HD 4800 x 2700 px Master Board:** [`02_technical_approach_complete_board.png`](./docs/presentation_assets/02_technical_approach_complete_board.png)
 
 ---
 
 *Authored by Team HighOnCaffeine for the Smart India Hackathon 2026 Grand Finale.*  
 *SIH 2026 · Problem Statement PS 26051 · Defence Research & Development Organisation (DRDO).*
+
+
