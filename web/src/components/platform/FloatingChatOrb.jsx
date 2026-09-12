@@ -598,7 +598,43 @@ export default function FloatingChatOrb() {
 
                   {/* Grounded Response Diagnostic Console */}
                   {aiResponse && !aiLoading && (
-                    <div className="ai-diagnostic-console" style={{ marginTop: '0' }}>
+                    aiResponse.intent === 'clarification' ? (
+                      <div className="diagnostic-clarification-card">
+                        <div className="clarification-header">
+                          <div className="clarification-icon">
+                            <Sparkles size={18} />
+                          </div>
+                          <div>
+                            <h4 className="clarification-title">THERMA High-Altitude Thermal Assistant</h4>
+                            <span className="clarification-tag mono">Building Physics Inquiry Required</span>
+                          </div>
+                        </div>
+                        <div className="clarification-body">
+                          <RenderDiagnosticAnswer text={aiResponse.answer} />
+                        </div>
+                        {aiResponse.suggested_questions && aiResponse.suggested_questions.length > 0 && (
+                          <div className="clarification-suggestions">
+                            <span className="clarification-suggest-label">Recommended Inquiries:</span>
+                            <div className="clarification-chips">
+                              {aiResponse.suggested_questions.map((sq, i) => (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  className="clarification-chip"
+                                  onClick={() => {
+                                    setQueryInput(sq);
+                                    handleAiSubmit(sq);
+                                  }}
+                                >
+                                  {sq}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="ai-diagnostic-console" style={{ marginTop: '0' }}>
                       {/* Executive Header */}
                       <div className="diagnostic-header-bar">
                         <div className="diagnostic-header-left">
@@ -644,6 +680,39 @@ export default function FloatingChatOrb() {
                           <div className="spec-item">
                             <span className="spec-k">Region:</span>
                             <span className="spec-v">{aiResponse.resolved_parameters.region || 'Ladakh'}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Comparative Analysis Card if user requested comparison */}
+                      {aiResponse.comparison && (
+                        <div className="comparison-results-card">
+                          <div className="comparison-card-header">
+                            <span className="comparison-tag mono">HEAD-TO-HEAD SURROGATE COMPARISON</span>
+                            <span className="comparison-meta mono">DRDO PS 26051 Physics Evaluator</span>
+                          </div>
+                          <div className="comparison-grid">
+                            <div className="comparison-col">
+                              <span className="comparison-opt-title">{aiResponse.comparison.option_a.name}</span>
+                              <div className="comparison-opt-metrics">
+                                <div className="comp-m-row"><span>Indoor Air Temp:</span><strong className="mono">{aiResponse.comparison.option_a.indoor_temperature_C.toFixed(2)} °C</strong></div>
+                                <div className="comp-m-row"><span>Total Building Loss:</span><strong className="mono">{aiResponse.comparison.option_a.total_heat_loss_W.toLocaleString()} W</strong></div>
+                                <div className="comp-m-row"><span>Dominant Bottleneck:</span><strong className="uppercase mono">{aiResponse.comparison.option_a.dominant_loss}</strong></div>
+                              </div>
+                            </div>
+                            <div className="comparison-col comparison-winner">
+                              <span className="comparison-opt-title">{aiResponse.comparison.option_b.name}</span>
+                              <div className="comparison-opt-metrics">
+                                <div className="comp-m-row"><span>Indoor Air Temp:</span><strong className="mono">{aiResponse.comparison.option_b.indoor_temperature_C.toFixed(2)} °C</strong></div>
+                                <div className="comp-m-row"><span>Total Building Loss:</span><strong className="mono">{aiResponse.comparison.option_b.total_heat_loss_W.toLocaleString()} W</strong></div>
+                                <div className="comp-m-row"><span>Dominant Bottleneck:</span><strong className="uppercase mono">{aiResponse.comparison.option_b.dominant_loss}</strong></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="comparison-delta-strip mono">
+                            <span>ΔTin: {aiResponse.comparison.delta_temperature_C > 0 ? '+' : ''}{aiResponse.comparison.delta_temperature_C} °C</span>
+                            <span>·</span>
+                            <span>ΔHeat Loss: {aiResponse.comparison.delta_heat_loss_W > 0 ? '+' : ''}{aiResponse.comparison.delta_heat_loss_W} W</span>
                           </div>
                         </div>
                       )}
@@ -865,7 +934,8 @@ export default function FloatingChatOrb() {
                         </div>
                       </div>
                     </div>
-                  )}
+                  )
+                )}
                 </div>
               </motion.div>
             )}

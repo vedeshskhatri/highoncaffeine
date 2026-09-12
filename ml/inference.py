@@ -395,6 +395,64 @@ class ThermaInferenceEngine:
 
         return params
 
+    def classify_query_intent(self, question: str, shelter_override: Optional[Dict[str, Any]] = None) -> Tuple[str, bool]:
+        """
+        Determine user intent and verify whether the query is a valid building physics inquiry.
+        Returns: (intent_name, is_valid_boolean)
+        """
+        q = question.strip().lower()
+        if len(q) < 3:
+            return "clarification", False
+
+        # Keywords covering building physics, thermal engineering, envelope design, and life safety
+        THERMAL_KEYWORDS = [
+            # Temperature & comfort
+            "temp", "temperature", "indoor", "outdoor", "ambient", "cold", "warm", "heat", "lift",
+            "celsius", "degree", "freeze", "freezing", "frost", "subzero", "mrt", "radiant", "comfort",
+            # Envelope materials & assemblies
+            "wall", "roof", "glazing", "window", "insulat", "puf", "eps", "stone", "masonry", "brick", "mud",
+            "rammed", "concrete", "wood", "pine", "shutter", "thickness", "aerogel", "rockwool", "envelope",
+            "conduct", "u-value", "r-value", "transmiss", "thermal mass",
+            # Heat loss & thermodynamics
+            "loss", "flux", "bottleneck", "dissipat", "watt", "convection", "radiation", "sky", "longwave",
+            "ground", "permafrost", "slab",
+            # Ventilation & airflow
+            "ach", "infiltrat", "air change", "ventilat", "leakage", "draft", "airtight",
+            # Safety & heating
+            "safe", "safety", "hazard", "risk", "heater", "heating", "bukkhari", "kerosene", "diesel",
+            "electric", "unflued", "combustion", "asphyxia", "co", "carbon monoxide", "hypothermia",
+            # Locations & high-altitude sites
+            "siachen", "dras", "leh", "kargil", "galwan", "dbo", "daulat", "rezang", "chushul", "hanle",
+            "nyoma", "sonamarg", "keylong", "spiti", "kaza", "kunzum", "rohtang", "baralacha", "mana", "niti",
+            "tawang", "bum la", "se la", "nathu la", "changu", "auli", "himalay", "ladakh", "altitude",
+            # Design & comparatives
+            "compare", "difference", "better", "recommend", "design", "shelter", "performance", "passive"
+        ]
+
+        has_thermal_keyword = any(kw in q for kw in THERMAL_KEYWORDS)
+
+        # If user typed gibberish, single non-thermal word (e.g. 'heel', 'asdf'), or random letters
+        if not has_thermal_keyword:
+            return "clarification", False
+
+        # Specific intent classification
+        if ("compare" in q or " vs " in q or " versus " in q or "difference between" in q) and any(m in q for m in ["puf", "eps", "stone", "mud", "brick", "concrete", "wood", "insulation"]):
+            return "comparison", True
+
+        if any(s in q for s in ["safe", "safety", "unflued", "combustion", "asphyxia", "carbon monoxide", "co "]):
+            return "safety", True
+
+        if any(h in q for h in ["bottleneck", "heat loss", "loss", "flux", "sky longwave", "conduction", "dissipat"]):
+            return "heat_loss", True
+
+        if any(t in q for t in ["temperature", "temp", "indoor", "warm", "cold", "degrees", "celsius", "lift"]):
+            return "temperature", True
+
+        if any(m in q for m in ["recommend", "which material", "what material", "best material", "wall material"]):
+            return "materials", True
+
+        return "general", True
+
     def answer_question(
         self,
         question: str,
@@ -402,19 +460,127 @@ class ThermaInferenceEngine:
         use_ollama: bool = True,
     ) -> Dict[str, Any]:
         """
-        Answers any user question by executing the trained ML surrogate models
-        and delivering the exact predicted metrics.
+        Answers any user inquiry strictly addressing what was asked, concisely and accurately.
         """
+        q = question.strip()
+        intent, is_valid = self.classify_query_intent(q, shelter_override)
+
+        # 1. Non-thermal / gibberish guard
+        if not is_valid:
+            return {
+                "question": question,
+                "intent": "clarification",
+                "is_valid_query": False,
+                "answer": (
+                    f"Your inquiry ('{question}') does not specify a shelter building physics or high-altitude thermal comfort question.\n\n"
+                    "THERMA's Grounded AI Engine evaluates 5 surrogate ML models trained on 120,000 hourly timesteps and DRDO PS 26051 physics benchmarks to predict:\n"
+                    "• Indoor equilibrium temperature (Tin) and passive thermal lift across 39 Himalayan border outposts\n"
+                    "• Dominant thermodynamic heat loss bottlenecks (sky longwave radiation, wall conduction, infiltration)\n"
+                    "• Envelope insulation material trade-offs (e.g., 50mm PUF vs 100mm EPS vs stone masonry)\n"
+                    "• Heating and ventilation life-safety verification (unflued heater asphyxiation risk and minimum ACH)\n\n"
+                    "Please ask a specific shelter performance question or select one of the suggested inquiries below."
+                ),
+                "suggested_questions": [
+                    "What is the predicted indoor temperature for a shelter in Siachen Base Camp with stone masonry and 0.5 ACH?",
+                    "Compare thermal performance of 50mm PUF vs 100mm EPS in Daulat Beg Oldie",
+                    "What will be the dominant heat loss bottleneck in Leh with mud brick walls?",
+                    "Is an unflued combustion heater safe with 0.2 ACH in Siachen?"
+                ],
+                "engine": "therma_intent_guard",
+            }
+
+        # 2. Material Comparison Query
+        if intent == "comparison":
+            q_lower = q.lower()
+            mats_found = []
+            for mat_key in ["puf_sandwich", "eps", "stone_masonry", "mud_brick", "rammed_earth", "dense_concrete", "wood_pine", "straw_bale"]:
+                clean = mat_key.replace("_", " ")
+                short = "puf" if "puf" in mat_key else "stone" if "stone" in mat_key else "mud" if "mud" in mat_key else "eps" if "eps" in mat_key else clean
+                if short in q_lower or clean in q_lower:
+                    if mat_key not in mats_found:
+                        mats_found.append(mat_key)
+
+            if len(mats_found) >= 2:
+                params_a = self.parse_query_to_params(question)
+                if shelter_override:
+                    params_a.update(shelter_override)
+                params_a["wall_material"] = mats_found[0]
+
+                thicknesses = [float(m) / 1000.0 for m in re.findall(r"(\d+)\s*mm", q_lower)]
+                if len(thicknesses) >= 2:
+                    params_a["wall_insulation_thickness_m"] = thicknesses[0]
+                elif "50mm" in q_lower:
+                    params_a["wall_insulation_thickness_m"] = 0.05
+
+                params_b = dict(params_a)
+                params_b["wall_material"] = mats_found[1]
+                if len(thicknesses) >= 2:
+                    params_b["wall_insulation_thickness_m"] = thicknesses[1]
+                elif "100mm" in q_lower:
+                    params_b["wall_insulation_thickness_m"] = 0.10
+
+                pred_a = self.predict(params_a)
+                pred_b = self.predict(params_b)
+
+                delta_t = pred_b["predicted_indoor_temperature_C"] - pred_a["predicted_indoor_temperature_C"]
+                loss_a = pred_a["predicted_heat_loss_fluxes_W"].get("total_heat_loss_W", 0)
+                loss_b = pred_b["predicted_heat_loss_fluxes_W"].get("total_heat_loss_W", 0)
+                delta_loss = loss_b - loss_a
+
+                loc = pred_a["inputs"]["location"].replace("_", " ")
+                mat_a_name = mats_found[0].replace("_", " ").upper()
+                mat_b_name = mats_found[1].replace("_", " ").upper()
+                th_a_mm = pred_a["inputs"]["wall_insulation_thickness_m"] * 1000
+                th_b_mm = pred_b["inputs"]["wall_insulation_thickness_m"] * 1000
+
+                cmp_text = (
+                    f"Head-to-Head Thermal Comparison at {loc} ({pred_a['inputs']['altitude_m']:.0f}m AMSL, {pred_a['inputs']['outdoor_temperature_C']:.1f}°C ambient):\n\n"
+                    f"• **Option A ({th_a_mm:.0f}mm {mat_a_name})**: Tin = **{pred_a['predicted_indoor_temperature_C']:.2f}°C**, "
+                    f"Total Heat Loss = **{loss_a:,.1f} W** (Bottleneck: {pred_a['dominant_heat_loss_component'].upper()})\n"
+                    f"• **Option B ({th_b_mm:.0f}mm {mat_b_name})**: Tin = **{pred_b['predicted_indoor_temperature_C']:.2f}°C**, "
+                    f"Total Heat Loss = **{loss_b:,.1f} W** (Bottleneck: {pred_b['dominant_heat_loss_component'].upper()})\n\n"
+                    f"**Verdict:** {'Option B' if delta_t > 0 else 'Option A'} achieves **{abs(delta_t):.2f}°C higher indoor temperature** "
+                    f"and {'reduces' if delta_loss < 0 else 'increases'} heat loss by **{abs(delta_loss):,.1f} W**."
+                )
+
+                summary = {
+                    "question": question,
+                    "intent": "comparison",
+                    "is_valid_query": True,
+                    "resolved_parameters": pred_b["inputs"],
+                    "predictions": {
+                        "indoor_temperature_C": pred_b["predicted_indoor_temperature_C"],
+                        "mean_radiant_temperature_C": pred_b["predicted_mean_radiant_temperature_C"],
+                        "operative_temperature_C": pred_b["predicted_operative_temperature_C"],
+                        "temperature_lift_C": pred_b["predicted_temperature_lift_C"],
+                        "dominant_heat_loss": pred_b["dominant_heat_loss_component"],
+                        "heat_loss_fluxes_W": pred_b["predicted_heat_loss_fluxes_W"],
+                        "comfort_status": pred_b["predicted_comfort_status"],
+                        "thermal_risk_class": pred_b["predicted_thermal_risk_class"],
+                        "safety_status": pred_b["predicted_safety_status"],
+                        "safety_reason": pred_b["safety_reason"],
+                    },
+                    "recommendations": [
+                        f"{mat_b_name} with {th_b_mm:.0f}mm provides superior thermal resistance in this sub-zero regime.",
+                        pred_b["actionable_engineering_recommendations"][0] if pred_b["actionable_engineering_recommendations"] else "Deploy nocturnal thermal shutters."
+                    ],
+                    "answer": cmp_text,
+                    "engine": "therma_surrogate_models_v2",
+                    "dataset_origin": "120,000-row physics-grounded master timeseries (SIH 2026 / DRDO PS 26051)",
+                }
+                return summary
+
+        # 3. Standard Prediction & Intent-Focused Answering
         extracted_params = self.parse_query_to_params(question)
         if shelter_override:
             extracted_params.update(shelter_override)
 
-        # Execute prediction
         predictions = self.predict(extracted_params)
 
-        # Grounded structured summary
         summary = {
             "question": question,
+            "intent": intent,
+            "is_valid_query": True,
             "resolved_parameters": predictions["inputs"],
             "predictions": {
                 "indoor_temperature_C": predictions["predicted_indoor_temperature_C"],
@@ -432,22 +598,22 @@ class ThermaInferenceEngine:
             "dataset_origin": "120,000-row physics-grounded master timeseries (SIH 2026 / DRDO PS 26051)",
         }
 
-        # Format deterministic answer
-        det_answer = self._format_deterministic_answer(summary)
+        # Format deterministic answer tailored specifically to intent
+        det_answer = self._format_deterministic_answer(summary, intent=intent)
         summary["answer"] = det_answer
         summary["engine"] = "therma_surrogate_models_v2"
 
-        # Attempt Ollama synthesis if enabled and available
+        # Attempt Ollama synthesis if enabled, grounded strictly in predictions and targeted to intent
         if use_ollama:
-            ollama_ans = self._synthesize_with_ollama(question, summary)
+            ollama_ans = self._synthesize_with_ollama(question, summary, intent=intent)
             if ollama_ans:
                 summary["answer"] = ollama_ans
                 summary["engine"] = f"ollama/{OLLAMA_MODEL} (grounded in ML surrogate predictions)"
 
         return summary
 
-    def _format_deterministic_answer(self, data: Dict[str, Any]) -> str:
-        """Format an authoritative DRDO/building-physics answer from predictions."""
+    def _format_deterministic_answer(self, data: Dict[str, Any], intent: str = "general") -> str:
+        """Format an authoritative DRDO/building-physics answer tailored specifically to user intent."""
         inp = data["resolved_parameters"]
         pred = data["predictions"]
         recs = data.get("recommendations", [])
@@ -468,63 +634,86 @@ class ThermaInferenceEngine:
         ins_mm = inp.get("wall_insulation_thickness_m", 0.05) * 1000
         ach = inp.get("ach", 0.5)
         occupants = inp.get("occupants", 8)
+        heater = inp.get("heater_type", "none")
 
         fluxes = pred.get("heat_loss_fluxes_W", {})
         total_loss = fluxes.get("total_heat_loss_W", 3000.0)
         dominant_loss_val = fluxes.get(f"{bottleneck.lower()}_conduction_W", fluxes.get("sky_longwave_loss_W", 0.0))
         dominant_share_pct = (dominant_loss_val / total_loss * 100.0) if total_loss > 0 else 0.0
+        top_rec = recs[0] if recs else "Upgrade thermal envelope insulation."
 
-        p1 = (
-            f"Under design outdoor ambient conditions of {t_out:.1f} °C at {loc_name} ({region}, {alt:.0f} m AMSL), "
-            f"the simulated {wall} shelter envelope ({ins_mm:.0f} mm insulation, infiltration rate {ach} ACH, {occupants} occupants) "
-            f"maintains a stabilized indoor air temperature of {t_in:.2f} °C, delivering a passive thermal lift of +{lift:.2f} °C."
+        if intent == "temperature":
+            return (
+                f"Under outdoor ambient conditions of {t_out:.1f}°C at {loc_name} ({alt:.0f}m AMSL), "
+                f"the simulated {wall} shelter ({ins_mm:.0f}mm insulation, {ach} ACH) achieves an indoor air temperature (Tin) of **{t_in:.2f}°C**, "
+                f"delivering a passive thermal lift of **+{lift:.2f}°C** above ambient.\n\n"
+                f"Operative comfort temperature (Top) resolves to **{t_op:.2f}°C** (mean radiant temperature {t_mrt:.2f}°C), "
+                f"placing the shelter in the **{comfort}** comfort regime."
+            )
+
+        if intent == "heat_loss":
+            return (
+                f"At {loc_name} ({alt:.0f}m AMSL), the dominant thermodynamic heat loss bottleneck is **{bottleneck} Loss**, "
+                f"dissipating **{dominant_loss_val:,.1f} W** ({dominant_share_pct:.1f}% of total {total_loss:,.1f} W building dissipation).\n\n"
+                f"Key loss components: Sky radiation {fluxes.get('sky_longwave_loss_W', 0):,.1f} W, "
+                f"Wall conduction {fluxes.get('wall_conduction_W', 0):,.1f} W, Infiltration {fluxes.get('infiltration_heat_loss_W', 0):,.1f} W.\n\n"
+                f"**Priority Engineering Directive:** {top_rec}"
+            )
+
+        if intent == "safety":
+            status_badge = "**PASS (COMPLIANT)**" if safety == "PASS" else "**REFUSED (SAFETY VIOLATION)**"
+            return (
+                f"Life Safety Compliance Verdict: {status_badge}\n\n"
+                f"**Evaluation:** {safety_reason}\n\n"
+                f"For high-altitude shelters at {loc_name} ({alt:.0f}m AMSL) with {ach} ACH ventilation, "
+                f"{'combustion heating requires minimum 0.8 ACH or an external balanced flue to eliminate carbon monoxide asphyxiation hazard.' if 'asphyxiation' in safety_reason.lower() or safety == 'REFUSED' else 'ventilation rates and envelope airtightness satisfy DRDO PS 26051 life safety standards.'}"
+            )
+
+        if intent == "materials":
+            return (
+                f"For {loc_name} ({region}, {alt:.0f}m AMSL), the simulated **{wall}** envelope with **{ins_mm:.0f}mm insulation** "
+                f"maintains an indoor temperature of **{t_in:.2f}°C** (passive lift +{lift:.2f}°C) with conductive wall transmission restricted to **{fluxes.get('wall_conduction_W', 0):,.1f} W**.\n\n"
+                f"**Directive:** {top_rec}"
+            )
+
+        # General / Comprehensive (crisp, brief)
+        return (
+            f"Under design outdoor ambient conditions of {t_out:.1f}°C at {loc_name} ({alt:.0f}m AMSL), "
+            f"the simulated {wall} shelter ({ins_mm:.0f}mm insulation, {ach} ACH) maintains a stabilized indoor air temperature of **{t_in:.2f}°C** "
+            f"(passive thermal lift +{lift:.2f}°C above ambient).\n\n"
+            f"Operative comfort resolves to Top **{t_op:.2f}°C** ({comfort} regime). "
+            f"Total envelope heat dissipation is **{total_loss:,.1f} W**, with **{bottleneck}** loss serving as the primary thermodynamic bottleneck ({dominant_share_pct:.1f}%). "
+            f"Life safety evaluation evaluates to **{safety}** ({safety_reason})."
         )
 
-        p2 = (
-            f"Thermal comfort assessment resolves to operative temperature Top of {t_op:.2f} °C (mean radiant temperature {t_mrt:.2f} °C), "
-            f"categorizing the shelter in the {comfort} thermal comfort regime. "
-            f"Total envelope heat dissipation is {total_loss:,.1f} W, with {bottleneck} loss serving as the primary thermodynamic bottleneck "
-            f"at {dominant_loss_val:,.1f} W ({dominant_share_pct:.1f}% of total flux). "
-            f"Life safety verification evaluates to {safety} — {safety_reason}."
-        )
-
-        return f"{p1}\n\n{p2}"
-
-    def _synthesize_with_ollama(self, question: str, data: Dict[str, Any]) -> Optional[str]:
-        """Synthesize natural response via Ollama strictly grounded in predictions."""
+    def _synthesize_with_ollama(self, question: str, data: Dict[str, Any], intent: str = "general") -> Optional[str]:
+        """Synthesize natural response via Ollama strictly addressing user intent with verified metrics."""
         try:
             pred = data["predictions"]
             inp = data["resolved_parameters"]
 
-            prompt = f"""You are the THERMA Senior Building Physics and Scientific ML Expert for DRDO Problem Statement PS 26051 (Smart India Hackathon 2026).
+            prompt = f"""You are the THERMA Senior Building Physics Specialist for DRDO Problem Statement PS 26051.
 The user asked: "{question}"
+Target Focus: {intent.upper()}
 
-You MUST answer the question using ONLY the following verified machine-learning predictions generated by THERMA surrogate models trained on the final 120,000-row physics-grounded dataset:
+Answer using ONLY these verified surrogate ML model predictions (120,000-row final dataset):
+- Location: {inp['location']} ({inp['region']}, Alt: {inp['altitude_m']}m, Ambient: {inp['outdoor_temperature_C']} °C)
+- Wall: {inp['wall_material']} ({inp['wall_insulation_thickness_m']*1000:.0f}mm insulation), ACH: {inp['ach']}
+- Indoor Air Temp (Tin): {pred['indoor_temperature_C']} °C (Lift: +{pred['temperature_lift_C']} °C)
+- Operative Temp (Top): {pred['operative_temperature_C']} °C, Radiant (Tmrt): {pred['mean_radiant_temperature_C']} °C
+- Comfort Status: {pred['comfort_status']} | Risk: {pred['thermal_risk_class']}
+- Primary Bottleneck: {pred['dominant_heat_loss'].upper()}
+- Total Heat Loss: {pred['heat_loss_fluxes_W'].get('total_heat_loss_W', 0)} W
+- Life Safety: {pred['safety_status']} ({pred['safety_reason']})
 
---- VERIFIED PREDICTIONS ---
-- Location: {inp['location']} ({inp['region']}, Alt: {inp['altitude_m']}m)
-- Outdoor Temperature: {inp['outdoor_temperature_C']} °C
-- Wall Material: {inp['wall_material']}
-- Wall Insulation: {inp['wall_insulation_thickness_m']*1000} mm
-- Ventilation ACH: {inp['ach']}
-- Occupants: {inp['occupants']}
-- Predicted Indoor Air Temp (Tin): {pred['indoor_temperature_C']} °C
-- Predicted Operative Temp (Top): {pred['operative_temperature_C']} °C
-- Predicted Mean Radiant Temp (Tmrt): {pred['mean_radiant_temperature_C']} °C
-- Temperature Lift: +{pred['temperature_lift_C']} °C
-- Dominant Heat Loss Component: {pred['dominant_heat_loss'].upper()}
-- Comfort Status: {pred['comfort_status']}
-- Thermal Risk: {pred['thermal_risk_class']}
-- Safety Status: {pred['safety_status']} ({pred['safety_reason']})
-- Heat Loss Fluxes: {json.dumps(pred['heat_loss_fluxes_W'])}
------------------------------
-
-INSTRUCTIONS:
-1. Directly answer the user's question with the exact predicted numbers.
-2. State the predicted indoor temperature, comfort status, and dominant heat loss component.
-3. Provide DRDO-focused engineering recommendations based on the dominant heat loss.
-4. DO NOT hallucinate numbers outside the verified predictions table.
-5. Keep the tone scientific, crisp, and authoritative.
+RULES:
+1. Directly answer ONLY what the user specifically asked in 2 to 3 concise, highly accurate sentences.
+2. If asked about temperature, state the exact Tin and passive lift first.
+3. If asked about heat loss or bottleneck, state the dominant component and its watt dissipation first.
+4. If asked about safety, state PASS or REFUSED and the ventilation/heating hazard first.
+5. If asked to compare materials, directly contrast their performance numbers.
+6. NEVER mention word spelling, letters of words, or irrelevant trivia.
+7. Keep the response under 90 words. Be crisp, authoritative, and helpful.
 """
 
             payload = {
