@@ -147,13 +147,25 @@ export default function TacticalWorldMap({
     markerRef.current = marker;
     mapRef.current = map;
 
-    // Force tile recalculation once DOM ready
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 120);
+    // Force tile recalculation once DOM ready and whenever container size shifts
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    });
+    if (mapContainerRef.current) {
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
+    const t1 = setTimeout(() => map.invalidateSize(), 60);
+    const t2 = setTimeout(() => map.invalidateSize(), 200);
+    const t3 = setTimeout(() => map.invalidateSize(), 500);
 
     return () => {
-      clearTimeout(timer);
+      resizeObserver.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
       map.remove();
       mapRef.current = null;
     };

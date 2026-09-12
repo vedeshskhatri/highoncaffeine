@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   z-index: 9990;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.4);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   display: flex;
@@ -121,7 +121,7 @@
   position: relative;
 }
 
-.tactical-search-box {
+.modal-search-input-wrap {
   width: 100%;
   display: flex;
   align-items: center;
@@ -130,22 +130,22 @@
   border-radius: 8px;
   padding: 0 10px;
   height: 34px;
-  gap: 8px;
   transition: all 0.15s ease;
 }
 
-.tactical-search-box:focus-within {
+.modal-search-input-wrap:focus-within {
   border-color: var(--accent, #C2410C);
   background: #FFFFFF;
   box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.12);
 }
 
-.tactical-search-icon {
+.modal-search-icon {
   color: var(--text-muted, #94A3B8);
   flex-shrink: 0;
+  margin-right: 8px;
 }
 
-.tactical-search-input {
+.modal-search-input {
   flex: 1;
   background: transparent;
   border: none;
@@ -155,15 +155,15 @@
   color: var(--text-primary, #0F172A);
 }
 
-.tactical-search-input::placeholder {
+.modal-search-input::placeholder {
   color: var(--text-muted, #94A3B8);
 }
 
-.tactical-search-clear {
+.modal-search-clear {
+  background: none;
   border: none;
-  background: transparent;
-  color: var(--text-muted, #94A3B8);
   cursor: pointer;
+  color: var(--text-muted, #94A3B8);
   padding: 2px;
   border-radius: 50%;
   display: flex;
@@ -171,13 +171,13 @@
   justify-content: center;
 }
 
-.tactical-search-clear:hover {
+.modal-search-clear:hover {
   color: var(--text-primary, #0F172A);
   background: #E2E8F0;
 }
 
 /* ── Search Autocomplete Dropdown ───────────────────────────────────────── */
-.tactical-search-dropdown {
+.modal-search-dropdown {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
@@ -185,78 +185,55 @@
   background: #FFFFFF;
   border: 1px solid var(--border, #E2E8F0);
   border-radius: 8px;
-  padding: 4px;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  z-index: 100;
   max-height: 280px;
   overflow-y: auto;
+  list-style: none;
+  padding: 4px;
+  margin: 0;
+  z-index: 200;
 }
 
-.search-result-item {
+.modal-search-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   padding: 8px 10px;
-  border: none;
-  background: transparent;
   border-radius: 6px;
   cursor: pointer;
-  text-align: left;
-  transition: all 0.1s ease;
+  color: var(--text-primary, #0F172A);
+  font-size: 11.5px;
+  transition: background 0.1s ease;
 }
 
-.search-result-item:hover {
+.modal-search-item:hover,
+.modal-search-item.selected {
   background: #F1F5F9;
-}
-
-.search-result-pin {
   color: var(--accent, #C2410C);
-  flex-shrink: 0;
 }
 
-.search-result-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.search-result-name {
-  font-family: var(--font-heading, Inter, sans-serif);
-  font-size: 12px;
+.modal-search-item-title {
   font-weight: 600;
   color: var(--text-primary, #0F172A);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.search-result-region {
-  font-family: var(--font-body, Inter, sans-serif);
-  font-size: 10.5px;
+.modal-search-item-sub {
+  font-size: 10px;
   color: var(--text-secondary, #64748B);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-left: 6px;
 }
 
-.search-result-coords {
-  margin-left: auto;
-  font-size: 10.5px;
-  color: var(--text-muted, #94A3B8);
-  flex-shrink: 0;
+.modal-search-item-elev {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: #C2410C;
+  background: #FFF7ED;
+  border: 1px solid #FFEDD5;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-.search-result-none {
-  padding: 12px;
-  font-size: 12px;
-  color: var(--text-muted, #94A3B8);
-  text-align: center;
-}
-
-/* ── Header Actions Group ────────────────────────────────────────────────── */
+/* ── Header Action Buttons ──────────────────────────────────────────────── */
 .tactical-modal-actions {
   display: flex;
   align-items: center;
@@ -280,16 +257,15 @@
   transition: all 0.15s ease;
 }
 
-.tactical-gps-btn:hover {
+.tactical-gps-btn:hover:not(:disabled) {
   background: #FFFFFF;
   border-color: var(--accent, #C2410C);
   color: var(--accent, #C2410C);
 }
 
-.tactical-gps-btn.active {
-  background: #FFF7ED;
-  color: #C2410C;
-  border-color: #FFEDD5;
+.tactical-gps-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .tactical-confirm-btn {
@@ -297,16 +273,16 @@
   align-items: center;
   gap: 6px;
   height: 34px;
-  padding: 0 14px;
+  padding: 0 16px;
   background: var(--accent, #C2410C);
-  color: #FFFFFF;
   border: 1px solid #9A3412;
   border-radius: 6px;
+  color: #FFFFFF;
   font-family: var(--font-heading, Inter, sans-serif);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(194, 65, 12, 0.25);
+  box-shadow: 0 2px 8px rgba(194, 65, 12, 0.25);
   transition: all 0.15s ease;
 }
 
@@ -315,240 +291,216 @@
   transform: translateY(-1px);
 }
 
-.tactical-modal-close-btn {
+.tactical-close-btn {
   width: 32px;
   height: 32px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  border: 1px solid var(--border, #E2E8F0);
+  color: var(--text-secondary, #475569);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F1F5F9;
-  border: 1px solid var(--border, #E2E8F0);
-  border-radius: 6px;
-  color: var(--text-secondary, #475569);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.tactical-modal-close-btn:hover {
-  background: #E2E8F0;
+.tactical-close-btn:hover {
   color: var(--text-primary, #0F172A);
+  background: #E2E8F0;
 }
 
-/* ── Modal Main Body & Side Card ─────────────────────────────────────────── */
+/* ── Main Map Canvas Stage ──────────────────────────────────────────────── */
 .tactical-modal-body {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: #F8FAFC;
+  display: flex;
+  width: 100%;
+  height: 100%;
 }
 
-/* Floating Intel Card */
-.tactical-side-intel-card {
+.tactical-modal-map-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tactical-modal-map-wrap .tactical-world-map-root {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+}
+
+/* ── Floating Mathematical Microclimate & Materials Card ───────────────── */
+.modal-climate-hud-card {
   position: absolute;
   top: 14px;
   right: 14px;
-  z-index: 15;
   width: 340px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  max-width: calc(100% - 28px);
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--border, #E2E8F0);
   border-radius: 10px;
-  padding: 14px;
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  animation: intelSlideIn 0.2s ease-out;
+  padding: 14px 16px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  z-index: 1000;
+  color: var(--text-primary, #0F172A);
+  pointer-events: auto;
 }
 
-@keyframes intelSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.intel-card-header {
+.hud-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  margin-bottom: 8px;
 }
 
-.intel-place-title {
+.hud-place-title {
   font-family: var(--font-heading, Inter, sans-serif);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-primary, #0F172A);
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
-.intel-coords-subtitle {
-  font-family: var(--font-mono, monospace);
-  font-size: 10.5px;
-  color: var(--text-secondary, #64748B);
-  margin: 3px 0 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.intel-coords-subtitle .elev-tag {
-  color: #C2410C;
-  font-weight: 700;
-}
-
-.intel-category-badge {
+.hud-biome-badge {
   font-family: var(--font-mono, monospace);
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
   background: #EFF6FF;
   color: #1E40AF;
   border: 1px solid #BFDBFE;
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
+  letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 
-/* 3-Column Weather Metrics */
-.intel-metrics-grid {
-  display: grid;
-  grid-templateColumns: repeat(3, 1fr);
+.hud-card-coords-row {
+  display: flex;
+  align-items: center;
   gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  color: var(--text-secondary, #64748B);
+  margin-bottom: 12px;
 }
 
-.intel-metric-pill {
+.hud-coords-dot {
+  color: var(--text-muted, #94A3B8);
+}
+
+.hud-elev-pill {
+  color: #C2410C;
+  font-weight: 700;
+}
+
+/* ── Meteorological Stats Grid ─────────────────────────────────────────── */
+.hud-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   background: #F8FAFC;
   border: 1px solid var(--border, #E2E8F0);
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.hud-stat-cell {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.intel-metric-label {
-  font-family: var(--font-body, Inter, sans-serif);
-  font-size: 9.5px;
-  font-weight: 600;
+.hud-stat-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted, #64748B);
-  letter-spacing: 0.03em;
+  font-weight: 600;
 }
 
-.intel-metric-value {
-  font-family: var(--font-mono, monospace);
+.hud-stat-val {
+  font-family: var(--font-heading, Inter, sans-serif);
   font-size: 13px;
   font-weight: 700;
   color: var(--text-primary, #0F172A);
-  line-height: 1;
 }
 
-.intel-metric-value.cold {
+.hud-stat-val.cold {
   color: #0284C7;
 }
 
-.intel-metric-value.solar {
+.hud-stat-val.solar {
   color: #C2410C;
 }
 
-/* Recommended Material Box */
-.intel-recommendation-box {
+/* ── Material Recommendation Box ───────────────────────────────────────── */
+.hud-material-box {
   background: #FFF7ED;
-  border: 1px solid #FFEDD5;
-  border-radius: 8px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  border-left: 3px solid var(--accent, #C2410C);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
 }
 
-.rec-title-row {
+.hud-material-box-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-family: var(--font-heading, Inter, sans-serif);
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 700;
-  color: #C2410C;
   text-transform: uppercase;
+  color: #C2410C;
   letter-spacing: 0.04em;
+  margin-bottom: 4px;
 }
 
-.rec-spec-line {
-  font-family: var(--font-body, Inter, sans-serif);
-  font-size: 11.5px;
-  color: var(--text-primary, #0F172A);
-  line-height: 1.35;
-}
-
-.rec-spec-line strong {
-  font-weight: 600;
-  color: var(--text-secondary, #475569);
-}
-
-.rec-strategy {
-  font-family: var(--font-body, Inter, sans-serif);
+.hud-material-box-spec {
   font-size: 11px;
-  color: var(--text-secondary, #64748B);
-  font-style: italic;
-  margin-top: 2px;
+  color: var(--text-primary, #0F172A);
+  line-height: 1.4;
+  margin: 0;
 }
 
-/* Apply Envelope Action Button */
-.intel-apply-btn {
+.hud-apply-material-btn {
   width: 100%;
-  padding: 8px 12px;
-  background: var(--accent, #C2410C);
-  border: none;
-  border-radius: 6px;
-  font-family: var(--font-heading, Inter, sans-serif);
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #FFFFFF;
-  cursor: pointer;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  background: var(--accent, #C2410C);
+  border: none;
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-family: var(--font-heading, Inter, sans-serif);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
   box-shadow: 0 1px 3px rgba(194, 65, 12, 0.25);
   transition: all 0.15s ease;
 }
 
-.intel-apply-btn:hover {
+.hud-apply-material-btn:hover {
   background: #9A3412;
   transform: translateY(-1px);
 }
 
-.intel-tip {
-  font-family: var(--font-body, Inter, sans-serif);
+.hud-card-hint {
   font-size: 10px;
-  color: var(--text-muted, #94A3B8);
+  color: var(--text-muted, #64748B);
   text-align: center;
-  margin: 0;
-}
-
-@media (max-width: 900px) {
-  .tactical-modal-window {
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-  }
-  .tactical-side-intel-card {
-    position: static;
-    width: 100%;
-    border-radius: 0;
-    box-shadow: none;
-    border-left: none;
-    border-right: none;
-  }
+  margin-top: 6px;
 }
