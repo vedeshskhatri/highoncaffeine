@@ -1,14 +1,15 @@
 import React from 'react';
+import { ShieldCheck, AlertTriangle } from 'lucide-react';
 
 /**
  * PhysiologicalRiskPanel.jsx — Occupant thermoregulation and cold risk panel.
- * Implements Gagge Two-Node Model results (skin & core compartments) per SIH 2026 PS 26051.
- * Numbers rendered in JetBrains Mono (--font-mono), labels in caption.
- * Zero hardcoded colors — resolved strictly through design tokens in tokens.css.
- * Explicitly flags output as [estimate] (second-order physiological estimate, not a diagnostic device).
+ * Implements Gagge Two-Node Model results (skin & core compartments) per ASHRAE HoF Ch.9.
+ * Conforms to Alpine Precision Light Theme:
+ * - Crisp white card surface (#FFFFFF) with subtle border (#E2E8F0)
+ * - Clear 4-column metric hierarchy with JetBrains Mono numbers
+ * - Explicit [estimate] badge for second-order physiological simulation
  */
 export default function PhysiologicalRiskPanel({ thermoregulation, summary }) {
-  // If thermoregulation result is present, use it; otherwise provide derived estimate or empty state
   const data = thermoregulation || {
     model_confidence: 'estimate',
     clothing_clo: 1.5,
@@ -48,110 +49,267 @@ export default function PhysiologicalRiskPanel({ thermoregulation, summary }) {
 
   return (
     <div
-      className="bg-surface-1 border border-border rounded-md p-3 flex flex-col gap-3 w-full"
       style={{
-        borderLeft: hasHypothermiaRisk ? '3px solid var(--danger)' : '3px solid var(--comfort)',
+        background: '#FFFFFF',
+        border: '1px solid var(--border, #E2E8F0)',
+        borderRadius: '8px',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '14px',
+        width: '100%',
+        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
       }}
     >
-      {/* Header with Title and explicit [estimate] tag */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className="font-heading text-caption font-semibold uppercase tracking-wider"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            Occupant Physiological Risk (Gagge Two-Node Model)
-          </span>
-          <span
-            className="font-mono text-caption px-1.5 py-0.5 rounded"
+      {/* Header: Title, Standard Citation & Safety Status Pill */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
             style={{
-              backgroundColor: 'var(--surface-2)',
-              color: 'var(--estimate)',
-              border: '1px solid var(--border)',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              background: hasHypothermiaRisk ? '#FEF2F2' : '#ECFDF5',
+              border: `1px solid ${hasHypothermiaRisk ? '#FECACA' : '#A7F3D0'}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: hasHypothermiaRisk ? '#DC2626' : '#059669',
+              flexShrink: 0,
             }}
-            title="Second-order physiological simulation, not a certified clinical diagnostic"
           >
-            [estimate]
-          </span>
+            {hasHypothermiaRisk ? <AlertTriangle size={15} /> : <ShieldCheck size={16} />}
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-heading, Inter, sans-serif)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: 'var(--text-primary, #0F172A)',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Occupant Physiological Safety & Comfort
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  background: '#F8FAFC',
+                  color: 'var(--text-secondary, #64748B)',
+                  border: '1px solid var(--border, #E2E8F0)',
+                }}
+                title="Second-order physiological simulation, not a certified clinical diagnostic"
+              >
+                [estimate]
+              </span>
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary, #64748B)', marginTop: '2px' }}>
+              Gagge Two-Node Bio-Thermal Model · Standard: ASHRAE HoF Ch.9
+            </div>
+          </div>
         </div>
-        <span className="font-body text-caption" style={{ color: 'var(--text-muted)' }}>
-          Standard: ASHRAE HoF Ch.9 / Gagge et al. (1986)
-        </span>
+
+        {/* Dynamic Status Pill */}
+        <div
+          style={{
+            fontFamily: 'var(--font-body, Inter, sans-serif)',
+            fontSize: '11.5px',
+            fontWeight: 600,
+            padding: '3px 9px',
+            borderRadius: '4px',
+            background: hasHypothermiaRisk ? '#FEF2F2' : '#ECFDF5',
+            color: hasHypothermiaRisk ? '#DC2626' : '#059669',
+            border: `1px solid ${hasHypothermiaRisk ? '#FECACA' : '#A7F3D0'}`,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
+          <span>{hasHypothermiaRisk ? '⚠ Hypothermia Risk' : '✓ Normothermic (Safe)'}</span>
+        </div>
       </div>
 
-      {/* Grid of four metric cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-        {/* 1. Time to Physiological Risk */}
+      {/* 4-Metric Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '10px',
+          width: '100%',
+        }}
+      >
+        {/* 1. Time to Mild Hypothermia */}
         <div
-          className="bg-surface-2 border border-border rounded-md p-3 flex flex-col justify-between"
-          style={{ borderColor: hasHypothermiaRisk ? 'var(--danger)' : 'var(--border)' }}
+          style={{
+            background: '#F8FAFC',
+            border: `1px solid ${hasHypothermiaRisk ? '#FECACA' : 'var(--border, #E2E8F0)'}`,
+            borderRadius: '6px',
+            padding: '12px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: '4px',
+          }}
         >
-          <div className="font-body text-caption uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-heading, Inter, sans-serif)',
+              fontSize: '10px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              color: 'var(--text-secondary, #64748B)',
+            }}
+          >
             Time to Mild Hypothermia
           </div>
           <div
-            className="font-mono text-metric font-medium mb-1"
-            style={{ color: hasHypothermiaRisk ? 'var(--danger)' : 'var(--comfort)' }}
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '18px',
+              fontWeight: 700,
+              color: hasHypothermiaRisk ? '#DC2626' : '#059669',
+              margin: '2px 0',
+            }}
           >
             {riskTimeFormatted}
           </div>
-          <div className="font-body text-caption" style={{ color: 'var(--text-muted)' }}>
-            {hasHypothermiaRisk
-              ? 'Core drops to ≤ 35.0 °C threshold'
-              : 'Core remains normothermic (> 35 °C)'}
+          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)' }}>
+            {hasHypothermiaRisk ? 'Core drops to ≤ 35.0 °C threshold' : 'Core remains normothermic (> 35.0 °C)'}
           </div>
         </div>
 
-        {/* 2. Core Minimum Temp */}
-        <div className="bg-surface-2 border border-border rounded-md p-3 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-body text-caption uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-              Core Temp (T_core,min)
+        {/* 2. Core Temperature */}
+        <div
+          style={{
+            background: '#F8FAFC',
+            border: '1px solid var(--border, #E2E8F0)',
+            borderRadius: '6px',
+            padding: '12px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: '4px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-heading, Inter, sans-serif)',
+                fontSize: '10px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                color: 'var(--text-secondary, #64748B)',
+              }}
+            >
+              Min Core Temp (T_core)
             </span>
-            <span className="font-mono text-caption" style={{ color: 'var(--text-muted)' }}>
+            <span style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '10px', color: 'var(--text-muted, #94A3B8)' }}>
               {String(t_core_min_hour).padStart(2, '0')}:00
             </span>
           </div>
           <div
-            className="font-mono text-metric font-medium mb-1"
-            style={{ color: isCoreLow ? 'var(--danger)' : 'var(--text-primary)' }}
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '18px',
+              fontWeight: 700,
+              color: isCoreLow ? '#DC2626' : 'var(--text-primary, #0F172A)',
+              margin: '2px 0',
+            }}
           >
             {coreTempFormatted}
           </div>
-          <div className="font-body text-caption" style={{ color: 'var(--text-muted)' }}>
-            {isCoreLow ? 'Hypothermic state reached' : 'Basal setpoint: 36.8 °C'}
+          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)' }}>
+            {isCoreLow ? 'Hypothermic state reached' : 'Basal setpoint baseline: 36.8 °C'}
           </div>
         </div>
 
-        {/* 3. Skin Minimum Temp */}
-        <div className="bg-surface-2 border border-border rounded-md p-3 flex flex-col justify-between">
-          <div className="font-body text-caption uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>
-            Skin Temp (T_skin,min)
+        {/* 3. Skin Temperature */}
+        <div
+          style={{
+            background: '#F8FAFC',
+            border: '1px solid var(--border, #E2E8F0)',
+            borderRadius: '6px',
+            padding: '12px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: '4px',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-heading, Inter, sans-serif)',
+              fontSize: '10px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              color: 'var(--text-secondary, #64748B)',
+            }}
+          >
+            Min Skin Temp (T_skin)
           </div>
           <div
-            className="font-mono text-metric font-medium mb-1"
-            style={{ color: isSkinChilled ? 'var(--estimate)' : 'var(--text-primary)' }}
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '18px',
+              fontWeight: 700,
+              color: isSkinChilled ? '#D97706' : 'var(--text-primary, #0F172A)',
+              margin: '2px 0',
+            }}
           >
             {skinTempFormatted}
           </div>
-          <div className="font-body text-caption" style={{ color: 'var(--text-muted)' }}>
-            {isSkinChilled ? 'Intense vasoconstriction' : 'Skin comfort baseline: 33.7 °C'}
+          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)' }}>
+            {isSkinChilled ? 'Vasoconstriction boundary reached' : 'Normal peripheral comfort band'}
           </div>
         </div>
 
-        {/* 4. Active Ensemble / Activity Basis */}
-        <div className="bg-surface-2 border border-border rounded-md p-3 flex flex-col justify-between">
-          <div className="font-body text-caption uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>
-            Clothing / Activity
+        {/* 4. Ensemble & Activity */}
+        <div
+          style={{
+            background: '#F8FAFC',
+            border: '1px solid var(--border, #E2E8F0)',
+            borderRadius: '6px',
+            padding: '12px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: '4px',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-heading, Inter, sans-serif)',
+              fontSize: '10px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              color: 'var(--text-secondary, #64748B)',
+            }}
+          >
+            Clothing / Metabolic Rate
           </div>
           <div
-            className="font-mono text-metric font-medium mb-1"
-            style={{ color: 'var(--text-primary)' }}
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '18px',
+              fontWeight: 700,
+              color: 'var(--text-primary, #0F172A)',
+              margin: '2px 0',
+            }}
           >
-            {clothing_clo.toFixed(1)} clo / {metabolic_met.toFixed(1)} met
+            {clothing_clo.toFixed(1)} clo · {metabolic_met.toFixed(1)} met
           </div>
-          <div className="font-body text-caption" style={{ color: 'var(--text-muted)' }}>
-            Cold-weather military dress, resting
+          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94A3B8)' }}>
+            Cold-weather high-altitude uniform, resting
           </div>
         </div>
       </div>

@@ -285,11 +285,12 @@ export default function SimulateCanvas({ result, request }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '6px',
-                padding: '7px 12px',
-                borderRadius: '6px',
+                padding: '6px 12px',
+                borderRadius: '4px',
                 border: 'none',
-                background: isActive ? '#0F172A' : 'transparent',
-                color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
+                background: isActive ? '#FFFFFF' : 'transparent',
+                color: isActive ? 'var(--text-primary, #0F172A)' : 'var(--text-secondary, #64748B)',
+                boxShadow: isActive ? '0 1px 3px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04)' : 'none',
                 fontFamily: 'var(--font-heading)',
                 fontSize: '11.5px',
                 fontWeight: isActive ? 600 : 500,
@@ -298,7 +299,7 @@ export default function SimulateCanvas({ result, request }) {
                 whiteSpace: 'nowrap',
               }}
             >
-              <Icon size={13} style={{ opacity: isActive ? 1 : 0.7 }} />
+              <Icon size={13} style={{ color: isActive ? 'var(--accent, #C2410C)' : 'inherit', opacity: isActive ? 1 : 0.7 }} />
               <span>{tab.label}</span>
             </button>
           );
