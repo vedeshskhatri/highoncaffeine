@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.csv_ingest import CsvValidationError, parse_and_validate_csv, store_user_csv
@@ -92,9 +93,19 @@ FIXTURES_DIR = Path(__file__).resolve().parent.parent / "data" / "fixtures"
 VALIDATION_RESULTS_DIR = Path(__file__).resolve().parent.parent / "validation" / "results"
 
 
-@app.get("/", summary="THERMA API Root & Documentation Portal")
-def root_endpoint() -> Dict[str, Any]:
-    """Root metadata and navigational portal for the THERMA API."""
+@app.api_route("/", methods=["GET", "HEAD"], summary="THERMA API Root & Navigational Portal")
+def root_endpoint(request: Request) -> Any:
+    """Root metadata and navigational portal for the THERMA API.
+
+    If accessed via a browser (HTML navigation), redirects automatically
+    to the active Vite React frontend at http://localhost:5173 so the user sees
+    the interactive THERMA platform instead of raw JSON.
+    """
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        host = request.headers.get("host", "localhost:8000").split(":")[0]
+        return RedirectResponse(url=f"http://{host}:5173/", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
     return {
         "title": "THERMA API",
         "description": "Area Specific Shelter Thermal Comfort Maintenance System (SIH 2026 PS 26051 · DRDO)",
