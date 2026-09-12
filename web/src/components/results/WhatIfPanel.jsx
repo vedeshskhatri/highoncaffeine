@@ -167,7 +167,7 @@ export default function WhatIfPanel({ request, result, baselineData }) {
 
   // Fetch variable specifications from server
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/what-if/variables')
+    fetch('/what-if/variables')
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.variables) {
@@ -206,7 +206,7 @@ export default function WhatIfPanel({ request, result, baselineData }) {
           value: val,
         };
 
-        const res = await fetch('http://127.0.0.1:8000/what-if', {
+        const res = await fetch('/what-if', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

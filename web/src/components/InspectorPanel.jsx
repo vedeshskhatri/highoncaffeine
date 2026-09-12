@@ -132,7 +132,7 @@ export default function InspectorPanel({
 
   // Fetch materials once from API or keep fallback
   useEffect(() => {
-    fetch('http://localhost:8000/materials')
+    fetch('/materials')
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(data => {
         if (Array.isArray(data?.materials) && data.materials.length > 0) {

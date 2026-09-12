@@ -149,7 +149,7 @@ export default function AlertsPage() {
 
   const fetchAlerts = () => {
     setLoading(true);
-    fetch(`http://127.0.0.1:8000/alerts?estate=${encodeURIComponent(estate)}&include_acknowledged=${showAcknowledged}`)
+    fetch(`/alerts?estate=${encodeURIComponent(estate)}&include_acknowledged=${showAcknowledged}`)
       .then(r => r.json())
       .then(data => {
         setAlerts(Array.isArray(data) ? data : []);
@@ -167,7 +167,7 @@ export default function AlertsPage() {
     setScanning(true);
     setScanMessage('Pulling Open-Meteo 7-day forecast & simulating indoor minimums across outposts...');
     try {
-      const res = await fetch(`http://127.0.0.1:8000/alerts/scan?estate=${encodeURIComponent(estate)}`, {
+      const res = await fetch(`/alerts/scan?estate=${encodeURIComponent(estate)}`, {
         method: 'POST',
       });
       const data = await res.json();
@@ -185,7 +185,7 @@ export default function AlertsPage() {
   // Acknowledge alert
   const handleAcknowledge = async (alertId) => {
     try {
-      await fetch(`http://127.0.0.1:8000/alerts/${alertId}/ack`, { method: 'POST' });
+      await fetch(`/alerts/${alertId}/ack`, { method: 'POST' });
       fetchAlerts();
     } catch {
       alert('Failed to acknowledge alert');

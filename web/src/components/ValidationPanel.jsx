@@ -25,7 +25,7 @@ export default function ValidationPanel({ initialExpanded = false }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/validation')
+    fetch('/validation')
       .then(res => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);

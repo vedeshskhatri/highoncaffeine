@@ -135,13 +135,13 @@ export default function MaterialsPage() {
       // Support both relative /api/suggest-materials and localhost:8000
       let resp;
       try {
-        resp = await fetch('http://localhost:8000/api/suggest-materials', {
+        resp = await fetch('/api/suggest-materials', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
       } catch {
-        resp = await fetch('http://127.0.0.1:8000/suggest-materials', {
+        resp = await fetch('/suggest-materials', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -172,7 +172,7 @@ export default function MaterialsPage() {
   // Fetch catalog on district change
   useEffect(() => {
     setCatalogLoading(true);
-    fetch(`http://127.0.0.1:8000/materials/availability?district=${encodeURIComponent(district)}`)
+    fetch(`/materials/availability?district=${encodeURIComponent(district)}`)
       .then(r => r.json())
       .then(data => {
         setMaterials(Array.isArray(data) ? data : []);

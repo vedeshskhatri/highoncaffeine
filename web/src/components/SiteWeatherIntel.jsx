@@ -33,7 +33,7 @@ export default function SiteWeatherIntel({ location }) {
       setError(null);
       try {
         const res = await fetch(
-          `http://127.0.0.1:8000/location/weather?lat=${location.lat}&lon=${location.lon}`
+          `/location/weather?lat=${location.lat}&lon=${location.lon}`
         );
         if (res.ok) {
           const data = await res.json();

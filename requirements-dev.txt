@@ -1,0 +1,6 @@
+# Development, testing, and offline data pipeline dependencies
+-r requirements.txt
+
+scipy>=1.11.0
+pytest>=8.0.0
+pypdf>=6.0.0

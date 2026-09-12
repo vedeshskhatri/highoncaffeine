@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import './CpwdPage.css';
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = '/';
 
 const HIMALAYAN_SCENARIO_LOCATIONS = [
   { id: 'all', name: 'All Himalayan Sites (Auto-Detect)' },

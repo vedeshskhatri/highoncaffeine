@@ -98,7 +98,7 @@ export default function App() {
 
   // 1. Fetch estate sites and load active siteId from route URL
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/sites')
+    fetch('/sites')
       .then(r => r.ok ? r.json() : [])
       .then(sites => {
         if (Array.isArray(sites) && sites.length > 0) {
@@ -109,7 +109,7 @@ export default function App() {
 
     if (!siteId) return;
 
-    fetch(`http://127.0.0.1:8000/sites/${siteId}`)
+    fetch(`/sites/${siteId}`)
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(site => {
         if (!site) return;
@@ -148,7 +148,7 @@ export default function App() {
     const fetchWeatherAndLocation = async () => {
       // Reverse geocode place name
       try {
-        const revRes = await fetch(`http://127.0.0.1:8000/location/reverse?lat=${lat}&lon=${lon}`);
+        const revRes = await fetch(`/location/reverse?lat=${lat}&lon=${lon}`);
         if (revRes.ok) {
           const revData = await revRes.json();
           if (isMounted && revData?.name) {
@@ -159,7 +159,7 @@ export default function App() {
 
       // Fetch meteorological preview
       try {
-        const wRes = await fetch(`http://127.0.0.1:8000/location/weather?lat=${lat}&lon=${lon}`);
+        const wRes = await fetch(`/location/weather?lat=${lat}&lon=${lon}`);
         if (wRes.ok) {
           const wData = await wRes.json();
           if (isMounted) {
@@ -201,7 +201,7 @@ export default function App() {
   const handleSimulate = useCallback(async (customRequest) => {
     const req = (customRequest && customRequest.location) ? customRequest : simulateRequest;
     try {
-      const res = await fetch('http://127.0.0.1:8000/simulate', {
+      const res = await fetch('/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(req),

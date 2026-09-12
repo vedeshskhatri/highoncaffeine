@@ -240,7 +240,7 @@ export default function VerifyPage() {
         simulation: formData.simulation,
       };
 
-      const res = await fetch('http://127.0.0.1:8000/simulate', {
+      const res = await fetch('/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -267,7 +267,7 @@ export default function VerifyPage() {
 
   // Load committed V2/V3 ordering benchmarks
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/validation')
+    fetch('/validation')
       .then((r) => r.json())
       .then((data) => {
         if (data && data.comparisons) {
@@ -374,7 +374,7 @@ export default function VerifyPage() {
 
     try {
       // Contract call to Aman's POST /datasets
-      const res = await fetch('http://127.0.0.1:8000/datasets', {
+      const res = await fetch('/datasets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

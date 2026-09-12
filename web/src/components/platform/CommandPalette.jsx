@@ -12,12 +12,12 @@ export default function CommandPalette({ isOpen, onClose }) {
   useEffect(() => {
     if (!isOpen) return;
 
-    fetch('http://127.0.0.1:8000/sites')
+    fetch('/sites')
       .then(r => r.json())
       .then(data => setSites(Array.isArray(data) ? data : []))
       .catch(() => {});
 
-    fetch('http://127.0.0.1:8000/designs')
+    fetch('/designs')
       .then(r => r.json())
       .then(data => setDesigns(Array.isArray(data) ? data : []))
       .catch(() => {});

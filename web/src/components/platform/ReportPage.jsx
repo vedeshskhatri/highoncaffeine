@@ -12,7 +12,7 @@ export default function ReportPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/sites')
+    fetch('/sites')
       .then(r => r.json())
       .then(data => setAllSites(Array.isArray(data) ? data : []))
       .catch(() => {});
@@ -24,7 +24,7 @@ export default function ReportPage() {
       return;
     }
     setLoading(true);
-    fetch(`http://127.0.0.1:8000/sites/${id}`)
+    fetch(`/sites/${id}`)
       .then(r => r.json())
       .then(data => {
         setSite(data && data.id ? data : null);

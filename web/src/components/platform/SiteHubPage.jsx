@@ -31,7 +31,7 @@ export default function SiteHubPage() {
   // Fetch site data
   const fetchSite = () => {
     setLoading(true);
-    fetch(`http://127.0.0.1:8000/sites/${id}`)
+    fetch(`/sites/${id}`)
       .then(r => r.json())
       .then(data => {
         setSite(data);
@@ -65,7 +65,7 @@ export default function SiteHubPage() {
   const handleEvaluate = async () => {
     setEvaluating(true);
     try {
-      await fetch(`http://127.0.0.1:8000/sites/${id}/evaluate`, {
+      await fetch(`/sites/${id}/evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weather_mode: 'typical_day' }),

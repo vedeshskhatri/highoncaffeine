@@ -65,7 +65,7 @@ export default function WatchView({ design }) {
   const fetchWatchData = useCallback(async () => {
     setLoading(true);
     try {
-      const resp = await fetch('http://localhost:8000/forecast_watch', {
+      const resp = await fetch('/forecast_watch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

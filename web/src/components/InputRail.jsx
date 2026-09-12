@@ -78,7 +78,7 @@ export default function InputRail({ request, onUpdate, onSimulate }) {
   const [materials, setMaterials] = useState(FALLBACK_MATERIALS);
 
   useEffect(() => {
-    fetch('http://localhost:8000/materials')
+    fetch('/materials')
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(data => {
         if (Array.isArray(data?.materials) && data.materials.length > 0) {

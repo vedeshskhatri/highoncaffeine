@@ -68,7 +68,7 @@ export default function SitesPage() {
 
   const fetchSites = () => {
     setLoading(true);
-    fetch(`http://127.0.0.1:8000/sites?estate=${encodeURIComponent(estate)}`)
+    fetch(`/sites?estate=${encodeURIComponent(estate)}`)
       .then((r) => r.json())
       .then((data) => {
         const siteList = Array.isArray(data) ? data : [];
@@ -91,7 +91,7 @@ export default function SitesPage() {
     setEvalProgress('Running ISO 52016-1 solver across all registered sites...');
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/sites/evaluate-all?estate=${encodeURIComponent(estate)}&force=true`,
+        `/sites/evaluate-all?estate=${encodeURIComponent(estate)}&force=true`,
         { method: 'POST' }
       );
       const data = await res.json();
@@ -111,7 +111,7 @@ export default function SitesPage() {
     setImportLoading(true);
     setImportErrors([]);
     try {
-      const res = await fetch('http://127.0.0.1:8000/sites/import', {
+      const res = await fetch('/sites/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ csv_text: importCsv }),
@@ -133,7 +133,7 @@ export default function SitesPage() {
   // Create site from pin drop
   const handleCreateSite = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/sites', {
+      const res = await fetch('/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newSiteData, estate }),

@@ -24,7 +24,7 @@ export default function MaterialsTray({ onAddLayer, allowedMaterialIds = null })
   const [lehOnly, setLehOnly] = useState(false);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/materials')
+    fetch('/materials')
       .then((res) => res.json())
       .then((data) => {
         if (data?.materials?.length > 0) {

@@ -171,7 +171,7 @@ export default function TacticalMapModal({
     let isMounted = true;
 
     // 1. Reverse Geocode
-    fetch(`http://127.0.0.1:8000/location/reverse?lat=${lat}&lon=${lon}`)
+    fetch(`/location/reverse?lat=${lat}&lon=${lon}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (isMounted && data?.name) {
@@ -182,7 +182,7 @@ export default function TacticalMapModal({
       .catch(() => {});
 
     // 2. Weather Metrics from Mathematical Engine
-    fetch(`http://127.0.0.1:8000/location/weather?lat=${lat}&lon=${lon}`)
+    fetch(`/location/weather?lat=${lat}&lon=${lon}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (isMounted && data?.metrics) {
@@ -214,7 +214,7 @@ export default function TacticalMapModal({
   const resolveElevationForCoords = async (lat, lon) => {
     setIsElevLoading(true);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/location/elevation?lat=${lat}&lon=${lon}`);
+      const res = await fetch(`/location/elevation?lat=${lat}&lon=${lon}`);
       if (res.ok) {
         const json = await res.json();
         if (json.elevation_m !== null && json.elevation_m !== undefined) {
@@ -249,7 +249,7 @@ export default function TacticalMapModal({
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const res = await fetch(`http://127.0.0.1:8000/location/search?q=${encodeURIComponent(searchQuery)}&count=6`);
+        const res = await fetch(`/location/search?q=${encodeURIComponent(searchQuery)}&count=6`);
         if (res.ok) {
           const json = await res.json();
           setSearchResults(json.results || []);

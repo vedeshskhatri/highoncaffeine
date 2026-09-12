@@ -56,7 +56,7 @@ export default function ValidationSection() {
   const [valData, setValData] = useState(DEFAULT_VAL_DATA);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/validation')
+    fetch('/validation')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && data.scenarios) {

@@ -43,7 +43,7 @@ export default function ProgrammePage() {
 
   const fetchProgramme = () => {
     setLoading(true);
-    fetch('http://127.0.0.1:8000/programme', {
+    fetch('/programme', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ estate, budget_inr: budget }),

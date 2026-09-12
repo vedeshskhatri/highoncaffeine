@@ -151,7 +151,7 @@ export default function DashboardPage() {
       comfort: { model: 'imac', health_threshold_c: 18.0 },
     };
 
-    fetch('http://localhost:8000/simulate', {
+    fetch('/simulate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

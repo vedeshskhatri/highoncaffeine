@@ -29,7 +29,7 @@ export default function LibraryPage() {
 
   const fetchDesigns = () => {
     setLoading(true);
-    fetch('http://127.0.0.1:8000/designs')
+    fetch('/designs')
       .then(r => r.json())
       .then(data => {
         setDesigns(Array.isArray(data) ? data : []);
@@ -40,7 +40,7 @@ export default function LibraryPage() {
 
   useEffect(() => {
     fetchDesigns();
-    fetch(`http://127.0.0.1:8000/sites?estate=${encodeURIComponent(estate)}`)
+    fetch(`/sites?estate=${encodeURIComponent(estate)}`)
       .then(r => r.json())
       .then(data => {
         setSites(Array.isArray(data) ? data : []);
@@ -53,7 +53,7 @@ export default function LibraryPage() {
   const handleApplyToSite = async () => {
     if (!selectedDesign || !targetSiteId) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/designs/${selectedDesign.id}/apply-to/${targetSiteId}`, {
+      const res = await fetch(`/designs/${selectedDesign.id}/apply-to/${targetSiteId}`, {
         method: 'POST',
       });
       if (res.ok) {

@@ -102,8 +102,8 @@ def root_endpoint(request: Request) -> Any:
     the interactive THERMA platform instead of raw JSON.
     """
     accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        host = request.headers.get("host", "localhost:8000").split(":")[0]
+    host = request.headers.get("host", "localhost:8000").split(":")[0]
+    if "text/html" in accept and host in ("localhost", "127.0.0.1"):
         return RedirectResponse(url=f"http://{host}:5173/", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
     return {
@@ -111,8 +111,8 @@ def root_endpoint(request: Request) -> Any:
         "description": "Area Specific Shelter Thermal Comfort Maintenance System (SIH 2026 PS 26051 · DRDO)",
         "version": "0.1.0",
         "status": "operational",
-        "frontend_url": "http://localhost:5173",
-        "docs_url": "http://127.0.0.1:8000/docs",
+        "frontend_url": f"http://{host}:5173" if host in ("localhost", "127.0.0.1") else f"https://{request.headers.get('host', '')}",
+        "docs_url": "/docs",
         "endpoints": {
             "health": "/health",
             "simulate": "/simulate",

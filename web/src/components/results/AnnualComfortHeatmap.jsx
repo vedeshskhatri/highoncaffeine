@@ -133,7 +133,7 @@ export default function AnnualComfortHeatmap({ request, scanResult }) {
         simulation: { timestep_s: 60, spinup_days: 1 },
       };
 
-      const resp = await fetch('http://localhost:8000/annual_scan', {
+      const resp = await fetch('/annual_scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

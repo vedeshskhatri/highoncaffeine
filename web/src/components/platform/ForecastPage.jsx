@@ -13,7 +13,7 @@ export default function ForecastPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://127.0.0.1:8000/forecast?estate=${encodeURIComponent(estate)}`)
+    fetch(`/forecast?estate=${encodeURIComponent(estate)}`)
       .then(r => r.json())
       .then(data => {
         setForecast(data);

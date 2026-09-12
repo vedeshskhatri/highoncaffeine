@@ -106,7 +106,7 @@ export default function LocationPicker({ location, onChange, errors = {}, onOpen
 
     const resolvePlace = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/location/reverse?lat=${location.lat}&lon=${location.lon}`);
+        const res = await fetch(`/location/reverse?lat=${location.lat}&lon=${location.lon}`);
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data?.name) {
@@ -140,7 +140,7 @@ export default function LocationPicker({ location, onChange, errors = {}, onOpen
       try {
         let data = null;
         try {
-          const res = await fetch(`http://127.0.0.1:8000/location/search?q=${encodeURIComponent(searchQuery)}&count=8`);
+          const res = await fetch(`/location/search?q=${encodeURIComponent(searchQuery)}&count=8`);
           if (res.ok) {
             const json = await res.json();
             data = json.results || [];
@@ -230,7 +230,7 @@ export default function LocationPicker({ location, onChange, errors = {}, onOpen
 
       // 1. Local backend proxy
       try {
-        const res = await fetch(`http://127.0.0.1:8000/location/elevation?lat=${lat}&lon=${lon}`);
+        const res = await fetch(`/location/elevation?lat=${lat}&lon=${lon}`);
         if (res.ok) {
           const json = await res.json();
           if (json.elevation_m !== null && json.elevation_m !== undefined) {

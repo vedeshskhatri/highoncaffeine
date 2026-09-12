@@ -129,7 +129,7 @@ export default function OptimizeCanvas({ result, request }) {
     setErrorMessage(null);
     try {
       // A6-2: `fixed` geometry field is now included — was missing before, causing 422
-      const resp = await fetch('http://localhost:8000/optimize', {
+      const resp = await fetch('/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

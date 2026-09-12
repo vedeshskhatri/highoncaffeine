@@ -11,7 +11,7 @@ export default function ValidationPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://127.0.0.1:8000/validation');
+      const res = await fetch('/validation');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);

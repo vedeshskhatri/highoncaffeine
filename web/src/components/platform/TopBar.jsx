@@ -26,11 +26,11 @@ export default function TopBar({ onOpenCmd, estate, activeTitle, breadcrumbs = [
   // Fetch health data when telemetry popover opens
   useEffect(() => {
     if (telemetryOpen) {
-      fetch('http://localhost:8000/health')
+      fetch('/health')
         .then(r => r.json())
         .then(d => setHealthData(d))
         .catch(() => {
-          fetch('http://127.0.0.1:8000/health')
+          fetch('/health')
             .then(r => r.json())
             .then(d => setHealthData(d))
             .catch(() => setHealthData({ ok: false, error: 'Engine unreachable' }));
@@ -201,7 +201,7 @@ export default function TopBar({ onOpenCmd, estate, activeTitle, breadcrumbs = [
 
               <div className="telemetry-footer">
                 <a
-                  href="http://localhost:8000/docs"
+                  href="/docs"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="telemetry-link"
@@ -210,7 +210,7 @@ export default function TopBar({ onOpenCmd, estate, activeTitle, breadcrumbs = [
                   <ExternalLink size={12} />
                 </a>
                 <a
-                  href="http://localhost:8000/health"
+                  href="/health"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="telemetry-link"

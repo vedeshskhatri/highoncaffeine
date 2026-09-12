@@ -52,7 +52,7 @@ export default function PlatformLayout() {
 
   // Fetch active alerts count for badge
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/alerts?estate=${encodeURIComponent(estate)}`)
+    fetch(`/alerts?estate=${encodeURIComponent(estate)}`)
       .then(r => r.json())
       .then(data => setAlertsCount(Array.isArray(data) ? data.length : 0))
       .catch(() => {});

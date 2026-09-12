@@ -84,7 +84,7 @@ export default function MlPredictorPage() {
 
   // Load Model Metadata on Mount
   useEffect(() => {
-    fetch('http://localhost:8000/api/ml/models')
+    fetch('/api/ml/models')
       .then((r) => r.json())
       .then((data) => setModelMeta(data))
       .catch((err) => console.warn('Could not fetch ML models metadata', err));
@@ -96,7 +96,7 @@ export default function MlPredictorPage() {
   const runPrediction = async () => {
     setPredictLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/ml/predict', {
+      const res = await fetch('/api/ml/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -128,7 +128,7 @@ export default function MlPredictorPage() {
     setQaLoading(true);
     setQaError(null);
     try {
-      const res = await fetch('http://localhost:8000/api/ml/ask', {
+      const res = await fetch('/api/ml/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

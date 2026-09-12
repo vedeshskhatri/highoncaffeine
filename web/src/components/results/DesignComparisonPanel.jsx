@@ -204,7 +204,7 @@ export default function DesignComparisonPanel({ request, baselineResult }) {
         design_names: designNames,
       };
 
-      const res = await fetch('http://127.0.0.1:8000/compare', {
+      const res = await fetch('/compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
