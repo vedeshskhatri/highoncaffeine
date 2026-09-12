@@ -237,16 +237,8 @@ class ThermaInferenceEngine:
             out["predicted_temperature_lift_C"] = 10.0
 
         # 2. Model B: Thermal Diagnosis (Dominant Bottleneck)
-        if self.pkg_diagnosis:
-            prep_d = self.pkg_diagnosis["preprocessor"]
-            X_d = prep_d.transform([row], scale=True)
-            diag_idx = self.pkg_diagnosis["model"].predict(X_d)[0]
-            dom_loss = self.pkg_diagnosis["labels"][diag_idx]
-            out["dominant_heat_loss_component"] = dom_loss
-        else:
-            out["dominant_heat_loss_component"] = "wall"
-
         # 3. Model C: Heat Loss Component Fluxes (W)
+        flux_dict = {}
         if self.pkg_heat_loss:
             prep_h = self.pkg_heat_loss["preprocessor"]
             X_h = prep_h.transform([row], scale=True)
@@ -258,23 +250,52 @@ class ThermaInferenceEngine:
         else:
             out["predicted_heat_loss_fluxes_W"] = {}
 
+        # 2. Model B: Thermal Diagnosis (Dominant Bottleneck)
+        # DRDO Reference Section 9: k* = argmax_k(P_k)
+        if flux_dict:
+            component_fluxes = {
+                "wall": flux_dict.get("wall_conduction_W", 0.0),
+                "roof": flux_dict.get("roof_conduction_W", 0.0),
+                "floor": flux_dict.get("floor_conduction_W", 0.0),
+                "glazing": flux_dict.get("glazing_conduction_W", 0.0),
+                "infiltration": flux_dict.get("infiltration_heat_loss_W", 0.0),
+                "sky": flux_dict.get("sky_longwave_loss_W", 0.0),
+            }
+            out["dominant_heat_loss_component"] = max(component_fluxes, key=component_fluxes.get)
+        elif self.pkg_diagnosis:
+            prep_d = self.pkg_diagnosis["preprocessor"]
+            X_d = prep_d.transform([row], scale=True)
+            diag_idx = self.pkg_diagnosis["model"].predict(X_d)[0]
+            out["dominant_heat_loss_component"] = self.pkg_diagnosis["labels"][diag_idx]
+        else:
+            out["dominant_heat_loss_component"] = "wall"
+
         # 4. Model D: Comfort Classification & Thermal Risk
+        # DRDO Reference Section 10: 18°C <= Top <= 27°C -> COMFORT; < 18°C -> COLD; > 27°C -> WARM
+        top = out.get("predicted_operative_temperature_C", out.get("predicted_indoor_temperature_C", -5.0))
+        if top < 18.0:
+            out["predicted_comfort_status"] = "COLD"
+        elif top <= 27.0:
+            out["predicted_comfort_status"] = "COMFORT"
+        else:
+            out["predicted_comfort_status"] = "WARM"
+
         if self.pkg_comfort:
             prep_c = self.pkg_comfort["preprocessor"]
             X_c = prep_c.transform([row], scale=True)
-            c_idx = self.pkg_comfort["model_comfort"].predict(X_c)[0]
-            out["predicted_comfort_status"] = self.pkg_comfort["comfort_labels"][c_idx]
-
             r_idx = self.pkg_comfort["model_risk"].predict(X_c)[0]
             out["predicted_thermal_risk_class"] = self.pkg_comfort["risk_labels"][r_idx]
         else:
-            out["predicted_comfort_status"] = "COLD"
-            out["predicted_thermal_risk_class"] = "ELEVATED"
+            out["predicted_thermal_risk_class"] = "ELEVATED" if top < 10.0 else ("MODERATE" if top < 18.0 else "NOMINAL")
 
         # 5. Model E: Safety Classifier (PASS vs REFUSED)
-        # Check physical interlock: if heater is combustion and ACH < 0.35 => immediate REFUSED
+        # DRDO Reference Section 15: IF heater_type in {kerosene, unflued_combustion} AND ACH < 0.35 -> REFUSED
         heater = str(row.get("heater_type", "none")).lower()
-        if ("bukkhari" in heater or "kerosene" in heater or "diesel" in heater) and float(row["ach"]) < 0.35:
+        is_combustion = (
+            "bukkhari" in heater or "kerosene" in heater or "diesel" in heater
+            or "combustion" in heater or "unflued" in heater
+        )
+        if is_combustion and float(row["ach"]) < 0.35:
             out["predicted_safety_status"] = "REFUSED"
             out["safety_reason"] = "Combustion heating with ACH < 0.35 violates life safety interlock (asphyxiation risk)."
         elif self.pkg_safety:
@@ -386,7 +407,9 @@ class ThermaInferenceEngine:
             params["night_shutter"] = "no shutter" not in q and "without shutter" not in q
 
         # Heater type
-        if "bukkhari" in q:
+        if "unflued" in q or "combustion" in q:
+            params["heater_type"] = "unflued_combustion"
+        elif "bukkhari" in q:
             params["heater_type"] = "bukkhari"
         elif "kerosene" in q:
             params["heater_type"] = "kerosene"

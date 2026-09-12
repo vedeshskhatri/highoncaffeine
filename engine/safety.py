@@ -64,7 +64,14 @@ def check(design: Any, heater_type: Optional[str] = "none") -> SafetyResult:
 
     heater_normalized = str(heater_type or "none").lower().strip()
 
-    if heater_normalized == "unflued_combustion" and ach < ACH_MIN_COMBUSTION:
+    is_combustion = (
+        heater_normalized in ("unflued_combustion", "kerosene", "unflued_kerosene", "bukhari", "diesel")
+        or "combustion" in heater_normalized
+        or "unflued" in heater_normalized
+        or "kerosene" in heater_normalized
+    )
+
+    if is_combustion and ach < ACH_MIN_COMBUSTION:
         return SafetyResult(
             refused=True,
             reason=(
