@@ -161,7 +161,7 @@ export default function MlPredictorPage() {
         <div className="ml-title-group">
           <h1>Surrogate ML Thermal Predictor & Grounded Q&A</h1>
           <p>
-            Smart India Hackathon 2026 · DRDO PS 26051 · Trained on 120,000-Row Physics-Grounded Final Dataset
+            Trained on 120,000-Row Physics-Grounded Master Dataset across 39 Himalayan Border Sites
           </p>
         </div>
         <div className="ml-badge-group">
@@ -564,7 +564,7 @@ export default function MlPredictorPage() {
       {activeTab === 'metrics' && (
         <div className="ml-card">
           <h2 className="ml-card-title">
-            <Award size={20} color="#0284c7" /> Final Trained Models Verification (SIH 2026 / DRDO PS 26051)
+            <Award size={20} color="#0284c7" /> Final Trained Models Verification & Benchmark Metrics
           </h2>
           <p className="ml-card-desc">
             Evaluated on 18,000 holdout test rows partitioned strictly by simulation ID with zero data leakage.

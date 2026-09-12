@@ -33,7 +33,6 @@ export default function LandingPage() {
               />
             </div>
             <span className="brand-title">THERMA</span>
-            <span className="brand-pill">DRDO PS 26051</span>
           </Link>
 
           <nav className="nav-links">
@@ -62,7 +61,6 @@ export default function LandingPage() {
           
           <div className="hero-kicker">
             <span className="kicker-pill">HIMALAYAN PASSIVE SOLAR ARCHITECTURE</span>
-            <span className="kicker-meta">SIH 2026 · DRDO DIHAR Leh Field Benchmark</span>
           </div>
 
           <h1 className="hero-headline">
@@ -295,10 +293,6 @@ export default function LandingPage() {
                 />
               </div>
               <span className="brand-title">THERMA</span>
-              <span className="footer-sep">·</span>
-              <span className="footer-tag">SIH 2026 Grand Final</span>
-              <span className="footer-sep">·</span>
-              <span className="footer-tag">DRDO PS 26051</span>
             </div>
             <p className="footer-sub">
               Area-specific high-altitude passive solar shelter engineering for defence outposts and humanitarian relief.

@@ -61,7 +61,7 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
           </div>
           <div className="brand-titles">
             <span className="brand-name">THERMA</span>
-            <span className="brand-org">DRDO · SIH 26051</span>
+            <span className="brand-org">High-Altitude Thermal</span>
           </div>
         </NavLink>
       </div>

@@ -239,7 +239,7 @@ export default function AlertsPage() {
       <div className="alerts-header">
         <div>
           <div className="alerts-tag-row">
-            <span className="drdo-section-badge">DRDO PS 26051 · CONTINGENCY & PRE-POSITIONING</span>
+            <span className="drdo-section-badge">CONTINGENCY & PRE-POSITIONING</span>
             <span className="alerts-estate-tag mono">{estate.toUpperCase()} SECTOR</span>
           </div>
           <h2 className="alerts-title">Cold Snap Early Warning & Pre-positioning</h2>

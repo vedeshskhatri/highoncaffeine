@@ -415,7 +415,7 @@ export default function DashboardPage() {
         <div className="header-meta-strip">
           <span className="estate-tag">{estate} Sector Console</span>
           <span className="dot-divider">•</span>
-          <span className="spec-tag">DRDO PS 26051</span>
+          <span className="spec-tag">Alpine Thermal Standard</span>
           <span className="dot-divider">•</span>
           <span className="status-indicator online">
             <span className="pulse-dot" />
