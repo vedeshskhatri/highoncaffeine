@@ -25,6 +25,7 @@ export default function LandingPage() {
       <header className="landing-nav">
         <div className="nav-container">
           <Link to="/" className="brand-group">
+            <span className="brand-title">THERMA</span>
             <div className="brand-logo-box">
               <img 
                 src="/thermometer_sticker.png" 
@@ -32,7 +33,6 @@ export default function LandingPage() {
                 className="brand-thermometer-img" 
               />
             </div>
-            <span className="brand-title">THERMA</span>
           </Link>
 
           <div className="nav-actions">
@@ -277,6 +277,7 @@ export default function LandingPage() {
         <div className="footer-container">
           <div className="footer-left">
             <div className="footer-brand">
+              <span className="brand-title">THERMA</span>
               <div className="footer-logo-box">
                 <img 
                   src="/thermometer_sticker.png" 
@@ -284,7 +285,6 @@ export default function LandingPage() {
                   className="footer-thermometer-img" 
                 />
               </div>
-              <span className="brand-title">THERMA</span>
             </div>
             <p className="footer-sub">
               Area-specific high-altitude passive solar shelter engineering for defence outposts and humanitarian relief.
