@@ -1,8 +1,7 @@
 /*
  * TacticalWorldMap.jsx — High-Resolution Global Tactical Map for THERMA
- * Built with Leaflet. Replaces crude SVG diagrams with 100% accurate, high-performance
- * multi-layer planetary cartography:
- * - Dynamic Tile Layers: Tactical Dark, Satellite Aerial, Topographic Relief, OpenStreetMap
+ * Built with Leaflet. Conforms to Alpine Precision Light Theme:
+ * - Dynamic Tile Layers: Alpine Light (default), Topographic Relief, Satellite Aerial, OpenStreetMap
  * - Click-Anywhere & Draggable Target Beacon with pulsing radar rings
  * - Real-time Reverse Geocoding & High-Altitude Coordinate HUD
  * - Instant Tactical Quick-Jump Zones (Siachen/Ladakh, Himalayas, Plains, Deserts, Coastal, Global)
@@ -24,18 +23,11 @@ import {
 import './TacticalWorldMap.css';
 
 const TILE_PRESETS = {
-  dark: {
-    id: 'dark',
-    label: 'Tactical Dark',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  light: {
+    id: 'light',
+    label: 'Alpine Light',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Esri, HERE, Garmin, © OpenStreetMap',
-    subdomains: '',
-  },
-  satellite: {
-    id: 'satellite',
-    label: 'Satellite Aerial',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: 'Esri, Maxar, Earthstar Geographics',
     subdomains: '',
   },
   topo: {
@@ -45,9 +37,16 @@ const TILE_PRESETS = {
     attribution: 'Esri, HERE, Garmin, USGS',
     subdomains: '',
   },
+  satellite: {
+    id: 'satellite',
+    label: 'Satellite Aerial',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Esri, Maxar, Earthstar Geographics',
+    subdomains: '',
+  },
   osm: {
     id: 'osm',
-    label: 'Street / OSM',
+    label: 'OpenStreetMap',
     url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '© OpenStreetMap contributors',
     subdomains: 'abc',
@@ -77,7 +76,7 @@ export default function TacticalWorldMap({
   const markerRef = useRef(null);
   const tileLayerRef = useRef(null);
 
-  const [activeTileKey, setActiveTileKey] = useState('dark');
+  const [activeTileKey, setActiveTileKey] = useState('light');
   const [layersOpen, setLayersOpen] = useState(false);
   const [activeSector, setActiveSector] = useState(null);
 
