@@ -1,5 +1,7 @@
 {
-  "buildCommand": "cd web && npm install && npm run build",
+  "framework": null,
+  "installCommand": "cd web && npm install",
+  "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/dist",
   "functions": {
     "api/index.py": { "maxDuration": 30, "memory": 1024 }
