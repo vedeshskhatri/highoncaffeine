@@ -320,20 +320,26 @@ export default function App() {
       {/* ── 1. Top Navigation Bar ──────────────────────────────────────── */}
       <header className="app-topbar" role="banner">
         <div className="topbar-left">
-          {/* Exit / Return to Platform Navigation */}
+          {/* Exit / Return to Platform Dashboard Navigation */}
           <button
             type="button"
             className="studio-exit-btn"
-            onClick={() => navigate(siteId ? `/sites/${siteId}` : '/dashboard')}
-            title="Exit Shelter Studio and return to THERMA Platform"
+            onClick={() => navigate('/dashboard')}
+            title="Exit Shelter Studio and return to Dashboard"
           >
             <ArrowLeft size={13} />
-            <span>Platform</span>
+            <span>Dashboard</span>
           </button>
 
           <span className="topbar-divider" aria-hidden="true" />
 
-          <div className="app-wordmark" aria-label="THERMA application">
+          <div
+            className="app-wordmark"
+            aria-label="THERMA application"
+            onClick={() => navigate('/dashboard')}
+            style={{ cursor: 'pointer' }}
+            title="Return to Dashboard"
+          >
             <span>THERMA</span>
             <span className="app-badge">STUDIO</span>
           </div>
