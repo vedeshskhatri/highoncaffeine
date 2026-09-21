@@ -2,6 +2,7 @@
 
 .platform-sidebar {
   width: 256px;
+  min-width: 256px;
   background-color: var(--surface-1);
   border-right: 1px solid var(--border);
   display: flex;
@@ -13,21 +14,37 @@
   user-select: none;
   z-index: 50;
   overflow: hidden;
-  transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1),
-              margin-left 0.26s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.2s ease,
-              visibility 0.26s ease;
+  box-sizing: border-box;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.28s ease,
+              opacity 0.2s ease;
 }
 
 .platform-sidebar.collapsed {
   width: 0 !important;
   min-width: 0 !important;
   max-width: 0 !important;
-  margin-left: -256px !important;
+  margin-left: 0 !important;
   border-right: none !important;
   opacity: 0 !important;
-  visibility: hidden !important;
+  visibility: hidden;
   pointer-events: none !important;
+}
+
+.platform-sidebar-inner {
+  width: 256px;
+  min-width: 256px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  transform: translateX(0);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.platform-sidebar.collapsed .platform-sidebar-inner {
+  transform: translateX(-100%);
 }
 
 /* 1. Sleek Brand Header */

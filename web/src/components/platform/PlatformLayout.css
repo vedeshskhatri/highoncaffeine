@@ -16,7 +16,6 @@
   min-width: 0;
   overflow-x: hidden;
   background-color: var(--bg-base);
-  transition: margin-left 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .platform-page-content {

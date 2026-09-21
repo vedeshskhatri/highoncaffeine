@@ -78,6 +78,19 @@ export default function TopBar({
           </button>
         )}
 
+        {!sidebarOpen && (
+          <Link to="/" className="topbar-collapsed-brand" title="THERMA Platform Home">
+            <div className="topbar-brand-icon-box">
+              <img 
+                src="/thermometer_sticker.png" 
+                alt="THERMA" 
+                className="topbar-brand-logo" 
+              />
+            </div>
+            <span className="topbar-brand-name">THERMA</span>
+          </Link>
+        )}
+
         {breadcrumbs.length > 0 && (
           <button
             type="button"
