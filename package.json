@@ -1,7 +1,8 @@
 {
   "name": "therma-root",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd web && npm install && npm run build"
+    "build": "cd web && npm install --legacy-peer-deps && npm run build"
   }
 }

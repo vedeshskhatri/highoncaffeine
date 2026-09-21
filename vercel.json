@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "installCommand": "cd web && npm install",
+  "installCommand": "cd web && npm install --legacy-peer-deps",
   "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/dist",
   "functions": {
