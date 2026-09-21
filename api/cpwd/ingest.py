@@ -22,8 +22,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from pypdf import PdfReader
-
 from api.db import DB_PATH, get_connection
 from api.cpwd.db import init_cpwd_db
 
@@ -74,6 +72,8 @@ def parse_pdf_edition(pdf_path: Path, year: int) -> Dict[str, Any]:
     """Parse complete CPWD DSR, DAR, and Specifications for a given year."""
     if not pdf_path.exists():
         raise FileNotFoundError(f"PDF not found: {pdf_path}")
+
+    from pypdf import PdfReader  # lazy: only needed for offline ingestion
 
     reader = PdfReader(str(pdf_path))
     total_pages = len(reader.pages)

@@ -73,7 +73,7 @@ def ask_question(req: QuestionRequest) -> Dict[str, Any]:
 @router.get("/models", summary="Retrieve surrogate models evaluation summary and metrics")
 def get_models_metadata() -> Dict[str, Any]:
     """Returns evaluation metrics (R², MAE, Accuracy) on test split (18,000 rows)."""
-    eval_path = Path("data/ml/evaluation_summary.json")
+    eval_path = Path(__file__).resolve().parent.parent / "data" / "ml" / "evaluation_summary.json"
     if eval_path.exists():
         with open(eval_path, "r", encoding="utf-8") as f:
             metrics = json.load(f)

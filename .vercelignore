@@ -1,40 +1,25 @@
-# Heavy ML training datasets & raw matrices (> 180 MB)
+# Keep the serverless bundle well under Vercel's 250 MB limit
+deck
+slide-data
+scratch
+docs
+audit
+tests
+validation
+walkthrough.md
+web/node_modules
+web/dist
+data/ml/master_timeseries.csv.gz
+data/ml/therma_*.csv
 data/ml/train.csv
 data/ml/test.csv
 data/ml/validation.csv
-data/ml/master_timeseries.csv.gz
-data/ml/therma_50000_physics_grounded.csv
-data/ml/therma_heat_balance.csv
-data/ml/design_parameters.csv
-data/ml/therma_design_parameters.csv
-data/ml/therma_diagnosis.csv
-data/ml/therma_optimization_candidates.csv
-data/ml/therma_weather.csv
-data/ml/therma_material_library_complete.csv
-data/ml/therma_material_properties.csv
-data/ml/therma_materials.csv
-data/ml/plots/**
-data/surrogate/*.npy
+data/ml/plots
+data/surrogate/features.npy
+data/surrogate/targets.npy
 data/surrogate/*.png
-
-# Documentation, presentations, and research notes (> 50 MB)
-brain/**
-audit/**
-deck/**
-docs/**
-scratch/**
-tests/**
-scripts/**
-
-# Caches and dev artifacts
-.pytest_cache/**
-__pycache__/**
-*.pyc
-*.pyo
-.git/**
-.github/**
-.agents/**
-
-# Web dependencies (Vercel builds via web/package.json)
-web/node_modules/**
-web/dist/**
+**/__pycache__
+.git
+data/ml/design_parameters.csv
+data/ml/quality_report.csv
+brain

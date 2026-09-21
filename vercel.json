@@ -1,13 +1,21 @@
 {
   "buildCommand": "cd web && npm install && npm run build",
   "outputDirectory": "web/dist",
+  "functions": {
+    "api/index.py": { "maxDuration": 30, "memory": 1024 }
+  },
   "rewrites": [
     {
-      "source": "/(health|simulate|optimize|sensitivity|retrofit|what-if|compare|annual_scan|forecast_watch|materials|validation|datasets|provenance|engineering_report|estate|sites|alerts|programme|forecast|designs|suggest-materials|location|surrogate|api)(.*)",
+      "source": "/(sites|programme|alerts|forecast|materials|validation|designs)(/.*)?",
+      "has": [{ "type": "header", "key": "accept", "value": ".*text/html.*" }],
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(health|simulate|optimize|sensitivity|retrofit|what-if|compare|annual_scan|forecast_watch|materials|validation|datasets|provenance|engineering_report|estate|sites|alerts|programme|forecast|designs|suggest-materials|location|surrogate|scenarios|api|docs|openapi.json)(/.*)?",
       "destination": "/api/index.py"
     },
     {
-      "source": "/((?!assets/|favicon.*|.*\\..*).*)",
+      "source": "/((?!assets/|favicon)[^.]*)",
       "destination": "/index.html"
     }
   ]
