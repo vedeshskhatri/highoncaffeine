@@ -427,16 +427,18 @@ export default function Shelter3DCanvas({
     const w = width_m;
     const h = height_m;
 
-    // Dynamic Heat Flux Vector Field Particles
+    // Dynamic Heat Flux Vector Field Particles (Exclusively active in Thermal Gradient Mode)
     if (heatFluxParticlesRef.current) {
       scene.remove(heatFluxParticlesRef.current);
       if (heatFluxParticlesRef.current.geometry) heatFluxParticlesRef.current.geometry.dispose();
       if (heatFluxParticlesRef.current.material) heatFluxParticlesRef.current.material.dispose();
       heatFluxParticlesRef.current = null;
     }
-    const particles = createHeatFluxParticles(l, w, h);
-    scene.add(particles);
-    heatFluxParticlesRef.current = particles;
+    if (isThermal) {
+      const particles = createHeatFluxParticles(l, w, h);
+      scene.add(particles);
+      heatFluxParticlesRef.current = particles;
+    }
 
     // Authentic Procedural Textures
     const adobeTex = getAdobeTexture();

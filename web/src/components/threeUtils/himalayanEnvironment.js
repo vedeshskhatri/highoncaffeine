@@ -658,8 +658,8 @@ export function createHeatFluxParticles(l = 6.0, w = 4.0, h = 2.6) {
   const velocities = [];
   const lifetimes = [];
 
-  const warmColor = new THREE.Color(0xF97316); // Thermal warm orange
-  const coolColor = new THREE.Color(0x38BDF8); // Ambient cold cyan
+  const warmColor = new THREE.Color(0xEA580C); // Infrared warm amber
+  const coolColor = new THREE.Color(0x9A3412); // Subtle thermal dissipation
   const tempColor = new THREE.Color();
 
   const resetParticle = (i) => {
@@ -726,11 +726,11 @@ export function createHeatFluxParticles(l = 6.0, w = 4.0, h = 2.6) {
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
   const material = new THREE.PointsMaterial({
-    size: 0.16,
+    size: 0.06,
     vertexColors: true,
     transparent: true,
-    opacity: 0.75,
-    blending: THREE.AdditiveBlending,
+    opacity: 0.45,
+    blending: THREE.NormalBlending,
     depthWrite: false,
   });
 
