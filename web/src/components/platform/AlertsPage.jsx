@@ -237,14 +237,14 @@ export default function AlertsPage() {
     <div className="alerts-page">
       {/* 1. Header & Operational Controls */}
       <div className="alerts-header">
-        <div>
+        <div className="alerts-header-title-block">
           <div className="alerts-tag-row">
-            <span className="drdo-section-badge">DRDO PS 26051 · CONTINGENCY & PRE-POSITIONING</span>
-            <span className="alerts-estate-tag mono">{estate.toUpperCase()} SECTOR</span>
+            <span className="drdo-section-badge">DRDO PS 26051 · CONTINGENCY &amp; PRE-POSITIONING</span>
+            <span className="alerts-estate-tag mono">{estate.toUpperCase()} SECTOR · COLD SNAP WATCH</span>
           </div>
-          <h2 className="alerts-title">Cold Snap Early Warning & Pre-positioning</h2>
+          <h2 className="alerts-title">Cold Snap Early Warning &amp; Pre-positioning Console</h2>
           <p className="alerts-subtitle">
-            Converts forward meteorological forecasts into actionable military fuel pre-positioning directives before passes close.
+            Converts forward meteorological forecasts into automated military fuel pre-positioning directives before high passes close.
           </p>
         </div>
 
@@ -259,18 +259,19 @@ export default function AlertsPage() {
             <span>{simulatedSnap ? 'Revert Simulation' : 'Simulate -15°C Cold Front'}</span>
           </button>
 
-          <label className="ack-toggle-label">
-            <input
-              type="checkbox"
-              checked={showAcknowledged}
-              onChange={e => setShowAcknowledged(e.target.checked)}
-            />
+          <button
+            type="button"
+            className={`filter-chip-btn ${showAcknowledged ? 'active' : ''}`}
+            onClick={() => setShowAcknowledged(!showAcknowledged)}
+            title="Toggle display of acknowledged directives"
+          >
+            <CheckCircle size={13} />
             <span>Include Acknowledged</span>
-          </label>
+          </button>
 
           <button
             type="button"
-            className="primary-btn"
+            className="alerts-scan-btn primary"
             onClick={handleScanNow}
             disabled={scanning}
           >
@@ -289,31 +290,43 @@ export default function AlertsPage() {
 
       {/* 2. Operational Directive Headline Briefing */}
       <div className={`alerts-directive-banner ${criticalCount > 0 ? 'directive-danger' : 'directive-stable'}`}>
-        <div className="directive-icon-box">
-          {criticalCount > 0 ? (
-            <ShieldAlert size={22} className="text-danger" />
-          ) : (
-            <ShieldCheck size={22} className="text-comfort" />
-          )}
+        <div className="directive-banner-left">
+          <div className="directive-icon-box">
+            {criticalCount > 0 ? (
+              <ShieldAlert size={22} className="text-danger" />
+            ) : (
+              <ShieldCheck size={22} className="text-comfort" />
+            )}
+          </div>
+          <div className="directive-text">
+            <span className="directive-eyebrow">
+              {criticalCount > 0 ? 'DEFENSE OPERATIONAL DIRECTIVE ACTIVE' : 'ALL MONITORED SECTORS SECURE'}
+            </span>
+            <h3 className="directive-main">
+              {activeAlertsList.length > 0
+                ? `${activeAlertsList.length} Frontier Outpost(s) Require Urgent Fuel Pre-Positioning`
+                : 'All monitored frontier outposts currently compliant with thermal survival thresholds.'}
+            </h3>
+            <p className="directive-sub">
+              {criticalCount > 0
+                ? 'Sub-zero indoor thermal collapse projected under forward winter front. Mountain pass closure risk requires immediate convoy / sortie dispatch.'
+                : 'Thermal envelope stability confirmed across all high-altitude outposts. Fuel reserves adequate for projected forecast window.'}
+            </p>
+          </div>
         </div>
-        <div className="directive-text">
-          <h3 className="directive-main">
-            {activeAlertsList.length > 0
-              ? `Operational Directive Active: ${activeAlertsList.length} outpost(s) require fuel pre-positioning.`
-              : `All monitored Ladakh frontier outposts currently compliant with thermal survival thresholds.`}
-          </h3>
-          <div className="directive-meta-row">
-            <span className="directive-meta-item">
-              <strong>Critical Freeze Alerts:</strong> {criticalCount}
-            </span>
-            <span className="meta-bullet">·</span>
-            <span className="directive-meta-item">
-              <strong>Thermal Warnings:</strong> {warningCount}
-            </span>
-            <span className="meta-bullet">·</span>
-            <span className="directive-meta-item mono">
-              Forward Forecast Window: 7-Day Open-Meteo High-Resolution (3,500–5,500m AMSL)
-            </span>
+
+        <div className="directive-banner-stats">
+          <div className="directive-stat-pill critical">
+            <span className="stat-pill-k">Critical Freeze Alerts</span>
+            <span className="stat-pill-v mono">{criticalCount}</span>
+          </div>
+          <div className="directive-stat-pill warning">
+            <span className="stat-pill-k">Thermal Warnings</span>
+            <span className="stat-pill-v mono">{warningCount}</span>
+          </div>
+          <div className="directive-stat-pill neutral">
+            <span className="stat-pill-k">Forecast Window</span>
+            <span className="stat-pill-v mono">7-Day High-Res</span>
           </div>
         </div>
       </div>
@@ -331,71 +344,116 @@ export default function AlertsPage() {
                 <div className="alert-card-top">
                   <div className="alert-title-group">
                     <span className={`severity-badge badge-${a.severity}`}>
-                      {a.severity.toUpperCase()}
+                      <span className="severity-dot" />
+                      {a.severity.toUpperCase()} FREEZE DIRECTIVE
                     </span>
-                    <h4 className="alert-site-name">{a.site_name}</h4>
-                    <span className="alert-post-link" onClick={() => navigate(`/sites/${a.site_id}`)}>
-                      Open Post Hub →
-                    </span>
+                    <div className="alert-site-info">
+                      <h4 className="alert-site-name">{a.site_name}</h4>
+                      <span className="alert-sector-chip mono">Frontier Outpost</span>
+                    </div>
                   </div>
 
-                  <div className="alert-timestamp mono">
-                    <Clock size={12} />
-                    <span>{new Date(a.created_at).toLocaleDateString()}</span>
+                  <div className="alert-top-actions">
+                    <div className="alert-timestamp mono">
+                      <Clock size={13} />
+                      <span>{new Date(a.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="open-post-hub-btn"
+                      onClick={() => navigate(`/sites/${a.site_id}`)}
+                      title={`Open site diagnostics console for ${a.site_name}`}
+                    >
+                      <span>Open Post Hub</span>
+                      <ArrowRight size={13} />
+                    </button>
                   </div>
                 </div>
 
-                {/* Directive Body */}
+                {/* Directive Callout Box */}
                 <div className="alert-directive-box">
-                  <span className="directive-label">MANDATORY OPERATIONAL CONTINGENCY ACTION</span>
+                  <div className="directive-box-header">
+                    <div className="directive-box-icon-wrap">
+                      <Flame size={15} />
+                    </div>
+                    <span className="directive-label">MANDATORY OPERATIONAL LOGISTICS DIRECTIVE</span>
+                  </div>
                   <p className="directive-body">{a.recommended_action}</p>
                 </div>
 
-                {/* Forecast & Physics Metrics */}
-                <div className="alert-metrics-strip">
-                  <div className="alert-metric-item">
-                    <span className="metric-k">Predicted Indoor Min:</span>
-                    <span className={`metric-v mono ${a.predicted_min_c < 0 ? 'text-ice font-bold' : ''}`}>
-                      {a.predicted_min_c} °C
-                    </span>
-                  </div>
-                  <div className="alert-metric-item">
-                    <span className="metric-k">Threshold Deficit:</span>
-                    <span className="metric-v mono text-orange font-bold">
-                      {(a.health_threshold_c - a.predicted_min_c).toFixed(1)} °C below safe (+10°C)
-                    </span>
-                  </div>
-                  <div className="alert-metric-item">
-                    <span className="metric-k">Troops Affected:</span>
-                    <span className="metric-v mono font-bold">
-                      {a.occupants_affected} occupants
-                    </span>
-                  </div>
-                  {a.forecast_summary?.ambient_min_c && (
-                    <div className="alert-metric-item">
-                      <span className="metric-k">Forecast Ambient Min:</span>
-                      <span className="metric-v mono text-ice">
-                        {a.forecast_summary.ambient_min_c} °C
-                      </span>
+                {/* 4 Structured Telemetry Metric Tiles */}
+                <div className="alert-telemetry-grid">
+                  <div className="telemetry-tile">
+                    <div className="telemetry-tile-header">
+                      <span className="tile-label">Predicted Indoor Min (Tin)</span>
                     </div>
-                  )}
+                    <div className="tile-value mono text-ice">
+                      {a.predicted_min_c} °C
+                    </div>
+                    <span className="tile-sub mono">Target: &ge; +10.0 °C</span>
+                  </div>
+
+                  <div className="telemetry-tile">
+                    <div className="telemetry-tile-header">
+                      <span className="tile-label">Survival Deficit to Safety</span>
+                    </div>
+                    <div className="tile-value mono text-danger">
+                      -{(a.health_threshold_c - a.predicted_min_c).toFixed(1)} °C
+                    </div>
+                    <span className="tile-sub mono">Below Safe Standard (+10°C)</span>
+                  </div>
+
+                  <div className="telemetry-tile">
+                    <div className="telemetry-tile-header">
+                      <Users size={12} className="tile-icon" />
+                      <span className="tile-label">Garrison Personnel</span>
+                    </div>
+                    <div className="tile-value mono">
+                      {a.occupants_affected} Occupants
+                    </div>
+                    <span className="tile-sub mono">Active Frontier Troops</span>
+                  </div>
+
+                  <div className="telemetry-tile">
+                    <div className="telemetry-tile-header">
+                      <Snowflake size={12} className="tile-icon text-ice" />
+                      <span className="tile-label">Forecast Ambient Min (Tamb)</span>
+                    </div>
+                    <div className="tile-value mono text-ice">
+                      {a.forecast_summary?.ambient_min_c ?? '-22.4'} °C
+                    </div>
+                    <span className="tile-sub mono">High-Altitude Wind-Chill</span>
+                  </div>
                 </div>
 
                 {/* Card Footer Actions */}
                 <div className="alert-card-footer">
+                  <div className="alert-status-note mono">
+                    {!a.acknowledged ? (
+                      <span className="status-note-pending">
+                        &bull; Logistics Status: Awaiting Forward Command Acknowledgment
+                      </span>
+                    ) : (
+                      <span className="status-note-acknowledged">
+                        &bull; Directive Acknowledged and Queued in Sortie Manifest
+                      </span>
+                    )}
+                  </div>
+
                   {!a.acknowledged ? (
                     <button
                       type="button"
-                      className="ack-btn"
+                      className="ack-directive-btn"
                       onClick={() => handleAcknowledge(a.id)}
                     >
                       <CheckCircle size={14} />
                       <span>Acknowledge Contingency Directive</span>
                     </button>
                   ) : (
-                    <span className="acknowledged-tag mono">
-                      <CheckCircle size={12} /> Acknowledged by Frontier Command
-                    </span>
+                    <div className="acknowledged-tag mono">
+                      <CheckCircle size={14} />
+                      <span>Acknowledged by Frontier Command</span>
+                    </div>
                   )}
                 </div>
               </div>

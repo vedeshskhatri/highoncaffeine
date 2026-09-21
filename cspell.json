@@ -57,7 +57,14 @@
     "Siachen",
     "siachen",
     "SIACHEN",
+    "Fotu",
+    "Himank",
+    "Khardung",
+    "pangong",
+    "Pangong",
     "Spiti",
+    "Tamb",
+    "Tanglang",
     "Tangtse",
     "THERMA",
     "therma",
@@ -73,7 +80,8 @@
     "uncompromised",
     "unflued",
     "Unflued",
-    "Zanskar"
+    "Zanskar",
+    "Zoji"
   ],
   "ignorePaths": [
     "node_modules",
