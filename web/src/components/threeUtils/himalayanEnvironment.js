@@ -21,19 +21,66 @@ export function detectBiome(location = {}, locationName = '') {
   const name = (locationName || '').toLowerCase();
 
   // Explicit keyword checks
-  if (name.includes('siachen') || name.includes('dras') || name.includes('khardung') || name.includes('baralacha')) {
+  if (
+    name.includes('siachen') ||
+    name.includes('dras') ||
+    name.includes('khardung') ||
+    name.includes('baralacha') ||
+    name.includes('chang la') ||
+    name.includes('daulat beg') ||
+    name.includes('saser') ||
+    name.includes('glacier') ||
+    name.includes('rezang')
+  ) {
     return 'glacial';
   }
-  if (name.includes('jaisalmer') || name.includes('bikaner') || name.includes('thar') || name.includes('desert')) {
+  if (
+    name.includes('jaisalmer') ||
+    name.includes('bikaner') ||
+    name.includes('thar') ||
+    name.includes('desert') ||
+    name.includes('barmer') ||
+    name.includes('pokhran')
+  ) {
     return 'desert';
   }
-  if (name.includes('manali') || name.includes('shimla') || name.includes('kullu') || name.includes('auli') || name.includes('darjeeling')) {
+  if (
+    name.includes('manali') ||
+    name.includes('shimla') ||
+    name.includes('kullu') ||
+    name.includes('auli') ||
+    name.includes('darjeeling') ||
+    name.includes('rohtang') ||
+    name.includes('sonamarg') ||
+    name.includes('tangdhar') ||
+    name.includes('tawang') ||
+    name.includes('se la') ||
+    name.includes('rasuwa')
+  ) {
     return 'valley';
   }
-  if (name.includes('delhi') || name.includes('chandigarh') || name.includes('mumbai') || name.includes('plains')) {
+  if (
+    name.includes('delhi') ||
+    name.includes('chandigarh') ||
+    name.includes('mumbai') ||
+    name.includes('plains')
+  ) {
     return 'plains';
   }
-  if (name.includes('leh') || name.includes('ladakh') || name.includes('nyoma') || name.includes('zanskar')) {
+  if (
+    name.includes('leh') ||
+    name.includes('ladakh') ||
+    name.includes('nyoma') ||
+    name.includes('zanskar') ||
+    name.includes('nubra') ||
+    name.includes('diskit') ||
+    name.includes('hanle') ||
+    name.includes('changthang') ||
+    name.includes('tangtse') ||
+    name.includes('chushul') ||
+    name.includes('kargil') ||
+    name.includes('spiti')
+  ) {
     return 'plateau';
   }
 

@@ -1,40 +1,27 @@
 import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
-  Compass,
   Plus,
   Minus,
   MapPin,
-  Eye,
-  Check,
-  Navigation,
-  ExternalLink,
-  Snowflake,
-  Sun,
-  Shield,
-  X,
-  Flame,
-  Maximize2,
-  Box,
   Layers,
-  ChevronUp,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Hand,
-  RotateCcw,
+  Check,
+  ExternalLink,
+  Maximize2,
+  X,
+  Activity,
+  ChevronRight
 } from 'lucide-react';
 import { DEFENSE_OUTPOSTS } from './outpostData';
 import './Interactive3DMap.css';
 
-// 100% Free OpenStreetMap & Open Raster Tiles (No API key required, zero watermarks!)
+// 100% Free OpenStreetMap & Open Raster Tiles (No API key required, zero watermarks)
 const TILE_STYLES = {
   osm: {
     id: 'osm',
-    label: 'OpenStreetMap (Free)',
+    label: 'OpenStreetMap',
     url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '© OpenStreetMap contributors',
     subdomains: 'abc',
@@ -43,7 +30,7 @@ const TILE_STYLES = {
     id: 'hot',
     label: 'Humanitarian Topo',
     url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-    attribution: '© OpenStreetMap contributors, Humanitarian Team',
+    attribution: '© OpenStreetMap, Humanitarian Team',
     subdomains: 'abc',
   },
   satellite: {
@@ -93,69 +80,53 @@ const TACTICAL_ROUTES = [
 ];
 
 const Interactive3DMap = forwardRef(
-  (
-    {
-      sites = [],
-      selectedSiteId,
-      onSelectSite,
-      onPinDrop,
-      mapMode: controlledMapMode,
-      onToggleMapMode,
-    },
-    ref
-  ) => {
-    // Mode: '2d' | '3d' (controlled or internal)
-    const [internalMapMode, setInternalMapMode] = useState('2d');
-    const mapMode = controlledMapMode !== undefined ? controlledMapMode : internalMapMode;
-    const setMapMode = (mode) => {
-      setInternalMapMode(mode);
-      if (onToggleMapMode) onToggleMapMode(mode);
-    };
-
-    // 3D interaction mode: 'pan' (default so left-drag pans terrain) | 'rotate'
-    const [threeInteractionMode, setThreeInteractionMode] = useState('pan');
-
-    // Container Refs
+  ({ sites = [], selectedSiteId, onSelectSite, onPinDrop }, ref) => {
+    // Container Ref
     const mapContainerRef = useRef(null);
-    const threeContainerRef = useRef(null);
 
     // 2D Leaflet Refs
     const mapRef = useRef(null);
     const tileLayerRef = useRef(null);
     const markersRef = useRef(new Map());
-
-    // 3D Three.js Refs
-    const sceneRef = useRef(null);
-    const cameraRef = useRef(null);
-    const rendererRef = useRef(null);
-    const controlsRef = useRef(null);
+    const routesGroupRef = useRef(null);
 
     // Merge passed sites with default outposts
     const displayOutposts = useMemo(() => {
       if (sites && sites.length > 0) {
         return sites.map((s, idx) => {
-          const matched = DEFENSE_OUTPOSTS.find((d) => d.id === s.id);
+          const matched = DEFENSE_OUTPOSTS.find((d) => d.id === s.id || d.name === s.name);
           const hasEval = s.has_evaluation;
-          const status = hasEval ? s.evaluation.status : matched ? matched.status : 'optimal';
+          const status = hasEval ? s.evaluation.status : matched ? matched.status : (s.altitude_m > 4500 ? 'critical' : 'warning');
+          
           return {
             ...matched,
             ...s,
             id: s.id,
             name: s.name,
-            lat: s.lat || 34.2,
-            lon: s.lon || 77.6,
-            altitude_m: s.altitude_m || 3500,
+            lat: s.lat || (matched ? matched.lat : 34.2),
+            lon: s.lon || (matched ? matched.lon : 77.6),
+            altitude_m: s.altitude_m || (matched ? matched.altitude_m : 3500),
             status,
-            occupants: s.occupants || 12,
+            occupants: s.occupants || (matched ? matched.occupants : 12),
             commander: matched ? matched.commander : `Post Cmdr #${idx + 1}`,
             commanderRank: matched ? matched.commanderRank : 'Capt',
             avatar: matched ? matched.avatar : DEFENSE_OUTPOSTS[idx % DEFENSE_OUTPOSTS.length].avatar,
-            solar_irradiance: matched ? matched.solar_irradiance : 1980,
-            t_ambient_min: hasEval ? s.evaluation.t_in_min_c : matched ? matched.t_ambient_min : -25,
-            fuel_burn_litres: hasEval ? s.evaluation.annual_fuel_litres : matched ? matched.fuel_burn_litres : 1500,
-            x: matched ? matched.x : ((idx % 4) - 1.5) * 30,
-            z: matched ? matched.z : (Math.floor(idx / 4) - 1) * 30,
-            height: matched ? matched.height : 18,
+            solar_irradiance: matched ? matched.solar_irradiance : (s.altitude_m > 4000 ? 2050 : 1920),
+            t_ambient_min: hasEval 
+              ? s.evaluation.t_in_min_c 
+              : matched 
+              ? matched.t_ambient_min 
+              : (s.altitude_m > 4500 ? -32.0 : -18.5),
+            fuel_burn_litres: hasEval 
+              ? s.evaluation.annual_fuel_litres 
+              : matched 
+              ? matched.fuel_burn_litres 
+              : (s.altitude_m > 4500 ? 3800 : 1600),
+            t_inside_pred: hasEval
+              ? s.evaluation.t_in_max_c
+              : matched
+              ? matched.t_inside_pred
+              : 16.0,
           };
         });
       }
@@ -163,10 +134,11 @@ const Interactive3DMap = forwardRef(
     }, [sites]);
 
     const [activeSite, setActiveSite] = useState(displayOutposts[0] || DEFENSE_OUTPOSTS[0]);
-    const [tileStyleKey, setTileStyleKey] = useState('osm'); // 'osm' default (no watermark!)
+    const [tileStyleKey, setTileStyleKey] = useState('osm');
     const [styleMenuOpen, setStyleMenuOpen] = useState(false);
     const [dropPinMode, setDropPinMode] = useState(false);
     const [inspectorOpen, setInspectorOpen] = useState(false);
+    const [showRoutes, setShowRoutes] = useState(false); // Clean: off by default to reduce clutter
 
     // Expose flyToSite method
     useImperativeHandle(ref, () => ({
@@ -175,22 +147,11 @@ const Interactive3DMap = forwardRef(
         setActiveSite(target);
         setInspectorOpen(true);
 
-        // Fly 2D map
         if (mapRef.current && target.lat && target.lon) {
           mapRef.current.flyTo([target.lat, target.lon], 11, {
-            duration: 0.8,
+            duration: 0.7,
             easeLinearity: 0.25,
           });
-        }
-
-        // Fly 3D camera
-        if (controlsRef.current && cameraRef.current && target.x !== undefined) {
-          const controls = controlsRef.current;
-          const camera = cameraRef.current;
-          const targetPos = new THREE.Vector3(target.x, 0, target.z);
-          const cameraPos = new THREE.Vector3(target.x + 35, 30, target.z + 35);
-          controls.target.copy(targetPos);
-          camera.position.copy(cameraPos);
         }
       },
     }));
@@ -207,7 +168,7 @@ const Interactive3DMap = forwardRef(
     }, [selectedSiteId, displayOutposts]);
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // 1. INITIALIZE 2D LEAFLET MAP (Initialized once, kept active for fast toggling)
+    // INITIALIZE LEAFLET MAP
     // ─────────────────────────────────────────────────────────────────────────────
     const dropPinModeRef = useRef(dropPinMode);
     useEffect(() => {
@@ -229,10 +190,9 @@ const Interactive3DMap = forwardRef(
         doubleClickZoom: true,
       });
 
-      // Explicitly enable dragging
       map.dragging.enable();
 
-      // Default Tile Layer (OpenStreetMap free)
+      // Default Tile Layer (OpenStreetMap)
       const cfg = TILE_STYLES[tileStyleKey] || TILE_STYLES.osm;
       const tileLayer = L.tileLayer(cfg.url, {
         maxZoom: 19,
@@ -241,27 +201,9 @@ const Interactive3DMap = forwardRef(
 
       tileLayerRef.current = tileLayer;
 
-      // Add Tactical Routes Polylines (interactive: false so they NEVER block mouse drag!)
+      // Create Route Group
       const routeGroup = L.featureGroup().addTo(map);
-      TACTICAL_ROUTES.forEach((r) => {
-        L.polyline(r.coords, {
-          color: '#FFFFFF',
-          weight: 6,
-          opacity: 0.75,
-          lineJoin: 'round',
-          lineCap: 'round',
-          interactive: false,
-        }).addTo(routeGroup);
-
-        L.polyline(r.coords, {
-          color: r.color,
-          weight: 3.5,
-          opacity: 0.95,
-          lineJoin: 'round',
-          lineCap: 'round',
-          interactive: false,
-        }).addTo(routeGroup);
-      });
+      routesGroupRef.current = routeGroup;
 
       mapRef.current = map;
 
@@ -270,10 +212,12 @@ const Interactive3DMap = forwardRef(
         if (dropPinModeRef.current && onPinDrop) {
           onPinDrop({ lat: e.latlng.lat, lon: e.latlng.lng });
           setDropPinMode(false);
+        } else {
+          // Clicking empty terrain deselects inspector
+          setInspectorOpen(false);
         }
       });
 
-      // Recalculate size when mounted
       const timer = setTimeout(() => {
         if (mapRef.current) {
           mapRef.current.invalidateSize();
@@ -289,20 +233,7 @@ const Interactive3DMap = forwardRef(
       };
     }, []);
 
-    // Invalidate size whenever 2D mode becomes active or container resizes
-    useEffect(() => {
-      if (mapMode === '2d' && mapRef.current) {
-        mapRef.current.invalidateSize();
-        const t1 = setTimeout(() => mapRef.current?.invalidateSize(), 50);
-        const t2 = setTimeout(() => mapRef.current?.invalidateSize(), 180);
-        return () => {
-          clearTimeout(t1);
-          clearTimeout(t2);
-        };
-      }
-    }, [mapMode]);
-
-    // Continuous ResizeObserver to guarantee the map fills 100% height and width
+    // Continuous ResizeObserver
     useEffect(() => {
       if (!mapContainerRef.current) return;
       const observer = new ResizeObserver(() => {
@@ -314,9 +245,8 @@ const Interactive3DMap = forwardRef(
       return () => observer.disconnect();
     }, []);
 
-    // Handle 2D Tile Style change
+    // Handle Tile Style change
     useEffect(() => {
-      if (mapMode !== '2d') return;
       if (!mapRef.current || !tileLayerRef.current) return;
       const cfg = TILE_STYLES[tileStyleKey] || TILE_STYLES.osm;
       mapRef.current.removeLayer(tileLayerRef.current);
@@ -325,11 +255,30 @@ const Interactive3DMap = forwardRef(
         subdomains: cfg.subdomains || 'abc',
       }).addTo(mapRef.current);
       tileLayerRef.current = newLayer;
-    }, [tileStyleKey, mapMode]);
+    }, [tileStyleKey]);
 
-    // Render 2D Markers
+    // Render Supply Routes dynamically
     useEffect(() => {
-      if (mapMode !== '2d') return;
+      if (!routesGroupRef.current) return;
+      routesGroupRef.current.clearLayers();
+
+      if (showRoutes) {
+        TACTICAL_ROUTES.forEach((r) => {
+          L.polyline(r.coords, {
+            color: r.color,
+            weight: 2.5,
+            dashArray: '5, 6',
+            opacity: 0.85,
+            lineJoin: 'round',
+            lineCap: 'round',
+            interactive: false,
+          }).addTo(routesGroupRef.current);
+        });
+      }
+    }, [showRoutes]);
+
+    // Render Clean Non-Overlapping 2D Markers
+    useEffect(() => {
       if (!mapRef.current) return;
       const map = mapRef.current;
 
@@ -337,27 +286,29 @@ const Interactive3DMap = forwardRef(
       markersRef.current.clear();
 
       displayOutposts.forEach((post) => {
-        const isSelected = activeSite.id === post.id;
+        const isSelected = activeSite?.id === post.id;
         const isCrit = post.status === 'critical';
         const isOpt = post.status === 'optimal';
 
+        // Clean, compact tactical radar marker (name expands only on hover or selection)
         const customIcon = L.divIcon({
           className: 'leaflet-custom-marker-wrapper',
           html: `
-            <div class="quick-map-pin ${isSelected ? 'pin-selected' : ''} ${
-            isCrit ? 'pin-crit' : isOpt ? 'pin-optimal' : 'pin-warning'
-          }">
-              <div class="pin-marker-core">
-                <div class="pin-status-dot"></div>
-                <span class="pin-short-temp">${Math.round(post.t_ambient_min)}°</span>
+            <div class="tactical-map-pin ${isSelected ? 'pin-selected' : ''} ${
+              isCrit ? 'pin-crit' : isOpt ? 'pin-optimal' : 'pin-warning'
+            }">
+              <div class="pin-radar-pip">
+                <span class="pin-status-dot"></span>
+                <span class="pin-temp-label">${Math.round(post.t_ambient_min)}°</span>
               </div>
-              <div class="pin-label-pill">
+              <div class="pin-expanded-label">
                 <span class="pin-name">${post.name}</span>
+                <span class="pin-alt">${post.altitude_m?.toLocaleString()}m</span>
               </div>
             </div>
           `,
-          iconSize: [110, 46],
-          iconAnchor: [55, 46],
+          iconSize: [42, 28],
+          iconAnchor: [21, 14],
         });
 
         const marker = L.marker([post.lat, post.lon], { icon: customIcon }).addTo(map);
@@ -367,435 +318,147 @@ const Interactive3DMap = forwardRef(
           setActiveSite(post);
           setInspectorOpen(true);
           if (onSelectSite) onSelectSite(post);
-          map.flyTo([post.lat, post.lon], 11, { duration: 0.8 });
+          map.flyTo([post.lat, post.lon], 11, { duration: 0.7 });
         });
 
         markersRef.current.set(post.id, marker);
       });
-    }, [displayOutposts, activeSite.id, mapMode]);
+    }, [displayOutposts, activeSite, onSelectSite]);
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // 2. INITIALIZE 3D THREE.JS DIGITAL TWIN
-    // ─────────────────────────────────────────────────────────────────────────────
-    useEffect(() => {
-      if (mapMode !== '3d') return;
-      if (!threeContainerRef.current) return;
-
-      const container = threeContainerRef.current;
-      const width = container.clientWidth || 800;
-      const height = container.clientHeight || 600;
-
-      const scene = new THREE.Scene();
-      sceneRef.current = scene;
-      scene.background = new THREE.Color('#F0F4F8');
-      scene.fog = new THREE.FogExp2('#F0F4F8', 0.005);
-
-      const camera = new THREE.PerspectiveCamera(42, width / height, 1, 1000);
-      camera.position.set(60, 50, 70);
-      cameraRef.current = camera;
-
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.shadowMap.enabled = true;
-      rendererRef.current = renderer;
-
-      container.innerHTML = '';
-      container.appendChild(renderer.domElement);
-
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.06;
-      controls.enablePan = true;
-      controls.screenSpacePanning = true;
-      controls.maxPolarAngle = Math.PI / 2.15;
-      controls.minDistance = 20;
-      controls.maxDistance = 220;
-      controls.target.set(0, 0, 0);
-      controls.mouseButtons = {
-        LEFT: threeInteractionMode === 'pan' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
-        MIDDLE: THREE.MOUSE.DOLLY,
-        RIGHT: threeInteractionMode === 'pan' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
-      };
-      controlsRef.current = controls;
-
-      const hemiLight = new THREE.HemisphereLight('#FFFFFF', '#CBD5E1', 0.95);
-      scene.add(hemiLight);
-
-      const dirLight = new THREE.DirectionalLight('#FFFBEB', 1.6);
-      dirLight.position.set(70, 90, 50);
-      dirLight.castShadow = true;
-      scene.add(dirLight);
-
-      const terrainSize = 200;
-      const terrainGeo = new THREE.PlaneGeometry(terrainSize, terrainSize, 48, 48);
-      const pos = terrainGeo.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const vx = pos.getX(i);
-        const vy = pos.getY(i);
-        const elev =
-          Math.sin(vx * 0.04) * Math.cos(vy * 0.04) * 6 +
-          Math.sin(vx * 0.08) * 3.5;
-        pos.setZ(i, elev);
-      }
-      terrainGeo.computeVertexNormals();
-
-      const terrainMat = new THREE.MeshStandardMaterial({
-        color: '#E2E8F0',
-        roughness: 0.8,
-        metalness: 0.05,
-        flatShading: true,
-      });
-      const terrain = new THREE.Mesh(terrainGeo, terrainMat);
-      terrain.rotation.x = -Math.PI / 2;
-      terrain.receiveShadow = true;
-      scene.add(terrain);
-
-      const grid = new THREE.GridHelper(terrainSize, 40, 0x94a3b8, 0xcbd5e1);
-      grid.position.y = 0.05;
-      scene.add(grid);
-
-      // Supply Routes Splines
-      const rPoints1 = [
-        new THREE.Vector3(-45, 0.4, -30),
-        new THREE.Vector3(-20, 0.4, -15),
-        new THREE.Vector3(5, 0.4, 5),
-        new THREE.Vector3(25, 0.4, -20),
-        new THREE.Vector3(45, 0.4, -45),
-      ];
-      const spline1 = new THREE.CatmullRomCurve3(rPoints1);
-      const tubeGeo1 = new THREE.TubeGeometry(spline1, 48, 0.8, 8, false);
-      const tubeMat1 = new THREE.MeshBasicMaterial({ color: '#2563EB' });
-      scene.add(new THREE.Mesh(tubeGeo1, tubeMat1));
-
-      // 3D Outpost Buildings
-      const blueMat = new THREE.MeshStandardMaterial({ color: '#2563EB', roughness: 0.3 });
-      const redMat = new THREE.MeshStandardMaterial({ color: '#EF4444', roughness: 0.3 });
-      const whiteMat = new THREE.MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.2 });
-
-      displayOutposts.forEach((post) => {
-        const group = new THREE.Group();
-        group.position.set(post.x, 0, post.z);
-
-        const isOpt = post.status === 'optimal';
-        const bGeo = new THREE.BoxGeometry(7, post.height, 7);
-        const bMesh = new THREE.Mesh(bGeo, isOpt ? blueMat : redMat);
-        bMesh.position.y = post.height / 2;
-        bMesh.castShadow = true;
-        group.add(bMesh);
-
-        const rGeo = new THREE.BoxGeometry(7.6, 0.8, 7.6);
-        const rMesh = new THREE.Mesh(rGeo, whiteMat);
-        rMesh.position.y = post.height + 0.4;
-        group.add(rMesh);
-
-        const ringGeo = new THREE.RingGeometry(5, 6.5, 20);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: isOpt ? '#3B82F6' : '#EF4444',
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.6,
-        });
-        const ring = new THREE.Mesh(ringGeo, ringMat);
-        ring.rotation.x = -Math.PI / 2;
-        ring.position.y = 0.1;
-        group.add(ring);
-
-        scene.add(group);
-      });
-
-      let animId;
-      const animate = () => {
-        animId = requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-      };
-      animate();
-
-      const handleResize = () => {
-        if (!container || !renderer || !camera) return;
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
-      };
-      window.addEventListener('resize', handleResize);
-
-      return () => {
-        cancelAnimationFrame(animId);
-        window.removeEventListener('resize', handleResize);
-        if (rendererRef.current) {
-          rendererRef.current.dispose();
-          rendererRef.current = null;
-        }
-      };
-    }, [mapMode, displayOutposts]);
-
-    // Sync Three.js OrbitControls interaction mode (Pan vs Orbit)
-    useEffect(() => {
-      if (controlsRef.current) {
-        controlsRef.current.mouseButtons = {
-          LEFT: threeInteractionMode === 'pan' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
-          MIDDLE: THREE.MOUSE.DOLLY,
-          RIGHT: threeInteractionMode === 'pan' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
-        };
-      }
-    }, [threeInteractionMode]);
-
-    // Directional Pan Handlers
-    const handlePanDirection = (dir) => {
-      const step = 160;
-      if (mapMode === '2d' && mapRef.current) {
-        if (dir === 'up') mapRef.current.panBy([0, -step], { animate: true });
-        if (dir === 'down') mapRef.current.panBy([0, step], { animate: true });
-        if (dir === 'left') mapRef.current.panBy([-step, 0], { animate: true });
-        if (dir === 'right') mapRef.current.panBy([step, 0], { animate: true });
-      } else if (mapMode === '3d' && controlsRef.current && cameraRef.current) {
-        const controls = controlsRef.current;
-        const camera = cameraRef.current;
-        const d = 25;
-        if (dir === 'up') {
-          camera.position.z -= d;
-          controls.target.z -= d;
-        }
-        if (dir === 'down') {
-          camera.position.z += d;
-          controls.target.z += d;
-        }
-        if (dir === 'left') {
-          camera.position.x -= d;
-          controls.target.x -= d;
-        }
-        if (dir === 'right') {
-          camera.position.x += d;
-          controls.target.x += d;
-        }
-        controls.update();
-      }
-    };
-
-    // Keyboard Arrow navigation for smooth map panning
-    useEffect(() => {
-      const handleKeyDown = (e) => {
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-          if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-          e.preventDefault();
-          if (e.key === 'ArrowUp') handlePanDirection('up');
-          if (e.key === 'ArrowDown') handlePanDirection('down');
-          if (e.key === 'ArrowLeft') handlePanDirection('left');
-          if (e.key === 'ArrowRight') handlePanDirection('right');
-        }
-      };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [mapMode]);
-
-    // Zoom Controls
+    // Zoom and Fit Handlers
     const handleZoomIn = () => {
-      if (mapMode === '2d' && mapRef.current) {
-        mapRef.current.zoomIn();
-      } else if (mapMode === '3d' && cameraRef.current) {
-        cameraRef.current.position.multiplyScalar(0.85);
-      }
+      if (mapRef.current) mapRef.current.zoomIn();
     };
 
     const handleZoomOut = () => {
-      if (mapMode === '2d' && mapRef.current) {
-        mapRef.current.zoomOut();
-      } else if (mapMode === '3d' && cameraRef.current) {
-        cameraRef.current.position.multiplyScalar(1.15);
-      }
+      if (mapRef.current) mapRef.current.zoomOut();
     };
 
     const handleFitAll = () => {
-      if (mapMode === '2d' && mapRef.current && displayOutposts.length > 0) {
+      if (mapRef.current && displayOutposts.length > 0) {
         const group = new L.featureGroup(Array.from(markersRef.current.values()));
-        mapRef.current.fitBounds(group.getBounds().pad(0.15), { duration: 0.8 });
-      } else if (mapMode === '3d' && controlsRef.current && cameraRef.current) {
-        controlsRef.current.target.set(0, 0, 0);
-        cameraRef.current.position.set(60, 50, 70);
+        mapRef.current.fitBounds(group.getBounds().pad(0.12), { duration: 0.6 });
       }
     };
 
     return (
       <div className="fast-2d-map-wrapper">
-        {/* ─────────────────────────────────────────────────────────────────────────────
-            1. 2D / 3D CANVAS STAGE (Both preserved in DOM for instant zero-lag switching)
-            ───────────────────────────────────────────────────────────────────────────── */}
+        {/* Map Canvas */}
         <div
           ref={mapContainerRef}
           className={`fast-2d-map-canvas ${dropPinMode ? 'cursor-pin' : ''}`}
-          style={{
-            display: mapMode === '2d' ? 'block' : 'none',
-          }}
-        />
-        <div
-          ref={threeContainerRef}
-          className="three-digital-twin-canvas-interactive"
-          style={{
-            display: mapMode === '3d' ? 'block' : 'none',
-          }}
         />
 
         {/* ─────────────────────────────────────────────────────────────────────────────
-            2. TOP FLOATING ACTION BAR: 2D ⇄ 3D MODE TOGGLE, STYLE PICKER, PIN DROP, FIT
-            (High z-index: 1000 so it sits ABOVE map tiles!)
+            TACTICAL DOCK: Floating Non-Intrusive Controls (Top-Right)
             ───────────────────────────────────────────────────────────────────────────── */}
-        <div className="map-top-action-bar">
-          {/* 2D ⇄ 3D Mode Segmented Toggle Button */}
-          <div className="view-mode-toggle-pill">
+        <div className="map-tactical-dock">
+          {/* Basemap Style Picker */}
+          <div className="dock-dropdown-wrapper">
             <button
               type="button"
-              className={`mode-toggle-tab ${mapMode === '2d' ? 'active' : ''}`}
-              onClick={() => setMapMode('2d')}
-              title="Switch to 2D Top-Down Cartography"
+              className="dock-pill-btn"
+              onClick={() => setStyleMenuOpen(!styleMenuOpen)}
+              title="Change Map Basemap"
             >
-              <Navigation size={13} />
-              <span>2D Top-Down</span>
+              <Layers size={13} />
+              <span>{TILE_STYLES[tileStyleKey].label.split(' ')[0]}</span>
             </button>
-            <button
-              type="button"
-              className={`mode-toggle-tab ${mapMode === '3d' ? 'active' : ''}`}
-              onClick={() => setMapMode('3d')}
-              title="Switch to 3D Digital Twin Model"
-            >
-              <Box size={13} />
-              <span>3D Model</span>
-            </button>
+
+            {styleMenuOpen && (
+              <div className="dock-popover-menu">
+                <div className="dock-popover-title">BASEMAP LAYER</div>
+                {Object.entries(TILE_STYLES).map(([key, item]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`dock-popover-item ${tileStyleKey === key ? 'active' : ''}`}
+                    onClick={() => {
+                      setTileStyleKey(key);
+                      setStyleMenuOpen(false);
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    {tileStyleKey === key && <Check size={13} className="check-mark" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* 3D Interaction Mode Pill: Pan Terrain vs Orbit */}
-          {mapMode === '3d' && (
-            <div className="view-mode-toggle-pill">
-              <button
-                type="button"
-                className={`mode-toggle-tab ${threeInteractionMode === 'pan' ? 'active' : ''}`}
-                onClick={() => setThreeInteractionMode('pan')}
-                title="Left-click & drag to move across terrain"
-              >
-                <Hand size={12} />
-                <span>Pan / Move</span>
-              </button>
-              <button
-                type="button"
-                className={`mode-toggle-tab ${threeInteractionMode === 'rotate' ? 'active' : ''}`}
-                onClick={() => setThreeInteractionMode('rotate')}
-                title="Left-click & drag to orbit camera"
-              >
-                <RotateCcw size={12} />
-                <span>Orbit</span>
-              </button>
-            </div>
-          )}
+          {/* Toggle Supply Routes */}
+          <button
+            type="button"
+            className={`dock-pill-btn ${showRoutes ? 'active' : ''}`}
+            onClick={() => setShowRoutes(!showRoutes)}
+            title="Toggle Strategic Supply Corridors"
+          >
+            <Activity size={13} />
+            <span>Routes</span>
+          </button>
 
           {/* Drop Pin Mode */}
           <button
             type="button"
-            className={`map-pill-action-btn ${dropPinMode ? 'active-pin-mode' : ''}`}
+            className={`dock-pill-btn ${dropPinMode ? 'active-accent' : ''}`}
             onClick={() => setDropPinMode(!dropPinMode)}
-            title="Click anywhere on the map to drop a pin and register an outpost"
+            title="Drop pin to register outpost"
           >
-            <MapPin size={14} />
-            <span>{dropPinMode ? 'Click Map to Place' : 'Drop Pin'}</span>
+            <MapPin size={13} />
+            <span>{dropPinMode ? 'Click Map' : 'Drop Pin'}</span>
           </button>
 
-          {/* Fit All Outposts */}
+          {/* Fit Bounds */}
           <button
             type="button"
-            className="map-pill-action-btn"
+            className="dock-pill-btn icon-only"
             onClick={handleFitAll}
-            title="Fit all registered outposts into view"
+            title="Fit All Outposts in View"
           >
             <Maximize2 size={13} />
-            <span>Fit All</span>
           </button>
-
-          {/* Tile Style Picker (for 2D mode) */}
-          {mapMode === '2d' && (
-            <div className="style-dropdown-wrapper">
-              <button
-                type="button"
-                className="map-pill-action-btn"
-                onClick={() => setStyleMenuOpen(!styleMenuOpen)}
-                title="Change Map Tile Style"
-              >
-                <Eye size={14} />
-                <span>{TILE_STYLES[tileStyleKey].label.split(' ')[0]}</span>
-              </button>
-
-              {styleMenuOpen && (
-                <div className="style-popover-dropdown">
-                  <div className="popover-title">Map Tile Layer</div>
-                  {Object.entries(TILE_STYLES).map(([key, item]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`style-option-item ${tileStyleKey === key ? 'active' : ''}`}
-                      onClick={() => {
-                        setTileStyleKey(key);
-                        setStyleMenuOpen(false);
-                      }}
-                    >
-                      <span>{item.label}</span>
-                      {tileStyleKey === key && <Check size={14} className="check-mark" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* ─────────────────────────────────────────────────────────────────────────────
-            3. MINIMAL FLOATING ZOOM STRIP
+            MINIMAL FLOATING ZOOM BAR (Bottom-Left)
             ───────────────────────────────────────────────────────────────────────────── */}
         <div className="map-vertical-zoom-bar">
           <button type="button" className="zoom-icon-btn" onClick={handleZoomIn} title="Zoom In">
-            <Plus size={16} />
+            <Plus size={15} />
           </button>
           <div className="zoom-separator" />
           <button type="button" className="zoom-icon-btn" onClick={handleZoomOut} title="Zoom Out">
-            <Minus size={16} />
-          </button>
-          <div className="zoom-separator" />
-          <button
-            type="button"
-            className="zoom-icon-btn"
-            onClick={handleFitAll}
-            title="Recenter & Fit All Outposts"
-          >
-            <Maximize2 size={14} />
+            <Minus size={15} />
           </button>
         </div>
 
-        {/* Attribution */}
+        {/* Minimal Corner Attribution */}
         <div className="map-corner-attribution">
-          {mapMode === '2d' ? TILE_STYLES[tileStyleKey].attribution : '3D High-Altitude Twin'} · Interactive Map
+          {TILE_STYLES[tileStyleKey].attribution} · 2D Cartography
         </div>
 
         {/* ─────────────────────────────────────────────────────────────────────────────
-            4. SLEEK FLOATING OUTPOST INSPECTOR MINI-CARD (Bottom-Right, Non-Intrusive)
+            SLEEK FLOATING OUTPOST CARD (Bottom-Right, Compact & Non-Intrusive)
             ───────────────────────────────────────────────────────────────────────────── */}
         {inspectorOpen && activeSite && (
-          <div className="outpost-inspector-floating-card">
+          <aside className="outpost-inspector-floating-card" aria-label="Selected Outpost Details">
             <div className="mini-card-header">
               <div className="mini-card-badge-row">
                 <span className={`inspector-status-pill pill-${activeSite.status}`}>
                   {activeSite.status === 'critical'
-                    ? '🔴 Critical Risk'
+                    ? 'Critical Risk'
                     : activeSite.status === 'optimal'
-                    ? '🟢 Compliant'
-                    : '🟠 Fuel Deficit'}
+                    ? 'Compliant'
+                    : 'Fuel Deficit'}
                 </span>
                 <span className="mini-card-alt">{activeSite.altitude_m?.toLocaleString()} m</span>
                 <button
                   type="button"
                   className="inspector-close-btn"
                   onClick={() => setInspectorOpen(false)}
-                  title="Close Inspector"
+                  title="Close Card"
                 >
-                  <X size={14} />
+                  <X size={13} />
                 </button>
               </div>
 
@@ -809,7 +472,7 @@ const Interactive3DMap = forwardRef(
                 <span className="mini-stat-val cold-val">{activeSite.t_ambient_min}°C</span>
               </div>
               <div className="mini-stat-cell">
-                <span className="mini-stat-label">Solar Rad.</span>
+                <span className="mini-stat-label">Solar Rad</span>
                 <span className="mini-stat-val">{activeSite.solar_irradiance}</span>
               </div>
               <div className="mini-stat-cell">
@@ -822,36 +485,22 @@ const Interactive3DMap = forwardRef(
               </div>
             </div>
 
-            <div className="mini-card-cmdr-row">
-              <img
-                src={activeSite.avatar}
-                alt={activeSite.commander}
-                className="mini-card-avatar"
-              />
-              <div className="mini-cmdr-info">
-                <span className="mini-cmdr-name">
-                  {activeSite.commanderRank} {activeSite.commander}
-                </span>
-                <span className="mini-cmdr-role">{activeSite.occupants} Troops Assigned</span>
-              </div>
-            </div>
-
             <div className="mini-card-actions-row">
-              <a
-                href={`/sites/${activeSite.id}/design`}
+              <Link
+                to={`/sites/${activeSite.id}/design`}
                 className="mini-primary-action"
               >
                 <span>Shelter Studio</span>
-                <ExternalLink size={12} />
-              </a>
-              <a
-                href={`/sites/${activeSite.id}`}
+                <ExternalLink size={11} />
+              </Link>
+              <Link
+                to={`/sites/${activeSite.id}`}
                 className="mini-secondary-action"
               >
                 <span>Site Hub</span>
-              </a>
+              </Link>
             </div>
-          </div>
+          </aside>
         )}
       </div>
     );

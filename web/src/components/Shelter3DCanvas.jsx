@@ -435,8 +435,8 @@ export default function Shelter3DCanvas({
     const metalRoofTex = getMetalSeamRoofTexture();
     const solarPvTex = getSolarPanelTexture();
 
-    // Material generator
-    const createMat = (type, thermalColor, roughness = 0.85, metalness = 0.05) => {
+    // Material generator using procedural canvas textures mapped to material IDs
+    const createMat = (matIdOrType, thermalColor, roughness = 0.85, metalness = 0.05) => {
       if (isThermal && thermalColor) {
         return new THREE.MeshStandardMaterial({
           color: thermalColor,
@@ -454,37 +454,45 @@ export default function Shelter3DCanvas({
         });
       }
 
-      switch (type) {
-        case 'adobe':
-          return new THREE.MeshStandardMaterial({ map: adobeTex, roughness: 0.92, metalness: 0.02 });
-        case 'stone':
-          return new THREE.MeshStandardMaterial({ map: stoneTex, roughness: 0.88, metalness: 0.08 });
-        case 'timber':
-          return new THREE.MeshStandardMaterial({ map: timberTex, roughness: 0.65, metalness: 0.04 });
-        case 'eps':
-          return new THREE.MeshStandardMaterial({ map: epsTex, roughness: 0.55, metalness: 0.0 });
-        case 'metal_roof':
-          return new THREE.MeshStandardMaterial({ map: metalRoofTex, roughness: 0.52, metalness: 0.25 });
-        case 'solar_pv':
-          return new THREE.MeshStandardMaterial({ map: solarPvTex, roughness: 0.25, metalness: 0.65 });
-        case 'snow':
-          return new THREE.MeshStandardMaterial({ map: snowTex, roughness: 0.82, metalness: 0.05 });
-        case 'concrete':
-        default:
-          return new THREE.MeshStandardMaterial({ map: concreteTex, roughness: 0.8, metalness: 0.1 });
+      const tex = getTextureForMaterial(matIdOrType);
+      const mid = (matIdOrType || '').toLowerCase();
+      let r = roughness;
+      let m = metalness;
+
+      if (mid.includes('mud_brick') || mid.includes('adobe') || mid.includes('rammed')) {
+        r = 0.92; m = 0.02;
+      } else if (mid.includes('stone') || mid.includes('granite')) {
+        r = 0.88; m = 0.08;
+      } else if (mid.includes('timber') || mid.includes('wood') || mid.includes('plywood')) {
+        r = 0.65; m = 0.04;
+      } else if (mid.includes('puf') || mid.includes('sandwich') || mid.includes('prefab')) {
+        r = 0.45; m = 0.15;
+      } else if (mid.includes('eps') || mid.includes('xps') || mid.includes('rockwool')) {
+        r = 0.55; m = 0.0;
+      } else if (mid.includes('cgi') || mid.includes('metal_roof') || mid.includes('sheet')) {
+        r = 0.52; m = 0.25;
+      } else if (mid.includes('solar') || mid.includes('pv')) {
+        r = 0.25; m = 0.65;
+      } else if (mid.includes('snow')) {
+        r = 0.82; m = 0.05;
+      } else if (mid.includes('tarpaulin') || mid.includes('poly')) {
+        r = 0.60; m = 0.05;
+      } else if (mid.includes('concrete')) {
+        r = 0.80; m = 0.10;
       }
+
+      return new THREE.MeshStandardMaterial({ map: tex, roughness: r, metalness: m });
     };
 
-    const wallTexType = outerWallMat === 'stone' ? 'stone' : 'adobe';
-    const wallExteriorMat = createMat(wallTexType, 0xF97316);
-    const wallInsulationMat = createMat('eps', 0xEAB308);
-    const wallInteriorMat = createMat('adobe', 0x22C55E);
+    const wallExteriorMat = createMat(outerWallMat, 0xF97316);
+    const wallInsulationMat = createMat(innerWallMat || 'eps', 0xEAB308);
+    const wallInteriorMat = createMat(walls[2]?.material || (outerWallMat.includes('stone') ? 'mud_brick' : outerWallMat), 0x22C55E);
     const timberMat = isFraming
       ? new THREE.MeshStandardMaterial({ color: 0xD97706, roughness: 0.6 })
       : createMat('timber', 0xB45309);
     const stonePlinthMat = createMat('stone', 0x475569);
-    const concreteFloorMat = createMat('concrete', 0x15803D);
-    const metalRoofMat = createMat('metal_roof', 0x38BDF8);
+    const concreteFloorMat = createMat(floorMat, 0x15803D);
+    const metalRoofMat = createMat(roofMat, 0x38BDF8);
     const solarPvMat = createMat('solar_pv', 0x0EA5E9);
 
     // ── 1. Chamfered Foundation Plinth ──

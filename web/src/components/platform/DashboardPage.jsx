@@ -1580,28 +1580,53 @@ export default function DashboardPage() {
 
         {/* Empirical Model Validation Benchmarks */}
         <div className="validation-benchmarks-section">
-          <h4 className="section-subheading">Empirical Model Validation Benchmarks (DRDO DIHAR Leh Field Trials)</h4>
+          <div className="validation-benchmarks-header">
+            <div>
+              <span className="bench-eyebrow">EMPIRICAL GROUNDING</span>
+              <h4 className="benchmarks-heading">Model Validation Benchmarks (DRDO DIHAR Leh Field Trials)</h4>
+            </div>
+            <div className="benchmarks-summary-pills">
+              <span className="summary-pill green">
+                <CheckCircle size={12} />
+                <span>Mean Error: 0.69 K</span>
+              </span>
+              <span className="summary-pill neutral">
+                4/4 Field Trials Validated (±1.5 K)
+              </span>
+            </div>
+          </div>
+
           <div className="benchmarks-grid">
             {EMPIRICAL_VALIDATION_BENCHMARKS.map((b) => (
               <div key={b.id} className="benchmark-card">
                 <div className="benchmark-card-head">
-                  <strong>{b.title}</strong>
-                  <span className="bench-status-badge">{b.status}</span>
+                  <div className="bench-title-col">
+                    <strong className="bench-title">{b.title}</strong>
+                    <span className="bench-loc">{b.location} · {b.ambient_c}°C Amb</span>
+                  </div>
+                  <span className="bench-delta-pill">
+                    Δ {b.error_k > 0 ? `+${b.error_k}` : b.error_k} K
+                  </span>
                 </div>
-                <span className="benchmark-loc">{b.location} • Ambient: {b.ambient_c} °C</span>
+
                 <div className="benchmark-metrics-row">
-                  <div className="bench-box">
+                  <div className="bench-col">
                     <span className="bench-lbl">FIELD MEASURED</span>
-                    <strong className="bench-val">{b.measured_val} °C</strong>
-                    <small>{b.measured_band}</small>
+                    <strong className="bench-val">{b.measured_val}°C</strong>
+                    <span className="bench-sub">{b.measured_band.replace(/\s*\(mean.*?\)/, '').replace('to', '–')}</span>
                   </div>
-                  <div className="bench-box highlight">
-                    <span className="bench-lbl">MODEL PREDICTED</span>
-                    <strong className="bench-val">{b.predicted_val} °C</strong>
-                    <small>Error: {b.error_k > 0 ? `+${b.error_k}` : b.error_k} K</small>
+                  <div className="bench-divider" />
+                  <div className="bench-col">
+                    <span className="bench-lbl">5R1C SOLVER</span>
+                    <strong className="bench-val model-val">{b.predicted_val}°C</strong>
+                    <span className="bench-sub">Model Output</span>
                   </div>
                 </div>
-                <span className="benchmark-citation">Citation: {b.provenance}</span>
+
+                <div className="benchmark-citation-row" title={b.provenance}>
+                  <FileText size={11} className="citation-icon" />
+                  <span className="citation-text">{b.provenance}</span>
+                </div>
               </div>
             ))}
           </div>

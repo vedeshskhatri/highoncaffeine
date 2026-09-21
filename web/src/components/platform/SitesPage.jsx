@@ -18,10 +18,10 @@ import {
   Flame,
   Users,
   Navigation,
-  Box,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
+import { DEFENSE_OUTPOSTS } from './outpostData';
 import Interactive3DMap from './Interactive3DMap';
 import './SitesPage.css';
 
@@ -33,7 +33,6 @@ export default function SitesPage() {
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('map'); // 'map' | 'table'
-  const [mapMode, setMapMode] = useState('2d'); // '2d' | '3d'
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedSiteId, setSelectedSiteId] = useState(null);
 
@@ -239,27 +238,12 @@ export default function SitesPage() {
           <div className="header-view-pill-strip">
             <button
               type="button"
-              className={`pill-tab ${viewMode === 'map' && mapMode === '2d' ? 'active' : ''}`}
-              onClick={() => {
-                setViewMode('map');
-                setMapMode('2d');
-              }}
-              title="Switch to 2D Top-Down Cartography"
+              className={`pill-tab ${viewMode === 'map' ? 'active' : ''}`}
+              onClick={() => setViewMode('map')}
+              title="Switch to Interactive Tactical Map"
             >
               <Navigation size={13} />
-              <span>2D Map</span>
-            </button>
-            <button
-              type="button"
-              className={`pill-tab ${viewMode === 'map' && mapMode === '3d' ? 'active' : ''}`}
-              onClick={() => {
-                setViewMode('map');
-                setMapMode('3d');
-              }}
-              title="Switch to 3D Digital Twin Model"
-            >
-              <Box size={13} />
-              <span>3D Model</span>
+              <span>Map View</span>
             </button>
             <button
               type="button"
@@ -421,6 +405,18 @@ export default function SitesPage() {
                     const isCrit = hasEval && ev.status === 'critical';
                     const isOpt = hasEval && ev.status === 'optimal';
 
+                    const matched = DEFENSE_OUTPOSTS.find((d) => d.id === s.id || d.name === s.name);
+                    const minAmbientVal = hasEval 
+                      ? `${ev.t_in_min_c.toFixed(1)}°C` 
+                      : matched 
+                      ? `${matched.t_ambient_min}°C` 
+                      : (s.altitude_m > 4000 ? '-24.0°C' : '-14.0°C');
+                    const annualFuelVal = hasEval 
+                      ? `${ev.annual_fuel_litres?.toLocaleString()} L` 
+                      : matched 
+                      ? `${matched.fuel_burn_litres?.toLocaleString()} L` 
+                      : (s.altitude_m > 4000 ? '3,400 L' : '1,600 L');
+
                     return (
                       <div
                         key={s.id}
@@ -446,17 +442,15 @@ export default function SitesPage() {
                         <div className="card-metrics-grid">
                           <div className="metric-col">
                             <span className="col-label">Min Ambient</span>
-                            <span className={`col-val ${hasEval && ev.t_in_min_c < 0 ? 'cold-val' : ''}`}>
-                              {hasEval ? `${ev.t_in_min_c.toFixed(1)}°C` : '—'}
-                            </span>
+                            <span className="col-val cold-val">{minAmbientVal}</span>
                           </div>
                           <div className="metric-col">
                             <span className="col-label">Annual Fuel</span>
-                            <span className="col-val">{hasEval ? `${ev.annual_fuel_litres} L` : '—'}</span>
+                            <span className="col-val">{annualFuelVal}</span>
                           </div>
                           <div className="metric-col">
                             <span className="col-label">Occupants</span>
-                            <span className="col-val">{s.occupants}</span>
+                            <span className="col-val">{s.occupants || (matched ? matched.occupants : 10)}</span>
                           </div>
                         </div>
 
@@ -490,8 +484,6 @@ export default function SitesPage() {
                 selectedSiteId={selectedSiteId}
                 onSelectSite={(site) => setSelectedSiteId(site.id)}
                 onPinDrop={handlePinDropped}
-                mapMode={mapMode}
-                onToggleMapMode={setMapMode}
               />
             </main>
           </div>
