@@ -1,32 +1,34 @@
 /* CanvasToolbar.css — Modern CAD Floating Toolbars */
 
-/* Top-right 2D/3D Mode Switcher */
-.mode-toggle-pill {
+/* Top-right Unified CAD Viewport Dock */
+.viewport-unified-dock {
   position: absolute;
-  top: 16px;
+  top: 14px;
   right: 16px;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.88);
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(232, 220, 196, 0.85);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  box-shadow: 0 4px 16px rgba(32, 15, 7, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: var(--radius-sm, 6px);
+  padding: 3px 6px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   z-index: 30;
-  transition: right 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.canvas-area.inspector-collapsed .mode-toggle-pill {
-  right: 50px;
+.mode-toggle-segment {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .mode-toggle-btn {
   position: relative;
   background: none;
   border: none;
-  padding: 5px 14px;
+  padding: 4px 12px;
   font-family: var(--font-body);
   font-size: 11.5px;
   font-weight: 600;
@@ -44,41 +46,32 @@
 
 .mode-indicator-slider {
   position: absolute;
-  top: 3px;
-  bottom: 3px;
+  top: 2px;
+  bottom: 2px;
   border-radius: 3px;
   background: var(--text-primary);
   z-index: 1;
   box-shadow: 0 1px 4px rgba(32, 15, 7, 0.2);
 }
 
-/* Top-right Zoom & Navigation Controls (docked cleanly beside 2D/3D toggle) */
-.viewport-zoom-pill {
-  position: absolute;
-  top: 16px;
-  right: 104px;
+.unified-dock-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border, #E2E8F0);
+  margin: 0 3px;
+}
+
+.unified-zoom-segment {
   display: flex;
   align-items: center;
   gap: 2px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: var(--radius-sm, 6px);
-  padding: 3px 6px;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  z-index: 30;
-}
-
-.canvas-area.inspector-collapsed .viewport-zoom-pill {
-  right: 140px;
 }
 
 .zoom-tool-btn {
   background: none;
   border: none;
-  width: 26px;
-  height: 26px;
+  width: 25px;
+  height: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,14 +91,14 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--text-primary);
-  padding: 0 6px;
+  padding: 0 4px;
   user-select: none;
 }
 
 .zoom-divider {
   width: 1px;
-  height: 14px;
-  background: var(--border);
+  height: 12px;
+  background: var(--border, #E2E8F0);
   margin: 0 2px;
 }
 

@@ -1793,17 +1793,12 @@ export default function Shelter3DCanvas({
       {/* Facade Multi-Layer Peel Cutaway Dock */}
       <div className="facade-peel-dock">
         <div className="peel-dock-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Sliders size={12} style={{ color: 'var(--solar, #C2410C)' }} />
-            <span className="peel-dock-title">Facade Cutaway Peel</span>
-          </div>
-          <span className="peel-active-layer-badge">
-            {peelLevel === 0 ? 'Full Envelope' : peelLevel === 1 ? `Cladding: ${getMaterialSpec(outerWallMat).name}` : peelLevel === 2 ? `Insul: ${getMaterialSpec(innerWallMat).name}` : `Mass: ${getMaterialSpec(outerWallMat).name}`}
-          </span>
+          <Sliders size={12} style={{ color: 'var(--solar, #C2410C)', flexShrink: 0 }} />
+          <span className="peel-dock-title">Cutaway Peel</span>
         </div>
         <div className="peel-segments-row">
           {[
-            { lvl: 0, label: 'Full' },
+            { lvl: 0, label: 'Full Envelope' },
             { lvl: 1, label: 'Cladding' },
             { lvl: 2, label: 'Insul Core' },
             { lvl: 3, label: 'Mass Core' },

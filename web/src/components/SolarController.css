@@ -2,16 +2,16 @@
 
 .solar-controller-dock {
   position: absolute;
-  top: 56px;
-  right: 14px;
+  top: 58px;
+  right: 16px;
   width: 320px;
-  max-width: calc(100% - 28px);
-  background: var(--glass-bg);
+  max-width: calc(100% - 32px);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-floating);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: var(--radius-sm, 6px);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   z-index: 25;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
@@ -19,12 +19,8 @@
 }
 
 .solar-controller-dock:hover {
-  background: var(--glass-bg-hover);
+  background: #ffffff;
   border-color: var(--border-strong);
-}
-
-.canvas-area.inspector-collapsed .solar-controller-dock {
-  right: 54px;
 }
 
 /* Header */

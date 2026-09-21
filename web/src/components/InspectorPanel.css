@@ -64,7 +64,8 @@
 /* ─── Togglable Arrow Tab when Inspector is Collapsed ───────────────────── */
 .inspector-expand-tab {
   position: fixed;
-  top: 84px;
+  top: 50%;
+  transform: translateY(-50%);
   right: 0;
   z-index: 50;
   display: inline-flex;
@@ -74,26 +75,28 @@
   border: 1px solid var(--border);
   border-right: none;
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  padding: 8px 12px 8px 9px;
+  padding: 10px 13px 10px 9px;
   color: var(--text-primary);
   cursor: pointer;
-  box-shadow: -2px 3px 12px rgba(32, 15, 7, 0.12);
+  box-shadow: -2px 4px 16px rgba(15, 23, 42, 0.12);
   font-family: var(--font-heading);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   user-select: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .inspector-expand-tab:hover {
-  background: var(--surface-2);
+  background: #ffffff;
   color: var(--solar);
-  box-shadow: -4px 4px 16px rgba(32, 15, 7, 0.18);
+  box-shadow: -4px 6px 20px rgba(15, 23, 42, 0.18);
+  transform: translateY(-50%) translateX(-2px);
 }
 
 .inspector-expand-tab:active {
-  transform: translateX(-1px);
+  transform: translateY(-50%) translateX(-3px);
 }
 
 .inspector-expand-chevron {
@@ -102,7 +105,7 @@
 }
 
 .inspector-expand-tab:hover .inspector-expand-chevron {
-  transform: translateX(-3px);
+  transform: translateX(-2px);
 }
 
 .inspector-expand-label {

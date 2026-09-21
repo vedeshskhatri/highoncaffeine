@@ -41,56 +41,59 @@ export default function CanvasToolbar({
 }) {
   return (
     <>
-      {/* ── 1. Top-Right 2D / 3D Mode Toggle Pill ──────────────────────── */}
-      <div className="mode-toggle-pill" role="tablist" aria-label="Viewport Mode">
-        {['2d', '3d'].map((m) => {
-          const isActive = mode === m;
-          return (
-            <button
-              key={m}
-              id={`toggle-mode-${m}`}
-              className={`mode-toggle-btn ${isActive ? 'active' : ''}`}
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => onModeChange(m)}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="mode-slider"
-                  className="mode-indicator-slider"
-                  initial={false}
-                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                  style={{
-                    inset: 0,
-                  }}
-                />
-              )}
-              <span style={{ position: 'relative', zIndex: 2 }}>{m.toUpperCase()}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ── 1. Top-Right Unified CAD Viewport Dock (Mode + Zoom + Navigation) ── */}
+      <div className="viewport-unified-dock" aria-label="Viewport Controls">
+        <div className="mode-toggle-segment" role="tablist">
+          {['2d', '3d'].map((m) => {
+            const isActive = mode === m;
+            return (
+              <button
+                key={m}
+                id={`toggle-mode-${m}`}
+                className={`mode-toggle-btn ${isActive ? 'active' : ''}`}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => onModeChange(m)}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="mode-slider"
+                    className="mode-indicator-slider"
+                    initial={false}
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    style={{
+                      inset: 0,
+                    }}
+                  />
+                )}
+                <span style={{ position: 'relative', zIndex: 2 }}>{m.toUpperCase()}</span>
+              </button>
+            );
+          })}
+        </div>
 
-      {/* ── 2. Top-Left Zoom & History Controls ────────────────────────── */}
-      <div className="viewport-zoom-pill" aria-label="Viewport Navigation Controls">
-        <button className="zoom-tool-btn" title="Undo change" onClick={() => {}}>
-          <Undo2 size={14} />
-        </button>
-        <button className="zoom-tool-btn" title="Redo change" onClick={() => {}}>
-          <Redo2 size={14} />
-        </button>
-        <div className="zoom-divider" />
-        <button className="zoom-tool-btn" title="Zoom Out" onClick={onZoomOut}>
-          <ZoomOut size={14} />
-        </button>
-        <span className="zoom-label">{zoomLevel}%</span>
-        <button className="zoom-tool-btn" title="Zoom In" onClick={onZoomIn}>
-          <ZoomIn size={14} />
-        </button>
-        <div className="zoom-divider" />
-        <button className="zoom-tool-btn" title="Reset Viewport" onClick={onResetZoom}>
-          <RotateCcw size={13} />
-        </button>
+        <div className="unified-dock-divider" />
+
+        <div className="unified-zoom-segment">
+          <button className="zoom-tool-btn" title="Undo change" onClick={() => {}}>
+            <Undo2 size={13} />
+          </button>
+          <button className="zoom-tool-btn" title="Redo change" onClick={() => {}}>
+            <Redo2 size={13} />
+          </button>
+          <div className="zoom-divider" />
+          <button className="zoom-tool-btn" title="Zoom Out" onClick={onZoomOut}>
+            <ZoomOut size={13} />
+          </button>
+          <span className="zoom-label">{zoomLevel}%</span>
+          <button className="zoom-tool-btn" title="Zoom In" onClick={onZoomIn}>
+            <ZoomIn size={13} />
+          </button>
+          <div className="zoom-divider" />
+          <button className="zoom-tool-btn" title="Reset Viewport" onClick={onResetZoom}>
+            <RotateCcw size={12} />
+          </button>
+        </div>
       </div>
 
       {/* ── 3. Left Floating CAD Tool Rail ─────────────────────────────── */}

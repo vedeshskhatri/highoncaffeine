@@ -608,26 +608,35 @@
 .facade-peel-dock {
   position: absolute;
   top: 14px;
-  right: 14px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md, 8px);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px 3px 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: var(--radius-sm, 6px);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   z-index: 25;
   pointer-events: auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .facade-peel-dock {
+    top: 54px;
+    left: 16px;
+    transform: none;
+  }
 }
 
 .peel-dock-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
 }
 
 .peel-dock-title {
@@ -639,25 +648,12 @@
   color: var(--text-primary);
 }
 
-.peel-active-layer-badge {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--solar, #C2410C);
-  background: rgba(194, 65, 12, 0.08);
-  padding: 1px 6px;
-  border-radius: 4px;
-  border: 1px solid rgba(194, 65, 12, 0.2);
-  font-weight: 600;
-  max-width: 170px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .peel-segments-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  border-left: 1px solid var(--border, #E2E8F0);
+  padding-left: 8px;
 }
 
 .peel-pill-btn {
