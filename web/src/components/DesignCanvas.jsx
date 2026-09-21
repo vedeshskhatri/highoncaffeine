@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AnimatedPanel from './AnimatedPanel';
 import Shelter3DCanvas from './Shelter3DCanvas';
 import CrossSectionSVG from './CrossSectionSVG';
+import ArchitecturalElevationSheet from './ArchitecturalElevationSheet';
 import CanvasToolbar from './CanvasToolbar';
 import MaterialSuggestionPanel from './MaterialSuggestionPanel';
 import { X, Check, MapPin, Wind, Sun, Snowflake } from 'lucide-react';
@@ -113,52 +114,14 @@ export default function DesignCanvas({
             className="design-2d-container"
           >
             <div className="design-2d-inner">
-              <AnimatedPanel delay={0}>
-                <div className="design-2d-header">
-                  <h3 className="design-2d-title">Technical Cross-Section Elevation</h3>
-                  <div className="design-2d-meta">
-                    <span>span={length_m}m × {width_m}m</span>
-                    <span style={{ margin: '0 6px', color: 'var(--border-strong)' }}>|</span>
-                    <span>wall {totalWall_mm}mm</span>
-                    <span style={{ margin: '0 6px', color: 'var(--border-strong)' }}>|</span>
-                    <span>orient {orientation_deg}°</span>
-                  </div>
-                </div>
-              </AnimatedPanel>
-
-              {/* Technical 2D CrossSection */}
-              <AnimatedPanel delay={0.08}>
-                <CrossSectionSVG request={request} />
-              </AnimatedPanel>
-
-              {/* Legend row */}
-              <AnimatedPanel
-                delay={0.14}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-3)',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: 'var(--text-caption-size)',
-                  color: 'var(--text-muted)',
-                  paddingTop: 8,
-                }}
-              >
-                {CATEGORIES.map(cat => (
-                  <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: cat.color,
-                        display: 'inline-block',
-                      }}
-                    />
-                    <span style={{ textTransform: 'capitalize' }}>{cat.label}</span>
-                  </div>
-                ))}
-              </AnimatedPanel>
+              <ArchitecturalElevationSheet
+                request={request}
+                activeSiteName={activeSiteName}
+                siteWeather={siteWeather}
+                showDimensions={showDimensions}
+                showSolarRays={showSolarRays}
+                snowCover={snowCover}
+              />
             </div>
           </motion.div>
         )}

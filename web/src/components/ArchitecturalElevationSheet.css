@@ -1,0 +1,182 @@
+/* ArchitecturalElevationSheet.css — Professional Architectural CAD Drafting Sheet */
+
+.cad-sheet-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: transparent;
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+}
+
+/* ── Top CAD Control & View Switcher Bar ─────────────────────────────── */
+.cad-control-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.cad-view-tabs {
+  display: inline-flex;
+  background: var(--surface-2, #f1f5f9);
+  padding: 3px;
+  border-radius: 6px;
+  border: 1px solid var(--border, #e2e8f0);
+  gap: 2px;
+}
+
+.cad-tab-btn {
+  background: none;
+  border: none;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-secondary, #64748b);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cad-tab-btn:hover {
+  color: var(--text-primary, #0f172a);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.cad-tab-btn.active {
+  background: #ffffff;
+  color: var(--solar, #c2410c);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.cad-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cad-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  color: #334155;
+  font-weight: 600;
+}
+
+.cad-action-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.cad-action-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* ── Drafting Sheet Board ────────────────────────────────────────────── */
+.cad-sheet-board {
+  position: relative;
+  width: 100%;
+  background: #fdfbf7;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* Subtle blueprint grid on the drafting board */
+.cad-sheet-board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cad-sheet-svg {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* SVG Text Styles */
+.cad-sheet-svg text {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cad-title-main {
+  font-family: var(--font-heading, 'Inter', sans-serif);
+  font-weight: 800;
+  fill: #0f172a;
+  letter-spacing: 0.04em;
+}
+
+.cad-dim-text {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  fill: #334155;
+  font-weight: 600;
+}
+
+.cad-datum-text {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 9.5px;
+  fill: #1e293b;
+  font-weight: 700;
+}
+
+.cad-label-sub {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 8.5px;
+  fill: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive constraints */
+@media (max-width: 768px) {
+  .cad-control-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .cad-view-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+}
