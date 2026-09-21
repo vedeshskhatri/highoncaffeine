@@ -208,7 +208,7 @@ export default function InspectorPanel({
 
   return (
     <>
-      {/* ── Togglable Arrow Tab when Inspector is Collapsed ──────────── */}
+      {/* ── Toggleable Arrow Tab when Inspector is Collapsed ──────────── */}
       <AnimatePresence>
         {collapsed && (
           <motion.button

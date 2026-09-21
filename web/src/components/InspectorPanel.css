@@ -61,7 +61,7 @@
   transform: translateX(2px);
 }
 
-/* ─── Togglable Arrow Tab when Inspector is Collapsed ───────────────────── */
+/* ─── Toggleable Arrow Tab when Inspector is Collapsed ──────────────────── */
 .inspector-expand-tab {
   position: fixed;
   top: 50%;
