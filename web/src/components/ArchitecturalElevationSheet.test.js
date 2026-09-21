@@ -47,3 +47,42 @@ test('ArchitecturalElevationSheet: structural grid dimensions scale with length_
   assert.equal(sumBays, '8.00');
   assert.equal(width_m.toFixed(2), '4.50');
 });
+
+test('ArchitecturalElevationSheet: regional site archetype classification handles all strategic outposts', async () => {
+  const { getSiteArchetype, ARCHETYPE_CONFIGS } = await import('./siteArchetype.js');
+
+  // 1. Manali / Himachal Alpine Valley
+  assert.equal(getSiteArchetype('Manali, Himachal Pradesh', { altitude_m: 2050, lat: 32.2 }), 'manali');
+  assert.equal(ARCHETYPE_CONFIGS.manali.roofType, 'pitched');
+  assert.equal(ARCHETYPE_CONFIGS.manali.pitchDeg, 30);
+  assert.equal(ARCHETYPE_CONFIGS.manali.seismic, 'Zone V (High Seismic)');
+  assert.match(ARCHETYPE_CONFIGS.manali.claddingName, /KATH-KUNI/);
+
+  // 2. Leh / Ladakh High Plateau
+  assert.equal(getSiteArchetype('Leh Sector Forward Post', { altitude_m: 3500, lat: 34.1 }), 'leh');
+  assert.equal(ARCHETYPE_CONFIGS.leh.roofType, 'flat_tarka');
+  assert.match(ARCHETYPE_CONFIGS.leh.claddingName, /ADOBE MUD BRICK/);
+
+  // 3. Dras Extreme Frost Basin
+  assert.equal(getSiteArchetype('Dras Kargil Frontier', { altitude_m: 3280, lat: 34.4 }), 'dras');
+  assert.match(ARCHETYPE_CONFIGS.dras.claddingName, /GRANITE BOULDER/);
+  assert.equal(ARCHETYPE_CONFIGS.dras.snowLoad, '3.2 kN/m² Extreme Snowpack');
+
+  // 4. Jaisalmer Thar Desert
+  assert.equal(getSiteArchetype('Jaisalmer / Pokhran Border Post', { altitude_m: 225, lat: 26.9 }), 'jaisalmer');
+  assert.match(ARCHETYPE_CONFIGS.jaisalmer.claddingName, /YELLOW SANDSTONE/);
+  assert.equal(ARCHETYPE_CONFIGS.jaisalmer.snowLoad, '0.0 kN/m² (Zero Snowfall, High Dust Storm)');
+
+  // 5. New Delhi / NCR Lowland Plain
+  assert.equal(getSiteArchetype('New Delhi Cantonment', { altitude_m: 216, lat: 28.6 }), 'delhi');
+  assert.match(ARCHETYPE_CONFIGS.delhi.claddingName, /BRICK/);
+
+  // 6. Siachen Glacial Karakoram
+  assert.equal(getSiteArchetype('Siachen Base Camp', { altitude_m: 3600, lat: 35.2 }), 'siachen');
+  assert.match(ARCHETYPE_CONFIGS.siachen.claddingName, /COMPOSITE PUF/);
+
+  // Fallback geographic coordinate classification
+  assert.equal(getSiteArchetype('Unknown Station Alpha', { altitude_m: 2400, lat: 31.8 }), 'manali');
+  assert.equal(getSiteArchetype('Unknown Desert Outpost', { altitude_m: 180, lat: 26.5 }), 'jaisalmer');
+});
+
