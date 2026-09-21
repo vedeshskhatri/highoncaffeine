@@ -1713,38 +1713,44 @@ export default function Shelter3DCanvas({
       snowMeshRef,
       northGroup,
       northExt,
+      northCore,
       southGroup,
       eastGroup,
+      eastExt,
+      eastCore,
       westGroup,
+      westExt,
+      westCore,
       base: {
         roofY: roofBaseY,
         snowY: 0.46,
         northZ: -w / 2 + totalWallThick / 2,
         northExtZ: -coreThick / 2 - intThick / 2,
+        northCoreZ: 0,
         southZ: w / 2 - totalWallThick / 2,
         eastX: -l / 2 + totalWallThick / 2,
+        eastExtX: -coreThick / 2 - intThick / 2,
+        eastCoreX: 0,
         westX: l / 2 - totalWallThick / 2,
+        westExtX: coreThick / 2 + intThick / 2,
+        westCoreX: 0,
       },
       exploded: {
         roofY: roofBaseY + 2.5,
         snowY: 1.3,
-        northZ: -w / 2 - 1.5,
-        northExtZ: -0.7,
-        southZ: w / 2 + 1.5,
-        eastX: -l / 2 - 1.5,
-        westX: l / 2 + 1.5,
+        northZ: -w / 2 - 1.6,
+        northExtZ: (-coreThick / 2 - intThick / 2) - 0.45,
+        northCoreZ: -0.2,
+        southZ: w / 2 + 1.6,
+        eastX: -l / 2 - 1.6,
+        eastExtX: (-coreThick / 2 - intThick / 2) - 0.45,
+        eastCoreX: -0.2,
+        westX: l / 2 + 1.6,
+        westExtX: (coreThick / 2 + intThick / 2) + 0.45,
+        westCoreX: 0.2,
       },
     };
-
-    if (isExploded) {
-      roofGroup.position.y = roofBaseY + 2.5;
-      if (snowMeshRef) snowMeshRef.position.y = 1.3;
-      northGroup.position.z = -w / 2 - 1.5;
-      northExt.position.z = -0.7;
-      southGroup.position.z = w / 2 + 1.5;
-      eastGroup.position.x = -l / 2 - 1.5;
-      westGroup.position.x = l / 2 + 1.5;
-    }
+    prevExplodedRef.current = false;
 
     scene.add(shelter);
 
@@ -1798,7 +1804,7 @@ export default function Shelter3DCanvas({
         metalRoofY: 0.39,
       },
     };
-  }, [archetype, activeSiteName, length_m, width_m, height_m, openings, effectiveSnowCover, isThermal, isFraming, isExploded]);
+  }, [archetype, activeSiteName, length_m, width_m, height_m, openings, effectiveSnowCover, isThermal, isFraming]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      3A. IN-PLACE MATERIAL SYNCHRONIZATION & FACADE PEEL CUTAWAY
@@ -2005,7 +2011,7 @@ export default function Shelter3DCanvas({
     if (updateProjectedPinsRef.current) {
       updateProjectedPinsRef.current();
     }
-  }, [walls, roof, floor, isThermal, isFraming, isExploded, peelLevel, materialsVersion]);
+  }, [walls, roof, floor, isThermal, isFraming, peelLevel, materialsVersion]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      3B. EXPLODED VIEW EXPANSION & CLOSING (GSAP)
@@ -2017,34 +2023,150 @@ export default function Shelter3DCanvas({
     if (prevExplodedRef.current === isExploded) return;
     prevExplodedRef.current = isExploded;
 
-    const { roofGroup, snowMeshRef, northGroup, northExt, southGroup, eastGroup, westGroup, base, exploded } = parts;
+    const {
+      roofGroup,
+      snowMeshRef,
+      northGroup,
+      northExt,
+      northCore,
+      southGroup,
+      eastGroup,
+      eastExt,
+      eastCore,
+      westGroup,
+      westExt,
+      westCore,
+      base,
+      exploded,
+    } = parts;
 
-    gsap.killTweensOf([
+    const allTargets = [
       roofGroup.position,
       northGroup.position,
-      northExt.position,
       southGroup.position,
       eastGroup.position,
       westGroup.position,
-    ]);
-    if (snowMeshRef) gsap.killTweensOf(snowMeshRef.position);
+    ];
+    if (northExt) allTargets.push(northExt.position);
+    if (northCore) allTargets.push(northCore.position);
+    if (eastExt) allTargets.push(eastExt.position);
+    if (eastCore) allTargets.push(eastCore.position);
+    if (westExt) allTargets.push(westExt.position);
+    if (westCore) allTargets.push(westCore.position);
+    if (snowMeshRef) allTargets.push(snowMeshRef.position);
+
+    gsap.killTweensOf(allTargets);
+
+    const onUpdatePins = () => {
+      if (updateProjectedPinsRef.current) updateProjectedPinsRef.current();
+    };
 
     if (isExploded) {
-      gsap.to(roofGroup.position, { y: exploded.roofY, duration: 0.9, ease: 'power3.out' });
-      if (snowMeshRef) gsap.to(snowMeshRef.position, { y: exploded.snowY, duration: 1.1, ease: 'power3.out' });
-      gsap.to(northGroup.position, { z: exploded.northZ, duration: 0.9, ease: 'power3.out' });
-      gsap.to(northExt.position, { z: exploded.northExtZ, duration: 1.0, ease: 'power3.out' });
-      gsap.to(southGroup.position, { z: exploded.southZ, duration: 0.9, ease: 'power3.out' });
-      gsap.to(eastGroup.position, { x: exploded.eastX, duration: 0.9, ease: 'power3.out' });
-      gsap.to(westGroup.position, { x:  exploded.westX, duration: 0.9, ease: 'power3.out' });
+      // ── Smooth Fluid Opening Animation (Disassemble Outward) ──
+      gsap.to(roofGroup.position, {
+        y: exploded.roofY,
+        duration: 1.15,
+        ease: 'power3.out',
+        onUpdate: onUpdatePins,
+        onComplete: onUpdatePins,
+      });
+      if (snowMeshRef) {
+        gsap.to(snowMeshRef.position, { y: exploded.snowY, duration: 1.2, ease: 'power3.out' });
+      }
+      gsap.to(northGroup.position, {
+        z: exploded.northZ,
+        duration: 1.05,
+        ease: 'power3.out',
+      });
+      if (northExt) {
+        gsap.to(northExt.position, { z: exploded.northExtZ, duration: 1.1, ease: 'power3.out' });
+      }
+      if (northCore) {
+        gsap.to(northCore.position, { z: exploded.northCoreZ, duration: 1.05, ease: 'power3.out' });
+      }
+
+      gsap.to(southGroup.position, {
+        z: exploded.southZ,
+        duration: 1.05,
+        ease: 'power3.out',
+      });
+
+      gsap.to(eastGroup.position, {
+        x: exploded.eastX,
+        duration: 1.05,
+        ease: 'power3.out',
+      });
+      if (eastExt) {
+        gsap.to(eastExt.position, { x: exploded.eastExtX, duration: 1.1, ease: 'power3.out' });
+      }
+      if (eastCore) {
+        gsap.to(eastCore.position, { x: exploded.eastCoreX, duration: 1.05, ease: 'power3.out' });
+      }
+
+      gsap.to(westGroup.position, {
+        x: exploded.westX,
+        duration: 1.05,
+        ease: 'power3.out',
+      });
+      if (westExt) {
+        gsap.to(westExt.position, { x: exploded.westExtX, duration: 1.1, ease: 'power3.out' });
+      }
+      if (westCore) {
+        gsap.to(westCore.position, { x: exploded.westCoreX, duration: 1.05, ease: 'power3.out' });
+      }
     } else {
-      gsap.to(roofGroup.position, { y: base.roofY, duration: 0.9, ease: 'power3.out' });
-      if (snowMeshRef) gsap.to(snowMeshRef.position, { y: base.snowY, duration: 0.9, ease: 'power3.out' });
-      gsap.to(northGroup.position, { z: base.northZ, duration: 0.9, ease: 'power3.out' });
-      gsap.to(northExt.position, { z: base.northExtZ, duration: 0.9, ease: 'power3.out' });
-      gsap.to(southGroup.position, { z: base.southZ, duration: 0.9, ease: 'power3.out' });
-      gsap.to(eastGroup.position, { x: base.eastX, duration: 0.9, ease: 'power3.out' });
-      gsap.to(westGroup.position, { x:  base.westX, duration: 0.9, ease: 'power3.out' });
+      // ── Smooth Fluid Closing Animation (Reassemble Inward) ──
+      gsap.to(roofGroup.position, {
+        y: base.roofY,
+        duration: 0.95,
+        ease: 'power3.inOut',
+        onUpdate: onUpdatePins,
+        onComplete: onUpdatePins,
+      });
+      if (snowMeshRef) {
+        gsap.to(snowMeshRef.position, { y: base.snowY, duration: 0.95, ease: 'power3.inOut' });
+      }
+      gsap.to(northGroup.position, {
+        z: base.northZ,
+        duration: 0.9,
+        ease: 'power3.inOut',
+      });
+      if (northExt) {
+        gsap.to(northExt.position, { z: base.northExtZ, duration: 0.9, ease: 'power3.inOut' });
+      }
+      if (northCore) {
+        gsap.to(northCore.position, { z: base.northCoreZ, duration: 0.9, ease: 'power3.inOut' });
+      }
+
+      gsap.to(southGroup.position, {
+        z: base.southZ,
+        duration: 0.9,
+        ease: 'power3.inOut',
+      });
+
+      gsap.to(eastGroup.position, {
+        x: base.eastX,
+        duration: 0.9,
+        ease: 'power3.inOut',
+      });
+      if (eastExt) {
+        gsap.to(eastExt.position, { x: base.eastExtX, duration: 0.9, ease: 'power3.inOut' });
+      }
+      if (eastCore) {
+        gsap.to(eastCore.position, { x: base.eastCoreX, duration: 0.9, ease: 'power3.inOut' });
+      }
+
+      gsap.to(westGroup.position, {
+        x: base.westX,
+        duration: 0.9,
+        ease: 'power3.inOut',
+      });
+      if (westExt) {
+        gsap.to(westExt.position, { x: base.westExtX, duration: 0.9, ease: 'power3.inOut' });
+      }
+      if (westCore) {
+        gsap.to(westCore.position, { x: base.westCoreX, duration: 0.9, ease: 'power3.inOut' });
+      }
     }
   }, [isExploded]);
 
