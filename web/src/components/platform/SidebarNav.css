@@ -313,19 +313,19 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Prominently Highlighted Studio Link */
+/* Prominently Highlighted Studio Link (Sleek Obsidian Charcoal) */
 .sidebar-studio-cta.highlighted {
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-  border: 1px solid #fed7aa;
-  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.1);
-  padding: 9px 12px;
+  background: var(--surface-dark, #1C1917);
+  border: 1px solid var(--surface-dark, #1C1917);
+  box-shadow: var(--shadow-sm);
+  padding: 10px 12px;
   border-radius: 10px;
 }
 
 .sidebar-studio-cta.highlighted:hover {
-  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
-  border-color: #fdba74;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.18);
+  background: var(--surface-dark-2, #292524);
+  border-color: var(--surface-dark-2, #292524);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
@@ -339,13 +339,12 @@
   width: 26px;
   height: 26px;
   border-radius: 7px;
-  background: #ea580c;
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(234, 88, 12, 0.25);
 }
 
 .studio-cta-titles {
@@ -358,7 +357,7 @@
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
-  color: #c2410c;
+  color: var(--border);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   line-height: 1;
@@ -368,13 +367,13 @@
   font-family: var(--font-heading);
   font-size: 12px;
   font-weight: 700;
-  color: #431407;
+  color: #ffffff;
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
 
 .studio-cta-arrow {
-  color: #c2410c;
+  color: #ffffff;
   transition: transform 0.2s ease;
   flex-shrink: 0;
 }

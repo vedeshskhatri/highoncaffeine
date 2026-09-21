@@ -270,8 +270,8 @@ export default function OptimizeCanvas({ result, request }) {
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#C2410C';
-            e.currentTarget.style.borderColor = '#C2410C';
+            e.currentTarget.style.background = '#2563EB';
+            e.currentTarget.style.borderColor = '#2563EB';
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {

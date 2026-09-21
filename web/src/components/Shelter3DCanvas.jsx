@@ -289,7 +289,7 @@ export default function Shelter3DCanvas({
       const tickLine = new THREE.Line(
         tickGeo,
         new THREE.LineBasicMaterial({
-          color: isCardinal ? 0xF77331 : 0x9A8C84,
+          color: isCardinal ? 0x2563EB : 0x9A8C84,
           linewidth: isCardinal ? 2 : 1,
         })
       );
@@ -484,7 +484,7 @@ export default function Shelter3DCanvas({
       return new THREE.MeshStandardMaterial({ map: tex, roughness: r, metalness: m });
     };
 
-    const wallExteriorMat = createMat(outerWallMat, 0xF97316);
+    const wallExteriorMat = createMat(outerWallMat, 0xD4CEBE);
     const wallInsulationMat = createMat(innerWallMat || 'eps', 0xEAB308);
     const wallInteriorMat = createMat(walls[2]?.material || (outerWallMat.includes('stone') ? 'mud_brick' : outerWallMat), 0x22C55E);
     const timberMat = isFraming
@@ -1066,7 +1066,7 @@ export default function Shelter3DCanvas({
     const insulOpacity = peelLevel === 2 ? 0.75 : peelLevel === 3 ? 0.25 : 1.0;
     const insulTransparent = peelLevel >= 2;
 
-    const extWallMat = buildMaterial(extWallMatId, 0xF97316, 'adobe', {
+    const extWallMat = buildMaterial(extWallMatId, 0xD4CEBE, 'adobe', {
       transparent: extTransparent || isFraming,
       opacity: isFraming ? 0.22 : extOpacity,
     });
@@ -1289,7 +1289,7 @@ export default function Shelter3DCanvas({
       ];
       const rayGeo = new THREE.BufferGeometry().setFromPoints(rayPoints);
       const rayMat = new THREE.LineDashedMaterial({
-        color: 0xF77331,
+        color: 0xF59E0B,
         dashSize: 0.5,
         gapSize: 0.25,
         linewidth: 2,
@@ -1303,7 +1303,7 @@ export default function Shelter3DCanvas({
       // Floor illuminated solar patch
       const patchGeo = new THREE.PlaneGeometry(2.4, 1.8);
       const patchMat = new THREE.MeshBasicMaterial({
-        color: 0xFDBA74,
+        color: 0xFDE68A,
         transparent: true,
         opacity: 0.55,
         side: THREE.DoubleSide,
@@ -1345,7 +1345,7 @@ export default function Shelter3DCanvas({
     const h = height_m;
     const offset = 0.8;
 
-    const lineMat = new THREE.LineBasicMaterial({ color: 0xC2410C, linewidth: 2, transparent: true, opacity: 0.85 });
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x2563EB, linewidth: 2, transparent: true, opacity: 0.85 });
 
     // Length dimension (along front south X)
     const lenPoints = [
@@ -1793,7 +1793,7 @@ export default function Shelter3DCanvas({
       {/* Facade Multi-Layer Peel Cutaway Dock */}
       <div className="facade-peel-dock">
         <div className="peel-dock-header">
-          <Sliders size={12} style={{ color: 'var(--solar, #C2410C)', flexShrink: 0 }} />
+          <Sliders size={12} style={{ color: 'var(--brand-blue, #2563EB)', flexShrink: 0 }} />
           <span className="peel-dock-title">Cutaway Peel</span>
         </div>
         <div className="peel-segments-row">
@@ -1830,7 +1830,7 @@ export default function Shelter3DCanvas({
         >
           {envMode === 'himalayas' ? (
             <>
-              <Mountain size={13} style={{ color: 'var(--solar, #C2410C)' }} />
+              <Mountain size={13} style={{ color: 'var(--brand-blue, #2563EB)' }} />
               <span>{biomeMeta.label} ({altitude_m}m)</span>
             </>
           ) : (
@@ -1869,7 +1869,7 @@ export default function Shelter3DCanvas({
       {isExploded && (
         <div className="exploded-view-hud">
           <div className="exploded-hud-title">
-            <Layers size={13} style={{ color: 'var(--solar, #C2410C)' }} />
+            <Layers size={13} style={{ color: 'var(--brand-blue, #2563EB)' }} />
             <span>Assembly Exploded View</span>
           </div>
           <div className="exploded-hud-layers">

@@ -232,35 +232,35 @@
   flex-shrink: 0;
 }
 
-/* Prominently Highlighted Topbar Studio CTA */
+/* Prominently Highlighted Topbar Studio CTA (Sleek Obsidian Charcoal) */
 .topbar-studio-cta {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 6px 13px;
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-  border: 1px solid #fdba74;
+  padding: 6px 14px;
+  background-color: var(--surface-dark, #1C1917);
+  border: 1px solid var(--surface-dark, #1C1917);
   border-radius: 9999px;
-  color: #c2410c;
+  color: #ffffff;
   font-family: var(--font-heading);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.1);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
 }
 
 .topbar-studio-cta:hover {
-  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  background-color: var(--surface-dark-2, #292524);
+  border-color: var(--surface-dark-2, #292524);
   color: #ffffff;
-  border-color: #ea580c;
-  box-shadow: 0 3px 10px rgba(234, 88, 12, 0.25);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
 .topbar-studio-icon {
-  color: #ea580c;
+  color: #ffffff;
   transition: color 0.2s ease;
   flex-shrink: 0;
 }
@@ -270,7 +270,7 @@
 }
 
 .topbar-studio-arrow {
-  color: #ea580c;
+  color: #ffffff;
   transition: transform 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
 }

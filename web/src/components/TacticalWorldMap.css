@@ -49,9 +49,9 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #C2410C;
+  background: #2563EB;
   border: 2px solid #FFFFFF;
-  box-shadow: 0 0 10px rgba(194, 65, 12, 0.8), 0 0 20px rgba(194, 65, 12, 0.4);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.8), 0 0 20px rgba(37, 99, 235, 0.4);
   z-index: 5;
 }
 
@@ -63,7 +63,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 1.5px solid rgba(194, 65, 12, 0.7);
+  border: 1.5px solid rgba(37, 99, 235, 0.7);
   animation: beaconPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
   pointer-events: none;
 }
@@ -76,7 +76,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px dashed rgba(30, 64, 175, 0.6);
+  border: 1px dashed rgba(37, 99, 235, 0.6);
   animation: beaconSpin 12s linear infinite;
   pointer-events: none;
 }
@@ -87,7 +87,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: rgba(194, 65, 12, 0.5);
+  background: rgba(37, 99, 235, 0.5);
   pointer-events: none;
 }
 
@@ -97,7 +97,7 @@
   top: 0;
   bottom: 0;
   width: 1px;
-  background: rgba(194, 65, 12, 0.5);
+  background: rgba(37, 99, 235, 0.5);
   pointer-events: none;
 }
 
@@ -148,7 +148,7 @@
 }
 
 .hud-pin-icon {
-  color: var(--accent, #C2410C);
+  color: var(--brand-blue, #2563EB);
   flex-shrink: 0;
 }
 
@@ -175,9 +175,9 @@
 }
 
 .hud-elev {
-  color: #C2410C;
-  background: #FFF7ED;
-  border: 1px solid #FFEDD5;
+  color: var(--brand-blue, #2563EB);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   padding: 1px 5px;
   border-radius: 3px;
   font-weight: 700;
@@ -215,8 +215,8 @@
 
 .map-ctrl-btn:hover,
 .map-ctrl-btn.active {
-  border-color: var(--accent, #C2410C);
-  color: var(--accent, #C2410C);
+  border-color: var(--brand-blue, #2563EB);
+  color: var(--brand-blue, #2563EB);
   background: #FFFFFF;
 }
 
@@ -309,8 +309,8 @@
 
 .sector-chip:hover {
   background: #FFFFFF;
-  border-color: var(--accent, #C2410C);
-  color: var(--accent, #C2410C);
+  border-color: var(--brand-blue, #2563EB);
+  color: var(--brand-blue, #2563EB);
   transform: translateY(-1px);
 }
 
@@ -350,8 +350,8 @@
 
 .action-icon-btn:hover {
   background: #FFFFFF;
-  border-color: var(--accent, #C2410C);
-  color: var(--accent, #C2410C);
+  border-color: var(--brand-blue, #2563EB);
+  color: var(--brand-blue, #2563EB);
   transform: scale(1.05);
 }
 

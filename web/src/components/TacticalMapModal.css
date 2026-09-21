@@ -100,9 +100,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: #FFF7ED;
-  color: #C2410C;
-  border: 1px solid #FFEDD5;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--brand-blue, #2563EB);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   padding: 1px 6px;
   border-radius: 4px;
 }
@@ -134,9 +134,9 @@
 }
 
 .modal-search-input-wrap:focus-within {
-  border-color: var(--accent, #C2410C);
+  border-color: var(--brand-blue, #2563EB);
   background: #FFFFFF;
-  box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.12);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
 }
 
 .modal-search-icon {
@@ -209,7 +209,7 @@
 .modal-search-item:hover,
 .modal-search-item.selected {
   background: #F1F5F9;
-  color: var(--accent, #C2410C);
+  color: var(--brand-blue, #2563EB);
 }
 
 .modal-search-item-title {
@@ -226,9 +226,9 @@
 .modal-search-item-elev {
   font-family: var(--font-mono, monospace);
   font-size: 10px;
-  color: #C2410C;
-  background: #FFF7ED;
-  border: 1px solid #FFEDD5;
+  color: var(--brand-blue, #2563EB);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -259,8 +259,8 @@
 
 .tactical-gps-btn:hover:not(:disabled) {
   background: #FFFFFF;
-  border-color: var(--accent, #C2410C);
-  color: var(--accent, #C2410C);
+  border-color: var(--brand-blue, #2563EB);
+  color: var(--brand-blue, #2563EB);
 }
 
 .tactical-gps-btn:disabled {
@@ -274,21 +274,22 @@
   gap: 6px;
   height: 34px;
   padding: 0 16px;
-  background: var(--accent, #C2410C);
-  border: 1px solid #9A3412;
+  background: var(--surface-dark, #1C1917);
+  border: 1px solid var(--surface-dark, #1C1917);
   border-radius: 6px;
   color: #FFFFFF;
   font-family: var(--font-heading, Inter, sans-serif);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(194, 65, 12, 0.25);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
   transition: all 0.15s ease;
 }
 
 .tactical-confirm-btn:hover {
-  background: #9A3412;
+  background: #292524;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.22);
 }
 
 .tactical-close-btn {
@@ -442,13 +443,13 @@
 }
 
 .hud-stat-val.solar {
-  color: #C2410C;
+  color: #D97706;
 }
 
 /* ── Material Recommendation Box ───────────────────────────────────────── */
 .hud-material-box {
-  background: #FFF7ED;
-  border-left: 3px solid var(--accent, #C2410C);
+  background: rgba(37, 99, 235, 0.04);
+  border-left: 3px solid var(--brand-blue, #2563EB);
   border-radius: 4px;
   padding: 8px 10px;
   margin-bottom: 12px;
@@ -462,7 +463,7 @@
   font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #C2410C;
+  color: var(--brand-blue, #2563EB);
   letter-spacing: 0.04em;
   margin-bottom: 4px;
 }
@@ -481,7 +482,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: var(--accent, #C2410C);
+  background: var(--surface-dark, #1C1917);
   border: none;
   border-radius: 6px;
   color: #FFFFFF;
@@ -489,12 +490,12 @@
   font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(194, 65, 12, 0.25);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
   transition: all 0.15s ease;
 }
 
 .hud-apply-material-btn:hover {
-  background: #9A3412;
+  background: #292524;
   transform: translateY(-1px);
 }
 

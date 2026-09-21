@@ -242,18 +242,10 @@ export default function SimulateCanvas({ result, request, onApplyDesign }) {
         className="temp-chart-anchor"
         delay={0.08}
         style={{
-          borderLeft: '3px solid var(--accent)',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
         }}
       >
-        <style>{`
-          .temp-chart-anchor > div {
-            border-left: none !important;
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-          }
-        `}</style>
         <TempChart series={data.series} />
       </AnimatedPanel>
 
@@ -299,7 +291,7 @@ export default function SimulateCanvas({ result, request, onApplyDesign }) {
                 whiteSpace: 'nowrap',
               }}
             >
-              <Icon size={13} style={{ color: isActive ? 'var(--accent, #C2410C)' : 'inherit', opacity: isActive ? 1 : 0.7 }} />
+              <Icon size={13} style={{ color: isActive ? 'var(--brand-blue, #2563EB)' : 'inherit', opacity: isActive ? 1 : 0.7 }} />
               <span>{tab.label}</span>
             </button>
           );

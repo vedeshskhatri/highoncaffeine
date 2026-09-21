@@ -294,7 +294,7 @@ export default function InspectorPanel({
                 <div className="inspector-card">
                   <div className="card-title">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <MapPin size={13} style={{ color: 'var(--solar, #C2410C)' }} />
+                      <MapPin size={13} style={{ color: 'var(--brand-blue, #2563EB)' }} />
                       <span>Site &amp; Microclimate</span>
                     </div>
                     <span className="biome-badge-pill">{biomeMeta.label}</span>
@@ -353,7 +353,7 @@ export default function InspectorPanel({
                       title="Open full-screen planetary tactical map with GPS lock and blurred backdrop"
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                        <Globe size={13} style={{ color: 'var(--solar, #C2410C)' }} />
+                        <Globe size={13} style={{ color: 'var(--brand-blue, #2563EB)' }} />
                         <span>Open Planetary Tactical Map &amp; GPS</span>
                       </div>
                       <Maximize2 size={13} style={{ color: 'var(--text-muted)' }} />
@@ -394,7 +394,7 @@ export default function InspectorPanel({
                 <div className="inspector-card">
                   <div className="card-title">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Sparkles size={13} style={{ color: 'var(--solar, #C2410C)' }} />
+                      <Sparkles size={13} style={{ color: 'var(--brand-blue, #2563EB)' }} />
                       <span>Architectural Typology</span>
                     </div>
                     <span className="typology-preset-tag">1-Click Presets</span>
@@ -434,7 +434,7 @@ export default function InspectorPanel({
                 <div className="inspector-card">
                   <div className="card-title">
                     <span>Geometry &amp; Dimensions</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--solar, #C2410C)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--brand-blue, #2563EB)' }}>
                       {floorArea} m² Floor Area
                     </span>
                   </div>
@@ -553,7 +553,7 @@ export default function InspectorPanel({
                 <div className="inspector-card">
                   <div className="card-title">
                     <span>Solar Orientation (°Azimuth)</span>
-                    <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--solar, #C2410C)' }}>
+                    <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand-blue, #2563EB)' }}>
                       {request.geometry.orientation_deg}°
                     </span>
                   </div>
@@ -665,7 +665,7 @@ export default function InspectorPanel({
                         step={0.01}
                         value={request.envelope.roof_emissivity || 0.9}
                         onChange={e => setEnv({ roof_emissivity: parseFloat(e.target.value) })}
-                        style={{ width: '100%', accentColor: 'var(--solar, #C2410C)', cursor: 'pointer', marginTop: 4 }}
+                        style={{ width: '100%', accentColor: 'var(--brand-blue, #2563EB)', cursor: 'pointer', marginTop: 4 }}
                       />
                     </div>
                   </div>
@@ -701,7 +701,7 @@ export default function InspectorPanel({
                   <div key={i} className="inspector-card">
                     <div className="card-title">
                       <span>Aperture {i + 1} ({op.facing.toUpperCase()})</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--solar, #C2410C)' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--brand-blue, #2563EB)' }}>
                         {op.area_m2} m²
                       </span>
                     </div>
@@ -758,7 +758,7 @@ export default function InspectorPanel({
                         id={`opening-${i}-shutter`}
                         checked={!!op.night_shutter}
                         onChange={e => setOpening(i, { night_shutter: e.target.checked })}
-                        style={{ cursor: 'pointer', width: 16, height: 16, accentColor: 'var(--solar, #C2410C)' }}
+                        style={{ cursor: 'pointer', width: 16, height: 16, accentColor: 'var(--brand-blue, #2563EB)' }}
                       />
                     </div>
                   </div>
@@ -885,7 +885,7 @@ export default function InspectorPanel({
                       id="field-snow"
                       checked={!!request.ground.snow_cover}
                       onChange={e => setGnd({ snow_cover: e.target.checked })}
-                      style={{ cursor: 'pointer', width: 16, height: 16, accentColor: 'var(--solar, #C2410C)' }}
+                      style={{ cursor: 'pointer', width: 16, height: 16, accentColor: 'var(--brand-blue, #2563EB)' }}
                     />
                   </div>
                 </div>

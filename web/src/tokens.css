@@ -52,12 +52,12 @@
   --blue:               #2563EB;
   --blue-soft:          #EFF6FF;
 
-  /* Solar Heat & Envelope Gain (Warm Terracotta Ember) */
-  --solar:              #C2410C;   /* authentic terracotta ember */
-  --solar-soft:         #FFF7ED;
-  --orange:             #C2410C;
-  --orange-soft:        #FFF7ED;
-  --accent:             #C2410C;
+  /* Primary Interactive & Thermal Indoor Accent (Nordic Cobalt Sapphire) */
+  --solar:              #2563EB;   /* authoritative glacial cobalt, replacing loud orange */
+  --solar-soft:         #EFF6FF;
+  --orange:             #2563EB;
+  --orange-soft:        #EFF6FF;
+  --accent:             #1C1917;   /* deep obsidian charcoal for primary actions */
 
   /* Extreme Cold & Sub-Zero Deficit (Glacial Frost Steel) */
   --cold:               #0284C7;   /* glacial frost steel */

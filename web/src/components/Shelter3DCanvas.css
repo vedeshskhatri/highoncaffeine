@@ -87,7 +87,7 @@
 .hotspot-pin.active {
   transform: translate(-50%, -50%) scale(1.06);
   box-shadow: var(--shadow-md);
-  border-color: var(--accent);
+  border-color: var(--brand-blue, #2563EB);
   background: var(--surface-1);
 }
 
@@ -95,8 +95,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  background: var(--brand-blue, #2563EB);
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
   flex-shrink: 0;
 }
 
@@ -218,9 +218,9 @@
   font-size: 9px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(194, 65, 12, 0.08);
-  color: var(--solar, #C2410C);
-  border: 1px solid rgba(194, 65, 12, 0.2);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--brand-blue, #2563EB);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -261,7 +261,7 @@
   padding: 8px 10px;
   background: #F8FAFC;
   border-radius: 6px;
-  border-left: 3px solid #C2410C;
+  border-left: 3px solid var(--brand-blue, #2563EB);
   font-size: 11px;
   color: #334155;
   white-space: normal;
@@ -355,7 +355,7 @@
 .turntable-badge-icon {
   width: 14px;
   height: 14px;
-  color: var(--accent);
+  color: var(--brand-blue, #2563EB);
 }
 
 .env-toggle-chip {
@@ -380,7 +380,7 @@
 
 .env-toggle-chip:hover {
   background: var(--surface-1);
-  border-color: var(--accent);
+  border-color: var(--brand-blue, #2563EB);
 }
 
 /* ── View Presets Pill Bar ───────────────────────────────────────────── */
@@ -401,42 +401,41 @@
   z-index: 15;
 }
 
-.preset-chip {
+.preset-pill-btn {
+  padding: 5px 12px;
   background: none;
   border: none;
-  padding: 4px 10px;
+  border-radius: var(--radius-full);
   font-family: var(--font-body);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-secondary);
-  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.preset-chip:hover {
+.preset-pill-btn:hover {
   color: var(--text-primary);
   background: var(--surface-2);
 }
 
-.preset-chip.active {
-  color: #fff;
-  background: var(--text-primary);
-  font-weight: 600;
+.preset-pill-btn.active {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
-/* ── Thermal Heatmap Gradient Scale HUD ───────────────────────────────── */
+/* ── Thermal Heatmap Floating Legend ─────────────────────────────────── */
 .thermal-heatmap-hud {
   position: absolute;
-  bottom: 74px;
-  left: 16px;
-  width: 270px;
+  bottom: 20px;
+  left: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: var(--radius-sm, 6px);
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
   z-index: 25;
   pointer-events: auto;
@@ -451,8 +450,8 @@
 }
 
 .thermal-hud-icon {
-  color: #F97316;
-  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.6));
+  color: #D97706;
+  filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.4));
 }
 
 .thermal-hud-title {
@@ -469,23 +468,23 @@
   font-size: 9px;
   font-weight: 700;
   color: #22C55E;
-  background: rgba(34, 197, 94, 0.14);
-  padding: 2px 6px;
+  background: rgba(34, 197, 94, 0.12);
+  padding: 1px 6px;
   border-radius: 4px;
-  text-transform: uppercase;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
 .thermal-scale-bar {
-  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .thermal-scale-gradient {
+  width: 190px;
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #1E3A8A 0%, #0284C7 25%, #22C55E 50%, #EAB308 75%, #EF4444 100%);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
-  margin-bottom: 4px;
+  background: linear-gradient(90deg, #1E40AF, #38BDF8, #22C55E, #FBBF24, #EF4444);
 }
 
 .thermal-scale-ticks {
@@ -675,10 +674,10 @@
 }
 
 .peel-pill-btn.active {
-  background: var(--solar, #C2410C);
+  background: var(--surface-dark, #1C1917);
   color: #ffffff;
-  border-color: var(--solar, #C2410C);
-  box-shadow: 0 1px 4px rgba(194, 65, 12, 0.25);
+  border-color: var(--surface-dark, #1C1917);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.15);
 }
 
 .popover-citation-badge {

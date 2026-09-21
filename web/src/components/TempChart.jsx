@@ -23,6 +23,7 @@ import {
   Legend,
   ReferenceArea,
   ReferenceLine,
+  CartesianGrid,
 } from 'recharts';
 
 function formatTemp(val) {
@@ -251,11 +252,11 @@ export default function TempChart({ series = [] }) {
             <button
               onClick={() => toggleLine('indoor')}
               style={{
-                background: visibleLines.indoor ? 'var(--accent)' : 'transparent',
-                color: visibleLines.indoor ? 'var(--bg-base)' : 'var(--text-muted)',
+                background: visibleLines.indoor ? 'var(--brand-blue, #2563EB)' : 'transparent',
+                color: visibleLines.indoor ? '#ffffff' : 'var(--text-muted)',
                 border: 'none',
                 borderRadius: 'var(--radius-sm)',
-                padding: '2px 6px',
+                padding: '2px 8px',
                 fontSize: '10px',
                 fontFamily: 'var(--font-mono)',
                 fontWeight: 600,
@@ -308,8 +309,8 @@ export default function TempChart({ series = [] }) {
             <button
               onClick={() => toggleLine('solarGain')}
               style={{
-                background: visibleLines.solarGain ? 'var(--solar-soft)' : 'transparent',
-                color: visibleLines.solarGain ? 'var(--solar)' : 'var(--text-muted)',
+                background: visibleLines.solarGain ? 'rgba(217, 119, 6, 0.1)' : 'transparent',
+                color: visibleLines.solarGain ? '#D97706' : 'var(--text-muted)',
                 border: 'none',
                 borderRadius: 'var(--radius-sm)',
                 padding: '2px 6px',
@@ -338,31 +339,17 @@ export default function TempChart({ series = [] }) {
                 cursor: 'pointer',
               }}
             >
-              Heating Req [W]
+              Heating [W]
             </button>
           )}
         </div>
       </div>
 
       {/* Chart Canvas */}
-      <div style={{ width: '100%', height: 320 }}>
+      <div style={{ width: '100%', height: 320, marginTop: 'var(--space-2)' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 10, right: hasSecondaryAxis ? 35 : 15, left: -5, bottom: 0 }}>
-            {/* Health threshold reference line (15.0 °C / 18.0 °C) */}
-            <ReferenceLine
-              y={15.0}
-              yAxisId="left"
-              stroke="var(--danger)"
-              strokeDasharray="4 4"
-              strokeWidth={1.5}
-              label={{
-                value: 'Health 15 °C',
-                position: 'right',
-                fill: 'var(--danger)',
-                fontSize: 10,
-                fontFamily: 'var(--font-mono)',
-              }}
-            />
+          <ComposedChart data={data} margin={{ top: 10, right: 30, left: -10, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
 
             <XAxis
               dataKey="hour"
@@ -389,7 +376,7 @@ export default function TempChart({ series = [] }) {
                 orientation="right"
                 domain={[0, yPowerMax]}
                 tickFormatter={w => `${w} W`}
-                tick={{ fill: 'var(--solar)', fontSize: 10, fontFamily: 'var(--font-mono)' }}
+                tick={{ fill: '#D97706', fontSize: 10, fontFamily: 'var(--font-mono)' }}
                 axisLine={{ stroke: 'var(--border)' }}
                 tickLine={{ stroke: 'var(--border)' }}
               />
@@ -405,6 +392,10 @@ export default function TempChart({ series = [] }) {
               }}
             />
 
+            {/* Safe zone reference lines */}
+            <ReferenceLine yAxisId="left" y={15} stroke="var(--comfort)" strokeDasharray="3 3" opacity={0.6} />
+            <ReferenceLine yAxisId="left" y={10} stroke="var(--danger)" strokeDasharray="2 2" opacity={0.4} />
+
             {/* Comfort band stacked area (rendered strictly if present) */}
             {availability.hasComfortBand && visibleLines.comfortBand && (
               <>
@@ -419,11 +410,10 @@ export default function TempChart({ series = [] }) {
                 />
                 <Area
                   yAxisId="left"
-                  name="Comfort Band (t_lo .. t_hi) [°C]"
+                  name="Adaptive Band (NBC 2016)"
                   dataKey="comfort_span"
                   stackId="comfort"
-                  fill="var(--comfort)"
-                  fillOpacity={0.15}
+                  fill="var(--comfort-soft)"
                   stroke="none"
                   legendType="square"
                   isAnimationActive={false}
@@ -435,7 +425,7 @@ export default function TempChart({ series = [] }) {
             {availability.hasOutdoor && visibleLines.outdoor && (
               <Line
                 yAxisId="left"
-                name="Ambient (t_out) [°C]"
+                name="Outdoor (t_out) [°C]"
                 type="monotone"
                 dataKey="t_out"
                 stroke="var(--text-muted)"
@@ -453,8 +443,8 @@ export default function TempChart({ series = [] }) {
                 name="Operative (t_op) [°C]"
                 type="monotone"
                 dataKey="t_operative"
-                stroke="var(--solar)"
-                strokeWidth={1.2}
+                stroke="#0D9488"
+                strokeWidth={1.4}
                 dot={false}
                 isAnimationActive={false}
               />
@@ -467,10 +457,10 @@ export default function TempChart({ series = [] }) {
                 name="Indoor Air (t_in) [°C]"
                 type="monotone"
                 dataKey="t_in"
-                stroke="var(--accent)"
+                stroke="var(--brand-blue, #2563EB)"
                 strokeWidth={2.5}
-                dot={{ r: 2, fill: 'var(--accent)' }}
-                activeDot={{ r: 5, fill: 'var(--accent)' }}
+                dot={{ r: 2, fill: 'var(--brand-blue, #2563EB)' }}
+                activeDot={{ r: 5, fill: 'var(--brand-blue, #2563EB)' }}
                 isAnimationActive={false}
               />
             )}
@@ -482,7 +472,7 @@ export default function TempChart({ series = [] }) {
                 name={availability.hasSolarGain ? "Solar Harvest (q_solar) [W]" : "GHI Irradiance [W/m²]"}
                 type="monotone"
                 dataKey={availability.hasSolarGain ? "solar_gain_w" : "ghi"}
-                stroke="var(--solar)"
+                stroke="#D97706"
                 strokeWidth={1.8}
                 dot={false}
                 isAnimationActive={false}

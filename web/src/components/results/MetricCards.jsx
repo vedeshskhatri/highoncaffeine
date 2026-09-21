@@ -130,7 +130,7 @@ export default function MetricCards({ summary }) {
           sub: isBelowSafe ? 'Below 18 °C threshold' : 'Maintains safe temperature',
           icon: Moon,
           color: isBelowSafe ? 'var(--danger)' : 'var(--text-primary)',
-          accentBorder: isBelowSafe ? '1.5px solid var(--danger)' : '1px solid var(--border)',
+          accentBorder: '1px solid var(--border)',
         },
         {
           id: 'comfort-band',
@@ -159,7 +159,7 @@ export default function MetricCards({ summary }) {
           value: keroseneAvoidedFormatted,
           sub: 'Displaced combustion fuel/year',
           icon: Droplet,
-          color: 'var(--accent)',
+          color: 'var(--brand-blue, #2563EB)',
           accentBorder: '1px solid var(--border)',
         },
       ];

@@ -432,9 +432,9 @@
 }
 
 .weather-toggle-btn.active {
-  background: var(--accent);
+  background: var(--surface-dark, #1C1917);
   color: #ffffff;
-  box-shadow: 0 1px 4px rgba(247, 115, 49, 0.25);
+  box-shadow: var(--shadow-sm);
 }
 
 .grid-note {
@@ -445,7 +445,7 @@
   background: var(--surface-2);
   padding: 6px 8px;
   border-radius: var(--radius-sm);
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--brand-blue, #2563EB);
 }
 
 /* Footer Simulation CTA */
@@ -458,10 +458,10 @@
 .inspector-sim-btn {
   width: 100%;
   height: 42px;
-  background: var(--accent);
+  background: var(--surface-dark, #1C1917);
   color: #ffffff;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full, 9999px);
   font-family: var(--font-heading);
   font-size: 13px;
   font-weight: 700;
@@ -471,13 +471,14 @@
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(247, 115, 49, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
 }
 
 .inspector-sim-btn:hover:not(:disabled) {
-  background: #E55C1A;
+  background: #292524;
   transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
 }
 
 .inspector-sim-btn:disabled {
@@ -491,9 +492,9 @@
   font-family: var(--font-mono, monospace);
   font-size: 9.5px;
   font-weight: 600;
-  color: var(--solar, #C2410C);
-  background: rgba(194, 65, 12, 0.08);
-  border: 1px solid rgba(194, 65, 12, 0.2);
+  color: var(--brand-blue, #2563EB);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -538,15 +539,15 @@
 
 .outpost-quick-chip:hover {
   background: #ffffff;
-  border-color: var(--solar, #C2410C);
+  border-color: var(--brand-blue, #2563EB);
   transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(194, 65, 12, 0.08);
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.08);
 }
 
 .outpost-quick-chip.active {
-  background: #FFF7ED;
-  border-color: var(--solar, #C2410C);
-  box-shadow: 0 0 0 1px var(--solar, #C2410C);
+  background: #F0F7FF;
+  border-color: var(--brand-blue, #2563EB);
+  box-shadow: 0 0 0 1px var(--brand-blue, #2563EB);
 }
 
 .outpost-chip-header {
@@ -568,8 +569,8 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--solar, #C2410C);
-  box-shadow: 0 0 4px var(--solar, #C2410C);
+  background: var(--brand-blue, #2563EB);
+  box-shadow: 0 0 4px var(--brand-blue, #2563EB);
 }
 
 .outpost-chip-meta {
@@ -613,9 +614,9 @@
 
 .tactical-full-map-trigger-btn:hover {
   background: #FFFFFF;
-  border-color: var(--solar, #C2410C);
-  color: var(--solar, #C2410C);
-  box-shadow: 0 2px 8px rgba(194, 65, 12, 0.15);
+  border-color: var(--brand-blue, #2563EB);
+  color: var(--brand-blue, #2563EB);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
   transform: translateY(-1px);
 }
 
@@ -638,9 +639,9 @@
 }
 
 .custom-loc-toggle-btn:hover {
-  border-color: var(--solar, #C2410C);
-  color: var(--solar, #C2410C);
-  background: rgba(194, 65, 12, 0.04);
+  border-color: var(--brand-blue, #2563EB);
+  color: var(--brand-blue, #2563EB);
+  background: rgba(37, 99, 235, 0.04);
 }
 
 /* ── Architectural Archetypes Grid ─────────────────────────────────────── */
@@ -680,16 +681,16 @@
 
 .archetype-card-btn:hover {
   background: #ffffff;
-  border-color: rgba(194, 65, 12, 0.4);
+  border-color: rgba(37, 99, 235, 0.3);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .archetype-card-btn.active {
-  background: #FFFDFB;
-  border-color: var(--solar, #C2410C);
-  border-left: 3.5px solid var(--solar, #C2410C);
-  box-shadow: 0 2px 10px rgba(194, 65, 12, 0.1);
+  background: #F8FAFC;
+  border-color: var(--brand-blue, #2563EB);
+  border-left: 3.5px solid var(--brand-blue, #2563EB);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.08);
 }
 
 .archetype-card-top {
@@ -707,7 +708,7 @@
 }
 
 .archetype-icon {
-  color: var(--solar, #C2410C);
+  color: var(--brand-blue, #2563EB);
   flex-shrink: 0;
 }
 
@@ -731,9 +732,9 @@
 }
 
 .archetype-card-btn.active .archetype-dims {
-  background: rgba(194, 65, 12, 0.1);
-  border-color: rgba(194, 65, 12, 0.25);
-  color: var(--solar, #C2410C);
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.2);
+  color: var(--brand-blue, #2563EB);
 }
 
 .archetype-desc {
@@ -754,11 +755,11 @@
 .archetype-tag-pill {
   font-size: 9px;
   font-weight: 600;
-  color: var(--solar, #C2410C);
-  background: rgba(194, 65, 12, 0.08);
+  color: var(--brand-blue, #2563EB);
+  background: rgba(37, 99, 235, 0.06);
   padding: 1.5px 6px;
   border-radius: 3px;
-  border: 1px solid rgba(194, 65, 12, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.18);
   letter-spacing: 0.02em;
 }
 
@@ -794,7 +795,7 @@
   border-radius: 3px;
   background: var(--border, #E2E8F0);
   outline: none;
-  accent-color: var(--solar, #C2410C);
+  accent-color: var(--brand-blue, #2563EB);
   cursor: pointer;
 }
 
@@ -814,7 +815,7 @@
 }
 
 .dim-input-mini:focus {
-  border-color: var(--solar, #C2410C);
+  border-color: var(--brand-blue, #2563EB);
 }
 
 /* ── Orientation Quick Pills ───────────────────────────────────────────── */
@@ -841,14 +842,14 @@
 
 .orient-pill:hover {
   background: #ffffff;
-  border-color: var(--solar, #C2410C);
-  color: var(--solar, #C2410C);
+  border-color: var(--brand-blue, #2563EB);
+  color: var(--brand-blue, #2563EB);
 }
 
 .orient-pill.active {
-  background: rgba(194, 65, 12, 0.08);
-  border-color: var(--solar, #C2410C);
-  color: var(--solar, #C2410C);
+  background: rgba(37, 99, 235, 0.08);
+  border-color: var(--brand-blue, #2563EB);
+  color: var(--brand-blue, #2563EB);
 }
 
 @media (max-width: 1024px) {
