@@ -14,10 +14,17 @@ import {
   ArrowUpRight,
   Shield,
   Brain,
+  PanelLeftClose,
 } from 'lucide-react';
 import './SidebarNav.css';
 
-export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) {
+export default function SidebarNav({
+  estate,
+  onEstateChange,
+  alertsCount = 0,
+  isOpen = true,
+  onToggleSidebar,
+}) {
   const NAV_GROUPS = [
     {
       title: 'PLATFORM',
@@ -48,22 +55,39 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
   ];
 
   return (
-    <aside className="platform-sidebar" aria-label="Platform Sidebar">
-      {/* 1. Sleek Brand Header */}
+    <aside
+      className={`platform-sidebar ${isOpen ? 'expanded' : 'collapsed'}`}
+      aria-label="Platform Sidebar"
+    >
+      {/* 1. Sleek Brand Header with Collapse Button */}
       <div className="sidebar-top-bar">
-        <NavLink to="/" className="sidebar-brand-link">
-          <div className="brand-shield-box">
-            <img 
-              src="/thermometer_sticker.png" 
-              alt="THERMA Logo" 
-              className="sidebar-thermometer-img" 
-            />
-          </div>
-          <div className="brand-titles">
-            <span className="brand-name">THERMA</span>
-            <span className="brand-org">DRDO · SIH 26051</span>
-          </div>
-        </NavLink>
+        <div className="sidebar-top-row">
+          <NavLink to="/" className="sidebar-brand-link">
+            <div className="brand-shield-box">
+              <img 
+                src="/thermometer_sticker.png" 
+                alt="THERMA Logo" 
+                className="sidebar-thermometer-img" 
+              />
+            </div>
+            <div className="brand-titles">
+              <span className="brand-name">THERMA</span>
+              <span className="brand-org">DRDO · SIH 26051</span>
+            </div>
+          </NavLink>
+
+          {onToggleSidebar && (
+            <button
+              type="button"
+              className="sidebar-collapse-trigger-btn"
+              onClick={onToggleSidebar}
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+            >
+              <PanelLeftClose size={15} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 2. Spacious Clean Navigation Groups */}
@@ -93,11 +117,23 @@ export default function SidebarNav({ estate, onEstateChange, alertsCount = 0 }) 
         ))}
       </nav>
 
-      {/* 3. Refined Bottom Footer: Quick Studio Link + Clean User Profile */}
+      {/* 3. Refined Bottom Footer: Prominently Highlighted Studio Link + User Profile */}
       <div className="sidebar-bottom-footer">
-        <NavLink to="/sites/site_siachen_base/design" className="sidebar-studio-cta">
-          <span>Open Shelter Studio</span>
-          <ArrowUpRight size={13} />
+        <NavLink
+          to="/sites/site_siachen_base/design"
+          className="sidebar-studio-cta highlighted"
+          title="Launch 3D Architectural Shelter Studio"
+        >
+          <div className="studio-cta-left">
+            <div className="studio-cta-icon-badge">
+              <Sparkles size={14} />
+            </div>
+            <div className="studio-cta-titles">
+              <span className="studio-cta-badge-tag">3D STUDIO</span>
+              <span className="studio-cta-name">Open Shelter Studio</span>
+            </div>
+          </div>
+          <ArrowUpRight size={15} className="studio-cta-arrow" />
         </NavLink>
 
         <div className="sidebar-profile-row">

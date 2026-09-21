@@ -16,8 +16,29 @@
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
+}
+
+.topbar-sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--surface-1);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.topbar-sidebar-toggle-btn:hover {
+  background-color: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
 }
 
 .topbar-back-btn {
@@ -163,8 +184,56 @@
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-shrink: 0;
+}
+
+/* Prominently Highlighted Topbar Studio CTA */
+.topbar-studio-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1px solid #fdba74;
+  border-radius: 9999px;
+  color: #c2410c;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.topbar-studio-cta:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  color: #ffffff;
+  border-color: #ea580c;
+  box-shadow: 0 3px 10px rgba(234, 88, 12, 0.25);
+  transform: translateY(-1px);
+}
+
+.topbar-studio-icon {
+  color: #ea580c;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.topbar-studio-cta:hover .topbar-studio-icon {
+  color: #ffffff;
+}
+
+.topbar-studio-arrow {
+  color: #ea580c;
+  transition: transform 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.topbar-studio-cta:hover .topbar-studio-arrow {
+  color: #ffffff;
+  transform: translate(1.5px, -1.5px);
 }
 
 .topbar-icon-actions {

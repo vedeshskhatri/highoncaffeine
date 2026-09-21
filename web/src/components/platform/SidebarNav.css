@@ -13,15 +13,59 @@
   user-select: none;
   z-index: 50;
   overflow: hidden;
+  transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-left 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease,
+              visibility 0.26s ease;
+}
+
+.platform-sidebar.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  margin-left: -256px !important;
+  border-right: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 /* 1. Sleek Brand Header */
 .sidebar-top-bar {
-  padding: 20px 16px 14px;
+  padding: 18px 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.sidebar-collapse-trigger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2, #f8fafc);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-collapse-trigger-btn:hover {
+  background: #ffffff;
+  color: var(--text-primary);
+  border-color: var(--border);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .sidebar-brand-link {
@@ -240,7 +284,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 10px;
+  padding: 8px 10px;
   background-color: var(--surface-2);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -249,14 +293,77 @@
   font-family: var(--font-heading);
   font-size: 11.5px;
   font-weight: 600;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar-studio-cta:hover {
-  background-color: #FFFFFF;
-  border-color: var(--border);
-  box-shadow: var(--shadow-xs);
+/* Prominently Highlighted Studio Link */
+.sidebar-studio-cta.highlighted {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1px solid #fed7aa;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.1);
+  padding: 9px 12px;
+  border-radius: 10px;
+}
+
+.sidebar-studio-cta.highlighted:hover {
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+  border-color: #fdba74;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.18);
   transform: translateY(-1px);
+}
+
+.studio-cta-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.studio-cta-icon-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #ea580c;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(234, 88, 12, 0.25);
+}
+
+.studio-cta-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.studio-cta-badge-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: #c2410c;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.studio-cta-name {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: #431407;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.studio-cta-arrow {
+  color: #c2410c;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-studio-cta.highlighted:hover .studio-cta-arrow {
+  transform: translate(2px, -2px);
 }
 
 .sidebar-profile-row {

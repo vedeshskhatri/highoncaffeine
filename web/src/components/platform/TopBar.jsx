@@ -14,10 +14,21 @@ import {
   ShieldCheck,
   ExternalLink,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Sparkles,
+  ArrowUpRight,
 } from 'lucide-react';
 import './TopBar.css';
 
-export default function TopBar({ onOpenCmd, estate, activeTitle, breadcrumbs = [] }) {
+export default function TopBar({
+  onOpenCmd,
+  estate,
+  activeTitle,
+  breadcrumbs = [],
+  sidebarOpen = true,
+  onToggleSidebar,
+}) {
   const navigate = useNavigate();
   const [telemetryOpen, setTelemetryOpen] = useState(false);
   const [healthData, setHealthData] = useState(null);
@@ -53,8 +64,20 @@ export default function TopBar({ onOpenCmd, estate, activeTitle, breadcrumbs = [
 
   return (
     <header className="platform-topbar">
-      {/* Left: Breadcrumbs & Dynamic Scope */}
+      {/* Left: Sidebar Toggle, Breadcrumbs & Dynamic Scope */}
       <div className="topbar-left">
+        {onToggleSidebar && (
+          <button
+            type="button"
+            className="topbar-sidebar-toggle-btn"
+            onClick={onToggleSidebar}
+            title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+          </button>
+        )}
+
         {breadcrumbs.length > 0 && (
           <button
             type="button"
@@ -105,6 +128,17 @@ export default function TopBar({ onOpenCmd, estate, activeTitle, breadcrumbs = [
 
       {/* Right: Notification Actions & Engine Status */}
       <div className="topbar-right">
+        {/* Prominently Highlighted 3D Shelter Studio CTA */}
+        <Link
+          to="/sites/site_siachen_base/design"
+          className="topbar-studio-cta"
+          title="Launch 3D Architectural Shelter Studio"
+        >
+          <Sparkles size={13} className="topbar-studio-icon" />
+          <span className="topbar-studio-text">Open Shelter Studio</span>
+          <ArrowUpRight size={13} className="topbar-studio-arrow" />
+        </Link>
+
         <div className="topbar-icon-actions">
           <button
             type="button"

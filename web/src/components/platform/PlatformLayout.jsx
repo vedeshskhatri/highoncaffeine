@@ -26,6 +26,23 @@ export default function PlatformLayout() {
   const [estate, setEstate] = useState('Ladakh');
   const [cmdOpen, setCmdOpen] = useState(false);
   const [alertsCount, setAlertsCount] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('therma_sidebar_open');
+      if (saved !== null) return saved === 'true';
+    }
+    return true;
+  });
+
+  const handleToggleSidebar = () => {
+    setSidebarOpen(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('therma_sidebar_open', String(next));
+      }
+      return next;
+    });
+  };
 
   // Scroll to top on every platform navigation
   useEffect(() => {
@@ -92,11 +109,13 @@ export default function PlatformLayout() {
   }
 
   return (
-    <div className="platform-layout-container">
+    <div className={`platform-layout-container ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
       <SidebarNav
         estate={estate}
         onEstateChange={setEstate}
         alertsCount={alertsCount}
+        isOpen={sidebarOpen}
+        onToggleSidebar={handleToggleSidebar}
       />
 
       <div className="platform-main-viewport">
@@ -105,6 +124,8 @@ export default function PlatformLayout() {
           estate={estate}
           activeTitle={activeTitle}
           breadcrumbs={breadcrumbs}
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={handleToggleSidebar}
         />
 
         <main className="platform-page-content">
