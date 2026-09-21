@@ -1,194 +1,257 @@
-# THERMA — Official Video Presentation & Demonstration Script
-**Duration:** 7 to 8 Minutes  
-**Format:** Live Platform Walkthrough & Technical Pitch  
-**Audience:** Defense Innovation Evaluators, Building Science Engineers & Hackathon Jury  
+# THERMA — Complete Platform Master Presentation Script
+**Duration:** ~8 to 10 Minutes (or recordable in modular chapters)  
+**Format:** Full Website Walkthrough, Live Feature Demonstration & Strategic Pitch  
+**Audience:** National Hackathon Jury, Defense Procurement Evaluators & Building Science Reviewers  
 
 ---
 
-## Script Overview & Timing
-- **00:00 – 01:15** | The Problem: Frozen Outposts, Tin Sheds & The High-Altitude Energy Paradox
-- **01:15 – 02:15** | The Paradigm Shift: What is THERMA?
-- **02:15 – 04:30** | Live Demo Part 1: 3D Digital Twin & Authentic Regional Architectural Typologies
-- **04:30 – 05:45** | Live Demo Part 2: Interactive Engineering Disassembly, Exploded View & Hotspot HUD
-- **05:45 – 06:45** | Live Demo Part 3: Scientific Thermal Simulation, SciML Engine & 2D CAD Blueprints
-- **06:45 – 07:30** | Live Demo Part 4: Sector Command Center & Cold Snap Early Warning
-- **07:30 – 08:00** | Conclusion, Strategic Impact & Defense Readiness
+## Complete Website Demonstration Roadmap
+1. **Act I: The Strategic Frontier & Landing Page** (`/`)
+2. **Act II: Sector Mission Command Dashboard** (`/dashboard`)
+3. **Act III: Forward Outpost Registry & Tactical Map** (`/sites`)
+4. **Act IV: 3D Architectural Studio & Regional Vernacular Typologies** (`/sites/:id/design` — Step 1)
+   - Climate-Adaptive Typologies (Siachen, Manali, Jaisalmer, Leh)
+   - Smooth 60 FPS Assembly Exploded View & Facade Peel Cutaway
+   - Real-Time Hotspot Physics HUD & Accessible Camera Toolbar
+   - Exact 2D CAD Elevation Blueprints
+5. **Act V: Diurnal Thermal Simulation Engine** (`Step 2: Simulation`)
+6. **Act VI: Multi-Objective Pareto Optimization & Design Doctor** (`Step 3: Optimization`)
+7. **Act VII: Cold Snap Early Warning & Mountain Pass Triage** (`/alerts` & `/forecast`)
+8. **Act VIII: Physics-Informed Neural Network (SciML) & Sensitivity Engine** (`/ml-predictor`)
+9. **Act IX: Empirical Validation Testbed & CPWD Material Database** (`/validation` & `/materials`)
+10. **Act X: Automated 18-Section Defense Audit Reports & Cryptographic Provenance** (`/reports` & `/verify`)
+11. **Act XI: Conclusion & Strategic Defense Impact**
 
 ---
 
-### [00:00 – 01:15] The Hook: The High-Altitude Border Paradox
+### Act I: The Strategic Frontier & Landing Page
+**Route:** `http://localhost:5173/`  
+**Timing:** 00:00 – 01:15  
+**Action:** Start at the Landing Page. Slowly scroll down past the atmospheric solar hero section.
 
-**[VISUAL: Fullscreen presenter or cinematic aerial view of Himalayan snowscapes / Siachen glacier]**
-
-> "Hello everyone. 
+> "Hello everyone, and welcome to the full platform demonstration of **THERMA**.
 >
-> Imagine standing at a forward border outpost in the Himalayas or the Karakoram—18,000 feet above sea level. Outside, the wind howls at 90 kilometers an hour, and the mercury plunges below minus thirty-five degrees Celsius.
+> To understand why THERMA exists, we have to look at the northern frontiers of India—from the sub-zero glacial moraines of Siachen and Daulat Beg Oldie at 18,000 feet, to the wind-swept high plateau of Ladakh.
 >
-> Today, the vast majority of our soldiers and personnel live in prefabricated corrugated galvanized iron tin sheds. Tin is an extraordinary thermal conductor—meaning it bleeds indoor warmth straight into the freezing air within minutes. To survive the night, troops burn kerosene in unvented metal stoves called *bukharis*.
+> At these outposts, temperatures regularly collapse to minus thirty-five degrees Celsius. Today, thousands of troops live in corrugated tin sheds that lose heat almost instantly. To survive, they burn millions of litres of kerosene in unvented metal stoves called *bukharis*.
 >
-> That creates two critical problems:
+> This creates an unbearable double burden:
+> 1. **Life & Health**: Toxic indoor air filled with soot and carbon monoxide, and deadly hypothermia whenever stoves fail.
+> 2. **Logistics & Cost**: At Siachen, airlifting just a single litre of fuel by helicopter costs over ₹2,400. The Indian military spends thousands of crores every year flying fuel across snowbound mountain passes just for heating.
 >
-> First, **a severe health hazard**. The air fills with soot and carbon monoxide, leading to chronic respiratory illness and deadly hypothermia if a stove burns out at 3:00 AM.
+> Yet, the high-altitude Himalayas receive some of the most intense solar irradiance on Earth—over 950 Watts per square meter through thin, cloudless mountain air.
 >
-> Second, **a staggering logistical burden**. At Siachen or Daulat Beg Oldie, delivering just one single litre of kerosene by helicopter costs upwards of ₹2,400. The armed forces spend thousands of crores annually flying fuel over treacherous mountain passes just to keep troops from freezing.
+> **THERMA** is the world’s first area-specific, climate-adaptive generative engineering platform that eliminates fuel dependence. It automates the design of high-altitude shelters that maintain a comfortable indoor temperature of +18°C purely through passive solar thermal mass, optimized aerodynamic forms, and local materials.
 >
-> But here is the great paradox of high altitudes: While the ambient air is brutally cold, because the atmospheric layer is so thin, solar irradiance is among the highest on planet Earth—exceeding 950 Watts per square meter.
->
-> The problem has never been a lack of energy. The problem has been that our shelters were never designed to capture and store it."
-
----
-
-### [01:15 – 02:15] The Paradigm Shift: Introducing THERMA
-
-**[VISUAL: Cut to browser screen — THERMA Platform Landing / Design Studio]**
-
-> "That is why we built **THERMA**—an area-specific, climate-adaptive generative engineering platform.
->
-> Rather than deploying generic, cookie-cutter shelters that fail in extreme environments, THERMA synthesizes local climatology, GIS terrain coordinates, solar sun vectors, and indigenous material vernaculars.
->
-> It automatically designs zero-fuel, climate-adaptive shelters that maintain an indoor comfort band of +18°C purely through passive solar thermal mass, optimized aerodynamic envelopes, and physics-compliant insulation.
->
-> And it doesn't just work for Siachen. From the sub-zero glacial moraines of the north to the scorching arid sands of Jaisalmer in Rajasthan, THERMA generates climate-adaptive architectures compliant with Indian statutory building codes—including IS 875 for snow and wind shedding, IS 13828 for Himalayan seismic lacing, and ECBC 2017 for solar heat gain cutoff.
->
-> Let's step inside the live platform."
+> Let's enter the platform."
 
 ---
 
-### [02:15 – 04:30] Live Demo Part 1: Regional Climate Typologies in 3D
+### Act II: Sector Mission Command Dashboard
+**Route:** Click **"Launch Command Platform"** or navigate to `http://localhost:5173/dashboard`  
+**Timing:** 01:15 – 02:00  
+**Action:** Point out the Executive Command Ribbon, Sector Temperature Map, and Fleet Metrics.
 
-**[ACTION: Open `http://localhost:5173/sites/site_siachen/design` — 3D Studio loads]**
-
-> "The moment you enter the Design Studio, you are presented with a real-time, interactive 3D digital twin of our shelter.
+> "We begin at the **Sector Mission Command Dashboard**.
 >
-> Look at the screen right now. We are at **Siachen Base Camp**, situated at 3,600 meters. 
+> This is the central operational cockpit designed for army commanders and military engineers.
 >
-> Notice the architecture:
-> - The shelter is elevated on **heavy steel stilts with reinforced concrete footings** to isolate it from the permafrost, preventing ground-thaw subsidence.
-> - The roof is an **aerodynamic 11° monoslope shed roof** with an integrated high-efficiency photovoltaic array and stove chimney flue, engineered to deflect Arctic blizzard winds.
-> - On the east facade, there is a **sealed Arctic airlock vestibule** that prevents thermal shock and infiltration every time a soldier enters.
-> - And along the southern facade, we have large double-pane glazing backed by a 300mm dense stone **Trombe wall** with convection dampers that charges with solar heat all day and radiates warmth for 10 hours through the night."
-
-**[ACTION: In the Site Selector dropdown at the top-left, click and switch to `Manali / Alpine Valley`]**
-
-> "Now, watch what happens when we switch our outpost to **Manali in Himachal Pradesh**, an alpine valley prone to heavy snowdrifts and seismic activity.
+> Right at the top, the **Executive Metric Ribbon** provides real-time situational awareness across the entire northern defense theater:
+> - **Total Forward Outposts Monitored**: Active stations tracked across Northern Command.
+> - **Troops Protected**: Total personnel sheltered in thermally secure zones.
+> - **Airlifted Fuel Saved**: Cumulative litres of kerosene eliminated from helicopter supply runs.
+> - **Carbon Offset**: Verifiable metric tons of greenhouse gas emissions eliminated.
 >
-> The entire architectural structure adapts dynamically:
-> - The monoslope roof is replaced with a **30° double-pitched timber gable roof** equipped with exposed rafters and local dark slate shingles—strictly conforming to IS 875 Part 2 snow-shedding slopes so heavy alpine snow slides off cleanly.
-> - The envelope shifts to authentic **Kath-Kuni masonry**—traditional Deodar cedar timber cribbage laced with dressed river stone, featuring reinforced corner quoin interlocks to withstand Zone V Himalayan seismic stresses per IS 13828.
-> - The arctic airlock is replaced with a **sheltered alpine timber porch veranda**, and the south facade features direct-gain alpine fenestration with insulated nighttime thermal shutters."
+> Below, the **Sector Heatmap and Risk Matrix** cross-references ambient temperature forecasts with shelter thermal integrity. In one glance, commanders can identify outposts approaching critical safety margins before sub-zero nightfall."
 
+---
+
+### Act III: Forward Outpost Registry & Tactical Map
+**Route:** Click **"Site Registry"** in the left sidebar or go to `http://localhost:5173/sites`  
+**Timing:** 02:00 – 02:45  
+**Action:** Hover over site cards (Siachen, Leh, Manali, Jaisalmer, Dras), then click the **"Tactical C2 Map"** button.
+
+> "Next, we navigate to the **Site Registry**.
+>
+> Forward defense infrastructure cannot rely on one-size-fits-all blueprints. An outpost at 5,300 meters on the Karakoram pass experiences vastly different atmospheric pressure, solar angles, and wind speeds than an alpine valley post in Manali or a desert garrison in Jaisalmer.
+>
+> Each registered outpost features live GIS coordinates, exact altitude above sea level, ground albedo, and design baselines.
+>
+> When I open the **Tactical Command Map**, commanders see an interactive 3D geospatial visualization of the entire mountain theater—tracking forward operating locations, supply corridors, and altitude contours in real time.
+>
+> Let’s select **Siachen Base Camp** and jump straight into the Design Studio."
+
+---
+
+### Act IV: 3D Architectural Studio & Regional Vernacular Typologies
+**Route:** Click into `http://localhost:5173/sites/site_siachen/design`  
+**Timing:** 02:45 – 04:45  
+**Action:** Demonstrate the 3D digital twin, switch regional templates, activate Exploded View, click a Hotspot, and show 2D CAD Blueprints.
+
+> "Welcome to the core of the platform: the **3D Open Shelter Studio**.
+>
+> Right in the center is a real-time, interactive 3D digital twin of our shelter, complete with physical shadows, celestial solar diurnal arcs, and terrain context.
+
+#### 1. Siachen / Glacial Cryosphere Archetype
+> "Notice the specific architectural typologies for **Siachen**:
+> - **Elevated Moraine Stilts**: Heavy steel stilts with reinforced concrete footings isolate the floor slab from the permafrost, preventing ground-thaw structural sinking.
+> - **Aerodynamic Monoslope Roof (11°)**: Deflects gale-force Arctic blizzards while integrating a high-output photovoltaic array and stove flue.
+> - **Sealed Arctic Airlock Vestibule**: An east-facing transition mudroom that eliminates cold-air infiltration when troops enter.
+> - **South-Facing Trombe Mass Wall**: High-density 300mm stone wall behind double glazing that absorbs solar radiation all day and radiates stored heat for 10 hours through the sub-zero night."
+
+#### 2. Switching to Manali (Alpine Valley)
+**[ACTION: Click the Site Selector dropdown and switch to `Manali / Alpine Valley`]**
+> "Now, look at how the architecture adapts when we switch to **Manali in Himachal Pradesh**:
+> - The monoslope roof automatically transforms into a **30° double-pitched timber gable roof** with exposed rafters and dark slate shingles—strictly conforming to IS 875 Part 2 snow-shedding slopes so heavy alpine snowdrifts slide off cleanly.
+> - The envelope transitions to authentic **Kath-Kuni construction**—alternating courses of Deodar cedar timber lacing and dressed stone with interlocking corner quoins to survive Zone V Himalayan earthquakes per IS 13828.
+> - The airlock gives way to a **sheltered alpine timber veranda**, and direct-gain windows feature operational insulated nighttime shutters."
+
+#### 3. Switching to Jaisalmer (Arid Desert)
 **[ACTION: Switch Site Selector to `Jaisalmer / Arid Desert`]**
+> "Now let's switch to the extreme opposite climate: **Jaisalmer in the Thar Desert**.
+> - Snow and pitched roofs vanish. The structure adapts into a **flat roof terrace with 600mm parapets and carved *kangura* battlements** for nighttime radiant cooling.
+> - The envelope features thick **golden Jaisalmer sandstone ashlar masonry** for massive diurnal thermal inertia.
+> - South windows are shaded by **authentic carved stone *jali* screens**—blocking harsh direct solar heat gain per ECBC 2017 while creating Venturi acceleration for cooling desert breezes."
 
-> "Now, let’s test the exact opposite extreme—**Jaisalmer in the Thar Desert**, where summer temperatures exceed 48°C.
+#### 4. Smooth 60 FPS Assembly Exploded View
+**[ACTION: Click the Exploded View icon on the left vertical toolbar]**
+> "Let’s inspect how this building is assembled. I'll click **Assembly Exploded View**.
 >
-> Instantly, the digital twin rebuilds for hot-and-dry arid conditions:
-> - The snow and pitched roofs disappear. We have a **flat roof terrace bordered with a 600mm parapet and carved *kangura* battlements** for evening cool-sky radiant cooling.
-> - The walls are constructed from thick **golden yellow Jaisalmer sandstone** providing immense diurnal thermal lag.
-> - Look closely at the south windows: they are deeply recessed and shaded by **authentic carved stone *jali* lattice screens**. These jalis are not just decorative; they block direct solar radiation (achieving an SHGC below 0.30 per ECBC Table 4.2) while utilizing the Venturi effect to accelerate and cool incoming natural airflow."
+> Notice the butter-smooth 60 FPS GSAP animation! The roof glides 2.5 meters into the sky, the four facades slide outward along their axes, and the wall layers—exterior cladding, insulation core, and interior mass—separate in space.
+>
+> When I toggle it off..."
+**[ACTION: Click Exploded View off]**
+> "...the entire building glides seamlessly back together with zero scene teardown and zero jumping."
 
-**[ACTION: Switch Site Selector to `Leh / Cold Arid High Plateau`]**
+#### 5. 3D Hotspot Physics HUD & Accessible Controls
+**[ACTION: Click any Hotspot Pin (e.g. Jali Screen or Trombe Wall)]**
+> "Clicking any 3D hotspot smoothly focuses the camera and opens our **Slide-Over Inspection Drawer**, revealing exact engineering specs: R-values, thermal conductivity ($W/m\cdot K$), density, CPWD unit costs, and statutory citations like ECBC 2017 Table 4.2 and NBC 2016.
+>
+> And in the bottom right, our accessible view toolbar supports one-touch camera presets with full keyboard shortcuts—press **1** for Isometric, **2** for South Glazing, **3** for North, and **4** for Plan."
 
-> "And when we move to **Leh in Ladakh**, we see authentic Ladakhi high-plateau vernacular: a traditional flat mud and willow roof—or *Talu*—bordered by stacked willow twig brushwood parapet edging (*Tarka*), crowned by a traditional five-color Buddhist prayer flag mast (*Darchor*), and thick sun-dried adobe mud-brick mass walls."
+#### 6. Exact 2D CAD Engineering Blueprints
+**[ACTION: Click the '2D View' toggle at the top of the canvas]**
+> "With a single click, we switch to **2D CAD Engineering Blueprints**—generating full orthogonal elevation drawings with exact millimetric dimensions, pitch angles, and material callouts that match our 3D model down to the millimeter."
 
 ---
 
-### [04:30 – 05:45] Live Demo Part 2: Interactive Exploded View & Physics HUD
+### Act V: Diurnal Thermal Simulation Engine
+**Route:** Click **"Step 2: Simulation"** in the top step navigation  
+**Timing:** 04:45 – 05:45  
+**Action:** Run simulation, examine the 24-hour diurnal thermal curve, and toggle the baseline tin-shed comparison.
 
-**[ACTION: Click the 'Assembly Exploded View' icon (second icon on the left vertical toolbar)]**
-
-> "Now, let's see how this building is constructed. 
+> "Now let's test our design under harsh physical reality in **Step 2: Simulation**.
 >
-> On the left toolbar, I'll activate **Assembly Exploded View**.
+> THERMA executes a 24-hour finite-difference thermal model driven by hourly meteorological solar radiation, wind convection, longwave sky radiation, and internal human occupancy heat gains.
 >
-> Look at how smoothly the model expands at sixty frames per second! The roof gracefully ascends two and a half meters into the air. The north, south, east, and west facades glide outward along their coordinate axes, and each wall's multi-layer assembly—exterior cladding, insulation core, and structural interior—separates cleanly in 3D space.
+> Look at the simulation chart:
+> - **The Red Curve (Conventional Tin Shed)**: Once the fuel runs out at night, indoor temperature freefalls straight down to minus eighteen degrees Celsius at 04:00 AM—severe hypothermia territory.
+> - **The Green Curve (THERMA Passive Design)**: Even when outside air drops past minus twenty-eight degrees, our shelter maintains a steady indoor temperature between +17°C and +19°C.
 >
-> Notice how the dimension lines and interactive hotspot pins stay synchronized with the moving geometry throughout the animation.
->
-> When I click to close the view..."
-
-**[ACTION: Click the Exploded View toggle off — watch it smoothly assemble back together]**
-
-> "...the entire building glides seamlessly back together with zero scene flickering and zero teardown."
-
-**[ACTION: Click the 'Carved Stone Jali Screen' or '30° Pitched Gable Slate Roof' Hotspot Pin]**
-
-> "Every single component is grounded in verifiable building physics. If I click on any 3D hotspot pin—like this Jali shading screen—the camera glides directly to the element, and our slide-over **HUD Inspection Drawer** opens up.
->
-> Here, engineers can review the exact physical properties:
-> - Thermal Resistance (R-value)
-> - Thermal Conductivity in Watts per meter-Kelvin
-> - Material Density and Volumetric Heat Capacity
-> - Real-world CPWD construction unit costs
-> - And statutory building code citations—such as ECBC 2017 Table 4.2 and NBC 2016 Part 8.
->
-> There are zero placeholder assumptions. Everything is mathematically derived."
-
-**[ACTION: Tap keys '1', '2', '3', '4' or click the bottom-right camera presets]**
-
-> "Down in the bottom right, we have our fully accessible view angle toolbar. We can tap **1** for Isometric, **2** for South Glazing, **3** for North Elevation, and **4** for Top-Down Plan view—complete with high-contrast active states, visual affordance icons, and full keyboard accessibility."
+> Zero kerosene burned. Zero diesel generators running. Pure passive solar comfort."
 
 ---
 
-### [05:45 – 06:45] Live Demo Part 3: 2D CAD Blueprints, SciML Simulation & Pareto Optimization
+### Act VI: Multi-Objective Pareto Optimization & Design Doctor
+**Route:** Click **"Step 3: Optimization"**  
+**Timing:** 05:45 – 06:45  
+**Action:** Hover over Pareto points, select the Utopia Knee Point, and review Design Doctor ROI rankings.
 
-**[ACTION: Click the '2D Elevation Blueprints' tab or button in the interface]**
-
-> "Architects and military engineers need construction drawings, not just 3D renders.
+> "In defense procurement, engineering is always constrained by budget. That brings us to **Step 3: Optimization**.
 >
-> With a single toggle, THERMA switches to our **2D CAD Engineering Blueprint view**. Here you see full orthogonal architectural elevations—North, South, East, West—with precise millimetric dimension strings, pitch angles, and material callouts that match our 3D digital twin with one-to-one fidelity."
-
-**[ACTION: Navigate to the Performance / Simulation view or dashboard]**
-
-> "Next, let's run our **Physics-Informed Neural Network (SciML) diurnal thermal simulation** for a brutal January night.
+> THERMA runs a multi-objective genetic algorithm that evaluates hundreds of design permutations, balancing **Thermal Comfort Hours** against **Total Construction Cost in Indian Rupees (₹)**.
 >
-> When you examine the hourly temperature curves:
-> - In standard uninsulated tin barracks, once the fuel burns out, the indoor temperature collapses straight down to minus eighteen degrees Celsius. That is deep hypothermia territory.
-> - But look at the green THERMA curve: even when ambient temperatures fall past minus twenty-eight degrees outside, the passive solar shelter stays comfortably steady at plus eighteen degrees Celsius—all without burning a single litre of kerosene or running a diesel generator.
+> On this interactive scatter plot:
+> - Every design along the **Pareto Frontier** represents an optimal trade-off.
+> - The system automatically calculates the **Utopia Knee Point**—the single mathematical design that maximizes thermal degrees gained per rupee spent.
 >
-> In our **Pareto Frontier Optimization matrix**, commanders can balance thermal comfort hours against construction cost in Indian Rupees, automatically identifying the mathematical knee-point design for their allotted budget."
+> Below, our **Design Doctor** ranks every possible retrofit intervention strictly by efficiency: degrees gained per ₹1,000 invested. It enforces budget caps and automatically disqualifies any unsafe designs, such as unvented combustion heaters."
 
 ---
 
-### [06:45 – 07:30] Live Demo Part 4: Tactical Sector Command & Early Warning
+### Act VII: Cold Snap Early Warning & Mountain Pass Triage
+**Route:** Click **"Forecast Watch"** (Step 4) or navigate to `/forecast` / `/alerts`  
+**Timing:** 06:45 – 07:30  
+**Action:** Show the 7-day predictive forward simulation, nearest-breach ordering, and mountain pass logistics flags.
 
-**[ACTION: Navigate to the Site Registry / Cold Snap Early Warning Console]**
-
-> "Finally, let's look at the strategic macro level: our **Sector Command Center and Cold Snap Early Warning Console**.
+> "In the Himalayas, blizzards arrive with little warning. In **Forecast Watch** and the **Alerts Console**, THERMA ingests live seven-day forward numerical weather predictions.
 >
-> The Indian Armed Forces manage hundreds of forward outposts across Northern Command. Our system ingests seven-day predictive meteorology across every registered sector.
+> The system ranks outposts by **nearest impending safety breach**.
 >
-> At a glance, commanders see:
-> - How many outposts face imminent cold-snap breaches
-> - How many troops are in the vulnerability zone
-> - And critically: mountain pass status. If Zoji La or Khardung La is forecasted to close due to heavy snowfall, THERMA calculates the exact buffer fuel and battery reserve mandate days in advance, allowing commanders to dispatch supplies before the roads freeze shut."
+> More crucially, it connects weather predictions to mountain logistics corridors. If heavy snowfall is forecasted to block Zoji La or Khardung La pass in four days, THERMA flags the corridor vulnerability in advance.
+>
+> It calculates the exact emergency buffer fuel and battery reserves needed, empowering commanders to dispatch convoys before mountain passes freeze shut."
 
 ---
 
-### [07:30 – 08:00] Conclusion: Impact & Defense Readiness
+### Act VIII: Physics-Informed Neural Network (SciML) Predictor
+**Route:** Click **"ML Predictor"** in the sidebar (`/ml-predictor`)  
+**Timing:** 07:30 – 08:15  
+**Action:** Drag input sliders, watch the sub-millisecond AI surrogate inference, and show Morris sensitivity bars.
 
-**[VISUAL: Presenter on camera with platform dashboard on screen]**
+> "Next, let's explore our cutting-edge AI layer: the **SciML Neural Surrogate Predictor**.
+>
+> While traditional finite-element physics solvers take several seconds per run, our Physics-Informed Neural Network surrogate delivers accurate diurnal predictions in under **15 milliseconds**.
+>
+> As I adjust the insulation thickness, window-to-wall ratio, or occupancy sliders, the predicted thermal comfort curve updates instantly.
+>
+> Below, our **Morris Elementary Effects Sensitivity Analysis** mathematically identifies which architectural levers yield the greatest heating or cooling influence, guiding engineers directly to high-impact design choices."
+
+---
+
+### Act IX: Empirical Validation Testbed & CPWD Materials Engine
+**Route:** Click **"Validation"** (`/validation`) and **"Materials"** (`/materials` or `/cpwd`)  
+**Timing:** 08:15 – 09:00  
+**Action:** Show empirical test hut comparisons, physical invariant tests, and the CPWD DSR cost schedule.
+
+> "Engineering tools must be grounded in empirical truth.
+>
+> In the **Validation Testbed**, we validate our simulation outputs against empirical field measurements from high-altitude test huts. The system enforces strict physical invariants—for example, verifying that Trombe wall heat retention strictly outperforms single-pane direct gain under Himalayan night conditions.
+>
+> In our **Materials Database & CPWD Schedule**, every brick, cedar beam, rockwool slab, and glass pane is cataloged with verified thermal conductivity ($k$), density ($\rho$), specific heat capacity ($C_p$), and CPWD DSR 2023 cost baselines—ensuring transparent, audit-ready bill of quantities."
+
+---
+
+### Act X: Automated 18-Section Defense Audit Reports & Cryptographic Verification
+**Route:** Click **"Reports"** (`/reports`) and **"Verify"** (`/verify`)  
+**Timing:** 09:00 – 09:30  
+**Action:** Show the generated 18-section PDF/Markdown report with SHA-256 hash.
+
+> "When an engineering design is approved, THERMA compiles a complete **18-Section Defense Audit Report** conforming to military procurement standards.
+>
+> It includes:
+> - Executive summary & geographical site profiles
+> - Layer-by-layer envelope heat transfer matrices
+> - Diurnal thermal compliance curves
+> - CPWD itemized cost breakdowns
+> - And a **SHA-256 cryptographic hash** ensuring end-to-end data provenance and tamper-proof verification."
+
+---
+
+### Act XI: Conclusion & Strategic Defense Impact
+**Timing:** 09:30 – 10:00  
+**Visual:** Presenter on camera with platform interface on screen.
 
 > "To conclude:
 >
-> **THERMA** is not a simple 3D viewer or a generic CAD tool. It is an end-to-end, climate-adaptive defense infrastructure platform.
+> **THERMA** transforms high-altitude defense engineering from fragile, fuel-burning emergency shelters into resilient, self-sustaining architectural ecosystems.
 >
-> By replacing hazardous, logistically nightmarish fuel burning with authentic vernacular engineering, smart thermal storage, and physics-informed AI:
-> - We eliminate millions of litres of airborne fuel transport.
-> - We save hundreds of crores in hazardous logistics flights.
-> - And most importantly: we safeguard the health, safety, and combat readiness of the brave soldiers standing watch over India's borders.
+> By uniting ancient vernacular building wisdom with modern generative AI, 3D digital twins, and rigorous building physics:
+> - **We eliminate millions of litres of hazardous airlifted kerosene.**
+> - **We save hundreds of crores in dangerous helicopter flights.**
+> - **And most importantly, we guarantee that the brave soldiers guarding our nation’s harshest borders sleep warm, breathe clean air, and remain combat-ready every single morning.**
 >
-> Thank you very much, and we look forward to your questions."
+> Thank you very much, and we welcome your questions."
 
 ---
 
-## Technical Appendix: Demo Checklist for Presenter
-- [ ] Ensure browser is open at `http://localhost:5173/sites/site_siachen/design`.
-- [ ] Keep browser window maximized (`1920x1080` or fullscreen `F11`).
-- [ ] Practice the key switches:
-  - Key `1` = Isometric View
-  - Key `2` = South Glazing View
-  - Key `3` = North Elevation View
-  - Key `4` = Plan Top-Down View
-- [ ] Exploded View button is the 2nd icon on the left vertical floating toolbar.
-- [ ] Regional dropdown in the top header switches between Siachen, Manali, Jaisalmer, Leh, and Delhi.
-- [ ] Have the 2D CAD Blueprint view and Cold Snap console open in separate tabs or ready to navigate.
+## Quick Reference Checklist for Video Recording
+- [ ] **Tab 1**: `http://localhost:5173/` (Landing Page)
+- [ ] **Tab 2**: `http://localhost:5173/dashboard` (Mission Command)
+- [ ] **Tab 3**: `http://localhost:5173/sites` (Site Registry & Tactical Map)
+- [ ] **Tab 4**: `http://localhost:5173/sites/site_siachen/design` (3D Studio, Exploded View, Regional Typologies, Simulation, Optimization, Forecast)
+- [ ] **Tab 5**: `http://localhost:5173/ml-predictor` (SciML Neural Surrogate)
+- [ ] **Tab 6**: `http://localhost:5173/validation` (Validation Testbed)
+- [ ] **Tab 7**: `http://localhost:5173/reports` (18-Section Audit Reports)
+- [ ] Browser maximized to Fullscreen (`F11` or `1920x1080`).
+- [ ] Test keys `1`, `2`, `3`, `4` for smooth camera presets during 3D demo.
