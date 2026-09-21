@@ -8,14 +8,13 @@
  */
 
 const getApiBase = () => {
-  if (import.meta.env.VITE_API_BASE !== undefined) {
-    return import.meta.env.VITE_API_BASE;
+  if (import.meta.env.VITE_API_BASE !== undefined && import.meta.env.VITE_API_BASE !== '') {
+    return import.meta.env.VITE_API_BASE.replace(/\/+$/, '');
   }
-  // In development, default to local FastAPI server
-  if (import.meta.env.DEV) {
-    return '/';
-  }
-  // In production (Vercel), same-origin relative requests
+  // In both local development (via Vite proxy) and production (Vercel rewrites),
+  // relative API paths start with a leading slash (e.g. /api/ml/ask, /simulate).
+  // An empty base string ensures `${API_BASE}/api/...` resolves to `/api/...`,
+  // never creating protocol-relative `//api/...` which breaks in browser fetch.
   return '';
 };
 

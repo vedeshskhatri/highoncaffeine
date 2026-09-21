@@ -20,9 +20,8 @@ import {
   Zap,
   ShieldAlert,
 } from 'lucide-react';
+import API_BASE from '@/lib/api';
 import './CpwdPage.css';
-
-const API_BASE = '/';
 
 const HIMALAYAN_SCENARIO_LOCATIONS = [
   { id: 'all', name: 'All Himalayan Sites (Auto-Detect)' },

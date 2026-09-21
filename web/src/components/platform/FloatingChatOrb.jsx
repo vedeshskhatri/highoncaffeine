@@ -21,9 +21,8 @@ import {
   MapPin
 } from 'lucide-react';
 import { VoicePoweredOrb } from '@/components/ui/voice-powered-orb';
+import API_BASE from '@/lib/api';
 import './FloatingChatOrb.css';
-
-const API_BASE = '/';
 
 const HIMALAYAN_SCENARIO_LOCATIONS = [
   { id: 'all', name: 'All Himalayan Sites (Auto-Detect)' },
@@ -310,18 +309,23 @@ export default function FloatingChatOrb() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/ml/ask`, {
+      const targetUrl = `${API_BASE}/api/ml/ask`;
+      const res = await fetch(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail || `HTTP ${res.status}: ${res.statusText}`);
+      }
       const data = await res.json();
       setAiResponse(data);
     } catch (err) {
       console.error('Prediction Error', err);
       setAiResponse({
         question: q,
-        answer: `Connection Error: Failed to contact ${API_BASE}. Make sure the backend server is running.`,
+        answer: `Connection Error: ${err.message || 'Failed to reach THERMA API'}. Make sure the backend server is running.`,
         predictions: {},
         resolved_parameters: {},
         recommendations: [],
@@ -884,7 +888,9 @@ export default function FloatingChatOrb() {
                         <div className="diagnostic-narrative-card">
                           <div className="narrative-card-header">
                             <span className="narrative-tag">EXECUTIVE BUILDING PHYSICS ASSESSMENT</span>
-                            <span className="narrative-engine-meta mono">Grounding: 5 ML Surrogates (Decision Tree, RF, GBDT, MLP, CatBoost)</span>
+                            <span className="narrative-engine-meta mono">
+                              {aiResponse.engine ? `Grounding: ${aiResponse.engine}` : 'Grounding: 5 ML Surrogates (Decision Tree, RF, GBDT, MLP, CatBoost)'}
+                            </span>
                           </div>
 
                           <div className="narrative-body-content">
