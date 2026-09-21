@@ -2404,6 +2404,19 @@ export default function Shelter3DCanvas({
     });
   };
 
+  // Keyboard accessibility shortcuts for view angles
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) return;
+      if (e.key === '1') setPresetView('iso');
+      else if (e.key === '2') setPresetView('south');
+      else if (e.key === '3') setPresetView('north');
+      else if (e.key === '4') setPresetView('plan');
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   /* ─────────────────────────────────────────────────────────────────────────
      7. 3D TO SCREEN HOTSPOT PROJECTION
      ───────────────────────────────────────────────────────────────────────── */
@@ -3091,34 +3104,54 @@ export default function Shelter3DCanvas({
       )}
 
       {/* Camera Presets Bar */}
-      <div className="view-presets-bar">
+      <div
+        className="view-presets-bar"
+        role="toolbar"
+        aria-label="3D Camera View Angles"
+      >
         <button
-          className={`preset-chip ${activePreset === 'iso' ? 'active' : ''}`}
+          type="button"
+          className={`preset-pill-btn ${activePreset === 'iso' ? 'active' : ''}`}
           onClick={() => setPresetView('iso')}
-          title="Isometric View"
+          aria-pressed={activePreset === 'iso'}
+          aria-label="Switch to Isometric 3D View (Shortcut: 1)"
+          title="Isometric View (Shortcut: 1)"
         >
-          Isometric
+          <Box size={13} className="preset-btn-icon" aria-hidden="true" />
+          <span>Isometric</span>
         </button>
         <button
-          className={`preset-chip ${activePreset === 'south' ? 'active' : ''}`}
+          type="button"
+          className={`preset-pill-btn ${activePreset === 'south' ? 'active' : ''}`}
           onClick={() => setPresetView('south')}
-          title="South Solar Aperture & Trombe Wall"
+          aria-pressed={activePreset === 'south'}
+          aria-label="Switch to South Solar Glazing View (Shortcut: 2)"
+          title="South Glazing View (Shortcut: 2)"
         >
-          South Glazing
+          <Sun size={13} className="preset-btn-icon" aria-hidden="true" />
+          <span>South Glazing</span>
         </button>
         <button
-          className={`preset-chip ${activePreset === 'north' ? 'active' : ''}`}
+          type="button"
+          className={`preset-pill-btn ${activePreset === 'north' ? 'active' : ''}`}
           onClick={() => setPresetView('north')}
-          title="North Sheltered Facade"
+          aria-pressed={activePreset === 'north'}
+          aria-label="Switch to North Facade Elevation View (Shortcut: 3)"
+          title="North Facade View (Shortcut: 3)"
         >
-          North
+          <Compass size={13} className="preset-btn-icon" aria-hidden="true" />
+          <span>North</span>
         </button>
         <button
-          className={`preset-chip ${activePreset === 'plan' ? 'active' : ''}`}
+          type="button"
+          className={`preset-pill-btn ${activePreset === 'plan' ? 'active' : ''}`}
           onClick={() => setPresetView('plan')}
-          title="Top-Down Plan View"
+          aria-pressed={activePreset === 'plan'}
+          aria-label="Switch to Top-Down Plan View (Shortcut: 4)"
+          title="Top-Down Plan View (Shortcut: 4)"
         >
-          Plan
+          <Grid size={13} className="preset-btn-icon" aria-hidden="true" />
+          <span>Plan</span>
         </button>
       </div>
     </div>
