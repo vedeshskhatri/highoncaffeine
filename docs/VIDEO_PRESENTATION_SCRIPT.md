@@ -1,241 +1,180 @@
-# THERMA — Official SIH Engineering Presentation Script
-## Smart India Hackathon 2026 · Problem Statement PS 26051 (DRDO)
-### Area-Specific Climate-Adaptive Shelter Design for High-Altitude Defense
-
-**Presentation Format:** Live Platform Walkthrough & Technical Defense Showcase  
-**Duration:** ~4.5 to 5 Minutes  
-**Tone:** Authoritative, technically rigorous, polished engineering presentation  
+# THERMA — Official Technical Presentation Script
+### Smart India Hackathon 2026 · DRDO Problem Statement 26051
+**Project Title:** Area-Specific Climate-Adaptive Passive Solar Shelter Engineering Platform  
+**Target Duration:** ~4.5 to 5 Minutes  
+**Style:** Professional Engineering Walkthrough & Technical Demonstration  
 
 ---
 
-## ⏱️ Technical Presentation Timeline
+## 🧭 Presentation Structure & Time Allocation
 
-```
-0:00 ─────── 0:45 ─────── 2:00 ─────── 3:05 ─────── 3:55 ─────── 4:35 ─── 5:00
-[Phase 1]    [Phase 2]    [Phase 3]    [Phase 4]    [Phase 5]    [Phase 6]
-The Problem  3D Studio    Physics      Pareto       Tactical     Empirical
-& Logistics  & Typologies Solver       Optimization & CPWD       Validation
-```
-
-| Time | Phase | Target Route | Engineering Objective |
+| Section | Duration | Screen Route | Engineering Focus & Demonstration |
 |:---|:---|:---|:---|
-| **0:00 – 0:45** | **1. The Problem & Logistics Hook** | `/` (Landing) | Ground the challenge in Siachen logistics: ₹2,400/L airlift, tin shed collapse, solar paradox. |
-| **0:45 – 2:00** | **2. Generative 3D Architecture** | `/sites/site_siachen/design` | Area-specific typologies (Siachen, Manali, Jaisalmer), 60 FPS exploded envelope, 2D CAD. |
-| **2:00 – 3:05** | **3. Thermal Physics Engine** | `Step 2: Simulation` | 5R1C finite-difference solver, diurnal curve (PS Req 1), and heat flux across $\Delta T$ (PS Req 3). |
-| **3:05 – 3:55** | **4. Multi-Objective Optimization** | `Step 3: Optimization` | 3,200 permutations in seconds (PS Req 2), Utopia Knee Point, and Life-Safety Interlocks. |
-| **3:55 – 4:35** | **5. Tactical Command & Procurement** | `/dashboard` & `/alerts` | 7-day blizzard mountain pass triage (Zoji La / Khardung La), CPWD DSR 2023 audit dossiers. |
-| **4:35 – 5:00** | **6. Validation & Strategic Impact** | `/validation` or Camera | Ground truth against DRDO-DIHAR Leh trials, ₹32.4 Cr savings across 150 posts, and closing. |
+| **1. The Problem & Engineering Hook** | 0:00 – 0:45 | `/` (Landing Page) | High-altitude thermal crisis (-35°C), tin shed failure, ₹2,400/L fuel logistics, 950 W/m² solar paradox. |
+| **2. Procedural 3D CAD & Climate Adaptation** | 0:45 – 1:50 | `/sites/site_siachen/design` | Area-specific procedural typologies (Siachen permafrost vs Manali alpine vs Jaisalmer desert), 60 FPS exploded view, 2D CAD blueprints. |
+| **3. Numerical Physics Engine & Simulation** | 1:50 – 2:50 | `Step 2: Simulation` | 5R1C finite-difference thermal solver, Fourier stability, 24-hr diurnal curve (+18°C passive vs -18°C tin shed), DRDO-DIHAR validation. |
+| **4. Multi-Objective Optimization & Safety** | 2:50 – 3:45 | `Step 3: Optimization` | NSGA-II genetic algorithm, Pareto frontier, Utopia Knee Point, deterministic life-safety interlock (CO prevention). |
+| **5. Tactical Operations & MES Procurement** | 3:45 – 4:30 | `/dashboard`, `/alerts`, `/reports` | Sector mission triage, 7-day blizzard pass closure warnings (Zoji La / Khardung La), 18-section CPWD DSR dossier with SHA-256 hash. |
+| **6. Defense Impact & Conclusion** | 4:30 – 5:00 | Camera / Dashboard | Reconciled impact (₹32.4 Cr/yr across 150 posts, 2.1-yr payback), summary of full-stack engineering effort. |
 
 ---
 
-## 🎙️ Complete Spoken Script (Word-for-Word with Visual Actions)
+## 🎙️ Master Spoken Script (Word-for-Word with Visual Actions)
 
-### Phase 1: The Problem & The Logistics Reality (0:00 – 0:45)
+### 1. The Problem & Engineering Hook (0:00 – 0:45)
 
-**[SCREEN: Start on `http://localhost:5173/`. Scroll down smoothly past the incident solar radiation header and problem overview.]**
+**[SCREEN: Start on `http://localhost:5173/` (Landing Page). Display the solar irradiance header and problem overview.]**
 
-> **[SPEAKER]:**  
-> "Good morning, respected judges. We are Team HighOnCaffeine, presenting **THERMA** for DRDO Problem Statement 26051.
+> "Imagine defending an outpost at 18,000 feet on the Siachen Glacier, where winter night temperatures collapse below **minus thirty-five degrees Celsius**.
 >
-> To understand the engineering challenge we set out to solve over the past month, we have to look at how our defense forces operate on the world’s highest battlefields—from Siachen and Daulat Beg Oldie to the wind-swept plateau of eastern Ladakh.
+> Today, thousands of forward troops are housed in standard corrugated tin shelters. These structures have virtually zero thermal resistance. The moment the sun sets, indoor temperatures plummet instantly.
 >
-> In the winter, temperatures regularly drop below **minus thirty-five degrees Celsius**. Right now, thousands of forward troops are housed in standard corrugated iron prefab sheds. These tin structures have virtually zero thermal resistance. The moment night falls, they lose heat almost immediately.
+> To survive, soldiers burn kerosene continuously in unvented metal stoves called *bukharis*. This creates two critical defense liabilities:
 >
-> To survive, soldiers burn kerosene in unvented metal stoves called *bukharis*. This creates an unsustainable double crisis:
+> First, **troop health and safety**: toxic soot and deadly carbon monoxide accumulate inside enclosed shelters, and any fuel line freeze risks catastrophic hypothermia.
 >
-> 1. **Life Safety**: The indoor air fills with toxic soot and lethal carbon monoxide. If a blizzard blocks fuel resupply, soldiers face acute hypothermia within hours.
-> 2. **Logistics Cost**: There are no motorable roads to forward posts. Every drop of fuel must be airlifted by Cheetah and Dhruv helicopters. Delivering just **one single litre of kerosene** to a Siachen forward post costs over **₹2,400**.
+> Second, **logistics cost**: forward posts have no road connectivity. Every litre of fuel must be airlifted by helicopter, costing the military over **₹2,400 per litre** at Siachen.
 >
-> Yet here is the physical paradox: high-altitude Ladakh receives world-class solar irradiance—over **950 Watts per square meter**, exceeding 5.5 kilowatt-hours per square meter per day through thin mountain air.
+> Yet, these high-altitude Himalayan plateaus receive over **950 Watts per square meter** of solar insolation through thin, cloudless mountain air.
 >
-> DRDO’s Defence Institute of High Altitude Research (DIHAR) has proven that passive solar space heating works. But historically, every prototype was a bespoke, months-long consulting project. Forward military engineers do not have six months to design every new outpost.
+> The core bottleneck has never been a lack of clean solar energy—it has been the absence of an automated building physics tool capable of designing passive, zero-fuel thermal shelters for extreme high-altitude defense.
 >
-> That is the engineering gap we solved. **THERMA** is an automated computational building physics and generative design platform that takes an outpost location and instantly generates an optimized passive solar shelter holding **plus eighteen degrees Celsius** indoors with **zero active fuel**."
+> To solve this for **DRDO Problem Statement 26051**, our team built **THERMA**. Over the past month, we developed an integrated computational platform combining procedural 3D architectural modeling, first-principles thermal simulation, multi-objective Pareto optimization, and automated military procurement.
+>
+> Let’s walk through the software and engineering pipeline we developed."
 
 ---
 
-### Phase 2: Generative 3D Architecture & Climate-Adaptive Typologies (0:45 – 2:00)
+### 2. Procedural 3D CAD & Climate Adaptation (0:45 – 1:50)
 
-**[SCREEN: Navigate directly into the Design Studio: `http://localhost:5173/sites/site_siachen/design` (Step 1).]**
+**[ACTION: Click into the Design Studio at `http://localhost:5173/sites/site_siachen/design` (Step 1).]**
 
-> **[SPEAKER]:**  
-> "Let’s walk through what our software actually does.
+> "We begin in the **3D Open Shelter Studio**.
 >
-> We begin in the **3D Open Shelter Studio**.
+> One of our core engineering decisions was making THERMA **area-specific and climate-adaptive**, rather than relying on one-size-fits-all blueprints. A shelter on glacial permafrost requires completely different building physics than one in an alpine valley or a desert border outpost.
 >
-> One of our core engineering principles is that **high-altitude defense infrastructure cannot be one-size-fits-all**. An outpost on glacial moraine at 4,800 meters faces radically different boundary conditions than an alpine valley post in Himachal or a desert garrison in Rajasthan.
+> Here for **Siachen Base Camp at 4,800 meters**, our procedural engine automatically generates an archetype optimized for glacial cryosphere conditions:
+> - The entire shelter is elevated on **heavy structural steel stilts** with concrete pads. This isolates the floor from the permafrost, preventing ground-thaw and structural subsidence.
+> - The roof features an **11-degree aerodynamic monoslope** oriented to deflect high-velocity katabatic blizzards while integrating photovoltaic surfaces.
+> - An **airlock vestibule** on the east entrance eliminates direct infiltration of freezing air when personnel enter.
+> - And on the south facade, we engineer a **dense thermal Trombe wall** behind double-pane glazing, storing daytime solar heat and radiating it inward across a 10-hour nighttime phase lag.
 >
-> Here at **Siachen Base Camp**, the generative engine automatically creates a cold-cryosphere archetype:
-> - The entire shelter is elevated on **reinforced steel stilts with concrete footing pads**. This thermally isolates the floor from the permafrost, preventing ground-thaw and catastrophic structural sinking.
-> - The roof is an **11-degree aerodynamic monoslope**, engineered to deflect high-velocity Himalayan blizzards while carrying solar photovoltaic panels.
-> - On the east entrance, we have an **integrated airlock mudroom** to prevent cold infiltration when soldiers enter.
-> - And on the south facade, we have a **heavy thermal Trombe mass wall** behind double glazing, absorbing solar radiation all day and radiating warmth into the living quarters for ten hours through the night."
+> Now, observe how the generative engine adapts when we switch climate zones:"
 
-**[ACTION: Click the Site Selector dropdown and switch to `Manali / Alpine Valley`]**
+**[ACTION: Open the Site Selector dropdown at the top, select `Manali / Alpine Valley`]**
 
-> **[SPEAKER]:**  
-> "Now, look at how the generative engine dynamically adapts when we switch to **Manali in Himachal Pradesh**.
+> "Switching to **Manali in Himachal Pradesh**, the architectural typology transforms instantly:
+> - The roof morphs into a **30-degree timber gable** engineered to shed heavy alpine snowdrifts per Indian Standard 875.
+> - The structural envelope transitions to traditional **Kath-Kuni construction**—alternating courses of deodar cedar timber and stone lacing, specifically designed to withstand Zone Five Himalayan seismic forces per IS 13828.
+> - The entrance becomes an alpine timber veranda, and direct-gain windows receive insulated night shutters."
+
+**[ACTION: Open the Site Selector dropdown, select `Jaisalmer / Arid Desert`]**
+
+> "Switching to the extreme heat of **Jaisalmer in the Thar Desert**:
+> - The structure adapts into a flat terrace with parapets for nocturnal radiant cooling.
+> - The envelope transitions to golden sandstone ashlar masonry for high diurnal thermal mass.
+> - And south-facing fenestrations are shaded by **carved stone jali screens**, blocking harsh direct solar gain per ECBC guidelines while inducing Venturi convective cooling."
+
+**[ACTION: Switch back to Siachen. Click the 'Exploded View' icon on the left vertical toolbar.]**
+
+> "Returning to Siachen, let’s inspect the structural composition. Clicking **Assembly Exploded View** smoothly separates the building layers in real-time WebGL at 60 frames per second.
 >
-> The building morphs in real time:
-> - The monoslope transforms into a **30-degree timber gable roof** designed to shed heavy snowfall per Indian Standard 875 Part 2.
-> - The walls transition to authentic **Kath-Kuni construction**—alternating courses of deodar cedar timber and dressed stone with interlocking corner quoins, specifically engineered per IS 13828 to survive Zone Five Himalayan earthquakes.
-> - And the direct-gain south windows automatically gain insulated night shutters."
-
-**[ACTION: Switch to `Jaisalmer / Arid Desert`]**
-
-> **[SPEAKER]:**  
-> "Switching to the extreme heat of **Jaisalmer in the Thar Desert**, the architecture adapts again:
-> - The roof becomes a flat terrace with parapets for nocturnal radiant cooling.
-> - The walls shift to dense golden sandstone masonry.
-> - And south-facing windows are fitted with traditional **carved stone jali screens** that block intense direct solar heat while accelerating cooling desert breezes per ECBC standards."
-
-**[ACTION: Switch back to Siachen, then click the 'Exploded View' icon on the left vertical toolbar.]**
-
-> **[SPEAKER]:**  
-> "Back at Siachen, let’s inspect the construction assembly. Clicking **Exploded View** smoothly separates the building at 60 FPS.
+> We can inspect every constituent layer: the exterior weather barrier, the 100mm expanded polystyrene (EPS) insulation core, and the dense interior thermal mass.
 >
-> We can clearly inspect every layer: the exterior weather cladding, the ten-centimeter expanded polystyrene (EPS) insulation core, and the dense interior thermal storage mass.
->
-> Clicking any 3D hotspot opens our engineering HUD, displaying thermal conductivity ($k$), density ($\rho$), thermal resistance ($R$), and official CPWD cost rates."
+> Clicking on any 3D hotspot opens our physical inspection panel, displaying thermal conductivity ($k$), density, R-values, and official CPWD cost citations."
 
-**[ACTION: Click the '2D View' toggle at the top of the canvas.]**
+**[ACTION: Click the '2D View' toggle button on the top canvas toolbar.]**
 
-> **[SPEAKER]:**  
-> "And for military engineers on-site who need instant fabrication drawings, clicking **2D View** generates exact orthogonal CAD elevation blueprints with millimetric dimensions and pitch angles."
+> "And for field engineers, clicking **2D CAD View** instantly renders millimetric orthogonal elevation blueprints with dimension lines and pitch angles ready for on-site military fabrication."
 
 ---
 
-### Phase 3: The Thermal Physics Solver & Heat Balance (2:00 – 3:05)
+### 3. Numerical Physics Engine & Simulation (1:50 – 2:50)
 
-**[ACTION: Click 'Step 2: Simulation' in the top step ribbon.]**
+**[ACTION: Click 'Step 2: Simulation' on the top step navigation bar.]**
 
-> **[SPEAKER]:**  
-> "Now, let’s examine the mathematical core of THERMA.
+> "A major strength of our platform is the underlying building physics.
 >
-> In **Step 2: Simulation**, our engine runs a dynamic **5R1C finite-difference thermal network**. We model solar position angles, hourly beam and diffuse solar irradiance, conduction through every multi-layer wall, wind-driven surface convection, nocturnal longwave sky cooling, and internal sensible heat gains from soldiers.
+> Under **Step 2: Simulation**, THERMA does not use static lookups—it executes a true **5R1C lumped-parameter finite-difference thermal solver** over a 24-hour diurnal cycle.
 >
-> Look at this 24-hour diurnal thermal curve:
-> - **The Red Line represents the standard military tin shelter**. At 04:00 AM, the inside temperature crashes straight down to **minus eighteen degrees Celsius**—spending 18 out of 24 hours in the acute hypothermia zone. This directly satisfies **Requirement 1 of the Problem Statement: predicting indoor temperature profiles**.
-> - **The Green Line is the THERMA passive solar shelter**. Even as outside ambient temperature plunges below minus twenty-five, our shelter holds a continuous indoor temperature of **plus seventeen to nineteen degrees Celsius** till sunrise.
+> Our solver computes:
+> - Transient 1D multi-layer conduction via Fourier’s law, enforcing the Fourier stability criterion ($Fo \le 0.25$).
+> - Solar geometry calculations determining Direct Normal Irradiance (DNI) and diffuse components across inclined surfaces.
+> - Longwave nocturnal radiative exchange with the sub-zero sky.
+> - And infiltration plus internal metabolic sensible gains from sheltered troops.
 >
-> That is a 36-degree thermal lift—achieved with **zero active fuel** and **zero moving parts**."
-
-**[ACTION: Scroll down slightly to point out the heat flow breakdown across $\Delta T$.]**
-
-> **[SPEAKER]:**  
-> "Furthermore, our physics solver continuously tracks **heat flow across the envelope driven by the indoor-to-ambient temperature difference ($\Delta T$)**, fulfilling **Requirement 3 of the Problem Statement**."
+> Examine the resulting 24-hour diurnal performance curve:
+> - **The Red Curve** represents the conventional uninsulated tin shelter. By 04:00 AM, indoor temperatures collapse to **minus eighteen degrees Celsius**—a life-threatening environment.
+> - **The Green Curve** represents our THERMA passive design. Even as outdoor ambient temperatures plunge past minus twenty-eight, the indoor temperature is held securely between **plus seventeen and nineteen degrees Celsius**—a 36-degree thermal lift sustained with **zero active fuel consumption**.
+>
+> To establish rigorous scientific credibility, we validated our solver against published empirical field data from **DRDO-DIHAR Leh** test huts. Our model reproduces observed thermal performance within real-world measurement bands while strictly preserving physical rank-order invariants."
 
 ---
 
-### Phase 4: Multi-Objective Pareto Optimization & Safety Interlocks (3:05 – 3:55)
+### 4. Multi-Objective Optimization & Life-Safety Interlocks (2:50 – 3:45)
 
-**[ACTION: Click 'Step 3: Optimization' in the top navigation ribbon.]**
+**[ACTION: Click 'Step 3: Optimization' on the top step navigation bar.]**
 
-> **[SPEAKER]:**  
-> "In defense procurement, engineering is always constrained by budget and airlift logistics. That brings us to **Step 3: Optimization**, fulfilling **Requirement 2 of the Problem Statement**.
+> "In defense procurement, engineering solutions must balance thermal performance against strict capital budgets. That led us to build **Step 3: Multi-Objective Optimization**.
 >
-> Instead of manually testing design tweaks, our vectorized solver evaluates **3,200 candidate design permutations in 5.6 seconds**.
+> We implemented an NSGA-II genetic algorithm that explores hundreds of envelope permutations—varying insulation thickness, glazing specifications, and thermal mass options.
 >
-> On this interactive scatter plot:
-> - We plot **Thermal Comfort Hours** against **Total Construction Cost in Indian Rupees**.
-> - The blue boundary represents the **Pareto Frontier** of non-dominated solutions.
-> - The algorithm automatically identifies the **Utopia Knee Point**—the single design that maximizes temperature rise per rupee invested.
+> The engine plots **Thermal Comfort Hours** against **Total Construction Cost in Indian Rupees (₹)** along an interactive Pareto frontier.
 >
-> Below, our **Design Doctor** provides an engineering post-mortem on why specific interventions won or lost:
-> - Adding insulated night shutters yielded **plus 6.1 degrees** for just ₹500 per window.
-> - In contrast, adding another 100 millimeters of heavy stone wall yielded only **plus 0.4 degrees**, but cost ₹38,000 and added **12 tonnes of dead airlift weight**.
+> The system automatically computes the **Utopia Knee Point**—identifying the exact mathematical configuration that maximizes thermal degree-hours gained per rupee invested.
 >
-> And crucially, we engineered hard **Life-Safety Interlocks**: if a user selects a combustion heater with low ventilation ($ACH < 0.35$), the system immediately throws a red **RefusalCard**—mathematically preventing carbon monoxide asphyxiation before a design ever reaches the field."
+> Below, our **Design Doctor** ranks every prospective retrofit intervention by cost-efficiency.
+>
+> Crucially, we implemented deterministic **life-safety interlocks**: if a user evaluates an unvented kerosene heater in an envelope with low air changes per hour ($ACH < 0.35$), the platform triggers a hard refusal card. It mathematically disallows hazardous designs, preventing carbon monoxide asphyxiation before a tender is ever drafted."
 
 ---
 
-### Phase 5: Tactical Command, Weather Alerts & Defense Dossiers (3:55 – 4:35)
+### 5. Tactical Operations & MES Procurement (3:45 – 4:30)
 
-**[ACTION: Click 'Dashboard' in the navigation bar (`/dashboard`), then click into 'Alerts' (`/alerts`).]**
+**[ACTION: Click 'Dashboard' in the top navigation (`/dashboard`), then navigate to 'Alerts' (`/alerts`).]**
 
-> **[SPEAKER]:**  
-> "Beyond individual shelters, THERMA serves as an operational theater command system.
+> "Beyond designing individual structures, THERMA functions as an operational defense management platform.
 >
-> In the **Sector Mission Dashboard**, commanders maintain live situational awareness across all forward outposts in Northern Command.
+> On the **Sector Mission Dashboard**, commanders maintain real-time situational awareness across forward operating bases throughout Northern Command.
 >
-> In the **Alerts Console**, THERMA ingests seven-day forward numerical weather predictions.
+> In the **Alerts Console**, THERMA ingests 7-day forward numerical weather predictions.
 >
-> Crucially, it links weather predictions to mountain logistics corridors. If a heavy blizzard is forecasted to close critical passes like Khardung La or Zoji La in four days, THERMA flags the corridor cutoff in advance and calculates the exact emergency buffer fuel and battery capacity required, empowering commanders to dispatch convoys before passes freeze shut."
+> We built logic that correlates temperature drops directly with mountain logistics corridors. If an incoming blizzard threatens to block critical passes like Khardung La or Zoji La, the platform flags the cut-off risk in advance and calculates the exact emergency buffer fuel and thermal reserves required before the road closes."
 
-**[ACTION: Click 'Reports' (`/reports`) to show the procurement dossier.]**
+**[ACTION: Click 'Reports' (`/reports`) to display the defense procurement dossier.]**
 
-> **[SPEAKER]:**  
-> "When a design is finalized, clicking **Procurement Dossier** compiles an audit-ready **18-Section Military Procurement Report**.
+> "When an engineering design is approved, THERMA generates an audit-ready **18-Section Defense Procurement Dossier**.
 >
-> It includes structural bills of quantities mapped directly to official **CPWD DSR 2023 item codes**, alongside a **SHA-256 cryptographic hash** ensuring tamper-proof data provenance for Military Engineer Services (MES) tenders."
+> It includes layer-by-layer U-values, structural assemblies, and an itemized Bill of Quantities tied directly to official **CPWD Delhi Schedule of Rates (DSR 2023)** codes, accompanied by a **SHA-256 cryptographic hash** ensuring data provenance for Military Engineer Services tenders."
 
 ---
 
-### Phase 6: Empirical Validation & Strategic Impact (4:35 – 5:00)
+### 6. Defense Impact & Conclusion (4:30 – 5:00)
 
-**[ACTION: Click 'Validation' (`/validation`) or look directly at the camera with the dashboard behind you.]**
+**[SCREEN: Show the Dashboard Executive Metrics or address the camera directly.]**
 
-> **[SPEAKER]:**  
-> "Finally, engineering claims must be grounded in empirical truth.
+> "To summarize our project's quantitative impact:
 >
-> We validated our solver against published field trials from **DRDO's Defence Institute of High Altitude Research (DIHAR) in Leh**. Across their monitored solar pilot hut, Trombe wall, and direct-gain rooms, our model predictions match measured field temperatures within an average delta of 1.2 degrees, and rigorously preserve the physical performance ranking of Trombe walls over direct gain.
->
-> Here is the strategic defense impact:
-> - Each passive shelter saves **900 litres of airlifted kerosene every year**, translating to **₹21.6 Lakhs in direct annual savings per post**.
+> - Each passive shelter eliminates **900 litres of airlifted kerosene annually**, delivering **₹21.6 Lakhs in direct logistics savings per post**.
 > - The capital retrofit pays for itself in just **2.1 years**.
-> - Across approximately 150 active forward posts, THERMA eliminates **1,35,000 litres of fuel per year**, saving the defense budget **₹32.4 Crore annually**.
+> - Scaled across approximately 150 forward outposts, THERMA eliminates **1,35,000 litres of fuel** and saves the defense budget **₹32.4 Crore every single year**.
 >
-> Most importantly, THERMA ensures that our soldiers defending our nation’s harshest frontiers sleep warm, breathe clean air, and remain combat-ready every single morning.
+> Throughout this project, our team integrated building science, procedural 3D modeling, numerical physics, and defense procurement workflows into a practical, deployment-ready software platform.
 >
-> Thank you, and we welcome your questions."
+> Most importantly, THERMA provides a viable engineering path to transition our armed forces away from hazardous tin shelters, ensuring soldiers on our northern frontiers stay warm, safe, and mission-ready.
+>
+> Thank you, and we look forward to your questions."
 
 ---
 
-## 📋 Presenter Rehearsal Cheat-Sheet (Print or Keep on Phone)
+## 🎯 Speaker Key Takeaways & Delivery Guidelines
 
-### Beat-by-Beat Talking Points
-
-1. **The Hook (0:00 - 0:45):**
-   - ₹2,400/L to airlift kerosene to Siachen; ₹3.2L/month/post just to not freeze.
-   - Tin prefab collapse to -18°C; bukharis cause CO poisoning and soot.
-   - Solar paradox: >950 W/m² irradiance in Ladakh. DIHAR proved solar works, but bespoke designs took months. THERMA automates this in seconds.
-
-2. **3D Studio & Climate Adaptation (0:45 - 2:00):**
-   - Area-specific, not one-size-fits-all.
-   - Siachen: Stilts on permafrost, monoslope blizzard roof, east airlock mudroom, south Trombe wall.
-   - Switch to Manali: 30° snow-shedding timber gable (IS 875), Kath-Kuni seismic frame (IS 13828).
-   - Switch to Jaisalmer: Sandstone masonry, carved jali screens (ECBC passive cooling).
-   - Exploded View (60 FPS layer breakdown) + 2D CAD blueprint toggle.
-
-3. **Physics Engine (2:00 - 3:05):**
-   - 5R1C finite-difference solver (conduction, convection, solar, sky radiation).
-   - PS Req 1: Red curve (tin hut crashes to -18°C) vs Green curve (+18°C held with zero fuel).
-   - PS Req 3: Real-time heat flow across $\Delta T$ (indoor − ambient).
-
-4. **Optimization & Safety (3:05 - 3:55):**
-   - PS Req 2: 3,200 design permutations evaluated in 5.6 seconds.
-   - Pareto frontier: Comfort vs Cost (₹), Utopia Knee Point.
-   - Design Doctor: Night shutters give +6.1°C for ₹500; extra stone gives only +0.4°C for ₹38,000 and 12t airlift weight.
-   - Safety Interlock: Hard refusal on combustion heater + low ventilation ($ACH < 0.35$).
-
-5. **Tactical Operations & Dossiers (3:55 - 4:35):**
-   - Mission Dashboard: Northern Command theater situational awareness.
-   - 7-Day Blizzard Pass Triage: Flags closures on Zoji La / Khardung La before convoys get stranded.
-   - 1-Click MES Dossier: 18 sections, CPWD DSR 2023 rates, SHA-256 cryptographic verification.
-
-6. **Validation & Impact (4:35 - 5:00):**
-   - Validated against DRDO-DIHAR Leh field measurements (1.2°C avg error, Trombe > Direct Gain).
-   - 900 L/yr saved per shelter = ₹21.6 Lakhs/year saved per post; 2.1-year payback.
-   - 1,35,000 L fuel and ₹32.4 Crore saved across 150 posts.
-   - Troop health, warmth, and combat readiness.
-
----
-
-## 🎯 Evaluator Defense & Q&A Playbook
-
-| Evaluator Question | Recommended Response |
-|:---|:---|
-| *"Why didn't you just use EnergyPlus or ANSYS?"* | "EnergyPlus and ANSYS are heavy desktop CFD tools requiring hours per run and manual CAD prep. They cannot run multi-objective optimization over 3,200 designs on the fly in the browser, and they have zero awareness of high-altitude logistics, permafrost, or Indian CPWD DSR cost schedules. THERMA couples a validated 5R1C solver with instant generative CAD." |
-| *"How do you prove your simulation is accurate?"* | "We validated against published empirical field data from DRDO-DIHAR in Leh across three benchmark test rooms (pilot shelter, Trombe wall, direct gain). Our solver reproduces the monitored temperatures within 1.2°C and strictly preserves the physical ordering where Trombe walls outperform direct gain." |
-| *"What prevents an unfeasible design from being generated?"* | "Two interlocks: First, our local material constraint restricts choices to regionally available supplies (mud brick, stone, timber, EPS). Second, our Life-Safety Interlock mathematically blocks hazardous combinations—such as combustion heating in airtight spaces ($ACH < 0.35$)—preventing carbon monoxide buildup by design." |
-| *"Where does the ₹2,400/L fuel cost come from?"* | "That represents the fully burdened cost of fuel airlift to Siachen forward posts above 5,000 meters, incorporating Cheetah and Mi-17 rotor-hour operating costs, aircrew staging, and extreme mountain weather flight attrition, cited directly from defense logistics analysis." |
+1. **Tone:** Confident, technical, and objective. Avoid sales hyperbole; present THERMA as a well-engineered computational tool solving a real physical problem.
+2. **Smooth Transitions:** Use the step navigation bar at the top of the canvas (`Step 1: Design`, `Step 2: Simulation`, `Step 3: Optimization`) to clearly signpost the workflow for the judges.
+3. **Pacing:** Allow 2-3 seconds for visual animations (like the site morphing or 3D exploded view) to register on screen before explaining the underlying physics.
+4. **Pre-Loaded Browser Tabs:**
+   - **Tab 1:** `http://localhost:5173/` (Landing)
+   - **Tab 2:** `http://localhost:5173/sites/site_siachen/design` (Design Studio & 3D Model)
+   - **Tab 3:** `http://localhost:5173/dashboard` (Mission Command Dashboard)
+   - **Tab 4:** `http://localhost:5173/alerts` (Weather & Pass Logistics Alerts)
+   - **Tab 5:** `http://localhost:5173/reports` (MES Procurement Dossier)
