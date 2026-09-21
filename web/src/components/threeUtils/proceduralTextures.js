@@ -73,6 +73,67 @@ export function getAdobeTexture() {
 }
 
 /**
+ * Procedural Compacted Rammed Earth Texture
+ * Stratified earth layers formed by pneumatic compaction with subtle sand/clay strata.
+ */
+export function getRammedEarthTexture() {
+  if (textureCache.has('rammed_earth')) return textureCache.get('rammed_earth');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Base compacted clay tone
+  ctx.fillStyle = '#B88863';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Horizontal compaction strata
+  let curY = 0;
+  while (curY < 512) {
+    const layerH = 14 + Math.random() * 26;
+    const tone = Math.random();
+    const layerColor = tone > 0.65
+      ? 'rgba(150, 95, 60, 0.45)'
+      : tone > 0.35
+      ? 'rgba(195, 150, 110, 0.4)'
+      : 'rgba(125, 75, 45, 0.35)';
+
+    ctx.fillStyle = layerColor;
+    ctx.fillRect(0, curY, 512, layerH);
+
+    // Fine compaction wave
+    ctx.strokeStyle = 'rgba(70, 40, 20, 0.25)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, curY);
+    for (let x = 0; x <= 512; x += 32) {
+      ctx.lineTo(x, curY + (Math.random() - 0.5) * 3);
+    }
+    ctx.stroke();
+
+    // Sand and small gravel aggregate specks
+    ctx.fillStyle = 'rgba(235, 220, 195, 0.3)';
+    for (let i = 0; i < 40; i++) {
+      ctx.fillRect(Math.random() * 512, curY + Math.random() * layerH, 2, 2);
+    }
+    ctx.fillStyle = 'rgba(40, 25, 15, 0.25)';
+    for (let i = 0; i < 25; i++) {
+      ctx.fillRect(Math.random() * 512, curY + Math.random() * layerH, 1.5, 1.5);
+    }
+
+    curY += layerH;
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  textureCache.set('rammed_earth', texture);
+  return texture;
+}
+
+/**
  * Procedural Dressed Himalayan Granite / Fieldstone Texture
  */
 export function getStoneTexture() {
@@ -168,6 +229,47 @@ export function getTimberTexture() {
 }
 
 /**
+ * Procedural Structural Plywood Texture
+ */
+export function getPlywoodTexture() {
+  if (textureCache.has('plywood')) return textureCache.get('plywood');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#D4AF7A';
+  ctx.fillRect(0, 0, 512, 256);
+
+  // Soft subtle veneer growth grain
+  for (let y = 0; y < 256; y += 4) {
+    ctx.fillStyle = 'rgba(160, 115, 65, 0.12)';
+    ctx.fillRect(0, y, 512, 2);
+  }
+
+  ctx.strokeStyle = 'rgba(130, 90, 50, 0.18)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath();
+    let y = 20 + i * 40;
+    ctx.moveTo(0, y);
+    for (let x = 0; x <= 512; x += 64) {
+      y += (Math.random() - 0.5) * 6;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  textureCache.set('plywood', texture);
+  return texture;
+}
+
+/**
  * Procedural EPS Foam Insulation Bead Texture
  */
 export function getEpsTexture() {
@@ -203,6 +305,199 @@ export function getEpsTexture() {
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(4, 4);
   textureCache.set('eps', texture);
+  return texture;
+}
+
+/**
+ * Procedural XPS Foam Insulation Texture (Fine Closed-Cell Cyan Foam)
+ */
+export function getXpsTexture() {
+  if (textureCache.has('xps')) return textureCache.get('xps');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Characteristic pale arctic cyan/blue of XPS
+  ctx.fillStyle = '#94D2F2';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Micro-cellular smooth surface grid
+  ctx.strokeStyle = 'rgba(90, 160, 210, 0.3)';
+  ctx.lineWidth = 0.8;
+  const cellSize = 6;
+
+  for (let y = 0; y < 256; y += cellSize) {
+    for (let x = 0; x < 256; x += cellSize) {
+      const offX = (y % (cellSize * 2) === 0) ? cellSize / 2 : 0;
+      ctx.beginPath();
+      ctx.arc(x + offX, y, cellSize * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = (Math.random() > 0.5) ? '#A8DCF7' : '#82C7EC';
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
+  textureCache.set('xps', texture);
+  return texture;
+}
+
+/**
+ * Procedural Mineral Wool (Rockwool) Batt Texture
+ */
+export function getRockwoolTexture() {
+  if (textureCache.has('rockwool')) return textureCache.get('rockwool');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Muted earthy gold/tan base
+  ctx.fillStyle = '#C6AC80';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Multidirectional interlocked fine mineral fibers
+  for (let i = 0; i < 450; i++) {
+    const x = Math.random() * 256;
+    const y = Math.random() * 256;
+    const len = 8 + Math.random() * 16;
+    const angle = Math.random() * Math.PI;
+
+    ctx.strokeStyle = Math.random() > 0.5 ? 'rgba(90, 70, 45, 0.28)' : 'rgba(235, 220, 185, 0.32)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
+  textureCache.set('rockwool', texture);
+  return texture;
+}
+
+/**
+ * Procedural Agricultural Straw Bale Insulation Texture
+ */
+export function getStrawBaleTexture() {
+  if (textureCache.has('straw_bale')) return textureCache.get('straw_bale');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Golden wheat straw base
+  ctx.fillStyle = '#D4AF37';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Compressed horizontal straw fibers
+  for (let y = 0; y < 256; y += 3) {
+    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(160, 120, 25, 0.35)' : 'rgba(255, 230, 130, 0.35)';
+    ctx.fillRect(0, y, 256, 2);
+  }
+
+  for (let i = 0; i < 200; i++) {
+    const x = Math.random() * 256;
+    const y = Math.random() * 256;
+    const len = 12 + Math.random() * 24;
+    ctx.strokeStyle = 'rgba(100, 70, 15, 0.3)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + len, y + (Math.random() - 0.5) * 4);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(3, 3);
+  textureCache.set('straw_bale', texture);
+  return texture;
+}
+
+/**
+ * Procedural Prefab Polyurethane (PUF) Sandwich Panel Texture
+ */
+export function getPufTexture() {
+  if (textureCache.has('puf_sandwich')) return textureCache.get('puf_sandwich');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Pre-coated architectural grey/white steel skin
+  ctx.fillStyle = '#E2E8F0';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Modular micro-ribbed steel profile (vertical ribs every 32px)
+  for (let x = 0; x < 256; x += 32) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillRect(x, 0, 2, 256);
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.25)';
+    ctx.fillRect(x + 2, 0, 3, 256);
+  }
+
+  // Subtle clean powder-coat stipple
+  for (let i = 0; i < 200; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 255, 255, 0.15)' : 'rgba(148, 163, 184, 0.15)';
+    ctx.fillRect(Math.random() * 256, Math.random() * 256, 1.5, 1.5);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(3, 3);
+  textureCache.set('puf_sandwich', texture);
+  return texture;
+}
+
+/**
+ * Procedural Polyethylene Vapor Barrier Membrane Texture
+ */
+export function getPolytheneTexture() {
+  if (textureCache.has('polythene')) return textureCache.get('polythene');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+
+  // Translucent vapor sheet base
+  ctx.fillStyle = '#D8E5ED';
+  ctx.fillRect(0, 0, 128, 128);
+
+  // Embedded scrim reinforcement grid
+  ctx.strokeStyle = 'rgba(160, 185, 200, 0.4)';
+  ctx.lineWidth = 1;
+  for (let p = 0; p < 128; p += 16) {
+    ctx.beginPath();
+    ctx.moveTo(p, 0);
+    ctx.lineTo(p, 128);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, p);
+    ctx.lineTo(128, p);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
+  textureCache.set('polythene', texture);
   return texture;
 }
 
@@ -296,15 +591,12 @@ export function getMetalSeamRoofTexture() {
 
   // Vertical standing seams every 64px
   for (let x = 0; x < 512; x += 64) {
-    // Left highlight
     ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
     ctx.fillRect(x, 0, 2, 512);
 
-    // Dark seam rib
     ctx.fillStyle = '#23282F';
     ctx.fillRect(x + 2, 0, 4, 512);
 
-    // Cast seam shadow
     ctx.fillStyle = 'rgba(15, 18, 22, 0.4)';
     ctx.fillRect(x + 6, 0, 6, 512);
   }
@@ -381,4 +673,62 @@ export function getSolarPanelTexture() {
   const texture = new THREE.CanvasTexture(canvas);
   textureCache.set('solar_pv', texture);
   return texture;
+}
+
+/**
+ * Master texture resolver that maps any material ID to its authentic procedural texture.
+ */
+export function getTextureForMaterial(materialId) {
+  if (typeof document === 'undefined') {
+    return new THREE.Texture();
+  }
+  const mid = (materialId || '').toLowerCase();
+
+  if (mid.includes('mud_brick') || mid.includes('adobe')) {
+    return getAdobeTexture();
+  }
+  if (mid.includes('rammed')) {
+    return getRammedEarthTexture();
+  }
+  if (mid.includes('stone') || mid.includes('granite')) {
+    return getStoneTexture();
+  }
+  if (mid.includes('cgi') || mid.includes('metal_roof') || mid.includes('corrugated')) {
+    return getMetalSeamRoofTexture();
+  }
+  if (mid.includes('puf') || mid.includes('pu_') || mid.includes('sandwich') || mid.includes('prefab')) {
+    return getPufTexture();
+  }
+  if (mid.includes('xps')) {
+    return getXpsTexture();
+  }
+  if (mid.includes('eps')) {
+    return getEpsTexture();
+  }
+  if (mid.includes('rockwool') || mid.includes('wool') || mid.includes('mineral')) {
+    return getRockwoolTexture();
+  }
+  if (mid.includes('straw')) {
+    return getStrawBaleTexture();
+  }
+  if (mid.includes('timber') || mid.includes('wood') || mid.includes('rafter')) {
+    return getTimberTexture();
+  }
+  if (mid.includes('plywood')) {
+    return getPlywoodTexture();
+  }
+  if (mid.includes('poly') || mid.includes('plastic') || mid.includes('sheeting') || mid.includes('retarder') || mid.includes('membrane')) {
+    return getPolytheneTexture();
+  }
+  if (mid.includes('concrete')) {
+    return getConcreteTexture();
+  }
+  if (mid.includes('snow')) {
+    return getSnowTexture();
+  }
+  if (mid.includes('solar') || mid.includes('pv')) {
+    return getSolarPanelTexture();
+  }
+
+  return getConcreteTexture();
 }

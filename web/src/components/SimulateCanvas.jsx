@@ -103,7 +103,7 @@ const SIM_TABS = [
   { id: 'validation', label: 'Field Validation & Spec', icon: FileCheck },
 ];
 
-export default function SimulateCanvas({ result, request }) {
+export default function SimulateCanvas({ result, request, onApplyDesign }) {
   const [activeTab, setActiveTab] = useState('safety');
   const data = result || DEFAULT_SIMULATE_RESULT;
   const isRefused = !!data.refused;
@@ -349,6 +349,7 @@ export default function SimulateCanvas({ result, request }) {
             request={request}
             result={data}
             baselineData={data}
+            onApplyDesign={onApplyDesign}
           />
           <div id="design-comparison-panel">
             <DesignComparisonPanel

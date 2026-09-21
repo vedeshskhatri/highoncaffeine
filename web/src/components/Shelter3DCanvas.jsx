@@ -15,9 +15,10 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { Compass, Eye, Maximize2, Layers, X, Mountain, Grid, Sun, Flame, Sparkles, Box, Wind } from 'lucide-react';
-import { getMaterialSpec, computeLayerR, computeTotalU } from './materialsData';
+import { Compass, Eye, Maximize2, Layers, X, Mountain, Grid, Sun, Flame, Sparkles, Box, Wind, Sliders, ShieldCheck } from 'lucide-react';
+import { getMaterialSpec, computeLayerR, computeTotalU, fetchAndCacheMaterials } from './materialsData';
 import {
+  getTextureForMaterial,
   getAdobeTexture,
   getStoneTexture,
   getTimberTexture,
@@ -34,6 +35,7 @@ import {
   createDynamicMountains,
   createDynamicGround,
   createCelestialSolarArc,
+  createHeatFluxParticles,
 } from './threeUtils/himalayanEnvironment';
 import SolarController, { computeSolarPosition } from './SolarController';
 import './Shelter3DCanvas.css';
@@ -69,6 +71,9 @@ export default function Shelter3DCanvas({
   const solarRayMeshRef = useRef(null);
   const solarArcGroupRef = useRef(null);
   const himalayanEnvRef = useRef(null);
+  const shelterMeshesRef = useRef(null);
+  const heatFluxParticlesRef = useRef(null);
+  const clockRef = useRef(new THREE.Clock());
 
   const orbitStateRef = useRef({
     isDragging: false,
@@ -91,6 +96,24 @@ export default function Shelter3DCanvas({
   const [solarHour, setSolarHour] = useState(12.0);
   const [season, setSeason] = useState('winter');
   const [envMode, setEnvMode] = useState('himalayas'); // 'himalayas' | 'studio'
+
+  // Facade Multi-Layer Peel & Material Sync States
+  const [peelLevel, setPeelLevel] = useState(0); // 0: Full, 1: Cladding, 2: Insulation, 3: Mass Core
+  const [materialsVersion, setMaterialsVersion] = useState(0);
+  const [materialsLoading, setMaterialsLoading] = useState(false);
+
+  // Mount effect: Fetch and cache authoritative materials from backend /materials endpoint
+  useEffect(() => {
+    let active = true;
+    setMaterialsLoading(true);
+    fetchAndCacheMaterials().then(() => {
+      if (active) {
+        setMaterialsLoading(false);
+        setMaterialsVersion(v => v + 1);
+      }
+    });
+    return () => { active = false; };
+  }, []);
 
   // Location & Biome reactivity
   const lat = request?.location?.lat ?? 34.1526;
@@ -297,6 +320,10 @@ export default function Shelter3DCanvas({
     const renderLoop = () => {
       animFrameIdRef.current = requestAnimationFrame(renderLoop);
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        const dt = clockRef.current.getDelta();
+        if (heatFluxParticlesRef.current && heatFluxParticlesRef.current.update) {
+          heatFluxParticlesRef.current.update(dt);
+        }
         if (sunGroupRef.current) {
           sunGroupRef.current.lookAt(cameraRef.current.position);
         }
@@ -311,6 +338,11 @@ export default function Shelter3DCanvas({
     return () => {
       resizeObserver.disconnect();
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
+      if (heatFluxParticlesRef.current) {
+        if (heatFluxParticlesRef.current.geometry) heatFluxParticlesRef.current.geometry.dispose();
+        if (heatFluxParticlesRef.current.material) heatFluxParticlesRef.current.material.dispose();
+        heatFluxParticlesRef.current = null;
+      }
       renderer.dispose();
     };
   }, []);
@@ -381,6 +413,17 @@ export default function Shelter3DCanvas({
     const l = length_m;
     const w = width_m;
     const h = height_m;
+
+    // Dynamic Heat Flux Vector Field Particles
+    if (heatFluxParticlesRef.current) {
+      scene.remove(heatFluxParticlesRef.current);
+      if (heatFluxParticlesRef.current.geometry) heatFluxParticlesRef.current.geometry.dispose();
+      if (heatFluxParticlesRef.current.material) heatFluxParticlesRef.current.material.dispose();
+      heatFluxParticlesRef.current = null;
+    }
+    const particles = createHeatFluxParticles(l, w, h);
+    scene.add(particles);
+    heatFluxParticlesRef.current = particles;
 
     // Authentic Procedural Textures
     const adobeTex = getAdobeTexture();
@@ -485,12 +528,14 @@ export default function Shelter3DCanvas({
       { x: -l / 2 + quoinSize / 2, z:  w / 2 - quoinSize / 2 },
       { x:  l / 2 - quoinSize / 2, z:  w / 2 - quoinSize / 2 },
     ];
+    const quoinMeshes = [];
     corners.forEach((c) => {
       const qMesh = new THREE.Mesh(quoinGeo, stonePlinthMat);
       qMesh.position.set(c.x, wallBaseY, c.z);
       qMesh.castShadow = true;
       qMesh.receiveShadow = true;
       shelter.add(qMesh);
+      quoinMeshes.push(qMesh);
     });
 
     // ── A. North Wall (Cold Shaded Facade) ──
@@ -618,9 +663,10 @@ export default function Shelter3DCanvas({
 
     // Heavy Timber Lintel
     const lintelHeight = h - (winHeight + 0.35);
+    let lintel = null;
     if (lintelHeight > 0.08) {
       const lintelGeo = new THREE.BoxGeometry(winWidth, lintelHeight, totalWallThick * 1.05);
-      const lintel = new THREE.Mesh(lintelGeo, timberMat);
+      lintel = new THREE.Mesh(lintelGeo, timberMat);
       lintel.position.set(0, h / 2 - lintelHeight / 2, 0);
       lintel.castShadow = true;
       southGroup.add(lintel);
@@ -687,11 +733,13 @@ export default function Shelter3DCanvas({
     southGroup.add(glassMesh);
 
     // Operable Insulated Night Shutter Assembly
+    let shutterLeft = null;
+    let shutterRight = null;
     if (southOpening.night_shutter) {
       const shutterLeafGeo = new THREE.BoxGeometry(winWidth * 0.46, winHeight - 0.1, 0.04);
-      const shutterLeft = new THREE.Mesh(shutterLeafGeo, timberMat);
+      shutterLeft = new THREE.Mesh(shutterLeafGeo, timberMat);
       shutterLeft.position.set(-winWidth * 0.24, winYOffset, totalWallThick * 0.32);
-      const shutterRight = new THREE.Mesh(shutterLeafGeo, timberMat);
+      shutterRight = new THREE.Mesh(shutterLeafGeo, timberMat);
       shutterRight.position.set(winWidth * 0.24, winYOffset, totalWallThick * 0.32);
       southGroup.add(shutterLeft);
       southGroup.add(shutterRight);
@@ -715,6 +763,7 @@ export default function Shelter3DCanvas({
     // Timber Rafters & Purlins
     const rafterCount = Math.max(6, Math.round(l / 0.65));
     const rafterGeo = new THREE.BoxGeometry(0.12, 0.16, roofWid - 0.05);
+    const rafterMeshes = [];
     for (let i = 0; i < rafterCount; i++) {
       const rx = -l / 2 - sideOverhang * 0.6 + (i / (rafterCount - 1)) * (roofLen - sideOverhang * 0.5);
       const rafter = new THREE.Mesh(rafterGeo, timberMat);
@@ -722,6 +771,7 @@ export default function Shelter3DCanvas({
       rafter.rotation.x = roofPitchRad;
       rafter.castShadow = true;
       roofGroup.add(rafter);
+      rafterMeshes.push(rafter);
     }
 
     // Structural Decking
@@ -805,31 +855,33 @@ export default function Shelter3DCanvas({
 
     shelter.add(roofGroup);
 
-    // ── 5. Structural Framing Mode (When viewMode === 'framing') ──
-    if (isFraming) {
-      const framingGroup = new THREE.Group();
-      framingGroup.name = 'structural-framing';
+    // ── 5. Structural Framing Mode ──
+    const framingGroup = new THREE.Group();
+    framingGroup.name = 'structural-framing';
 
-      // Perimeter Timber Studs every 0.6m
-      const studCountX = Math.round(l / 0.6);
-      const studGeo = new THREE.BoxGeometry(0.08, h, 0.12);
+    // Perimeter Timber Studs every 0.6m
+    const studCountX = Math.round(l / 0.6);
+    const studGeo = new THREE.BoxGeometry(0.08, h, 0.12);
+    const studMeshes = [];
 
-      for (let i = 0; i <= studCountX; i++) {
-        const sx = -l / 2 + (i / studCountX) * l;
-        // North wall studs
-        const studN = new THREE.Mesh(studGeo, timberMat);
-        studN.position.set(sx, wallBaseY, -w / 2 + totalWallThick / 2);
-        framingGroup.add(studN);
+    for (let i = 0; i <= studCountX; i++) {
+      const sx = -l / 2 + (i / studCountX) * l;
+      // North wall studs
+      const studN = new THREE.Mesh(studGeo, timberMat);
+      studN.position.set(sx, wallBaseY, -w / 2 + totalWallThick / 2);
+      framingGroup.add(studN);
+      studMeshes.push(studN);
 
-        // South wall studs (avoid window opening)
-        if (Math.abs(sx) > winWidth / 2) {
-          const studS = new THREE.Mesh(studGeo, timberMat);
-          studS.position.set(sx, wallBaseY, w / 2 - totalWallThick / 2);
-          framingGroup.add(studS);
-        }
+      // South wall studs (avoid window opening)
+      if (Math.abs(sx) > winWidth / 2) {
+        const studS = new THREE.Mesh(studGeo, timberMat);
+        studS.position.set(sx, wallBaseY, w / 2 - totalWallThick / 2);
+        framingGroup.add(studS);
+        studMeshes.push(studS);
       }
-      shelter.add(framingGroup);
     }
+    framingGroup.visible = isFraming;
+    shelter.add(framingGroup);
 
     // Save exploded parts for GSAP transitions
     explodedPartsRef.current = {
@@ -871,7 +923,265 @@ export default function Shelter3DCanvas({
     }
 
     scene.add(shelter);
-  }, [length_m, width_m, height_m, walls, roof, floor, openings, isThermal, isFraming, snowCover, outerWallMat]);
+
+    shelterMeshesRef.current = {
+      plinthMesh,
+      floorMesh,
+      timberFloorMesh,
+      quoinMeshes,
+      northExt,
+      northCore,
+      northInt,
+      ventTransom,
+      eastExt,
+      eastCore,
+      vestWallMesh,
+      canopyMesh,
+      doorMesh,
+      handleMesh,
+      westExt,
+      westCore,
+      leftPier,
+      rightPier,
+      lintel,
+      trombeMesh,
+      vents: [topVent1, topVent2, btmVent1, btmVent2],
+      frameMesh,
+      mullion,
+      sill,
+      glassMesh,
+      shutters: [shutterLeft, shutterRight].filter(Boolean),
+      rafterMeshes,
+      deckMesh,
+      roofInsulMesh,
+      metalRoofMesh,
+      guardBar,
+      pvPanels: [pv1, pv2],
+      chimneyPipe: pipe,
+      chimneyCowl: cowl,
+      snowMeshRef,
+      framingGroup,
+      studMeshes,
+      basePositions: {
+        northExtZ: -coreThick / 2 - intThick / 2,
+        northCoreZ: 0,
+        northIntZ: coreThick / 2 + intThick / 2,
+        eastExtX: -coreThick / 2 - intThick / 2,
+        eastCoreX: 0,
+        westExtX: coreThick / 2 + intThick / 2,
+        westCoreX: 0,
+        roofInsulY: 0.29,
+        metalRoofY: 0.39,
+      },
+    };
+  }, [length_m, width_m, height_m, openings, snowCover]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     3A. IN-PLACE MATERIAL SYNCHRONIZATION & FACADE PEEL CUTAWAY
+     ───────────────────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    const meshes = shelterMeshesRef.current;
+    if (!meshes) return;
+
+    if (meshes.framingGroup) {
+      meshes.framingGroup.visible = isFraming;
+    }
+
+    // Helper: Safely replace material and dispose replaced material without purging shared textures
+    const safeReplaceMaterial = (mesh, newMat) => {
+      if (!mesh) return;
+      const oldMat = mesh.material;
+      mesh.material = newMat;
+      mesh.material.needsUpdate = true;
+      if (oldMat && oldMat !== newMat) {
+        if (Array.isArray(oldMat)) oldMat.forEach((m) => m.dispose());
+        else oldMat.dispose();
+      }
+    };
+
+    const extWallMatId = walls[0]?.material || 'mud_brick';
+    const insulMatId = walls[1]?.material || 'eps';
+    const intWallMatId = walls[2]?.material || walls[0]?.material || 'mud_brick';
+    const roofCladMatId = roof[0]?.material || 'metal_roof';
+    const roofInsulMatId = roof[1]?.material || 'eps';
+    const floorMatId = floor[0]?.material || 'concrete';
+
+    const buildMaterial = (matId, thermalColor, fallbackType = 'adobe', options = {}) => {
+      if (isThermal && thermalColor) {
+        return new THREE.MeshStandardMaterial({
+          color: thermalColor,
+          roughness: 0.35,
+          metalness: 0.1,
+          ...options,
+        });
+      }
+      if (isFraming) {
+        return new THREE.MeshStandardMaterial({
+          color: 0xE2E8F0,
+          transparent: true,
+          opacity: 0.22,
+          roughness: 0.8,
+          ...options,
+        });
+      }
+
+      const texture = getTextureForMaterial(matId);
+      let roughness = 0.85;
+      let metalness = 0.05;
+      const idLower = (matId || '').toLowerCase();
+      if (idLower.includes('metal') || idLower.includes('cgi') || idLower.includes('steel') || idLower.includes('tin')) {
+        metalness = 0.65;
+        roughness = 0.42;
+      } else if (idLower.includes('eps') || idLower.includes('xps') || idLower.includes('puf') || idLower.includes('insul') || idLower.includes('wool')) {
+        metalness = 0.0;
+        roughness = 0.70;
+      } else if (idLower.includes('stone') || idLower.includes('brick') || idLower.includes('earth') || idLower.includes('adobe') || idLower.includes('rammed')) {
+        metalness = 0.02;
+        roughness = 0.92;
+      } else if (idLower.includes('timber') || idLower.includes('wood') || idLower.includes('plywood')) {
+        metalness = 0.04;
+        roughness = 0.65;
+      }
+
+      return new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: options.roughness ?? roughness,
+        metalness: options.metalness ?? metalness,
+        ...options,
+      });
+    };
+
+    // Determine peel opacities & transparency
+    // peelLevel: 0 (Full), 1 (Peeled Cladding), 2 (Peeled Insulation), 3 (Exposed Mass Core)
+    const extOpacity = peelLevel === 1 ? 0.75 : peelLevel === 2 ? 0.35 : peelLevel === 3 ? 0.15 : 1.0;
+    const extTransparent = peelLevel > 0;
+    const insulOpacity = peelLevel === 2 ? 0.75 : peelLevel === 3 ? 0.25 : 1.0;
+    const insulTransparent = peelLevel >= 2;
+
+    const extWallMat = buildMaterial(extWallMatId, 0xF97316, 'adobe', {
+      transparent: extTransparent || isFraming,
+      opacity: isFraming ? 0.22 : extOpacity,
+    });
+    const insulMat = buildMaterial(insulMatId, 0xEAB308, 'eps', {
+      transparent: insulTransparent || isFraming,
+      opacity: isFraming ? 0.22 : insulOpacity,
+    });
+    const intWallMat = buildMaterial(intWallMatId, 0x22C55E, 'adobe', {
+      transparent: isFraming,
+      opacity: isFraming ? 0.22 : 1.0,
+    });
+    const roofCladMat = buildMaterial(roofCladMatId, 0x38BDF8, 'metal_roof', {
+      transparent: extTransparent || isFraming,
+      opacity: isFraming ? 0.22 : extOpacity,
+    });
+    const roofInsulMat = buildMaterial(roofInsulMatId, 0xEAB308, 'eps', {
+      transparent: insulTransparent || isFraming,
+      opacity: isFraming ? 0.22 : insulOpacity,
+    });
+    const floorMat = buildMaterial(floorMatId, 0x15803D, 'concrete');
+    const plinthMat = buildMaterial('stone_masonry', 0x475569, 'stone');
+    const timberMat = isFraming
+      ? new THREE.MeshStandardMaterial({ color: 0xD97706, roughness: 0.6 })
+      : buildMaterial('timber', 0xB45309, 'timber');
+    const trombeMat = isThermal
+      ? new THREE.MeshStandardMaterial({ color: 0xEF4444, roughness: 0.3 })
+      : new THREE.MeshStandardMaterial({
+          map: getTextureForMaterial(extWallMatId),
+          color: 0x2A2421,
+          roughness: 0.95,
+        });
+
+    // Update Wall Meshes in-place
+    safeReplaceMaterial(meshes.northExt, extWallMat);
+    safeReplaceMaterial(meshes.eastExt, extWallMat);
+    safeReplaceMaterial(meshes.westExt, extWallMat);
+    safeReplaceMaterial(meshes.vestWallMesh, extWallMat);
+    safeReplaceMaterial(meshes.leftPier, extWallMat);
+    safeReplaceMaterial(meshes.rightPier, extWallMat);
+
+    // Update Insulation Meshes in-place
+    safeReplaceMaterial(meshes.northCore, insulMat);
+    safeReplaceMaterial(meshes.eastCore, insulMat);
+    safeReplaceMaterial(meshes.westCore, insulMat);
+    safeReplaceMaterial(meshes.roofInsulMesh, roofInsulMat);
+
+    // Update Interior Mass, Floor, & Roof in-place
+    safeReplaceMaterial(meshes.northInt, intWallMat);
+    safeReplaceMaterial(meshes.floorMesh, floorMat);
+    safeReplaceMaterial(meshes.timberFloorMesh, timberMat);
+    safeReplaceMaterial(meshes.metalRoofMesh, roofCladMat);
+    safeReplaceMaterial(meshes.canopyMesh, roofCladMat);
+    safeReplaceMaterial(meshes.plinthMesh, plinthMat);
+    safeReplaceMaterial(meshes.trombeMesh, trombeMat);
+    if (meshes.lintel) safeReplaceMaterial(meshes.lintel, timberMat);
+
+    if (meshes.quoinMeshes) {
+      meshes.quoinMeshes.forEach((q) => safeReplaceMaterial(q, plinthMat));
+    }
+    if (meshes.rafterMeshes) {
+      meshes.rafterMeshes.forEach((r) => safeReplaceMaterial(r, timberMat));
+    }
+    if (meshes.studMeshes) {
+      meshes.studMeshes.forEach((s) => safeReplaceMaterial(s, timberMat));
+    }
+
+    // Facade Peel Cutaway Positioning (using GSAP for fluid 60 FPS transitions)
+    const base = meshes.basePositions;
+    if (base && !isExploded) {
+      let dExtZ = 0, dExtX = 0, dRoofY = 0;
+      let dCoreZ = 0, dCoreX = 0, dRoofInsulY = 0;
+
+      if (peelLevel === 1) {
+        dExtZ = -0.65;
+        dExtX = 0.65;
+        dRoofY = 0.45;
+      } else if (peelLevel === 2) {
+        dExtZ = -1.2;
+        dExtX = 1.2;
+        dRoofY = 0.85;
+        dCoreZ = -0.55;
+        dCoreX = 0.55;
+        dRoofInsulY = 0.40;
+      } else if (peelLevel === 3) {
+        dExtZ = -1.8;
+        dExtX = 1.8;
+        dRoofY = 1.3;
+        dCoreZ = -1.0;
+        dCoreX = 1.0;
+        dRoofInsulY = 0.75;
+      }
+
+      if (meshes.northExt) {
+        gsap.to(meshes.northExt.position, { z: base.northExtZ + dExtZ, duration: 0.6, ease: 'power2.out' });
+      }
+      if (meshes.eastExt) {
+        gsap.to(meshes.eastExt.position, { x: base.eastExtX - dExtX, duration: 0.6, ease: 'power2.out' });
+      }
+      if (meshes.westExt) {
+        gsap.to(meshes.westExt.position, { x: base.westExtX + dExtX, duration: 0.6, ease: 'power2.out' });
+      }
+      if (meshes.metalRoofMesh) {
+        gsap.to(meshes.metalRoofMesh.position, { y: base.metalRoofY + dRoofY, duration: 0.6, ease: 'power2.out' });
+      }
+
+      if (meshes.northCore) {
+        gsap.to(meshes.northCore.position, { z: base.northCoreZ + dCoreZ, duration: 0.6, ease: 'power2.out' });
+      }
+      if (meshes.eastCore) {
+        gsap.to(meshes.eastCore.position, { x: base.eastCoreX - dCoreX, duration: 0.6, ease: 'power2.out' });
+      }
+      if (meshes.westCore) {
+        gsap.to(meshes.westCore.position, { x: base.westCoreX + dCoreX, duration: 0.6, ease: 'power2.out' });
+      }
+      if (meshes.roofInsulMesh) {
+        gsap.to(meshes.roofInsulMesh.position, { y: base.roofInsulY + dRoofInsulY, duration: 0.6, ease: 'power2.out' });
+      }
+    }
+
+    if (updateProjectedPinsRef.current) {
+      updateProjectedPinsRef.current();
+    }
+  }, [walls, roof, floor, isThermal, isFraming, isExploded, peelLevel, materialsVersion]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      3B. EXPLODED VIEW EXPANSION & CLOSING (GSAP)
@@ -1159,37 +1469,65 @@ export default function Shelter3DCanvas({
     const w = container.clientWidth;
     const h = container.clientHeight;
 
+    const extWallSpec = getMaterialSpec(walls[0]?.material || 'mud_brick');
+    const insulSpec = getMaterialSpec(walls[1]?.material || 'eps');
+    const roofCladSpec = getMaterialSpec(roof[0]?.material || 'metal_roof');
+    const roofInsulSpec = getMaterialSpec(roof[1]?.material || 'eps');
+
+    const wallThickM = walls[0]?.thickness_m || 0.30;
+    const insulThickM = walls[1]?.thickness_m || 0.05;
+    const trombeR = (wallThickM / (extWallSpec.conductivity_w_mk || 0.75));
+    const trombeU = 1 / (trombeR + 0.17);
+
+    const roofUVal = computeTotalU(roof);
+    const roofRVal = 1 / Math.max(0.01, roofUVal);
+    const roofThickMm = Math.round(roof.reduce((sum, l) => sum + (Number(l.thickness_m) || 0.05), 0) * 1000);
+
+    // Active cutaway layer spec based on peelLevel
+    const activePeelSpec = peelLevel === 1 ? extWallSpec : peelLevel === 2 ? insulSpec : peelLevel === 3 ? extWallSpec : null;
+    const activePeelThickness = peelLevel === 1 ? Math.round(wallThickM * 1000) : peelLevel === 2 ? Math.round(insulThickM * 1000) : Math.round(wallThickM * 1000);
+    const activePeelR = peelLevel === 1 ? trombeR : peelLevel === 2 ? (insulThickM / (insulSpec.conductivity_w_mk || 0.038)) : trombeR;
+
     // 1. Hotspots
-    const primaryAperture = openings[0] || { facing: 'south', area_m2: 4.0, glazing: 'double_pane', night_shutter: true };
     const rawHotspots = [
       {
         id: 'trombe-wall',
         label: 'Trombe Mass Wall',
-        sub: 'Passive Solar Heat Storage & Air Convection Vents',
+        sub: `Passive Solar Heat Storage (${extWallSpec.name})`,
         category: 'Solar Heating',
         pos: new THREE.Vector3(0, height_m * 0.5, width_m / 2 + 0.1),
         spec: {
-          name: 'South-Facing Trombe Mass Wall',
-          description: 'High-density earthen absorber storage wall located behind high-transmission double glazing. Absorbs solar radiation and circulates warm air into living quarters via thermo-siphonic convection.',
-          whyUse: 'Delivers 45-60% of winter space heating passively, eliminating fuel combustion dependencies.',
-          rVal: '0.85',
-          uVal: '1.18',
-          thickness_mm: 220,
+          name: `South Trombe ${extWallSpec.name} Wall`,
+          description: `High-density ${extWallSpec.name} absorber storage wall (k = ${extWallSpec.conductivity_w_mk} W/m·K, density = ${extWallSpec.density_kg_m3} kg/m³) positioned behind high-transmission glazing. Absorbs incident solar irradiance and transfers heat inward via thermal phase delay.`,
+          whyUse: 'Delivers 45-60% of winter space heating passively, eliminating fuel combustion dependencies in sub-zero alpine conditions.',
+          rVal: trombeR.toFixed(2),
+          uVal: trombeU.toFixed(2),
+          thickness_mm: Math.round(wallThickM * 1000),
+          conductivity: extWallSpec.conductivity_w_mk,
+          density: extWallSpec.density_kg_m3,
+          specificHeat: extWallSpec.specific_heat_j_kgk,
+          cost: extWallSpec.cost_inr_m2 ? `₹${extWallSpec.cost_inr_m2}/m²` : extWallSpec.cost_inr_m3 ? `₹${extWallSpec.cost_inr_m3}/m³` : null,
+          citation: extWallSpec.citation || 'NBC 2016 Table 2 / IS 3792',
         },
       },
       {
         id: 'solar-roof',
         label: 'Monoslope Shed Roof (11°)',
-        sub: 'Standing-Seam Metal & 140mm Continuous Insulation',
+        sub: `${roofCladSpec.name} & ${roofInsulSpec.name} Core`,
         category: 'Envelope',
         pos: new THREE.Vector3(-length_m / 4, height_m + 0.5, 0),
         spec: {
-          name: 'Insulated Alpine Shed Roof',
-          description: 'Pitched at 11° to shed heavy snowdrifts and optimize solar PV collector incidence. Extended 650mm south overhang prevents summer overheating while admitting low winter sun.',
-          whyUse: 'Sub-zero Himalayan winter design prevents structural snow overloading and thermal bridging.',
-          rVal: '4.20',
-          uVal: '0.24',
-          thickness_mm: 200,
+          name: `Insulated Alpine Shed Roof (${roofCladSpec.name})`,
+          description: `Pitched at 11° with ${roofCladSpec.name} standing seam exterior and ${roofInsulSpec.name} continuous core (k = ${roofInsulSpec.conductivity_w_mk} W/m·K). Extended 650mm south overhang shades summer solar peak while admitting low winter sun.`,
+          whyUse: 'Sheds heavy alpine snowdrifts while optimizing rooftop solar PV collector inclination and eliminating thermal bridges.',
+          rVal: roofRVal.toFixed(2),
+          uVal: roofUVal.toFixed(2),
+          thickness_mm: roofThickMm,
+          conductivity: roofInsulSpec.conductivity_w_mk,
+          density: roofInsulSpec.density_kg_m3,
+          specificHeat: roofInsulSpec.specific_heat_j_kgk,
+          cost: roofInsulSpec.cost_inr_m2 ? `₹${roofInsulSpec.cost_inr_m2}/m²` : null,
+          citation: roofInsulSpec.citation || roofCladSpec.citation || 'NBC 2016 Part 8 / ASHRAE 90.1',
         },
       },
       {
@@ -1199,15 +1537,42 @@ export default function Shelter3DCanvas({
         category: 'Infiltration Control',
         pos: new THREE.Vector3(-length_m / 2 - 0.7, 1.2, 0.3),
         spec: {
-          name: 'Arctic Entry Airlock Porch',
-          description: 'Dual-door airlock foyer that eliminates cold wind gusts and air infiltration when occupants enter or exit during high-wind blizzard conditions.',
+          name: 'Arctic Entry Airlock Mudroom',
+          description: `Dual-door weather-lock foyer built with ${extWallSpec.name} and timber weather-stripping. Halts sub-zero blizzard drafts upon entry.`,
           whyUse: 'Reduces building ACH infiltration losses by over 70% in high-altitude gale conditions.',
           rVal: '3.10',
           uVal: '0.32',
           thickness_mm: 120,
+          conductivity: extWallSpec.conductivity_w_mk,
+          density: extWallSpec.density_kg_m3,
+          specificHeat: extWallSpec.specific_heat_j_kgk,
+          citation: 'IS 3792 / CPWD Himalayan Design Directive',
         },
       },
     ];
+
+    if (peelLevel > 0 && activePeelSpec) {
+      rawHotspots.push({
+        id: 'facade-peel-layer',
+        label: peelLevel === 1 ? 'Exposed Facade Cladding' : peelLevel === 2 ? 'Continuous Insulation Core' : 'Thermal Mass Storage Core',
+        sub: `${activePeelSpec.name} Cutaway Layer`,
+        category: peelLevel === 2 ? 'Insulation Core' : 'Structural Mass',
+        pos: new THREE.Vector3(length_m / 2 + 0.3, height_m * 0.55, 0),
+        spec: {
+          name: activePeelSpec.name,
+          description: `Authoritative material layer in the multi-tier envelope assembly. Thermal conductivity k = ${activePeelSpec.conductivity_w_mk} W/(m·K), density ρ = ${activePeelSpec.density_kg_m3} kg/m³.`,
+          whyUse: peelLevel === 2 ? 'Continuous unbroken thermal wrap prevents sub-zero thermal bridging and eliminates permafrost envelope heat drain.' : 'High volumetric heat capacity stores daytime solar gains to maintain comfortable night indoor temperatures.',
+          rVal: activePeelR.toFixed(2),
+          uVal: (1 / Math.max(0.01, activePeelR)).toFixed(2),
+          thickness_mm: activePeelThickness,
+          conductivity: activePeelSpec.conductivity_w_mk,
+          density: activePeelSpec.density_kg_m3,
+          specificHeat: activePeelSpec.specific_heat_j_kgk,
+          cost: activePeelSpec.cost_inr_m2 ? `₹${activePeelSpec.cost_inr_m2}/m²` : activePeelSpec.cost_inr_m3 ? `₹${activePeelSpec.cost_inr_m3}/m³` : null,
+          citation: activePeelSpec.citation || 'NBC 2016 Table 2 / IS 3792',
+        },
+      });
+    }
 
     const projected = rawHotspots.map((hs) => {
       const v = hs.pos.clone();
@@ -1253,7 +1618,7 @@ export default function Shelter3DCanvas({
     } else {
       setDimensionBadges([]);
     }
-  }, [length_m, width_m, height_m, openings, showDimensions]);
+  }, [length_m, width_m, height_m, openings, showDimensions, walls, roof, floor, peelLevel, materialsVersion]);
   updateProjectedPinsRef.current = updateProjectedPins;
 
   return (
@@ -1375,13 +1740,76 @@ export default function Shelter3DCanvas({
                           <span className="popover-stat-label">R-Value</span>
                           <span className="popover-stat-val">{pin.spec.rVal} m²K/W</span>
                         </div>
+                        {pin.spec.conductivity !== undefined && (
+                          <div className="popover-stat">
+                            <span className="popover-stat-label">Conductivity (k)</span>
+                            <span className="popover-stat-val">{pin.spec.conductivity}</span>
+                            <span className="popover-stat-sub">W/(m·K)</span>
+                          </div>
+                        )}
+                        {pin.spec.density !== undefined && (
+                          <div className="popover-stat">
+                            <span className="popover-stat-label">Density (ρ)</span>
+                            <span className="popover-stat-val">{pin.spec.density}</span>
+                            <span className="popover-stat-sub">kg/m³</span>
+                          </div>
+                        )}
+                        {pin.spec.specificHeat !== undefined && (
+                          <div className="popover-stat">
+                            <span className="popover-stat-label">Spec Heat (cp)</span>
+                            <span className="popover-stat-val">{pin.spec.specificHeat}</span>
+                            <span className="popover-stat-sub">J/(kg·K)</span>
+                          </div>
+                        )}
+                        {pin.spec.cost && (
+                          <div className="popover-stat">
+                            <span className="popover-stat-label">Unit Cost</span>
+                            <span className="popover-stat-val" style={{ fontSize: 11.5 }}>{pin.spec.cost}</span>
+                          </div>
+                        )}
                       </div>
+                      {pin.spec.citation && (
+                        <div className="popover-citation-badge">
+                          <ShieldCheck size={13} style={{ flexShrink: 0 }} />
+                          <span>Standard: {pin.spec.citation}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
               </div>
             )
         )}
+      </div>
+
+      {/* Facade Multi-Layer Peel Cutaway Dock */}
+      <div className="facade-peel-dock">
+        <div className="peel-dock-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Sliders size={12} style={{ color: 'var(--solar, #C2410C)' }} />
+            <span className="peel-dock-title">Facade Cutaway Peel</span>
+          </div>
+          <span className="peel-active-layer-badge">
+            {peelLevel === 0 ? 'Full Envelope' : peelLevel === 1 ? `Cladding: ${getMaterialSpec(outerWallMat).name}` : peelLevel === 2 ? `Insul: ${getMaterialSpec(innerWallMat).name}` : `Mass: ${getMaterialSpec(outerWallMat).name}`}
+          </span>
+        </div>
+        <div className="peel-segments-row">
+          {[
+            { lvl: 0, label: 'Full' },
+            { lvl: 1, label: 'Cladding' },
+            { lvl: 2, label: 'Insul Core' },
+            { lvl: 3, label: 'Mass Core' },
+          ].map((p) => (
+            <button
+              key={p.lvl}
+              type="button"
+              className={`peel-pill-btn ${peelLevel === p.lvl ? 'active' : ''}`}
+              onClick={() => setPeelLevel(p.lvl)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Bottom Bar: Turntable Badge + Biome Selector */}
@@ -1442,9 +1870,15 @@ export default function Shelter3DCanvas({
             <span>Assembly Exploded View</span>
           </div>
           <div className="exploded-hud-layers">
-            <div className="exploded-hud-chip"><span className="dot mass" /> 1. Heavy Mud Brick Mass</div>
-            <div className="exploded-hud-chip"><span className="dot eps" /> 2. 100mm Continuous EPS Core</div>
-            <div className="exploded-hud-chip"><span className="dot timber" /> 3. Structural Timber Rafters</div>
+            <div className="exploded-hud-chip">
+              <span className="dot mass" /> 1. Cladding: {getMaterialSpec(outerWallMat).name}
+            </div>
+            <div className="exploded-hud-chip">
+              <span className="dot eps" /> 2. Insulation: {getMaterialSpec(innerWallMat).name}
+            </div>
+            <div className="exploded-hud-chip">
+              <span className="dot timber" /> 3. Roof: {getMaterialSpec(roofMat).name}
+            </div>
           </div>
         </div>
       )}

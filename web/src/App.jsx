@@ -485,7 +485,11 @@ export default function App() {
 
               {currentStep === 'simulate' && (
                 <div className="step-results-wrapper">
-                  <SimulateCanvas result={simulateResult} request={simulateRequest} />
+                  <SimulateCanvas
+                    result={simulateResult}
+                    request={simulateRequest}
+                    onApplyDesign={(updatedReq) => setSimulateRequest(updatedReq)}
+                  />
                 </div>
               )}
 

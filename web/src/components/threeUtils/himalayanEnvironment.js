@@ -599,6 +599,131 @@ export function createCelestialSolarArc(
   return arcGroup;
 }
 
+/**
+ * Dynamic Heat Flux Vector Field Particle System
+ * Emits animated thermal flux vectors escaping from the shelter envelope
+ * (roof, walls, openings), color-graded by temperature and dissipation rate.
+ */
+export function createHeatFluxParticles(l = 6.0, w = 4.0, h = 2.6) {
+  const count = 160;
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const velocities = [];
+  const lifetimes = [];
+
+  const warmColor = new THREE.Color(0xF97316); // Thermal warm orange
+  const coolColor = new THREE.Color(0x38BDF8); // Ambient cold cyan
+  const tempColor = new THREE.Color();
+
+  const resetParticle = (i) => {
+    // Pick surface: 0: roof, 1: north wall, 2: south, 3: east, 4: west
+    const surface = Math.floor(Math.random() * 5);
+    let x = 0, y = 0, z = 0, vx = 0, vy = 0, vz = 0;
+
+    if (surface === 0) {
+      // Roof dissipation
+      x = (Math.random() - 0.5) * (l * 0.9);
+      y = h + 0.6 + Math.random() * 0.1;
+      z = (Math.random() - 0.5) * (w * 0.9);
+      vx = (Math.random() - 0.5) * 0.1;
+      vy = 0.35 + Math.random() * 0.3;
+      vz = (Math.random() - 0.5) * 0.1;
+    } else if (surface === 1) {
+      // North wall conductive loss
+      x = (Math.random() - 0.5) * l;
+      y = 0.5 + Math.random() * (h * 0.8);
+      z = -w / 2 - 0.1;
+      vx = (Math.random() - 0.5) * 0.05;
+      vy = 0.08 + Math.random() * 0.12;
+      vz = -0.25 - Math.random() * 0.2;
+    } else if (surface === 2) {
+      // South aperture / Trombe heat flux
+      x = (Math.random() - 0.5) * (l * 0.7);
+      y = 0.5 + Math.random() * (h * 0.8);
+      z = w / 2 + 0.1;
+      vx = (Math.random() - 0.5) * 0.05;
+      vy = 0.12 + Math.random() * 0.15;
+      vz = 0.25 + Math.random() * 0.2;
+    } else if (surface === 3) {
+      // East airlock / door infiltration
+      x = -l / 2 - 0.1;
+      y = 0.5 + Math.random() * (h * 0.7);
+      z = (Math.random() - 0.5) * (w * 0.7);
+      vx = -0.25 - Math.random() * 0.2;
+      vy = 0.08 + Math.random() * 0.1;
+      vz = (Math.random() - 0.5) * 0.05;
+    } else {
+      // West wall
+      x = l / 2 + 0.1;
+      y = 0.5 + Math.random() * (h * 0.7);
+      z = (Math.random() - 0.5) * (w * 0.7);
+      vx = 0.25 + Math.random() * 0.2;
+      vy = 0.08 + Math.random() * 0.1;
+      vz = (Math.random() - 0.5) * 0.05;
+    }
+
+    positions[i * 3] = x;
+    positions[i * 3 + 1] = y;
+    positions[i * 3 + 2] = z;
+
+    velocities[i] = { x: vx, y: vy, z: vz };
+    lifetimes[i] = { age: Math.random() * 2.0, maxAge: 2.5 + Math.random() * 1.5 };
+  };
+
+  for (let i = 0; i < count; i++) {
+    resetParticle(i);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const material = new THREE.PointsMaterial({
+    size: 0.16,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.75,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+
+  const points = new THREE.Points(geometry, material);
+  points.name = 'heat-flux-particles';
+
+  points.update = (deltaSec = 0.016) => {
+    const dt = Math.min(deltaSec, 0.05);
+    const pos = geometry.attributes.position.array;
+    const col = geometry.attributes.color.array;
+
+    for (let i = 0; i < count; i++) {
+      const life = lifetimes[i];
+      life.age += dt;
+
+      if (life.age >= life.maxAge) {
+        resetParticle(i);
+      } else {
+        const vel = velocities[i];
+        pos[i * 3] += vel.x * dt;
+        pos[i * 3 + 1] += vel.y * dt;
+        pos[i * 3 + 2] += vel.z * dt;
+
+        // Progress from warm amber to cold dissipation blue
+        const progress = life.age / life.maxAge;
+        tempColor.copy(warmColor).lerp(coolColor, progress);
+
+        col[i * 3] = tempColor.r;
+        col[i * 3 + 1] = tempColor.g;
+        col[i * 3 + 2] = tempColor.b;
+      }
+    }
+
+    geometry.attributes.position.needsUpdate = true;
+    geometry.attributes.color.needsUpdate = true;
+  };
+
+  return points;
+}
+
 // Backward compatibility exports
 export const createHimalayanMountains = () => createDynamicMountains('plateau');
 export const createPlateauGround = () => createDynamicGround('plateau', true);

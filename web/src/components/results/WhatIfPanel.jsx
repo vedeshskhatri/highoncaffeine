@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { getMaterialSpec } from '../materialsData';
 
 /**
  * WhatIfPanel.jsx — Phase 3: What-If Analysis
@@ -129,7 +130,7 @@ function extractBaselineValue(request, parameter) {
   }
 }
 
-export default function WhatIfPanel({ request, result, baselineData }) {
+export default function WhatIfPanel({ request, result, baselineData, onApplyDesign }) {
   const [variableSpecs, setVariableSpecs] = useState(DEFAULT_VARIABLE_SPECS);
   const [selectedVar, setSelectedVar] = useState('wall_thickness');
   const [currentValue, setCurrentValue] = useState(0.30);
@@ -137,6 +138,7 @@ export default function WhatIfPanel({ request, result, baselineData }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [warning, setWarning] = useState(null);
+  const [appliedNotice, setAppliedNotice] = useState(false);
 
   const debounceTimerRef = useRef(null);
   const reqIdRef = useRef(0);
@@ -478,27 +480,137 @@ export default function WhatIfPanel({ request, result, baselineData }) {
               </button>
             </div>
           ) : activeSpec?.options && selectedVar === 'material' ? (
-            /* Material selector dropdown */
-            <select
-              value={currentValue}
-              onChange={(e) => setCurrentValue(e.target.value)}
-              style={{
-                width: '100%',
-                padding: 'var(--space-2)',
-                fontFamily: 'var(--font-body)',
-                fontSize: 'var(--text-body-size)',
-                backgroundColor: 'var(--surface-1)',
-                color: 'var(--text-primary)',
-                border: 'var(--border-width) solid var(--border)',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              {activeSpec.options.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt.replace(/_/g, ' ').toUpperCase()}
-                </option>
-              ))}
-            </select>
+            /* Material selector dropdown & Authoritative Spec Card */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <select
+                value={currentValue}
+                onChange={(e) => setCurrentValue(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: 'var(--space-2)',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 'var(--text-body-size)',
+                  backgroundColor: 'var(--surface-1)',
+                  color: 'var(--text-primary)',
+                  border: 'var(--border-width) solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                {activeSpec.options.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {getMaterialSpec(opt).name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Authoritative Live Material Properties & Citation */}
+              {(() => {
+                const spec = getMaterialSpec(currentValue);
+                return (
+                  <div
+                    style={{
+                      padding: '10px 12px',
+                      background: 'var(--surface-1)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '11px',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{spec.name}</span>
+                      {spec.citation && (
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '9.5px',
+                          color: '#059669',
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          fontWeight: 600,
+                        }}>
+                          Standard: {spec.citation}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(4, 1fr)',
+                      gap: '6px',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '10px',
+                    }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Conductivity (k)</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{spec.conductivity_w_mk} W/m·K</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Density (ρ)</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{spec.density_kg_m3} kg/m³</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Spec Heat (cp)</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{spec.specific_heat_j_kgk} J/kg·K</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block' }}>Unit Cost</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {spec.cost_inr_m2 ? `₹${spec.cost_inr_m2}/m²` : spec.cost_inr_m3 ? `₹${spec.cost_inr_m3}/m³` : '—'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Apply to 3D Shelter Button */}
+                    <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedWalls = [...(effectiveRequest.envelope?.walls || [])];
+                          if (updatedWalls.length > 0) {
+                            updatedWalls[0] = { ...updatedWalls[0], material: currentValue };
+                          }
+                          const updatedReq = {
+                            ...effectiveRequest,
+                            envelope: {
+                              ...effectiveRequest.envelope,
+                              walls: updatedWalls,
+                            },
+                          };
+                          if (onApplyDesign) {
+                            onApplyDesign(updatedReq);
+                            setAppliedNotice(true);
+                            setTimeout(() => setAppliedNotice(false), 2500);
+                          }
+                        }}
+                        style={{
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          padding: '4px 12px',
+                          background: 'var(--solar, #C2410C)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          boxShadow: '0 1px 4px rgba(194, 65, 12, 0.25)',
+                        }}
+                      >
+                        Apply to 3D Shelter
+                      </button>
+                      {appliedNotice && (
+                        <span style={{ color: '#059669', fontSize: '11px', fontWeight: 600 }}>
+                          ✓ Synchronized to 3D Shelter
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           ) : null}
 
           {/* Valid range hint */}
