@@ -70,8 +70,8 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -79,10 +79,10 @@
 }
 
 .sidebar-collapse-trigger-btn:hover {
-  background: #ffffff;
+  background: var(--bg-card);
   color: var(--text-primary);
-  border-color: var(--border);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-xs);
 }
 
 .sidebar-brand-link {
@@ -96,7 +96,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-md);
-  background-color: var(--surface-2, #F1F5F9);
+  background-color: var(--surface-2);
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -250,13 +250,13 @@
 
 /* Clean, Lightweight Active State — No Heavy Black Brick */
 .clean-nav-link.active {
-  background-color: #F1F5F9;
+  background-color: var(--surface-2);
   color: var(--text-primary);
   font-weight: 600;
 }
 
 .clean-nav-link.active .nav-link-icon {
-  color: var(--brand-blue);
+  color: var(--text-primary);
 }
 
 .clean-nav-link.active::before {
@@ -266,7 +266,7 @@
   top: 6px;
   bottom: 6px;
   width: 3px;
-  background-color: var(--brand-blue);
+  background-color: var(--text-primary);
   border-radius: 0 3px 3px 0;
 }
 
@@ -394,7 +394,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background-color: #1E293B;
+  background-color: var(--surface-dark);
   color: #FFFFFF;
   font-family: var(--font-heading);
   font-size: 11px;

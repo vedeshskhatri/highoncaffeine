@@ -55,20 +55,20 @@
 }
 
 .topbar-collapsed-brand:hover {
-  background-color: #ffffff;
-  border-color: var(--border);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  background-color: var(--bg-card);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-xs);
 }
 
 .topbar-brand-icon-box {
   width: 24px;
   height: 24px;
   border-radius: 4px;
-  background-color: #ffffff;
+  background-color: var(--bg-card);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
 }
 
 .topbar-brand-logo {
@@ -192,7 +192,7 @@
 
 .topbar-cmd-btn:hover {
   border-color: var(--border-strong);
-  background-color: #FFFFFF;
+  background-color: var(--bg-card);
   box-shadow: var(--shadow-sm);
 }
 
@@ -217,7 +217,7 @@
   font-size: 10.5px;
   font-weight: 600;
   padding: 2px 6px;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   color: var(--text-secondary);
