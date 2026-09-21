@@ -78,10 +78,50 @@ describe('THERMA 3D Shelter Inspector Material Synchronization', () => {
   });
 
   it('texture resolver handles all architectural materials without error', () => {
-    const materials = ['mud_brick', 'rammed_earth', 'stone_masonry', 'rockwool', 'eps', 'xps', 'puf_sandwich', 'timber', 'concrete', 'cgi_sheet'];
+    const materials = [
+      'mud_brick',
+      'rammed_earth',
+      'stone_masonry',
+      'rockwool',
+      'eps',
+      'xps',
+      'puf_sandwich',
+      'timber',
+      'concrete',
+      'cgi_sheet',
+      'kath_kuni',
+      'jaisalmer_stone',
+      'jali_screen',
+      'slate_roof',
+    ];
     for (const mat of materials) {
       const tex = getTextureForMaterial(mat);
       assert.ok(tex !== null && tex !== undefined, `Texture for ${mat} should be defined`);
     }
+  });
+
+  it('siteArchetype resolves locations into authentic regional architectural typologies matching 2D CAD elevations', async () => {
+    const { getSiteArchetype, ARCHETYPE_CONFIGS } = await import('./siteArchetype.js');
+
+    // Manali: Alpine Valley & Ridge (Himachal) -> Gabled Alpine Timber-Laced Stone
+    assert.strictEqual(getSiteArchetype('Manali Valley Post', { altitude_m: 2050, lat: 32.24, lon: 77.18 }), 'manali');
+    assert.strictEqual(ARCHETYPE_CONFIGS.manali.roofType, 'pitched');
+    assert.strictEqual(ARCHETYPE_CONFIGS.manali.pitchDeg, 30);
+
+    // Leh: Cold Arid High Plateau (Ladakh) -> Mud & willow talu ceiling with tarka parapet
+    assert.strictEqual(getSiteArchetype('Leh Garrison', { altitude_m: 3500, lat: 34.15, lon: 77.58 }), 'leh');
+    assert.strictEqual(ARCHETYPE_CONFIGS.leh.roofType, 'flat_tarka');
+
+    // Jaisalmer: Hot Arid Desert (Thar) -> Yellow sandstone, jali screen, kangura parapet
+    assert.strictEqual(getSiteArchetype('Jaisalmer Desert Sector', { altitude_m: 220, lat: 26.9, lon: 70.9 }), 'jaisalmer');
+    assert.strictEqual(ARCHETYPE_CONFIGS.jaisalmer.roofType, 'flat_stone_battlement');
+
+    // Siachen: Glacial Cryosphere -> Aerodynamic pod with monoslope shed roof
+    assert.strictEqual(getSiteArchetype('Siachen Base Camp', { altitude_m: 3600, lat: 35.2, lon: 77.2 }), 'siachen');
+    assert.strictEqual(ARCHETYPE_CONFIGS.siachen.roofType, 'aerodynamic_pod');
+
+    // Delhi: Composite Lowland Plain -> Flat concrete terrace with railing
+    assert.strictEqual(getSiteArchetype('Delhi Garrison Outpost', { altitude_m: 215, lat: 28.6, lon: 77.2 }), 'delhi');
+    assert.strictEqual(ARCHETYPE_CONFIGS.delhi.roofType, 'flat_terrace_railing');
   });
 });

@@ -17,6 +17,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { Compass, Eye, Maximize2, Layers, X, Mountain, Grid, Sun, Flame, Sparkles, Box, Wind, Sliders, ShieldCheck } from 'lucide-react';
 import { getMaterialSpec, computeLayerR, computeTotalU, fetchAndCacheMaterials } from './materialsData';
+import { getSiteArchetype, ARCHETYPE_CONFIGS } from './siteArchetype';
 import {
   getTextureForMaterial,
   getAdobeTexture,
@@ -27,6 +28,10 @@ import {
   getConcreteTexture,
   getMetalSeamRoofTexture,
   getSolarPanelTexture,
+  getJaliScreenTexture,
+  getKathKuniTexture,
+  getJaisalmerStoneTexture,
+  getSlateRoofTexture,
 } from './threeUtils/proceduralTextures';
 import {
   detectBiome,
@@ -124,6 +129,14 @@ export default function Shelter3DCanvas({
     [request?.location?.lat, request?.location?.lon, request?.location?.altitude_m, activeSiteName]
   );
   const biomeMeta = useMemo(() => getBiomeMeta(biome), [biome]);
+
+  // Regional Architectural Archetype & Typology reactivity
+  const archetype = useMemo(
+    () => getSiteArchetype(activeSiteName, request?.location),
+    [activeSiteName, request?.location?.lat, request?.location?.lon, request?.location?.altitude_m]
+  );
+  const archConfig = useMemo(() => ARCHETYPE_CONFIGS[archetype] || ARCHETYPE_CONFIGS.siachen, [archetype]);
+  const effectiveSnowCover = snowCover && archetype !== 'jaisalmer' && archetype !== 'delhi';
 
   // Extract geometry & envelope props safely
   const length_m = request?.geometry?.length_m ?? 6.0;
@@ -369,7 +382,7 @@ export default function Shelter3DCanvas({
     if (envMode === 'himalayas') {
       const sky = createSkyDome(biome);
       const mountains = createDynamicMountains(biome);
-      const ground = createDynamicGround(biome, snowCover);
+      const ground = createDynamicGround(biome, effectiveSnowCover);
       envGroup.add(sky);
       envGroup.add(mountains);
       envGroup.add(ground);
@@ -386,7 +399,7 @@ export default function Shelter3DCanvas({
         hemiLightRef.current.groundColor.setHex(biomeMeta.hemiGround);
       }
     }
-  }, [biome, biomeMeta, snowCover, envMode]);
+  }, [biome, biomeMeta, effectiveSnowCover, envMode]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      3. HIGH-END PASSIVE SOLAR ARCHITECTURAL SHELTER MODEL
@@ -484,15 +497,41 @@ export default function Shelter3DCanvas({
       return new THREE.MeshStandardMaterial({ map: tex, roughness: r, metalness: m });
     };
 
-    const wallExteriorMat = createMat(outerWallMat, 0xD4CEBE);
+    // Select authentic regional base materials based on climatic archetype
+    let defaultOuterMat = outerWallMat;
+    let defaultRoofMat = roofMat;
+    if (archetype === 'manali') {
+      defaultOuterMat = 'kath_kuni';
+      defaultRoofMat = 'slate_roof';
+    } else if (archetype === 'jaisalmer') {
+      defaultOuterMat = 'jaisalmer_stone';
+      defaultRoofMat = 'jaisalmer_stone';
+    } else if (archetype === 'leh') {
+      defaultOuterMat = 'mud_brick';
+      defaultRoofMat = 'mud_brick';
+    } else if (archetype === 'delhi') {
+      defaultOuterMat = 'brick';
+      defaultRoofMat = 'concrete';
+    }
+
+    const wallExteriorMat = createMat(
+      walls[0]?.material || defaultOuterMat,
+      archetype === 'jaisalmer' ? 0xF59E0B : archetype === 'manali' ? 0xB45309 : 0xD4CEBE
+    );
     const wallInsulationMat = createMat(innerWallMat || 'eps', 0xEAB308);
-    const wallInteriorMat = createMat(walls[2]?.material || (outerWallMat.includes('stone') ? 'mud_brick' : outerWallMat), 0x22C55E);
+    const wallInteriorMat = createMat(
+      walls[2]?.material || (outerWallMat.includes('stone') ? 'mud_brick' : outerWallMat),
+      0x22C55E
+    );
     const timberMat = isFraming
       ? new THREE.MeshStandardMaterial({ color: 0xD97706, roughness: 0.6 })
       : createMat('timber', 0xB45309);
-    const stonePlinthMat = createMat('stone', 0x475569);
+    const stonePlinthMat = createMat(
+      archetype === 'jaisalmer' ? 'jaisalmer_stone' : archetype === 'manali' ? 'stone' : 'stone',
+      0x475569
+    );
     const concreteFloorMat = createMat(floorMat, 0x15803D);
-    const metalRoofMat = createMat(roofMat, 0x38BDF8);
+    const metalRoofMat = createMat(defaultRoofMat, 0x38BDF8);
     const solarPvMat = createMat('solar_pv', 0x0EA5E9);
 
     // ── 1. Chamfered Foundation Plinth ──
@@ -503,6 +542,26 @@ export default function Shelter3DCanvas({
     plinthMesh.receiveShadow = true;
     plinthMesh.castShadow = true;
     shelter.add(plinthMesh);
+
+    // Siachen Permafrost Moraine Stilts
+    if (archetype === 'siachen') {
+      const stiltGeo = new THREE.BoxGeometry(0.35, 0.35, 0.35);
+      const stiltPositions = [
+        { x: -l / 2 + 0.4, z: -w / 2 + 0.4 },
+        { x:  l / 2 - 0.4, z: -w / 2 + 0.4 },
+        { x: -l / 2 + 0.4, z:  w / 2 - 0.4 },
+        { x:  l / 2 - 0.4, z:  w / 2 - 0.4 },
+        { x:  0,           z: -w / 2 + 0.4 },
+        { x:  0,           z:  w / 2 - 0.4 },
+      ];
+      stiltPositions.forEach(pos => {
+        const stilt = new THREE.Mesh(stiltGeo, stonePlinthMat);
+        stilt.position.set(pos.x, -0.15, pos.z);
+        stilt.castShadow = true;
+        stilt.receiveShadow = true;
+        shelter.add(stilt);
+      });
+    }
 
     // ── 2. Thermal Mass Floor Slab & Interior Flooring ──
     const floorSlabThick = 0.22;
@@ -527,7 +586,7 @@ export default function Shelter3DCanvas({
     const intThick = totalWallThick * 0.10;
     const wallBaseY = plinthThick + floorSlabThick + h / 2;
 
-    // Corner Stone Quoins / Posts
+    // Corner Quoins / Posts
     const quoinSize = totalWallThick * 1.12;
     const quoinGeo = new THREE.BoxGeometry(quoinSize, h, quoinSize);
     const corners = [
@@ -538,7 +597,7 @@ export default function Shelter3DCanvas({
     ];
     const quoinMeshes = [];
     corners.forEach((c) => {
-      const qMesh = new THREE.Mesh(quoinGeo, stonePlinthMat);
+      const qMesh = new THREE.Mesh(quoinGeo, archetype === 'manali' ? timberMat : stonePlinthMat);
       qMesh.position.set(c.x, wallBaseY, c.z);
       qMesh.castShadow = true;
       qMesh.receiveShadow = true;
@@ -567,15 +626,49 @@ export default function Shelter3DCanvas({
     northInt.position.z = coreThick / 2 + intThick / 2;
     northGroup.add(northInt);
 
-    // Small High-Level Transom Ventilation Lintel on North
-    const ventTransomGeo = new THREE.BoxGeometry(0.8, 0.22, extThick * 1.05);
-    const ventTransom = new THREE.Mesh(ventTransomGeo, timberMat);
-    ventTransom.position.set(0, h * 0.35, -coreThick / 2 - intThick / 2);
-    northGroup.add(ventTransom);
+    // North Facade Fenestration by Archetype
+    let ventTransom = null;
+    if (archetype === 'jaisalmer') {
+      // Jali screened north clerestory window
+      const jaliNorthGeo = new THREE.BoxGeometry(1.2, 0.45, extThick * 1.05);
+      const jaliNorth = new THREE.Mesh(jaliNorthGeo, createMat('jali', null));
+      jaliNorth.position.set(0, h * 0.32, -coreThick / 2 - intThick / 2);
+      northGroup.add(jaliNorth);
+    } else if (archetype === 'delhi') {
+      // North window with concrete overhang
+      const winGeo = new THREE.BoxGeometry(1.1, 0.8, extThick * 1.05);
+      const winMesh = new THREE.Mesh(winGeo, timberMat);
+      winMesh.position.set(0, h * 0.1, -coreThick / 2 - intThick / 2);
+      northGroup.add(winMesh);
+
+      const chhajjaNGeo = new THREE.BoxGeometry(1.4, 0.08, 0.5);
+      const chhajjaN = new THREE.Mesh(chhajjaNGeo, concreteFloorMat);
+      chhajjaN.position.set(0, h * 0.1 + 0.45, -coreThick / 2 - intThick / 2 - 0.25);
+      northGroup.add(chhajjaN);
+    } else {
+      // Small High-Level Transom Ventilation Lintel on North
+      const ventTransomGeo = new THREE.BoxGeometry(0.8, 0.22, extThick * 1.05);
+      ventTransom = new THREE.Mesh(ventTransomGeo, timberMat);
+      ventTransom.position.set(0, h * 0.35, -coreThick / 2 - intThick / 2);
+      northGroup.add(ventTransom);
+    }
+
+    // Kath-Kuni horizontal timber cribbage courses for Manali
+    if (archetype === 'manali') {
+      const beamCourses = 4;
+      for (let i = 1; i <= beamCourses; i++) {
+        const by = -h / 2 + (i / (beamCourses + 1)) * h;
+        const beamGeo = new THREE.BoxGeometry(l + 0.05, 0.12, extThick * 1.08);
+        const beamMesh = new THREE.Mesh(beamGeo, timberMat);
+        beamMesh.position.set(0, by, -coreThick / 2 - intThick / 2);
+        beamMesh.castShadow = true;
+        northGroup.add(beamMesh);
+      }
+    }
 
     shelter.add(northGroup);
 
-    // ── B. East Facade with Protruding Arctic Airlock Vestibule ──
+    // ── B. East Facade & Entrance Portal (Adapted by Archetype) ──
     const sideWallLen = w - totalWallThick * 2;
     const eastGroup = new THREE.Group();
     eastGroup.position.set(-l / 2 + totalWallThick / 2, wallBaseY, 0);
@@ -591,44 +684,165 @@ export default function Shelter3DCanvas({
     const eastCore = new THREE.Mesh(eastCoreGeo, wallInsulationMat);
     eastGroup.add(eastCore);
 
-    // Protruding Arctic Airlock Vestibule Mudroom
-    const vestibuleDepth = 1.35;
-    const vestibuleWidth = 1.45;
-    const vestibuleHeight = h * 0.88;
-    const vestibuleGroup = new THREE.Group();
-    vestibuleGroup.position.set(-extThick / 2 - vestibuleDepth / 2, -h / 2 + vestibuleHeight / 2, 0.3);
+    let vestWallMesh = null;
+    let canopyMesh = null;
+    let doorMesh = null;
+    let handleMesh = null;
 
-    const vestWallGeo = new THREE.BoxGeometry(vestibuleDepth, vestibuleHeight, vestibuleWidth);
-    const vestWallMesh = new THREE.Mesh(vestWallGeo, wallExteriorMat);
-    vestWallMesh.castShadow = true;
-    vestWallMesh.receiveShadow = true;
-    vestibuleGroup.add(vestWallMesh);
+    if (archetype === 'siachen' || archetype === 'dras') {
+      // Protruding Arctic Airlock Vestibule Mudroom
+      const vestibuleDepth = 1.35;
+      const vestibuleWidth = 1.45;
+      const vestibuleHeight = h * 0.88;
+      const vestibuleGroup = new THREE.Group();
+      vestibuleGroup.position.set(-extThick / 2 - vestibuleDepth / 2, -h / 2 + vestibuleHeight / 2, 0.3);
 
-    // Vestibule Pitched Canopy Hood
-    const canopyGeo = new THREE.BoxGeometry(vestibuleDepth + 0.25, 0.08, vestibuleWidth + 0.25);
-    const canopyMesh = new THREE.Mesh(canopyGeo, metalRoofMat);
-    canopyMesh.position.set(0, vestibuleHeight / 2 + 0.04, 0);
-    canopyMesh.rotation.z = -0.12; // Shed water/snow away
-    canopyMesh.castShadow = true;
-    vestibuleGroup.add(canopyMesh);
+      const vestWallGeo = new THREE.BoxGeometry(vestibuleDepth, vestibuleHeight, vestibuleWidth);
+      vestWallMesh = new THREE.Mesh(vestWallGeo, wallExteriorMat);
+      vestWallMesh.castShadow = true;
+      vestWallMesh.receiveShadow = true;
+      vestibuleGroup.add(vestWallMesh);
 
-    // Heavy Mountain Entry Door
-    const doorW = 0.92;
-    const doorH = 1.95;
-    const doorGeo = new THREE.BoxGeometry(0.08, doorH, doorW);
-    const doorMesh = new THREE.Mesh(doorGeo, timberMat);
-    doorMesh.position.set(-vestibuleDepth / 2 - 0.04, -vestibuleHeight / 2 + doorH / 2, 0);
-    doorMesh.castShadow = true;
-    vestibuleGroup.add(doorMesh);
+      // Vestibule Pitched Canopy Hood
+      const canopyGeo = new THREE.BoxGeometry(vestibuleDepth + 0.25, 0.08, vestibuleWidth + 0.25);
+      canopyMesh = new THREE.Mesh(canopyGeo, metalRoofMat);
+      canopyMesh.position.set(0, vestibuleHeight / 2 + 0.04, 0);
+      canopyMesh.rotation.z = -0.12;
+      canopyMesh.castShadow = true;
+      vestibuleGroup.add(canopyMesh);
 
-    // Stainless Steel Hardware Handle
-    const handleGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.35, 8);
-    const handleMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E1, metalness: 0.9, roughness: 0.2 });
-    const handleMesh = new THREE.Mesh(handleGeo, handleMat);
-    handleMesh.position.set(-vestibuleDepth / 2 - 0.1, -vestibuleHeight / 2 + doorH / 2, doorW * 0.35);
-    vestibuleGroup.add(handleMesh);
+      // Heavy Mountain Entry Door
+      const doorW = 0.92;
+      const doorH = 1.95;
+      const doorGeo = new THREE.BoxGeometry(0.08, doorH, doorW);
+      doorMesh = new THREE.Mesh(doorGeo, timberMat);
+      doorMesh.position.set(-vestibuleDepth / 2 - 0.04, -vestibuleHeight / 2 + doorH / 2, 0);
+      doorMesh.castShadow = true;
+      vestibuleGroup.add(doorMesh);
 
-    eastGroup.add(vestibuleGroup);
+      // Stainless Steel Hardware Handle
+      const handleGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.35, 8);
+      const handleMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E1, metalness: 0.9, roughness: 0.2 });
+      handleMesh = new THREE.Mesh(handleGeo, handleMat);
+      handleMesh.position.set(-vestibuleDepth / 2 - 0.1, -vestibuleHeight / 2 + doorH / 2, doorW * 0.35);
+      vestibuleGroup.add(handleMesh);
+
+      eastGroup.add(vestibuleGroup);
+
+    } else if (archetype === 'manali') {
+      // Alpine Sheltered Timber Porch Veranda Entry
+      const porchDepth = 0.95;
+      const porchWidth = 1.55;
+      const porchHeight = h * 0.92;
+      const porchGroup = new THREE.Group();
+      porchGroup.position.set(-extThick / 2 - porchDepth / 2, -h / 2 + porchHeight / 2, 0.2);
+
+      // Timber Porch Columns / Posts
+      const postGeo = new THREE.BoxGeometry(0.12, porchHeight, 0.12);
+      const post1 = new THREE.Mesh(postGeo, timberMat);
+      post1.position.set(-porchDepth / 2 + 0.06, 0, -porchWidth / 2 + 0.06);
+      post1.castShadow = true;
+      porchGroup.add(post1);
+
+      const post2 = new THREE.Mesh(postGeo, timberMat);
+      post2.position.set(-porchDepth / 2 + 0.06, 0, porchWidth / 2 - 0.06);
+      post2.castShadow = true;
+      porchGroup.add(post2);
+
+      // Timber Lintels & Transom
+      const lintelBeamGeo = new THREE.BoxGeometry(0.12, 0.14, porchWidth);
+      const lintelBeam = new THREE.Mesh(lintelBeamGeo, timberMat);
+      lintelBeam.position.set(-porchDepth / 2 + 0.06, porchHeight / 2 - 0.07, 0);
+      lintelBeam.castShadow = true;
+      porchGroup.add(lintelBeam);
+
+      // Gabled Timber Canopy Hood over entrance
+      const canopyGeo = new THREE.BoxGeometry(porchDepth + 0.35, 0.08, porchWidth + 0.35);
+      canopyMesh = new THREE.Mesh(canopyGeo, timberMat);
+      canopyMesh.position.set(0, porchHeight / 2 + 0.08, 0);
+      canopyMesh.rotation.z = -0.15;
+      canopyMesh.castShadow = true;
+      porchGroup.add(canopyMesh);
+
+      // Mountain Deodar Wood Door with Carved Panels
+      const doorW = 0.95;
+      const doorH = 2.0;
+      const doorGeo = new THREE.BoxGeometry(0.08, doorH, doorW);
+      doorMesh = new THREE.Mesh(doorGeo, timberMat);
+      doorMesh.position.set(0, -porchHeight / 2 + doorH / 2, 0);
+      doorMesh.castShadow = true;
+      porchGroup.add(doorMesh);
+
+      eastGroup.add(porchGroup);
+
+    } else if (archetype === 'jaisalmer') {
+      // Arched Yellow Sandstone Portal
+      const portalDepth = 0.35;
+      const portalWidth = 1.35;
+      const portalHeight = 2.2;
+      const portalGroup = new THREE.Group();
+      portalGroup.position.set(-extThick / 2 - portalDepth / 2, -h / 2 + portalHeight / 2, 0);
+
+      // Projecting Sandstone Bracket Jambs
+      const bracketGeo = new THREE.BoxGeometry(portalDepth, 0.22, 0.18);
+      const b1 = new THREE.Mesh(bracketGeo, wallExteriorMat);
+      b1.position.set(0, portalHeight / 2 - 0.11, -portalWidth / 2 + 0.09);
+      b1.castShadow = true;
+      portalGroup.add(b1);
+
+      const b2 = new THREE.Mesh(bracketGeo, wallExteriorMat);
+      b2.position.set(0, portalHeight / 2 - 0.11, portalWidth / 2 - 0.09);
+      b2.castShadow = true;
+      portalGroup.add(b2);
+
+      // Heavy Carved Sandstone Lintel Hood
+      const hoodGeo = new THREE.BoxGeometry(portalDepth + 0.15, 0.12, portalWidth + 0.25);
+      canopyMesh = new THREE.Mesh(hoodGeo, wallExteriorMat);
+      canopyMesh.position.set(-0.04, portalHeight / 2 + 0.06, 0);
+      canopyMesh.castShadow = true;
+      portalGroup.add(canopyMesh);
+
+      // Carved Teak / Rosewood Studded Door
+      const doorGeo = new THREE.BoxGeometry(0.06, 1.95, 0.95);
+      doorMesh = new THREE.Mesh(doorGeo, timberMat);
+      doorMesh.position.set(portalDepth / 2 - 0.03, -portalHeight / 2 + 0.975, 0);
+      doorMesh.castShadow = true;
+      portalGroup.add(doorMesh);
+
+      eastGroup.add(portalGroup);
+
+    } else if (archetype === 'leh') {
+      // Ladakhi Entrance Portal with Shing-tsag Lintel
+      const portalWidth = 1.35;
+      const portalHeight = 2.1;
+      const portalGroup = new THREE.Group();
+      portalGroup.position.set(-extThick / 2 - 0.12, -h / 2 + portalHeight / 2, 0);
+
+      // Distinctive carved wooden stepped corbel lintel (shing-tsag)
+      const shingTsagGeo = new THREE.BoxGeometry(0.24, 0.18, portalWidth + 0.35);
+      canopyMesh = new THREE.Mesh(shingTsagGeo, timberMat);
+      canopyMesh.position.set(0, portalHeight / 2 - 0.09, 0);
+      canopyMesh.castShadow = true;
+      portalGroup.add(canopyMesh);
+
+      // Heavy timber door
+      const doorGeo = new THREE.BoxGeometry(0.06, 1.9, 0.92);
+      doorMesh = new THREE.Mesh(doorGeo, timberMat);
+      doorMesh.position.set(0.06, -portalHeight / 2 + 0.95, 0);
+      doorMesh.castShadow = true;
+      portalGroup.add(doorMesh);
+
+      eastGroup.add(portalGroup);
+
+    } else {
+      // Delhi / Lowland Entrance Door
+      const doorGeo = new THREE.BoxGeometry(0.06, 2.05, 0.95);
+      doorMesh = new THREE.Mesh(doorGeo, timberMat);
+      doorMesh.position.set(-extThick / 2 - 0.02, -h / 2 + 1.025, 0);
+      doorMesh.castShadow = true;
+      eastGroup.add(doorMesh);
+    }
+
     shelter.add(eastGroup);
 
     // ── C. West Wall (Heavy Sheltered Wall) ──
@@ -643,9 +857,23 @@ export default function Shelter3DCanvas({
 
     const westCore = new THREE.Mesh(eastCoreGeo, wallInsulationMat);
     westGroup.add(westCore);
+
+    // Kath-Kuni horizontal timber cribbage courses for Manali West Wall
+    if (archetype === 'manali') {
+      const beamCourses = 4;
+      for (let i = 1; i <= beamCourses; i++) {
+        const by = -h / 2 + (i / (beamCourses + 1)) * h;
+        const beamGeo = new THREE.BoxGeometry(extThick * 1.08, 0.12, sideWallLen + 0.05);
+        const beamMesh = new THREE.Mesh(beamGeo, timberMat);
+        beamMesh.position.set(coreThick / 2 + intThick / 2, by, 0);
+        beamMesh.castShadow = true;
+        westGroup.add(beamMesh);
+      }
+    }
+
     shelter.add(westGroup);
 
-    // ── D. South Facade with Trombe Mass Wall & Glazed Solar Aperture ──
+    // ── D. South Facade (Adapted by Archetype) ──
     const southGroup = new THREE.Group();
     southGroup.position.set(0, wallBaseY, w / 2 - totalWallThick / 2);
 
@@ -669,196 +897,782 @@ export default function Shelter3DCanvas({
     rightPier.receiveShadow = true;
     southGroup.add(rightPier);
 
-    // Heavy Timber Lintel
-    const lintelHeight = h - (winHeight + 0.35);
+    // Wall section below window (Spandrel)
+    const spandrelH = 0.35;
+    const spandrelGeo = new THREE.BoxGeometry(winWidth, spandrelH, totalWallThick);
+    const spandrel = new THREE.Mesh(spandrelGeo, wallExteriorMat);
+    spandrel.position.set(0, -h / 2 + spandrelH / 2, 0);
+    spandrel.castShadow = true;
+    southGroup.add(spandrel);
+
+    // Heavy Lintel above window
+    const lintelHeight = h - (winHeight + spandrelH);
     let lintel = null;
     if (lintelHeight > 0.08) {
       const lintelGeo = new THREE.BoxGeometry(winWidth, lintelHeight, totalWallThick * 1.05);
-      lintel = new THREE.Mesh(lintelGeo, timberMat);
+      lintel = new THREE.Mesh(lintelGeo, archetype === 'delhi' ? concreteFloorMat : timberMat);
       lintel.position.set(0, h / 2 - lintelHeight / 2, 0);
       lintel.castShadow = true;
       southGroup.add(lintel);
     }
 
-    // Trombe Mass Absorber Wall (Set behind glazing cavity)
-    const trombeThick = 0.22;
-    const trombeGeo = new THREE.BoxGeometry(winWidth * 0.96, winHeight * 0.94, trombeThick);
-    const trombeMat = isThermal
-      ? new THREE.MeshStandardMaterial({ color: 0xEF4444, roughness: 0.3 }) // Sizzling hot thermal absorber
-      : new THREE.MeshStandardMaterial({ color: 0x2A2421, roughness: 0.95 }); // Matte solar black absorber
-    const trombeMesh = new THREE.Mesh(trombeGeo, trombeMat);
-    trombeMesh.position.set(0, winYOffset, -totalWallThick * 0.25);
-    southGroup.add(trombeMesh);
-
-    // Trombe Air Circulation Vents (Upper & Lower registers)
-    const ventGeo = new THREE.BoxGeometry(0.35, 0.12, trombeThick * 1.05);
-    const ventMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7, roughness: 0.3 });
-    const topVent1 = new THREE.Mesh(ventGeo, ventMat);
-    topVent1.position.set(-winWidth * 0.28, winYOffset + winHeight * 0.38, -totalWallThick * 0.25);
-    const topVent2 = new THREE.Mesh(ventGeo, ventMat);
-    topVent2.position.set(winWidth * 0.28, winYOffset + winHeight * 0.38, -totalWallThick * 0.25);
-    const btmVent1 = new THREE.Mesh(ventGeo, ventMat);
-    btmVent1.position.set(-winWidth * 0.28, winYOffset - winHeight * 0.38, -totalWallThick * 0.25);
-    const btmVent2 = new THREE.Mesh(ventGeo, ventMat);
-    btmVent2.position.set(winWidth * 0.28, winYOffset - winHeight * 0.38, -totalWallThick * 0.25);
-    southGroup.add(topVent1);
-    southGroup.add(topVent2);
-    southGroup.add(btmVent1);
-    southGroup.add(btmVent2);
-
-    // Architectural Window Framing with Mullions & Jambs
-    const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, 0.12);
-    const frameMesh = new THREE.Mesh(frameGeo, timberMat);
-    frameMesh.position.set(0, winYOffset, totalWallThick * 0.42);
-    southGroup.add(frameMesh);
-
-    // Vertical Central Mullion
-    const mullionGeo = new THREE.BoxGeometry(0.08, winHeight, 0.14);
-    const mullion = new THREE.Mesh(mullionGeo, timberMat);
-    mullion.position.set(0, winYOffset, totalWallThick * 0.42);
-    southGroup.add(mullion);
-
-    // Projecting Timber Window Sill
-    const sillGeo = new THREE.BoxGeometry(winWidth + 0.2, 0.08, 0.22);
-    const sill = new THREE.Mesh(sillGeo, timberMat);
-    sill.position.set(0, winYOffset - winHeight / 2 - 0.04, totalWallThick * 0.45);
-    sill.castShadow = true;
-    southGroup.add(sill);
-
-    // High-Spec Reflective Glazing Panes
-    const glassGeo = new THREE.BoxGeometry(winWidth - 0.14, winHeight - 0.14, 0.02);
-    const glassMat = new THREE.MeshPhysicalMaterial({
-      color: isThermal ? 0xF59E0B : 0x8cc4db,
-      transparent: true,
-      opacity: isThermal ? 0.85 : 0.45,
-      roughness: 0.08,
-      transmission: isThermal ? 0.0 : 0.86,
-      ior: 1.52,
-      reflectivity: 0.9,
-    });
-    const glassMesh = new THREE.Mesh(glassGeo, glassMat);
-    glassMesh.position.set(0, winYOffset, totalWallThick * 0.42);
-    southGroup.add(glassMesh);
-
-    // Operable Insulated Night Shutter Assembly
+    let trombeMesh = null;
+    let glassMesh = null;
     let shutterLeft = null;
     let shutterRight = null;
-    if (southOpening.night_shutter) {
+    let topVent1 = null;
+    let topVent2 = null;
+    let btmVent1 = null;
+    let btmVent2 = null;
+    let frameMesh = null;
+    let mullion = null;
+    let sill = null;
+
+    if (archetype === 'siachen' || archetype === 'dras') {
+      // ═════════════════════════════════════════════════════════════════
+      // SIACHEN / DRAS: TROMBE WALL + SOLAR AIR VENTS
+      // ═════════════════════════════════════════════════════════════════
+      const trombeThick = 0.22;
+      const trombeGeo = new THREE.BoxGeometry(winWidth * 0.96, winHeight * 0.94, trombeThick);
+      const trombeMat = isThermal
+        ? new THREE.MeshStandardMaterial({ color: 0xEF4444, roughness: 0.3 })
+        : new THREE.MeshStandardMaterial({ color: 0x2A2421, roughness: 0.95 });
+      trombeMesh = new THREE.Mesh(trombeGeo, trombeMat);
+      trombeMesh.position.set(0, winYOffset, -totalWallThick * 0.25);
+      southGroup.add(trombeMesh);
+
+      // Vents
+      const ventGeo = new THREE.BoxGeometry(0.35, 0.12, trombeThick * 1.05);
+      const ventMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7, roughness: 0.3 });
+      topVent1 = new THREE.Mesh(ventGeo, ventMat);
+      topVent1.position.set(-winWidth * 0.28, winYOffset + winHeight * 0.38, -totalWallThick * 0.25);
+      topVent2 = new THREE.Mesh(ventGeo, ventMat);
+      topVent2.position.set(winWidth * 0.28, winYOffset + winHeight * 0.38, -totalWallThick * 0.25);
+      btmVent1 = new THREE.Mesh(ventGeo, ventMat);
+      btmVent1.position.set(-winWidth * 0.28, winYOffset - winHeight * 0.38, -totalWallThick * 0.25);
+      btmVent2 = new THREE.Mesh(ventGeo, ventMat);
+      btmVent2.position.set(winWidth * 0.28, winYOffset - winHeight * 0.38, -totalWallThick * 0.25);
+      southGroup.add(topVent1);
+      southGroup.add(topVent2);
+      southGroup.add(btmVent1);
+      southGroup.add(btmVent2);
+
+      // Window Frame & Mullions
+      const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, 0.12);
+      frameMesh = new THREE.Mesh(frameGeo, timberMat);
+      frameMesh.position.set(0, winYOffset, totalWallThick * 0.42);
+      southGroup.add(frameMesh);
+
+      const mullionGeo = new THREE.BoxGeometry(0.08, winHeight, 0.14);
+      mullion = new THREE.Mesh(mullionGeo, timberMat);
+      mullion.position.set(0, winYOffset, totalWallThick * 0.42);
+      southGroup.add(mullion);
+
+      // Sill
+      const sillGeo = new THREE.BoxGeometry(winWidth + 0.2, 0.08, 0.22);
+      sill = new THREE.Mesh(sillGeo, timberMat);
+      sill.position.set(0, winYOffset - winHeight / 2 - 0.04, totalWallThick * 0.45);
+      sill.castShadow = true;
+      southGroup.add(sill);
+
+      // High-Spec Reflective Glazing
+      const glassGeo = new THREE.BoxGeometry(winWidth - 0.14, winHeight - 0.14, 0.02);
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: isThermal ? 0xF59E0B : 0x8cc4db,
+        transparent: true,
+        opacity: isThermal ? 0.85 : 0.45,
+        roughness: 0.08,
+        transmission: isThermal ? 0.0 : 0.86,
+        ior: 1.52,
+        reflectivity: 0.9,
+      });
+      glassMesh = new THREE.Mesh(glassGeo, glassMat);
+      glassMesh.position.set(0, winYOffset, totalWallThick * 0.42);
+      southGroup.add(glassMesh);
+
+      // Operable Night Shutters
+      if (southOpening.night_shutter) {
+        const shutterLeafGeo = new THREE.BoxGeometry(winWidth * 0.46, winHeight - 0.1, 0.04);
+        shutterLeft = new THREE.Mesh(shutterLeafGeo, timberMat);
+        shutterLeft.position.set(-winWidth * 0.24, winYOffset, totalWallThick * 0.32);
+        shutterRight = new THREE.Mesh(shutterLeafGeo, timberMat);
+        shutterRight.position.set(winWidth * 0.24, winYOffset, totalWallThick * 0.32);
+        southGroup.add(shutterLeft);
+        southGroup.add(shutterRight);
+      }
+
+    } else if (archetype === 'jaisalmer') {
+      // ═════════════════════════════════════════════════════════════════
+      // JAISALMER: DEEP REVEALS + CARVED STONE JALI LATTICE SCREEN
+      // ═════════════════════════════════════════════════════════════════
+      const jaliMat = new THREE.MeshStandardMaterial({
+        map: getJaliScreenTexture(),
+        roughness: 0.9,
+        metalness: 0.05,
+      });
+
+      // Recessed Window reveal frame
+      const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, 0.14);
+      frameMesh = new THREE.Mesh(frameGeo, wallExteriorMat);
+      frameMesh.position.set(0, winYOffset, totalWallThick * 0.1);
+      southGroup.add(frameMesh);
+
+      // Two carved stone jali panels fitted across the window
+      const jaliGeo = new THREE.BoxGeometry(winWidth * 0.46, winHeight - 0.1, 0.05);
+      const jaliLeft = new THREE.Mesh(jaliGeo, jaliMat);
+      jaliLeft.position.set(-winWidth * 0.24, winYOffset, totalWallThick * 0.38);
+      jaliLeft.castShadow = true;
+      southGroup.add(jaliLeft);
+
+      const jaliRight = new THREE.Mesh(jaliGeo, jaliMat);
+      jaliRight.position.set(winWidth * 0.24, winYOffset, totalWallThick * 0.38);
+      jaliRight.castShadow = true;
+      southGroup.add(jaliRight);
+
+      // Sandstone projecting brackets (Todas) underneath window sill
+      const bracketGeo = new THREE.BoxGeometry(0.12, 0.20, 0.22);
+      const b1 = new THREE.Mesh(bracketGeo, wallExteriorMat);
+      b1.position.set(-winWidth * 0.35, winYOffset - winHeight / 2 - 0.1, totalWallThick * 0.42);
+      b1.castShadow = true;
+      southGroup.add(b1);
+
+      const b2 = new THREE.Mesh(bracketGeo, wallExteriorMat);
+      b2.position.set(winWidth * 0.35, winYOffset - winHeight / 2 - 0.1, totalWallThick * 0.42);
+      b2.castShadow = true;
+      southGroup.add(b2);
+
+      // Projecting Stone Sill
+      const sillGeo = new THREE.BoxGeometry(winWidth + 0.3, 0.08, 0.28);
+      sill = new THREE.Mesh(sillGeo, wallExteriorMat);
+      sill.position.set(0, winYOffset - winHeight / 2 - 0.04, totalWallThick * 0.45);
+      sill.castShadow = true;
+      southGroup.add(sill);
+
+      // Interior Glazing set behind Jali Screen
+      const glassGeo = new THREE.BoxGeometry(winWidth - 0.14, winHeight - 0.14, 0.02);
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: isThermal ? 0xF59E0B : 0x8cc4db,
+        transparent: true,
+        opacity: isThermal ? 0.85 : 0.4,
+        roughness: 0.1,
+      });
+      glassMesh = new THREE.Mesh(glassGeo, glassMat);
+      glassMesh.position.set(0, winYOffset, totalWallThick * 0.1);
+      southGroup.add(glassMesh);
+
+    } else if (archetype === 'manali') {
+      // ═════════════════════════════════════════════════════════════════
+      // MANALI: DIRECT-GAIN TIMBER-FRAMED ALPINE GLAZING + SHUTTERS
+      // ═════════════════════════════════════════════════════════════════
+      // Deep Timber Window Frame with central mullion & transom
+      const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, 0.16);
+      frameMesh = new THREE.Mesh(frameGeo, timberMat);
+      frameMesh.position.set(0, winYOffset, totalWallThick * 0.38);
+      southGroup.add(frameMesh);
+
+      const mullionGeo = new THREE.BoxGeometry(0.10, winHeight, 0.18);
+      mullion = new THREE.Mesh(mullionGeo, timberMat);
+      mullion.position.set(0, winYOffset, totalWallThick * 0.38);
+      southGroup.add(mullion);
+
+      const transomGeo = new THREE.BoxGeometry(winWidth, 0.08, 0.18);
+      const transom = new THREE.Mesh(transomGeo, timberMat);
+      transom.position.set(0, winYOffset + winHeight * 0.2, totalWallThick * 0.38);
+      southGroup.add(transom);
+
+      // Deep Alpine Timber Sill
+      const sillGeo = new THREE.BoxGeometry(winWidth + 0.25, 0.10, 0.28);
+      sill = new THREE.Mesh(sillGeo, timberMat);
+      sill.position.set(0, winYOffset - winHeight / 2 - 0.05, totalWallThick * 0.46);
+      sill.castShadow = true;
+      southGroup.add(sill);
+
+      // Clear Direct-Gain Double Glazing Panes
+      const glassGeo = new THREE.BoxGeometry(winWidth - 0.16, winHeight - 0.16, 0.02);
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: isThermal ? 0xF59E0B : 0xA5F3FC,
+        transparent: true,
+        opacity: isThermal ? 0.85 : 0.45,
+        roughness: 0.05,
+        transmission: isThermal ? 0.0 : 0.88,
+        ior: 1.52,
+      });
+      glassMesh = new THREE.Mesh(glassGeo, glassMat);
+      glassMesh.position.set(0, winYOffset, totalWallThick * 0.38);
+      southGroup.add(glassMesh);
+
+      // Operable Exterior Wooden Thermal Shutters
       const shutterLeafGeo = new THREE.BoxGeometry(winWidth * 0.46, winHeight - 0.1, 0.04);
       shutterLeft = new THREE.Mesh(shutterLeafGeo, timberMat);
-      shutterLeft.position.set(-winWidth * 0.24, winYOffset, totalWallThick * 0.32);
+      shutterLeft.position.set(-winWidth * 0.24, winYOffset, totalWallThick * 0.48);
       shutterRight = new THREE.Mesh(shutterLeafGeo, timberMat);
-      shutterRight.position.set(winWidth * 0.24, winYOffset, totalWallThick * 0.32);
+      shutterRight.position.set(winWidth * 0.24, winYOffset, totalWallThick * 0.48);
       southGroup.add(shutterLeft);
       southGroup.add(shutterRight);
+
+    } else if (archetype === 'leh') {
+      // ═════════════════════════════════════════════════════════════════
+      // LEH: HIGH-GAIN SOLAR APERTURE WITH SHING-TSAG CORBEL LINTEL
+      // ═════════════════════════════════════════════════════════════════
+      // Carved Timber Lintel (Shing-tsag) above glazing
+      const shingTsagGeo = new THREE.BoxGeometry(winWidth + 0.4, 0.16, totalWallThick * 1.15);
+      const shingTsag = new THREE.Mesh(shingTsagGeo, timberMat);
+      shingTsag.position.set(0, winYOffset + winHeight / 2 + 0.08, 0);
+      shingTsag.castShadow = true;
+      southGroup.add(shingTsag);
+
+      // Timber window frame
+      const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, 0.14);
+      frameMesh = new THREE.Mesh(frameGeo, timberMat);
+      frameMesh.position.set(0, winYOffset, totalWallThick * 0.38);
+      southGroup.add(frameMesh);
+
+      // Solar Glazing
+      const glassGeo = new THREE.BoxGeometry(winWidth - 0.14, winHeight - 0.14, 0.02);
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: isThermal ? 0xF59E0B : 0x8cc4db,
+        transparent: true,
+        opacity: isThermal ? 0.85 : 0.45,
+        transmission: isThermal ? 0.0 : 0.86,
+      });
+      glassMesh = new THREE.Mesh(glassGeo, glassMat);
+      glassMesh.position.set(0, winYOffset, totalWallThick * 0.38);
+      southGroup.add(glassMesh);
+
+      // Shutters
+      const shutterLeafGeo = new THREE.BoxGeometry(winWidth * 0.46, winHeight - 0.1, 0.04);
+      shutterLeft = new THREE.Mesh(shutterLeafGeo, timberMat);
+      shutterLeft.position.set(-winWidth * 0.24, winYOffset, totalWallThick * 0.46);
+      shutterRight = new THREE.Mesh(shutterLeafGeo, timberMat);
+      shutterRight.position.set(winWidth * 0.24, winYOffset, totalWallThick * 0.46);
+      southGroup.add(shutterLeft);
+      southGroup.add(shutterRight);
+
+    } else if (archetype === 'delhi') {
+      // ═════════════════════════════════════════════════════════════════
+      // DELHI: CANTILEVERED RCC CHHAJJA OVERHANG SUNSHADE
+      // ═════════════════════════════════════════════════════════════════
+      // Cantilevered Concrete Chhajja (0.60m projection)
+      const chhajjaProj = 0.60;
+      const chhajjaGeo = new THREE.BoxGeometry(winWidth + 0.4, 0.08, chhajjaProj);
+      const chhajja = new THREE.Mesh(chhajjaGeo, concreteFloorMat);
+      chhajja.position.set(0, winYOffset + winHeight / 2 + 0.06, totalWallThick / 2 + chhajjaProj / 2 - 0.05);
+      chhajja.castShadow = true;
+      southGroup.add(chhajja);
+
+      // Window Frame
+      const frameGeo = new THREE.BoxGeometry(winWidth, winHeight, 0.10);
+      frameMesh = new THREE.Mesh(frameGeo, timberMat);
+      frameMesh.position.set(0, winYOffset, totalWallThick * 0.38);
+      southGroup.add(frameMesh);
+
+      // Glazing
+      const glassGeo = new THREE.BoxGeometry(winWidth - 0.12, winHeight - 0.12, 0.02);
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: isThermal ? 0xF59E0B : 0x8cc4db,
+        transparent: true,
+        opacity: isThermal ? 0.85 : 0.45,
+      });
+      glassMesh = new THREE.Mesh(glassGeo, glassMat);
+      glassMesh.position.set(0, winYOffset, totalWallThick * 0.38);
+      southGroup.add(glassMesh);
     }
 
     shelter.add(southGroup);
 
-    // ── 4. Pitched Solar Shed Roof (11° Monoslope Angled Roof with South Overhang) ──
+    // ── 4. Place-Adaptive Regional Roof Architecture ──
     const roofGroup = new THREE.Group();
-    const southOverhang = 0.65; // Extended south overhang for solar shading
-    const northOverhang = 0.35;
-    const sideOverhang = 0.42;
-
-    const roofLen = l + sideOverhang * 2;
-    const roofWid = w + southOverhang + northOverhang;
     const roofBaseY = plinthThick + floorSlabThick + h;
-    const roofPitchRad = 0.16; // ~9.2 degrees pitch sloping down to North
-
-    roofGroup.position.set(0, roofBaseY, (southOverhang - northOverhang) / 2);
-
-    // Timber Rafters & Purlins
-    const rafterCount = Math.max(6, Math.round(l / 0.65));
-    const rafterGeo = new THREE.BoxGeometry(0.12, 0.16, roofWid - 0.05);
-    const rafterMeshes = [];
-    for (let i = 0; i < rafterCount; i++) {
-      const rx = -l / 2 - sideOverhang * 0.6 + (i / (rafterCount - 1)) * (roofLen - sideOverhang * 0.5);
-      const rafter = new THREE.Mesh(rafterGeo, timberMat);
-      rafter.position.set(rx, 0.1, 0);
-      rafter.rotation.x = roofPitchRad;
-      rafter.castShadow = true;
-      roofGroup.add(rafter);
-      rafterMeshes.push(rafter);
-    }
-
-    // Structural Decking
-    const deckGeo = new THREE.BoxGeometry(roofLen - 0.04, 0.04, roofWid - 0.04);
-    const deckMesh = new THREE.Mesh(deckGeo, timberMat);
-    deckMesh.position.set(0, 0.2, 0);
-    deckMesh.rotation.x = roofPitchRad;
-    deckMesh.castShadow = true;
-    roofGroup.add(deckMesh);
-
-    // Continuous XPS/EPS Insulation Board
-    const roofInsulGeo = new THREE.BoxGeometry(roofLen, 0.14, roofWid);
-    const roofInsulMesh = new THREE.Mesh(roofInsulGeo, wallInsulationMat);
-    roofInsulMesh.position.set(0, 0.29, 0);
-    roofInsulMesh.rotation.x = roofPitchRad;
-    roofGroup.add(roofInsulMesh);
-
-    // Weatherproof Standing-Seam Alpine Metal Roof
-    const metalRoofGeo = new THREE.BoxGeometry(roofLen + 0.04, 0.06, roofWid + 0.04);
-    const metalRoofMesh = new THREE.Mesh(metalRoofGeo, metalRoofMat);
-    metalRoofMesh.position.set(0, 0.39, 0);
-    metalRoofMesh.rotation.x = roofPitchRad;
-    metalRoofMesh.castShadow = true;
-    metalRoofMesh.receiveShadow = true;
-    roofGroup.add(metalRoofMesh);
-
-    // Snow retention guards along southern lower edge
-    const guardBarGeo = new THREE.BoxGeometry(roofLen - 0.2, 0.06, 0.04);
-    const guardBar = new THREE.Mesh(guardBarGeo, new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 }));
-    guardBar.position.set(0, 0.44, roofWid / 2 - 0.1);
-    guardBar.rotation.x = roofPitchRad;
-    roofGroup.add(guardBar);
-
-    // Rooftop Photovoltaic (PV) Solar Array (2 heavy solar panels)
-    const pvGroup = new THREE.Group();
-    const pvPanelGeo = new THREE.BoxGeometry(1.65, 0.05, 1.0);
-    const pv1 = new THREE.Mesh(pvPanelGeo, solarPvMat);
-    pv1.position.set(-1.0, 0.48, 0.2);
-    pv1.rotation.x = roofPitchRad + 0.15; // Tilted toward optimal winter angle
-    pv1.castShadow = true;
-    pvGroup.add(pv1);
-
-    const pv2 = new THREE.Mesh(pvPanelGeo, solarPvMat);
-    pv2.position.set(1.0, 0.48, 0.2);
-    pv2.rotation.x = roofPitchRad + 0.15;
-    pv2.castShadow = true;
-    pvGroup.add(pv2);
-    roofGroup.add(pvGroup);
-
-    // Stainless Steel Insulated Stove Chimney Pipe with Cowl
-    const chimneyGroup = new THREE.Group();
-    chimneyGroup.position.set(l * 0.28, 0.38, -w * 0.25);
-
-    const pipeGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.4, 16);
-    const pipeMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E1, metalness: 0.92, roughness: 0.15 });
-    const pipe = new THREE.Mesh(pipeGeo, pipeMat);
-    pipe.position.y = 0.7;
-    pipe.castShadow = true;
-    chimneyGroup.add(pipe);
-
-    // Conical Rain Cowl
-    const cowlGeo = new THREE.ConeGeometry(0.24, 0.16, 16);
-    const cowl = new THREE.Mesh(cowlGeo, pipeMat);
-    cowl.position.y = 1.45;
-    cowl.castShadow = true;
-    chimneyGroup.add(cowl);
-    roofGroup.add(chimneyGroup);
-
-    // Crystalline Snow Blanket on Roof when enabled
     let snowMeshRef = null;
-    if (snowCover) {
-      const snowGeo = new THREE.BoxGeometry(roofLen, 0.12, roofWid);
-      const snowMesh = new THREE.Mesh(snowGeo, createMat('snow', null));
-      snowMesh.position.set(0, 0.46, 0);
-      snowMesh.rotation.x = roofPitchRad;
-      snowMesh.receiveShadow = true;
-      snowMesh.castShadow = true;
-      roofGroup.add(snowMesh);
-      snowMeshRef = snowMesh;
+    let rafterMeshes = [];
+    let deckMesh = null;
+    let roofInsulMesh = null;
+    let metalRoofMesh = null;
+    let guardBar = null;
+    let pvPanels = [];
+    let pipe = null;
+    let cowl = null;
+
+    if (archetype === 'manali') {
+      // ═════════════════════════════════════════════════════════════════
+      // 4A. MANALI: 30° DOUBLE-PITCHED ALPINE GABLE ROOF (IS 875)
+      // ═════════════════════════════════════════════════════════════════
+      const eavesOverhang = 0.48; // Overhang beyond wall on N and S
+      const gableOverhang = 0.45; // Overhang beyond wall on E and W
+      const halfW = w / 2 + eavesOverhang;
+      const roofPitchRad = 0.5236; // 30 degrees = PI / 6
+      const ridgeHeight = Math.tan(roofPitchRad) * halfW; // ~1.43m peak rise
+      const slopeLen = halfW / Math.cos(roofPitchRad); // slope hypotenuse length
+      const totalRoofL = l + gableOverhang * 2;
+
+      roofGroup.position.set(0, roofBaseY, 0);
+
+      // Slate / Standing Seam Slate Texture
+      const slateMat = createMat('slate_roof', 0x334155, 0.75, 0.15);
+
+      // Heavy Timber Ridge Beam
+      const ridgeBeamGeo = new THREE.BoxGeometry(totalRoofL + 0.1, 0.16, 0.16);
+      const ridgeBeam = new THREE.Mesh(ridgeBeamGeo, timberMat);
+      ridgeBeam.position.set(0, ridgeHeight, 0);
+      ridgeBeam.castShadow = true;
+      roofGroup.add(ridgeBeam);
+
+      // Triangular Gable End Walls (Attic Enclosure on East & West)
+      const createGableWall = (xPos) => {
+        const gableShape = new THREE.Shape();
+        gableShape.moveTo(-w / 2, 0);
+        gableShape.lineTo(0, Math.tan(roofPitchRad) * (w / 2));
+        gableShape.lineTo(w / 2, 0);
+        gableShape.closePath();
+
+        const extrudeSettings = { depth: extThick, bevelEnabled: false };
+        const gableGeo = new THREE.ExtrudeGeometry(gableShape, extrudeSettings);
+        const gableMesh = new THREE.Mesh(gableGeo, wallExteriorMat);
+        gableMesh.rotation.y = Math.PI / 2;
+        gableMesh.position.set(xPos, 0, 0);
+        gableMesh.castShadow = true;
+        gableMesh.receiveShadow = true;
+        return gableMesh;
+      };
+
+      const eastGable = createGableWall(-l / 2);
+      const westGable = createGableWall(l / 2 - extThick);
+      roofGroup.add(eastGable);
+      roofGroup.add(westGable);
+
+      // Attic Timber Ventilation Louvres on West Gable
+      const louvreGeo = new THREE.BoxGeometry(0.04, 0.35, 0.35);
+      const louvreMesh = new THREE.Mesh(louvreGeo, timberMat);
+      louvreMesh.position.set(l / 2 + 0.02, ridgeHeight * 0.55, 0);
+      roofGroup.add(louvreMesh);
+
+      // Exposed Timber Rafters
+      const rafterCount = Math.max(6, Math.round(l / 0.7));
+      const rafterGeo = new THREE.BoxGeometry(0.08, 0.12, slopeLen);
+      for (let i = 0; i < rafterCount; i++) {
+        const rx = -l / 2 - gableOverhang * 0.5 + (i / (rafterCount - 1)) * (totalRoofL - gableOverhang);
+        // South rafter
+        const rafterS = new THREE.Mesh(rafterGeo, timberMat);
+        rafterS.position.set(rx, ridgeHeight / 2 - 0.04, halfW / 2);
+        rafterS.rotation.x = roofPitchRad;
+        rafterS.castShadow = true;
+        roofGroup.add(rafterS);
+        rafterMeshes.push(rafterS);
+
+        // North rafter
+        const rafterN = new THREE.Mesh(rafterGeo, timberMat);
+        rafterN.position.set(rx, ridgeHeight / 2 - 0.04, -halfW / 2);
+        rafterN.rotation.x = -roofPitchRad;
+        rafterN.castShadow = true;
+        roofGroup.add(rafterN);
+        rafterMeshes.push(rafterN);
+      }
+
+      // Roof Structural Timber Decking (North & South slopes)
+      const deckSlopeGeo = new THREE.BoxGeometry(totalRoofL, 0.04, slopeLen);
+      const deckS = new THREE.Mesh(deckSlopeGeo, timberMat);
+      deckS.position.set(0, ridgeHeight / 2, halfW / 2);
+      deckS.rotation.x = roofPitchRad;
+      deckS.castShadow = true;
+      roofGroup.add(deckS);
+
+      const deckN = new THREE.Mesh(deckSlopeGeo, timberMat);
+      deckN.position.set(0, ridgeHeight / 2, -halfW / 2);
+      deckN.rotation.x = -roofPitchRad;
+      deckN.castShadow = true;
+      roofGroup.add(deckN);
+      deckMesh = deckS;
+
+      // Continuous Roof Insulation Core
+      const insulSlopeGeo = new THREE.BoxGeometry(totalRoofL, 0.10, slopeLen);
+      const insulS = new THREE.Mesh(insulSlopeGeo, wallInsulationMat);
+      insulS.position.set(0, ridgeHeight / 2 + 0.05, halfW / 2);
+      insulS.rotation.x = roofPitchRad;
+      roofGroup.add(insulS);
+
+      const insulN = new THREE.Mesh(insulSlopeGeo, wallInsulationMat);
+      insulN.position.set(0, ridgeHeight / 2 + 0.05, -halfW / 2);
+      insulN.rotation.x = -roofPitchRad;
+      roofGroup.add(insulN);
+      roofInsulMesh = insulS;
+
+      // Weatherproof Alpine Slate Roof Deck Covering
+      const slateSlopeGeo = new THREE.BoxGeometry(totalRoofL + 0.04, 0.04, slopeLen + 0.04);
+      const slateS = new THREE.Mesh(slateSlopeGeo, slateMat);
+      slateS.position.set(0, ridgeHeight / 2 + 0.10, halfW / 2);
+      slateS.rotation.x = roofPitchRad;
+      slateS.castShadow = true;
+      slateS.receiveShadow = true;
+      roofGroup.add(slateS);
+
+      const slateN = new THREE.Mesh(slateSlopeGeo, slateMat);
+      slateN.position.set(0, ridgeHeight / 2 + 0.10, -halfW / 2);
+      slateN.rotation.x = -roofPitchRad;
+      slateN.castShadow = true;
+      slateN.receiveShadow = true;
+      roofGroup.add(slateN);
+      metalRoofMesh = slateS;
+
+      // Timber Bargeboards along Gable Edges
+      const bargeboardGeo = new THREE.BoxGeometry(0.04, 0.18, slopeLen + 0.08);
+      const addBargeboards = (xPos) => {
+        const bS = new THREE.Mesh(bargeboardGeo, timberMat);
+        bS.position.set(xPos, ridgeHeight / 2 + 0.08, halfW / 2);
+        bS.rotation.x = roofPitchRad;
+        roofGroup.add(bS);
+
+        const bN = new THREE.Mesh(bargeboardGeo, timberMat);
+        bN.position.set(xPos, ridgeHeight / 2 + 0.08, -halfW / 2);
+        bN.rotation.x = -roofPitchRad;
+        roofGroup.add(bN);
+      };
+      addBargeboards(-totalRoofL / 2);
+      addBargeboards(totalRoofL / 2);
+
+      // Alpine Snow Retention Guards along eaves
+      const guardGeo = new THREE.BoxGeometry(totalRoofL - 0.2, 0.06, 0.04);
+      guardBar = new THREE.Mesh(guardGeo, new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 }));
+      guardBar.position.set(0, 0.16, halfW - 0.12);
+      guardBar.rotation.x = roofPitchRad;
+      roofGroup.add(guardBar);
+
+      // Traditional Alpine Stone Chimney
+      const chimGroup = new THREE.Group();
+      chimGroup.position.set(l * 0.25, ridgeHeight * 0.5, w * 0.15);
+      const chimGeo = new THREE.BoxGeometry(0.45, 1.2, 0.45);
+      pipe = new THREE.Mesh(chimGeo, stonePlinthMat);
+      pipe.castShadow = true;
+      chimGroup.add(pipe);
+
+      const capGeo = new THREE.BoxGeometry(0.55, 0.06, 0.55);
+      cowl = new THREE.Mesh(capGeo, new THREE.MeshStandardMaterial({ color: 0x78350F }));
+      cowl.position.y = 0.63;
+      chimGroup.add(cowl);
+      roofGroup.add(chimGroup);
+
+      // Crystalline Snow Blanket on Pitched Slopes
+      if (effectiveSnowCover) {
+        const snowSlopeGeo = new THREE.BoxGeometry(totalRoofL, 0.10, slopeLen);
+        const snowS = new THREE.Mesh(snowSlopeGeo, createMat('snow', null));
+        snowS.position.set(0, ridgeHeight / 2 + 0.15, halfW / 2);
+        snowS.rotation.x = roofPitchRad;
+        snowS.receiveShadow = true;
+        roofGroup.add(snowS);
+
+        const snowN = new THREE.Mesh(snowSlopeGeo, createMat('snow', null));
+        snowN.position.set(0, ridgeHeight / 2 + 0.15, -halfW / 2);
+        snowN.rotation.x = -roofPitchRad;
+        snowN.receiveShadow = true;
+        roofGroup.add(snowN);
+        snowMeshRef = snowS;
+      }
+
+    } else if (archetype === 'jaisalmer') {
+      // ═════════════════════════════════════════════════════════════════
+      // 4B. JAISALMER: FLAT ROOF TERRACE WITH KANGURA BATTLEMENTS
+      // ═════════════════════════════════════════════════════════════════
+      const terraceOverhang = 0.25;
+      const roofL = l + terraceOverhang * 2;
+      const roofW = w + terraceOverhang * 2;
+      const parapetHeight = 0.60;
+      const parapetThick = 0.18;
+
+      roofGroup.position.set(0, roofBaseY, 0);
+
+      // Sandstone Roof Slab
+      const slabGeo = new THREE.BoxGeometry(roofL, 0.22, roofW);
+      metalRoofMesh = new THREE.Mesh(slabGeo, wallExteriorMat);
+      metalRoofMesh.position.set(0, 0.11, 0);
+      metalRoofMesh.castShadow = true;
+      metalRoofMesh.receiveShadow = true;
+      roofGroup.add(metalRoofMesh);
+
+      // Perimeter Sandstone Parapet Walls
+      const pNorthGeo = new THREE.BoxGeometry(roofL, parapetHeight, parapetThick);
+      const pNorth = new THREE.Mesh(pNorthGeo, wallExteriorMat);
+      pNorth.position.set(0, 0.22 + parapetHeight / 2, -roofW / 2 + parapetThick / 2);
+      pNorth.castShadow = true;
+      roofGroup.add(pNorth);
+
+      const pSouth = new THREE.Mesh(pNorthGeo, wallExteriorMat);
+      pSouth.position.set(0, 0.22 + parapetHeight / 2, roofW / 2 - parapetThick / 2);
+      pSouth.castShadow = true;
+      roofGroup.add(pSouth);
+
+      const pEastGeo = new THREE.BoxGeometry(parapetThick, parapetHeight, roofW - parapetThick * 2);
+      const pEast = new THREE.Mesh(pEastGeo, wallExteriorMat);
+      pEast.position.set(-roofL / 2 + parapetThick / 2, 0.22 + parapetHeight / 2, 0);
+      pEast.castShadow = true;
+      roofGroup.add(pEast);
+
+      const pWest = new THREE.Mesh(pEastGeo, wallExteriorMat);
+      pWest.position.set(roofL / 2 - parapetThick / 2, 0.22 + parapetHeight / 2, 0);
+      pWest.castShadow = true;
+      roofGroup.add(pWest);
+
+      // Traditional Carved Stone Kangura Battlements
+      const kanguraCountX = Math.round(roofL / 0.55);
+      const kanguraShape = new THREE.Shape();
+      kanguraShape.moveTo(-0.12, 0);
+      kanguraShape.lineTo(0, 0.16);
+      kanguraShape.lineTo(0.12, 0);
+      kanguraShape.closePath();
+      const kanguraExt = { depth: parapetThick * 1.05, bevelEnabled: false };
+      const kanguraGeo = new THREE.ExtrudeGeometry(kanguraShape, kanguraExt);
+
+      const kanguraY = 0.22 + parapetHeight;
+      for (let i = 0; i < kanguraCountX; i++) {
+        const kx = -roofL / 2 + 0.35 + (i / (kanguraCountX - 1)) * (roofL - 0.7);
+        const kNorth = new THREE.Mesh(kanguraGeo, wallExteriorMat);
+        kNorth.position.set(kx, kanguraY, -roofW / 2);
+        kNorth.castShadow = true;
+        roofGroup.add(kNorth);
+
+        const kSouth = new THREE.Mesh(kanguraGeo, wallExteriorMat);
+        kSouth.position.set(kx, kanguraY, roofW / 2 - parapetThick);
+        kSouth.castShadow = true;
+        roofGroup.add(kSouth);
+      }
+
+    } else if (archetype === 'leh') {
+      // ═════════════════════════════════════════════════════════════════
+      // 4C. LEH: FLAT MUD & WILLOW ROOF WITH TARKA PARAPET & PRAYER FLAGS
+      // ═════════════════════════════════════════════════════════════════
+      const terraceOverhang = 0.22;
+      const roofL = l + terraceOverhang * 2;
+      const roofW = w + terraceOverhang * 2;
+      const tarkaHeight = 0.28;
+
+      roofGroup.position.set(0, roofBaseY, 0);
+
+      // Traditional Ladakhi Burgundy Frieze Band (Mar-po)
+      const friezeGeo = new THREE.BoxGeometry(roofL + 0.04, 0.18, roofW + 0.04);
+      const friezeMat = new THREE.MeshStandardMaterial({ color: 0x581C1A, roughness: 0.9 });
+      const frieze = new THREE.Mesh(friezeGeo, friezeMat);
+      frieze.position.set(0, 0.09, 0);
+      roofGroup.add(frieze);
+
+      // Earthen Flat Roof Mud Slab (Talu)
+      const mudSlabGeo = new THREE.BoxGeometry(roofL, 0.18, roofW);
+      metalRoofMesh = new THREE.Mesh(mudSlabGeo, wallExteriorMat);
+      metalRoofMesh.position.set(0, 0.18, 0);
+      metalRoofMesh.receiveShadow = true;
+      roofGroup.add(metalRoofMesh);
+
+      // Authentic Willow Twig Brushwood Parapet (Tarka)
+      const tarkaMat = new THREE.MeshStandardMaterial({
+        color: 0x451A03,
+        roughness: 0.95,
+      });
+
+      const tarkaNGeo = new THREE.BoxGeometry(roofL + 0.06, tarkaHeight, 0.24);
+      const tarkaN = new THREE.Mesh(tarkaNGeo, tarkaMat);
+      tarkaN.position.set(0, 0.27 + tarkaHeight / 2, -roofW / 2 + 0.12);
+      tarkaN.castShadow = true;
+      roofGroup.add(tarkaN);
+
+      const tarkaS = new THREE.Mesh(tarkaNGeo, tarkaMat);
+      tarkaS.position.set(0, 0.27 + tarkaHeight / 2, roofW / 2 - 0.12);
+      tarkaS.castShadow = true;
+      roofGroup.add(tarkaS);
+
+      const tarkaEGeo = new THREE.BoxGeometry(0.24, tarkaHeight, roofW - 0.24);
+      const tarkaE = new THREE.Mesh(tarkaEGeo, tarkaMat);
+      tarkaE.position.set(-roofL / 2 + 0.12, 0.27 + tarkaHeight / 2, 0);
+      tarkaE.castShadow = true;
+      roofGroup.add(tarkaE);
+
+      const tarkaW = new THREE.Mesh(tarkaEGeo, tarkaMat);
+      tarkaW.position.set(roofL / 2 - 0.12, 0.27 + tarkaHeight / 2, 0);
+      tarkaW.castShadow = true;
+      roofGroup.add(tarkaW);
+
+      // Tall Buddhist Prayer Flag Mast (Darchor) on Northeast Corner
+      const mastGroup = new THREE.Group();
+      mastGroup.position.set(-roofL / 2 + 0.35, 0.27, -roofW / 2 + 0.35);
+
+      const mastPoleGeo = new THREE.CylinderGeometry(0.04, 0.05, 2.8, 8);
+      const mastPoleMat = new THREE.MeshStandardMaterial({ color: 0x5C3A21, roughness: 0.8 });
+      const mastPole = new THREE.Mesh(mastPoleGeo, mastPoleMat);
+      mastPole.position.y = 1.4;
+      mastPole.castShadow = true;
+      mastGroup.add(mastPole);
+
+      // Five-Color Prayer Flags
+      const flagColors = [0x2563EB, 0xF8FAFC, 0xDC2626, 0x16A34A, 0xEAB308];
+      const flagGeo = new THREE.PlaneGeometry(0.32, 0.22);
+      flagColors.forEach((color, idx) => {
+        const flagMat = new THREE.MeshStandardMaterial({
+          color,
+          side: THREE.DoubleSide,
+          roughness: 0.7,
+        });
+        const flagMesh = new THREE.Mesh(flagGeo, flagMat);
+        flagMesh.position.set(0.18, 2.5 - idx * 0.28, 0);
+        flagMesh.rotation.y = 0.2 + idx * 0.08;
+        flagMesh.castShadow = true;
+        mastGroup.add(flagMesh);
+      });
+      roofGroup.add(mastGroup);
+
+    } else if (archetype === 'delhi') {
+      // ═════════════════════════════════════════════════════════════════
+      // 4D. DELHI: FLAT CONCRETE TERRACE WITH METAL SAFETY RAILING
+      // ═════════════════════════════════════════════════════════════════
+      const terraceOverhang = 0.25;
+      const roofL = l + terraceOverhang * 2;
+      const roofW = w + terraceOverhang * 2;
+      const parapetCurbH = 0.20;
+
+      roofGroup.position.set(0, roofBaseY, 0);
+
+      // Reinforced Concrete Slab
+      const slabGeo = new THREE.BoxGeometry(roofL, 0.20, roofW);
+      metalRoofMesh = new THREE.Mesh(slabGeo, concreteFloorMat);
+      metalRoofMesh.position.set(0, 0.10, 0);
+      metalRoofMesh.castShadow = true;
+      metalRoofMesh.receiveShadow = true;
+      roofGroup.add(metalRoofMesh);
+
+      // Perimeter Concrete Curb
+      const curbNGeo = new THREE.BoxGeometry(roofL, parapetCurbH, 0.15);
+      const curbN = new THREE.Mesh(curbNGeo, concreteFloorMat);
+      curbN.position.set(0, 0.20 + parapetCurbH / 2, -roofW / 2 + 0.075);
+      roofGroup.add(curbN);
+
+      const curbS = new THREE.Mesh(curbNGeo, concreteFloorMat);
+      curbS.position.set(0, 0.20 + parapetCurbH / 2, roofW / 2 - 0.075);
+      roofGroup.add(curbS);
+
+      // Steel Safety Handrail & Posts
+      const railMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.85, roughness: 0.25 });
+      const topRailNGeo = new THREE.BoxGeometry(roofL, 0.04, 0.04);
+      const topRailN = new THREE.Mesh(topRailNGeo, railMat);
+      topRailN.position.set(0, 0.20 + 0.95, -roofW / 2 + 0.075);
+      roofGroup.add(topRailN);
+
+      const topRailS = new THREE.Mesh(topRailNGeo, railMat);
+      topRailS.position.set(0, 0.20 + 0.95, roofW / 2 - 0.075);
+      roofGroup.add(topRailS);
+
+      // Baluster Posts
+      const postGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.95, 8);
+      const postCountX = Math.round(roofL / 0.8);
+      for (let i = 0; i < postCountX; i++) {
+        const px = -roofL / 2 + 0.2 + (i / (postCountX - 1)) * (roofL - 0.4);
+        const postN = new THREE.Mesh(postGeo, railMat);
+        postN.position.set(px, 0.20 + 0.475, -roofW / 2 + 0.075);
+        roofGroup.add(postN);
+
+        const postS = new THREE.Mesh(postGeo, railMat);
+        postS.position.set(px, 0.20 + 0.475, roofW / 2 - 0.075);
+        roofGroup.add(postS);
+      }
+
+    } else {
+      // ═════════════════════════════════════════════════════════════════
+      // 4E. SIACHEN / DRAS: 11° MONOSLOPE AERODYNAMIC SHED ROOF + PV
+      // ═════════════════════════════════════════════════════════════════
+      const southOverhang = 0.65;
+      const northOverhang = 0.35;
+      const sideOverhang = 0.42;
+
+      const roofLen = l + sideOverhang * 2;
+      const roofWid = w + southOverhang + northOverhang;
+      const roofPitchRad = 0.16;
+
+      roofGroup.position.set(0, roofBaseY, (southOverhang - northOverhang) / 2);
+
+      // Timber Rafters & Purlins
+      const rafterCount = Math.max(6, Math.round(l / 0.65));
+      const rafterGeo = new THREE.BoxGeometry(0.12, 0.16, roofWid - 0.05);
+      for (let i = 0; i < rafterCount; i++) {
+        const rx = -l / 2 - sideOverhang * 0.6 + (i / (rafterCount - 1)) * (roofLen - sideOverhang * 0.5);
+        const rafter = new THREE.Mesh(rafterGeo, timberMat);
+        rafter.position.set(rx, 0.1, 0);
+        rafter.rotation.x = roofPitchRad;
+        rafter.castShadow = true;
+        roofGroup.add(rafter);
+        rafterMeshes.push(rafter);
+      }
+
+      // Structural Decking
+      const deckGeo = new THREE.BoxGeometry(roofLen - 0.04, 0.04, roofWid - 0.04);
+      deckMesh = new THREE.Mesh(deckGeo, timberMat);
+      deckMesh.position.set(0, 0.2, 0);
+      deckMesh.rotation.x = roofPitchRad;
+      deckMesh.castShadow = true;
+      roofGroup.add(deckMesh);
+
+      // Continuous XPS/EPS Insulation Board
+      const roofInsulGeo = new THREE.BoxGeometry(roofLen, 0.14, roofWid);
+      roofInsulMesh = new THREE.Mesh(roofInsulGeo, wallInsulationMat);
+      roofInsulMesh.position.set(0, 0.29, 0);
+      roofInsulMesh.rotation.x = roofPitchRad;
+      roofGroup.add(roofInsulMesh);
+
+      // Weatherproof Standing-Seam Alpine Metal Roof
+      const metalRoofGeo = new THREE.BoxGeometry(roofLen + 0.04, 0.06, roofWid + 0.04);
+      metalRoofMesh = new THREE.Mesh(metalRoofGeo, metalRoofMat);
+      metalRoofMesh.position.set(0, 0.39, 0);
+      metalRoofMesh.rotation.x = roofPitchRad;
+      metalRoofMesh.castShadow = true;
+      metalRoofMesh.receiveShadow = true;
+      roofGroup.add(metalRoofMesh);
+
+      // Snow retention guards along southern lower edge
+      const guardBarGeo = new THREE.BoxGeometry(roofLen - 0.2, 0.06, 0.04);
+      guardBar = new THREE.Mesh(guardBarGeo, new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 }));
+      guardBar.position.set(0, 0.44, roofWid / 2 - 0.1);
+      guardBar.rotation.x = roofPitchRad;
+      roofGroup.add(guardBar);
+
+      // Rooftop Photovoltaic (PV) Solar Array
+      const pvGroup = new THREE.Group();
+      const pvPanelGeo = new THREE.BoxGeometry(1.65, 0.05, 1.0);
+      const pv1 = new THREE.Mesh(pvPanelGeo, solarPvMat);
+      pv1.position.set(-1.0, 0.48, 0.2);
+      pv1.rotation.x = roofPitchRad + 0.15;
+      pv1.castShadow = true;
+      pvGroup.add(pv1);
+
+      const pv2 = new THREE.Mesh(pvPanelGeo, solarPvMat);
+      pv2.position.set(1.0, 0.48, 0.2);
+      pv2.rotation.x = roofPitchRad + 0.15;
+      pv2.castShadow = true;
+      pvGroup.add(pv2);
+      roofGroup.add(pvGroup);
+      pvPanels = [pv1, pv2];
+
+      // Stainless Steel Insulated Stove Chimney Pipe with Cowl
+      const chimneyGroup = new THREE.Group();
+      chimneyGroup.position.set(l * 0.28, 0.38, -w * 0.25);
+
+      const pipeGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.4, 16);
+      const pipeMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E1, metalness: 0.92, roughness: 0.15 });
+      pipe = new THREE.Mesh(pipeGeo, pipeMat);
+      pipe.position.y = 0.7;
+      pipe.castShadow = true;
+      chimneyGroup.add(pipe);
+
+      const cowlGeo = new THREE.ConeGeometry(0.24, 0.16, 16);
+      cowl = new THREE.Mesh(cowlGeo, pipeMat);
+      cowl.position.y = 1.45;
+      cowl.castShadow = true;
+      chimneyGroup.add(cowl);
+      roofGroup.add(chimneyGroup);
+
+      // Crystalline Snow Blanket on Roof
+      if (effectiveSnowCover) {
+        const snowGeo = new THREE.BoxGeometry(roofLen, 0.12, roofWid);
+        const snowMesh = new THREE.Mesh(snowGeo, createMat('snow', null));
+        snowMesh.position.set(0, 0.46, 0);
+        snowMesh.rotation.x = roofPitchRad;
+        snowMesh.receiveShadow = true;
+        snowMesh.castShadow = true;
+        roofGroup.add(snowMesh);
+        snowMeshRef = snowMesh;
+      }
     }
 
     shelter.add(roofGroup);
@@ -953,7 +1767,7 @@ export default function Shelter3DCanvas({
       rightPier,
       lintel,
       trombeMesh,
-      vents: [topVent1, topVent2, btmVent1, btmVent2],
+      vents: [topVent1, topVent2, btmVent1, btmVent2].filter(Boolean),
       frameMesh,
       mullion,
       sill,
@@ -964,7 +1778,7 @@ export default function Shelter3DCanvas({
       roofInsulMesh,
       metalRoofMesh,
       guardBar,
-      pvPanels: [pv1, pv2],
+      pvPanels,
       chimneyPipe: pipe,
       chimneyCowl: cowl,
       snowMeshRef,
@@ -982,7 +1796,7 @@ export default function Shelter3DCanvas({
         metalRoofY: 0.39,
       },
     };
-  }, [length_m, width_m, height_m, openings, snowCover]);
+  }, [archetype, activeSiteName, length_m, width_m, height_m, openings, effectiveSnowCover, isThermal, isFraming, isExploded]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      3A. IN-PLACE MATERIAL SYNCHRONIZATION & FACADE PEEL CUTAWAY
@@ -1496,68 +2310,314 @@ export default function Shelter3DCanvas({
     const activePeelThickness = peelLevel === 1 ? Math.round(wallThickM * 1000) : peelLevel === 2 ? Math.round(insulThickM * 1000) : Math.round(wallThickM * 1000);
     const activePeelR = peelLevel === 1 ? trombeR : peelLevel === 2 ? (insulThickM / (insulSpec.conductivity_w_mk || 0.038)) : trombeR;
 
-    // 1. Hotspots
-    const rawHotspots = [
-      {
-        id: 'trombe-wall',
-        label: 'Trombe Mass Wall',
-        sub: `Passive Solar Heat Storage (${extWallSpec.name})`,
-        category: 'Solar Heating',
-        pos: new THREE.Vector3(0, height_m * 0.5, width_m / 2 + 0.1),
-        spec: {
-          name: `South Trombe ${extWallSpec.name} Wall`,
-          description: `High-density ${extWallSpec.name} absorber storage wall (k = ${extWallSpec.conductivity_w_mk} W/m·K, density = ${extWallSpec.density_kg_m3} kg/m³) positioned behind high-transmission glazing. Absorbs incident solar irradiance and transfers heat inward via thermal phase delay.`,
-          whyUse: 'Delivers 45-60% of winter space heating passively, eliminating fuel combustion dependencies in sub-zero alpine conditions.',
-          rVal: trombeR.toFixed(2),
-          uVal: trombeU.toFixed(2),
-          thickness_mm: Math.round(wallThickM * 1000),
-          conductivity: extWallSpec.conductivity_w_mk,
-          density: extWallSpec.density_kg_m3,
-          specificHeat: extWallSpec.specific_heat_j_kgk,
-          cost: extWallSpec.cost_inr_m2 ? `₹${extWallSpec.cost_inr_m2}/m²` : extWallSpec.cost_inr_m3 ? `₹${extWallSpec.cost_inr_m3}/m³` : null,
-          citation: extWallSpec.citation || 'NBC 2016 Table 2 / IS 3792',
+    // 1. Regional Adaptive Hotspots
+    let rawHotspots = [];
+    if (archetype === 'manali') {
+      rawHotspots = [
+        {
+          id: 'kath-kuni',
+          label: 'Kath-Kuni Timber Cribbage',
+          sub: 'Zone V Seismic Timber Lacing',
+          category: 'Seismic & Thermal Mass',
+          pos: new THREE.Vector3(-length_m / 2 - 0.2, height_m * 0.55, width_m / 2),
+          spec: {
+            name: 'Himachal Kath-Kuni Timber-Laced Stone',
+            description: 'Indigenous interlocking dry-stone masonry with longitudinal Deodar cedar wooden beams. Yields high ductility, energy dissipation, and seismic damping under IS 13828 Zone V.',
+            whyUse: 'Withstands severe Himalayan tectonic faults while providing continuous thermal inertia and preventing brittle shear failure.',
+            rVal: '2.45',
+            uVal: '0.41',
+            thickness_mm: 450,
+            conductivity: 0.58,
+            density: 1850,
+            specificHeat: 1050,
+            cost: '₹3,200/m²',
+            citation: 'IS 13828 / Himachal PWD Vernacular Directive',
+          },
         },
-      },
-      {
-        id: 'solar-roof',
-        label: 'Monoslope Shed Roof (11°)',
-        sub: `${roofCladSpec.name} & ${roofInsulSpec.name} Core`,
-        category: 'Envelope',
-        pos: new THREE.Vector3(-length_m / 4, height_m + 0.5, 0),
-        spec: {
-          name: `Insulated Alpine Shed Roof (${roofCladSpec.name})`,
-          description: `Pitched at 11° with ${roofCladSpec.name} standing seam exterior and ${roofInsulSpec.name} continuous core (k = ${roofInsulSpec.conductivity_w_mk} W/m·K). Extended 650mm south overhang shades summer solar peak while admitting low winter sun.`,
-          whyUse: 'Sheds heavy alpine snowdrifts while optimizing rooftop solar PV collector inclination and eliminating thermal bridges.',
-          rVal: roofRVal.toFixed(2),
-          uVal: roofUVal.toFixed(2),
-          thickness_mm: roofThickMm,
-          conductivity: roofInsulSpec.conductivity_w_mk,
-          density: roofInsulSpec.density_kg_m3,
-          specificHeat: roofInsulSpec.specific_heat_j_kgk,
-          cost: roofInsulSpec.cost_inr_m2 ? `₹${roofInsulSpec.cost_inr_m2}/m²` : null,
-          citation: roofInsulSpec.citation || roofCladSpec.citation || 'NBC 2016 Part 8 / ASHRAE 90.1',
+        {
+          id: 'pitched-roof',
+          label: '30° Pitched Gable Slate Roof',
+          sub: 'IS 875 Snow Shedding Roof',
+          category: 'Envelope',
+          pos: new THREE.Vector3(0, height_m + 1.2, 0),
+          spec: {
+            name: '30° Alpine Gable Roof (Slate / Seam Metal)',
+            description: 'Double-pitched 30° gable roof designed for gravitational snow shedding under IS 875 heavy snow load (2.5 kN/m²). Features deep 600mm eaves overhang protecting walls from driving monsoon rain.',
+            whyUse: 'Prevents snow accumulation overload and eliminates winter roof ponding/leakage common with flat roofs in alpine valleys.',
+            rVal: roofRVal.toFixed(2),
+            uVal: roofUVal.toFixed(2),
+            thickness_mm: roofThickMm,
+            conductivity: roofInsulSpec.conductivity_w_mk,
+            density: roofInsulSpec.density_kg_m3,
+            specificHeat: roofInsulSpec.specific_heat_j_kgk,
+            citation: 'IS 875 (Part 4) / NBC 2016 Part 6',
+          },
         },
-      },
-      {
-        id: 'airlock-vestibule',
-        label: 'Arctic Airlock Vestibule',
-        sub: 'Weather-Lock Mudroom Entrance',
-        category: 'Infiltration Control',
-        pos: new THREE.Vector3(-length_m / 2 - 0.7, 1.2, 0.3),
-        spec: {
-          name: 'Arctic Entry Airlock Mudroom',
-          description: `Dual-door weather-lock foyer built with ${extWallSpec.name} and timber weather-stripping. Halts sub-zero blizzard drafts upon entry.`,
-          whyUse: 'Reduces building ACH infiltration losses by over 70% in high-altitude gale conditions.',
-          rVal: '3.10',
-          uVal: '0.32',
-          thickness_mm: 120,
-          conductivity: extWallSpec.conductivity_w_mk,
-          density: extWallSpec.density_kg_m3,
-          specificHeat: extWallSpec.specific_heat_j_kgk,
-          citation: 'IS 3792 / CPWD Himalayan Design Directive',
+        {
+          id: 'alpine-entry',
+          label: 'Alpine Timber Porch Veranda',
+          sub: 'Deodar Storm Draft Buffer',
+          category: 'Infiltration Control',
+          pos: new THREE.Vector3(-length_m / 2 - 0.7, 1.2, 0.3),
+          spec: {
+            name: 'Deodar Sheltered Entry Porch',
+            description: 'Projecting cedar wood veranda porch with pitched canopy. Protects doorway from heavy snowdrifts and wind-driven precipitation.',
+            whyUse: 'Forms a thermal transition air buffer without needing industrial military airlocks, preserving Himalayan vernacular architectural harmony.',
+            rVal: '2.80',
+            uVal: '0.36',
+            thickness_mm: 120,
+            conductivity: 0.13,
+            density: 560,
+            specificHeat: 1600,
+            citation: 'NBC 2016 / Himachal Hill Architecture Code',
+          },
         },
-      },
-    ];
+      ];
+    } else if (archetype === 'jaisalmer') {
+      rawHotspots = [
+        {
+          id: 'jali-screen',
+          label: 'Carved Stone Jali Screen',
+          sub: 'Solar Shading Coefficient ≤ 0.30',
+          category: 'Solar Shading & Ventilation',
+          pos: new THREE.Vector3(0, height_m * 0.5, width_m / 2 + 0.1),
+          spec: {
+            name: 'Jaisalmer Dressed Stone Jali Screen',
+            description: 'Perforated geometric sandstone lattice screen. Filters direct solar radiation, admitting diffuse daylight while cutting thermal infrared radiation (SHGC ≤ 0.30).',
+            whyUse: 'Cuts daytime solar heat gain by 65% while accelerating airflow through the Venturi effect during hot dry desert afternoons.',
+            rVal: '1.20',
+            uVal: '0.83',
+            thickness_mm: 50,
+            conductivity: 1.30,
+            density: 2200,
+            specificHeat: 920,
+            cost: '₹2,800/m²',
+            citation: 'ECBC 2017 Table 4.2 / NBC 2016',
+          },
+        },
+        {
+          id: 'sandstone-envelope',
+          label: 'Golden Sandstone Mass Envelope',
+          sub: 'Diurnal Thermal Phase Delay (~8 hrs)',
+          category: 'Thermal Mass',
+          pos: new THREE.Vector3(length_m / 2 + 0.1, height_m * 0.5, 0),
+          spec: {
+            name: 'Jaisalmer Dressed Yellow Sandstone Wall',
+            description: 'Thick (400mm) high-capacitance sandstone masonry with thermal conductivity k = 1.35 W/m·K and volumetric heat capacity 2,050 kJ/m³·K.',
+            whyUse: 'Damps 45°C daytime desert heat with an 8-hour thermal phase lag, releasing stored heat during cool desert nights (18°C).',
+            rVal: trombeR.toFixed(2),
+            uVal: trombeU.toFixed(2),
+            thickness_mm: 400,
+            conductivity: 1.35,
+            density: 2250,
+            specificHeat: 910,
+            citation: 'NBC 2016 Part 8 / ECBC 2017',
+          },
+        },
+        {
+          id: 'roof-terrace',
+          label: 'Flat Terraced Roof with Kangura',
+          sub: 'Night Radiative Cooling Terrace',
+          category: 'Passive Cooling',
+          pos: new THREE.Vector3(0, height_m + 0.3, 0),
+          spec: {
+            name: 'Accessible Flat Stone Terrace with Kangura',
+            description: 'Flat sandstone slab roof with 600mm perimeter parapet and carved ornamental kangura battlements.',
+            whyUse: 'Enables nocturnal longwave radiative sky cooling and provides traditional outdoor summer night sleeping space in arid climates.',
+            rVal: roofRVal.toFixed(2),
+            uVal: roofUVal.toFixed(2),
+            thickness_mm: roofThickMm,
+            conductivity: 1.30,
+            density: 2200,
+            specificHeat: 920,
+            citation: 'Vernacular Architecture of Rajasthan / IS 3792',
+          },
+        },
+      ];
+    } else if (archetype === 'leh') {
+      rawHotspots = [
+        {
+          id: 'solar-aperture',
+          label: 'Ladakhi Direct-Gain Aperture',
+          sub: 'Captures 960 W/m² DNI Solar Peak',
+          category: 'Solar Heating',
+          pos: new THREE.Vector3(0, height_m * 0.5, width_m / 2 + 0.1),
+          spec: {
+            name: 'High-Transmittance South Solar Aperture',
+            description: 'Expansive double-glazed solar aperture integrated with carved timber lintels (shing-tsag) capturing high-altitude Ladakh DNI (960 W/m²).',
+            whyUse: 'Heats the high-mass adobe interior directly during intense sunny high-altitude winter days, storing heat for sub-zero nights.',
+            rVal: '3.10',
+            uVal: '0.32',
+            thickness_mm: 28,
+            conductivity: 0.032,
+            density: 2500,
+            specificHeat: 840,
+            citation: 'SECMOL / LEDeG Passive Solar Ladakh Guidelines',
+          },
+        },
+        {
+          id: 'tarka-parapet',
+          label: 'Willow Twig Parapet (Tarka)',
+          sub: 'Traditional Brushwood Roof Insulation',
+          category: 'Envelope',
+          pos: new THREE.Vector3(0, height_m + 0.25, 0),
+          spec: {
+            name: 'Traditional Willow Twig Parapet (Tarka)',
+            description: 'Bundled local willow and tamarisk twigs (tarka) bound tightly with clay mortar forming an insulating, lightweight parapet edging.',
+            whyUse: 'Protects the flat earthen mud roof (talu) from wind erosion while providing edge thermal insulation and distinctive regional identity.',
+            rVal: '1.80',
+            uVal: '0.55',
+            thickness_mm: 200,
+            conductivity: 0.11,
+            density: 450,
+            specificHeat: 1500,
+            citation: 'Traditional Himalayan Mud Architecture (Ladakh Heritage)',
+          },
+        },
+        {
+          id: 'adobe-envelope',
+          label: 'Sun-Dried Adobe Mud Brick',
+          sub: 'Low Embodied Energy & High Mass',
+          category: 'Thermal Mass',
+          pos: new THREE.Vector3(-length_m / 2 - 0.1, height_m * 0.5, 0),
+          spec: {
+            name: 'Sun-Dried Adobe Mud Brick Wall (380mm)',
+            description: 'Locally made mud bricks mixed with straw and animal hair fibers. Density ~1,700 kg/m³, thermal conductivity k = 0.75 W/m·K.',
+            whyUse: 'Zero embodied carbon, 100% locally sourced, high thermal storage capacity suited for Ladakh arid climate.',
+            rVal: trombeR.toFixed(2),
+            uVal: trombeU.toFixed(2),
+            thickness_mm: 380,
+            conductivity: 0.75,
+            density: 1700,
+            specificHeat: 1000,
+            citation: 'IS 2110 / IS 3792',
+          },
+        },
+      ];
+    } else if (archetype === 'delhi') {
+      rawHotspots = [
+        {
+          id: 'chhajja-overhang',
+          label: 'Cantilevered RCC Chhajja',
+          sub: '0.6m Summer Sunshade Overhang',
+          category: 'Solar Shading',
+          pos: new THREE.Vector3(0, height_m * 0.8, width_m / 2 + 0.3),
+          spec: {
+            name: 'Cantilevered Concrete Chhajja (0.60m)',
+            description: 'Cast-in-place concrete horizontal projection shading south/west glazing from high-angle summer sun (solar altitude > 65°).',
+            whyUse: 'Eliminates peak solar cooling loads in composite hot seasons while allowing lower winter sun penetration.',
+            rVal: '0.90',
+            uVal: '1.11',
+            thickness_mm: 75,
+            conductivity: 1.45,
+            density: 2400,
+            specificHeat: 900,
+            citation: 'NBC 2016 Part 8 / ECBC 2017',
+          },
+        },
+        {
+          id: 'brick-cavity',
+          label: 'Exposed Brick Cavity Wall',
+          sub: 'Monsoon Conduction Barrier',
+          category: 'Envelope',
+          pos: new THREE.Vector3(-length_m / 2 - 0.1, height_m * 0.5, 0),
+          spec: {
+            name: '230mm Clay Brick Wall with Cavity Air Gap',
+            description: 'Double-wythe burnt clay brick masonry separated by an unventilated 50mm air gap.',
+            whyUse: 'Breaks continuous thermal bridging and prevents driving monsoon moisture transmission.',
+            rVal: trombeR.toFixed(2),
+            uVal: trombeU.toFixed(2),
+            thickness_mm: 280,
+            conductivity: 0.72,
+            density: 1800,
+            specificHeat: 880,
+            citation: 'IS 2212 / NBC 2016',
+          },
+        },
+        {
+          id: 'terrace-railing',
+          label: 'Accessible Flat Roof Terrace',
+          sub: 'Waterproofed Concrete Slab with Railing',
+          category: 'Envelope',
+          pos: new THREE.Vector3(0, height_m + 0.3, 0),
+          spec: {
+            name: 'Accessible RCC Terrace Slab with Metal Railing',
+            description: 'Reinforced concrete roof slab with waterproofing bitumen membrane, light-reflective screed, and 1.05m perimeter safety railing.',
+            whyUse: 'Reflects composite summer solar radiation while providing usable rooftop space.',
+            rVal: roofRVal.toFixed(2),
+            uVal: roofUVal.toFixed(2),
+            thickness_mm: roofThickMm,
+            conductivity: 1.40,
+            density: 2400,
+            specificHeat: 900,
+            citation: 'IS 456 / NBC 2016',
+          },
+        },
+      ];
+    } else {
+      // Default: Siachen / Dras Glacial Cryosphere
+      rawHotspots = [
+        {
+          id: 'trombe-wall',
+          label: 'Trombe Mass Wall',
+          sub: `Passive Solar Heat Storage (${extWallSpec.name})`,
+          category: 'Solar Heating',
+          pos: new THREE.Vector3(0, height_m * 0.5, width_m / 2 + 0.1),
+          spec: {
+            name: `South Trombe ${extWallSpec.name} Wall`,
+            description: `High-density ${extWallSpec.name} absorber storage wall (k = ${extWallSpec.conductivity_w_mk} W/m·K, density = ${extWallSpec.density_kg_m3} kg/m³) positioned behind high-transmission glazing. Absorbs incident solar irradiance and transfers heat inward via thermal phase delay.`,
+            whyUse: 'Delivers 45-60% of winter space heating passively, eliminating fuel combustion dependencies in sub-zero alpine conditions.',
+            rVal: trombeR.toFixed(2),
+            uVal: trombeU.toFixed(2),
+            thickness_mm: Math.round(wallThickM * 1000),
+            conductivity: extWallSpec.conductivity_w_mk,
+            density: extWallSpec.density_kg_m3,
+            specificHeat: extWallSpec.specific_heat_j_kgk,
+            cost: extWallSpec.cost_inr_m2 ? `₹${extWallSpec.cost_inr_m2}/m²` : extWallSpec.cost_inr_m3 ? `₹${extWallSpec.cost_inr_m3}/m³` : null,
+            citation: extWallSpec.citation || 'NBC 2016 Table 2 / IS 3792',
+          },
+        },
+        {
+          id: 'solar-roof',
+          label: 'Monoslope Shed Roof (11°)',
+          sub: `${roofCladSpec.name} & ${roofInsulSpec.name} Core`,
+          category: 'Envelope',
+          pos: new THREE.Vector3(-length_m / 4, height_m + 0.5, 0),
+          spec: {
+            name: `Insulated Alpine Shed Roof (${roofCladSpec.name})`,
+            description: `Pitched at 11° with ${roofCladSpec.name} standing seam exterior and ${roofInsulSpec.name} continuous core (k = ${roofInsulSpec.conductivity_w_mk} W/m·K). Extended 650mm south overhang shades summer solar peak while admitting low winter sun.`,
+            whyUse: 'Sheds heavy alpine snowdrifts while optimizing rooftop solar PV collector inclination and eliminating thermal bridges.',
+            rVal: roofRVal.toFixed(2),
+            uVal: roofUVal.toFixed(2),
+            thickness_mm: roofThickMm,
+            conductivity: roofInsulSpec.conductivity_w_mk,
+            density: roofInsulSpec.density_kg_m3,
+            specificHeat: roofInsulSpec.specific_heat_j_kgk,
+            cost: roofInsulSpec.cost_inr_m2 ? `₹${roofInsulSpec.cost_inr_m2}/m²` : null,
+            citation: roofInsulSpec.citation || roofCladSpec.citation || 'NBC 2016 Part 8 / ASHRAE 90.1',
+          },
+        },
+        {
+          id: 'airlock-vestibule',
+          label: 'Arctic Airlock Vestibule',
+          sub: 'Weather-Lock Mudroom Entrance',
+          category: 'Infiltration Control',
+          pos: new THREE.Vector3(-length_m / 2 - 0.7, 1.2, 0.3),
+          spec: {
+            name: 'Arctic Entry Airlock Mudroom',
+            description: `Dual-door weather-lock foyer built with ${extWallSpec.name} and timber weather-stripping. Halts sub-zero blizzard drafts upon entry.`,
+            whyUse: 'Reduces building ACH infiltration losses by over 70% in high-altitude gale conditions.',
+            rVal: '3.10',
+            uVal: '0.32',
+            thickness_mm: 120,
+            conductivity: extWallSpec.conductivity_w_mk,
+            density: extWallSpec.density_kg_m3,
+            specificHeat: extWallSpec.specific_heat_j_kgk,
+            citation: 'IS 3792 / CPWD Himalayan Design Directive',
+          },
+        },
+      ];
+    }
 
     if (peelLevel > 0 && activePeelSpec) {
       rawHotspots.push({
@@ -1594,6 +2654,7 @@ export default function Shelter3DCanvas({
 
     // 2. 3D Dimension Badges
     if (showDimensions) {
+      const isPitched = archetype === 'manali';
       const dBadges = [
         {
           id: 'dim-len',
@@ -1611,6 +2672,25 @@ export default function Shelter3DCanvas({
           pos: new THREE.Vector3(-length_m / 2 - 0.8, height_m / 2, -width_m / 2),
         },
       ];
+      if (isPitched) {
+        dBadges.push({
+          id: 'dim-pitch',
+          label: '30° Snow Slope',
+          pos: new THREE.Vector3(0, height_m + 1.1, width_m / 2 + 0.3),
+        });
+      } else if (archetype === 'jaisalmer') {
+        dBadges.push({
+          id: 'dim-parapet',
+          label: '0.6m Kangura Parapet',
+          pos: new THREE.Vector3(0, height_m + 0.4, width_m / 2 + 0.3),
+        });
+      } else if (archetype === 'leh') {
+        dBadges.push({
+          id: 'dim-tarka',
+          label: 'Tarka Brushwood Parapet',
+          pos: new THREE.Vector3(0, height_m + 0.3, width_m / 2 + 0.3),
+        });
+      }
 
       const projDim = dBadges.map((b) => {
         const v = b.pos.clone();
@@ -1626,7 +2706,7 @@ export default function Shelter3DCanvas({
     } else {
       setDimensionBadges([]);
     }
-  }, [length_m, width_m, height_m, openings, showDimensions, walls, roof, floor, peelLevel, materialsVersion]);
+  }, [archetype, activeSiteName, length_m, width_m, height_m, openings, showDimensions, walls, roof, floor, peelLevel, materialsVersion]);
   updateProjectedPinsRef.current = updateProjectedPins;
 
   return (

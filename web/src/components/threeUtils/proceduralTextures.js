@@ -676,6 +676,226 @@ export function getSolarPanelTexture() {
 }
 
 /**
+ * Procedural Kath-Kuni Interlocked Timber & Slate Texture (Himachal / Manali)
+ * Alternating courses of Deodar cedar wood beams and grey slate stone courses.
+ */
+export function getKathKuniTexture() {
+  if (textureCache.has('kath_kuni')) return textureCache.get('kath_kuni');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  const courses = 8;
+  const courseH = 512 / courses;
+
+  for (let c = 0; c < courses; c++) {
+    const y = c * courseH;
+    const isTimber = c % 2 === 0;
+
+    if (isTimber) {
+      // Deodar cedar wood course
+      ctx.fillStyle = '#7C4A27';
+      ctx.fillRect(0, y, 512, courseH);
+
+      // Longitudinal grain
+      for (let gy = 2; gy < courseH - 2; gy += 4) {
+        ctx.fillStyle = 'rgba(55, 25, 8, 0.25)';
+        ctx.fillRect(0, y + gy, 512, 1.5);
+      }
+      // Timber joints / pegs
+      ctx.fillStyle = 'rgba(35, 15, 5, 0.6)';
+      ctx.fillRect(128, y, 3, courseH);
+      ctx.fillRect(384, y, 3, courseH);
+    } else {
+      // Local grey slate / stone course
+      ctx.fillStyle = '#65676B';
+      ctx.fillRect(0, y, 512, courseH);
+
+      const stoneCount = 6;
+      const stoneW = 512 / stoneCount;
+      for (let s = 0; s < stoneCount; s++) {
+        const sx = s * stoneW;
+        const shade = 95 + Math.floor(Math.random() * 30);
+        ctx.fillStyle = `rgb(${shade}, ${shade + 2}, ${shade + 4})`;
+        ctx.fillRect(sx + 2, y + 2, stoneW - 4, courseH - 4);
+
+        // Stone texture stipple
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        for (let i = 0; i < 20; i++) {
+          ctx.fillRect(sx + Math.random() * stoneW, y + Math.random() * courseH, 1.5, 1.5);
+        }
+      }
+      // Mortar groove
+      ctx.fillStyle = 'rgba(30, 30, 30, 0.4)';
+      ctx.fillRect(0, y + courseH - 2, 512, 2);
+    }
+
+    // Shadow between timber and stone
+    ctx.fillStyle = 'rgba(20, 10, 5, 0.4)';
+    ctx.fillRect(0, y, 512, 2);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  textureCache.set('kath_kuni', texture);
+  return texture;
+}
+
+/**
+ * Procedural Jaisalmer Yellow Sandstone Texture (Rajasthan / Thar)
+ */
+export function getJaisalmerStoneTexture() {
+  if (textureCache.has('jaisalmer_stone')) return textureCache.get('jaisalmer_stone');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Honey golden sandstone base
+  ctx.fillStyle = '#E5BE7A';
+  ctx.fillRect(0, 0, 512, 512);
+
+  const rows = 10;
+  const rowH = 512 / rows;
+
+  for (let r = 0; r < rows; r++) {
+    const y = r * rowH;
+    const cols = 4 + (r % 2);
+    const colW = 512 / cols;
+
+    for (let c = 0; c < cols; c++) {
+      const x = c * colW;
+      const hueShift = (Math.random() - 0.5) * 6;
+      const lightShift = (Math.random() - 0.5) * 8;
+      ctx.fillStyle = `hsl(${38 + hueShift}, ${68}%, ${68 + lightShift}%)`;
+      ctx.fillRect(x + 2, y + 2, colW - 4, rowH - 4);
+
+      // Fine golden sand grain stippling
+      ctx.fillStyle = 'rgba(160, 110, 40, 0.18)';
+      for (let i = 0; i < 40; i++) {
+        ctx.fillRect(x + Math.random() * colW, y + Math.random() * rowH, 1.5, 1.5);
+      }
+      ctx.fillStyle = 'rgba(255, 245, 210, 0.25)';
+      for (let i = 0; i < 25; i++) {
+        ctx.fillRect(x + Math.random() * colW, y + Math.random() * rowH, 1.5, 1.5);
+      }
+    }
+
+    // Chiselled mortar joints
+    ctx.fillStyle = 'rgba(180, 130, 60, 0.5)';
+    ctx.fillRect(0, y + rowH - 2, 512, 2);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  textureCache.set('jaisalmer_stone', texture);
+  return texture;
+}
+
+/**
+ * Procedural Carved Stone Jali Lattice Texture (Thar / Arid Shading)
+ */
+export function getJaliScreenTexture() {
+  if (textureCache.has('jali_screen')) return textureCache.get('jali_screen');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#D4AA64';
+  ctx.fillRect(0, 0, 256, 256);
+
+  const cells = 8;
+  const cellS = 256 / cells;
+
+  for (let r = 0; r < cells; r++) {
+    for (let c = 0; c < cells; c++) {
+      const cx = c * cellS + cellS / 2;
+      const cy = r * cellS + cellS / 2;
+
+      // Dark shadow aperture representing open perforation
+      ctx.fillStyle = '#2A1808';
+      ctx.beginPath();
+      ctx.arc(cx, cy, cellS * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Stone filigree cross
+      ctx.strokeStyle = '#D4AA64';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - cellS * 0.35, cy);
+      ctx.lineTo(cx + cellS * 0.35, cy);
+      ctx.moveTo(cx, cy - cellS * 0.35);
+      ctx.lineTo(cx, cy + cellS * 0.35);
+      ctx.stroke();
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
+  textureCache.set('jali_screen', texture);
+  return texture;
+}
+
+/**
+ * Procedural Pitched Alpine Slate Roof Texture
+ */
+export function getSlateRoofTexture() {
+  if (textureCache.has('slate_roof')) return textureCache.get('slate_roof');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Dark slate base
+  ctx.fillStyle = '#2B333E';
+  ctx.fillRect(0, 0, 512, 512);
+
+  const rows = 16;
+  const rowH = 512 / rows;
+
+  for (let r = 0; r < rows; r++) {
+    const y = r * rowH;
+    const cols = 8;
+    const colW = 512 / cols;
+    const isOdd = r % 2 === 1;
+    const offset = isOdd ? colW / 2 : 0;
+
+    for (let c = -1; c <= cols; c++) {
+      const x = c * colW + offset;
+      const val = 38 + Math.floor(Math.random() * 20);
+      ctx.fillStyle = `rgb(${val - 2}, ${val + 2}, ${val + 8})`;
+      ctx.fillRect(x + 1, y + 1, colW - 2, rowH - 2);
+
+      // Slate cleavage line
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.fillRect(x + 2, y + 2, colW - 4, 1.5);
+
+      ctx.fillStyle = 'rgba(10, 15, 20, 0.35)';
+      ctx.fillRect(x + 1, y + rowH - 2, colW - 2, 2);
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  textureCache.set('slate_roof', texture);
+  return texture;
+}
+
+/**
  * Master texture resolver that maps any material ID to its authentic procedural texture.
  */
 export function getTextureForMaterial(materialId) {
@@ -684,6 +904,18 @@ export function getTextureForMaterial(materialId) {
   }
   const mid = (materialId || '').toLowerCase();
 
+  if (mid.includes('kath_kuni')) {
+    return getKathKuniTexture();
+  }
+  if (mid.includes('jaisalmer') || mid.includes('sandstone')) {
+    return getJaisalmerStoneTexture();
+  }
+  if (mid.includes('jali')) {
+    return getJaliScreenTexture();
+  }
+  if (mid.includes('slate')) {
+    return getSlateRoofTexture();
+  }
   if (mid.includes('mud_brick') || mid.includes('adobe')) {
     return getAdobeTexture();
   }
@@ -732,3 +964,4 @@ export function getTextureForMaterial(materialId) {
 
   return getConcreteTexture();
 }
+
