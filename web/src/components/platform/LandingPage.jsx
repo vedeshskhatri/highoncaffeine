@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import FloatingChatOrb from './FloatingChatOrb';
 import AlpineSolarBackground from './AlpineSolarBackground';
+import ThermalCollapseComparison from './ThermalCollapseComparison';
 import './LandingPage.css';
 
 export default function LandingPage() {
@@ -123,70 +124,9 @@ export default function LandingPage() {
       </section>
 
       {/* ───────────────────────────────────────────────────────────
-          3. The Core Challenge: Clear, Human Storytelling
+          3. Field Benchmark & The 04:00 AM Thermal Collapse
           ─────────────────────────────────────────────────────────── */}
-      <section className="story-section">
-        <div className="story-container">
-          
-          <div className="story-header">
-            <span className="section-eyebrow">THE FRONTIER PROBLEM</span>
-            <h2 className="story-title">The 04:00 AM Thermal Collapse</h2>
-            <p className="story-dek">
-              Clear Himalayan skies radiate heat directly into deep space (-35 °C effective sky temperature). 
-              Standard corrugated iron shelters have zero thermal capacitance — by dawn, inside temperatures crash below freezing.
-            </p>
-          </div>
-
-          <div className="story-comparison">
-            {/* Standard Shelter */}
-            <div className="story-card problem">
-              <div className="story-card-top">
-                <span className="story-badge red">CURRENT BASELINE</span>
-                <span className="story-tag">Corrugated Galvanized Iron (CGI)</span>
-              </div>
-              <h3 className="card-title">Continuous Fuel Combustion</h3>
-              <p className="card-body">
-                Lacking insulation or thermal mass, barracks bleed heat immediately. Troops must run bukhari stoves 24/7, 
-                consuming hundreds of kilograms of kerosene and exposing personnel to toxic carbon monoxide accumulation.
-              </p>
-              <div className="card-metric-row">
-                <div className="metric-pill">
-                  <span className="metric-v red">-18 °C</span>
-                  <span className="metric-l">Unheated Dawn T_in</span>
-                </div>
-                <div className="metric-pill">
-                  <span className="metric-v red">24/7 Stove</span>
-                  <span className="metric-l">CO & Soot Hazard</span>
-                </div>
-              </div>
-            </div>
-
-            {/* THERMA Shelter */}
-            <div className="story-card solution">
-              <div className="story-card-top">
-                <span className="story-badge green">THERMA INTERVENTION</span>
-                <span className="story-tag">Passive Solar Mass Wall</span>
-              </div>
-              <h3 className="card-title">Stored Solar Inertia</h3>
-              <p className="card-body">
-                South-facing double glazing harvests intense high-altitude daytime radiation. A 300mm local stone or mud-brick mass wall 
-                stores the thermal energy, and insulated nocturnal shutters lock it in — gently discharging heat throughout the night.
-              </p>
-              <div className="card-metric-row">
-                <div className="metric-pill">
-                  <span className="metric-v green">+18 °C</span>
-                  <span className="metric-l">Guaranteed Dawn T_in</span>
-                </div>
-                <div className="metric-pill">
-                  <span className="metric-v green">0 Litres</span>
-                  <span className="metric-l">Combustion Free</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
+      <ThermalCollapseComparison />
 
       {/* ───────────────────────────────────────────────────────────
           4. 3 Core Platform Capabilities (Not 9 Cluttered Cards)

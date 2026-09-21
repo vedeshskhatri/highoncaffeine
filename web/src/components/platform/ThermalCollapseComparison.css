@@ -1,0 +1,665 @@
+/* ==========================================================================
+   ThermalCollapseComparison.css
+   Architectural Field Dossier: The 04:00 AM Thermal Collapse
+   Precision High-Altitude Defence Physics vs Generic AI Slop
+   ========================================================================== */
+
+.thermal-collapse-section {
+  padding: 88px 0;
+  background: var(--bg-base, #F8FAFC);
+  border-top: 1px solid var(--rule, #E2E8F0);
+  border-bottom: 1px solid var(--rule, #E2E8F0);
+  position: relative;
+}
+
+.thermal-collapse-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ───────────────────────────────────────────────────────────
+   1. Section Header (Architectural Editorial)
+   ─────────────────────────────────────────────────────────── */
+.collapse-header {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 48px;
+}
+
+.collapse-header-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dossier-pill {
+  font-family: var(--font-serif, 'Montserrat', sans-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--solar, #C2410C);
+  background: var(--solar-soft, #FFF7ED);
+  border: 1px solid rgba(194, 65, 12, 0.25);
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.dossier-coordinates {
+  font-family: 'Geomini', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #94A3B8);
+  font-weight: 600;
+}
+
+.collapse-main-title {
+  font-family: var(--font-serif, 'Montserrat', sans-serif);
+  font-size: clamp(2rem, 3.2vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-primary, #0F172A);
+  margin: 0 0 16px;
+  line-height: 1.15;
+}
+
+.collapse-lede {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--text-secondary, #475569);
+  margin: 0;
+}
+
+.collapse-lede strong {
+  color: var(--text-primary, #0F172A);
+  font-weight: 700;
+}
+
+/* ───────────────────────────────────────────────────────────
+   2. Interactive Diurnal Cycle Card & SVG Chart
+   ─────────────────────────────────────────────────────────── */
+.diurnal-cycle-card {
+  background: #FFFFFF;
+  border: 1px solid var(--rule, #E2E8F0);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  margin-bottom: 40px;
+  transition: border-color 0.2s ease;
+}
+
+.diurnal-cycle-card:hover {
+  border-color: #CBD5E1;
+}
+
+.cycle-card-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--rule, #E2E8F0);
+  background: #FAFCFF;
+}
+
+.cycle-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cycle-tag {
+  font-family: 'Geomini', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--cold, #0284C7);
+  text-transform: uppercase;
+}
+
+.cycle-heading {
+  font-family: var(--font-serif, 'Montserrat', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary, #0F172A);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.cycle-keyframe-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--rule, #E2E8F0);
+}
+
+.keyframe-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.keyframe-tab:hover {
+  color: var(--text-primary, #0F172A);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.keyframe-tab.active {
+  background: #FFFFFF;
+  color: var(--text-primary, #0F172A);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.tab-clock-icon {
+  color: var(--text-muted, #94A3B8);
+}
+
+.keyframe-tab.active .tab-clock-icon {
+  color: var(--solar, #C2410C);
+}
+
+.tab-mini-badge {
+  font-family: 'Geomini', monospace;
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.cycle-svg-wrap {
+  position: relative;
+  width: 100%;
+  padding: 12px 16px 6px;
+  background: #FFFFFF;
+}
+
+.cycle-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-axis-label {
+  font-family: 'Geomini', monospace;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.chart-time-label {
+  font-family: 'Geomini', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  fill: #64748B;
+}
+
+.chart-time-label.crash-label {
+  fill: #DC2626;
+  font-weight: 700;
+}
+
+.chart-comfort-label {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 9.5px;
+  font-weight: 600;
+  fill: #15803D;
+  opacity: 0.9;
+}
+
+.cycle-context-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 14px 24px;
+  background: #F8FAFC;
+  border-top: 1px solid var(--rule, #E2E8F0);
+}
+
+.cycle-context-lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.context-hour-pill {
+  font-family: 'Geomini', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary, #0F172A);
+  background: #FFFFFF;
+  border: 1px solid var(--rule, #E2E8F0);
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.context-note {
+  font-size: 0.88rem;
+  color: var(--text-secondary, #475569);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.cycle-context-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.stat-duo {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.stat-duo-label {
+  color: var(--text-muted, #94A3B8);
+  font-weight: 500;
+}
+
+.stat-duo-val {
+  font-family: 'Geomini', monospace;
+  font-weight: 700;
+}
+
+.stat-duo.cold .stat-duo-val {
+  color: var(--cold, #0284C7);
+}
+
+.stat-duo.solar .stat-duo-val {
+  color: var(--solar, #C2410C);
+}
+
+.stat-duo.ambient .stat-duo-val {
+  color: #64748B;
+}
+
+/* ───────────────────────────────────────────────────────────
+   3. Comparative Technical Dossier Panels
+   ─────────────────────────────────────────────────────────── */
+.dossier-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-bottom: 36px;
+}
+
+@media (max-width: 900px) {
+  .dossier-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dossier-panel {
+  background: #FFFFFF;
+  border: 1px solid var(--rule, #E2E8F0);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px -2px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.dossier-panel:hover {
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+}
+
+/* Architectural top border accents */
+.baseline-panel {
+  border-top: 3px solid var(--cold, #0284C7);
+}
+
+.solution-panel {
+  border-top: 3px solid var(--solar, #C2410C);
+}
+
+.panel-chrome {
+  padding: 18px 24px;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--rule, #E2E8F0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.panel-classification {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spec-code {
+  font-family: 'Geomini', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #475569;
+}
+
+.solar-code {
+  color: var(--solar, #C2410C);
+}
+
+.panel-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-serif, 'Montserrat', sans-serif);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.cold-tag {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.solar-tag {
+  background: var(--comfort-soft, #F0FDF4);
+  color: var(--comfort, #15803D);
+  border: 1px solid rgba(21, 128, 61, 0.25);
+}
+
+.panel-meta-elevation {
+  font-size: 0.74rem;
+  color: var(--text-muted, #94A3B8);
+  font-weight: 500;
+}
+
+.panel-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.panel-title {
+  font-family: var(--font-serif, 'Montserrat', sans-serif);
+  font-size: 1.32rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text-primary, #0F172A);
+  margin: 0 0 10px;
+}
+
+.panel-description {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #475569);
+  margin: 0 0 20px;
+}
+
+.panel-description .mono {
+  font-family: 'Geomini', monospace;
+  font-weight: 600;
+  color: var(--text-primary, #0F172A);
+}
+
+/* ───────────────────────────────────────────────────────────
+   Architectural Micro-Schematics (SVGs)
+   ─────────────────────────────────────────────────────────── */
+.schematic-box {
+  background: #FAFCFE;
+  border: 1px solid var(--rule, #E2E8F0);
+  border-radius: 8px;
+  padding: 12px 14px 8px;
+  margin-bottom: 22px;
+  position: relative;
+}
+
+.cold-schematic {
+  background: #F8FAFD;
+}
+
+.solar-schematic {
+  background: #FFFAF5;
+}
+
+.schematic-badge {
+  font-family: 'Geomini', monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: #64748B;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.solar-badge {
+  color: var(--solar, #C2410C);
+}
+
+.schematic-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.svg-label-sky {
+  font-family: 'Geomini', monospace;
+  font-size: 8.5px;
+  font-weight: 600;
+  fill: #0284C7;
+  letter-spacing: 0.04em;
+}
+
+.svg-label-sky.solar {
+  fill: #C2410C;
+}
+
+.svg-anno-text {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.svg-core-temp {
+  font-family: var(--font-serif, 'Montserrat', sans-serif);
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.svg-core-temp.red {
+  fill: #DC2626;
+}
+
+.svg-core-temp.green {
+  fill: #15803D;
+}
+
+.svg-stone-text {
+  font-family: 'Geomini', monospace;
+  font-size: 7.5px;
+  font-weight: 700;
+  fill: #FFFFFF;
+}
+
+.svg-stone-sub {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 7px;
+  font-weight: 600;
+  fill: #FED7AA;
+}
+
+/* ───────────────────────────────────────────────────────────
+   Rigorous Engineering Field Telemetry Matrix
+   ─────────────────────────────────────────────────────────── */
+.telemetry-matrix {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule, #E2E8F0);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.telemetry-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 14px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #F1F5F9;
+  transition: background-color 0.15s ease;
+}
+
+.telemetry-row:last-child {
+  border-bottom: none;
+}
+
+.telemetry-row:hover {
+  background: #F8FAFC;
+}
+
+.telemetry-metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.telemetry-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary, #0F172A);
+}
+
+.telemetry-icon {
+  color: var(--text-muted, #94A3B8);
+}
+
+.telemetry-val {
+  font-family: var(--font-serif, 'Montserrat', sans-serif);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.telemetry-val.cold-text {
+  color: var(--cold, #0284C7);
+}
+
+.telemetry-val.solar-text {
+  color: var(--solar, #C2410C);
+}
+
+.telemetry-val.danger-text {
+  color: #DC2626;
+  font-size: 0.8rem;
+}
+
+.telemetry-val.safe-text {
+  color: #15803D;
+  font-size: 0.8rem;
+}
+
+.telemetry-val.mono {
+  font-family: 'Geomini', monospace;
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.telemetry-impact {
+  font-size: 0.74rem;
+  color: var(--text-secondary, #64748B);
+  line-height: 1.35;
+}
+
+/* ───────────────────────────────────────────────────────────
+   4. High-Altitude Field Datum Strip
+   ─────────────────────────────────────────────────────────── */
+.dossier-datum-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--rule, #E2E8F0);
+  border-radius: 10px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+@media (max-width: 800px) {
+  .dossier-datum-bar {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 500px) {
+  .dossier-datum-bar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.datum-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.datum-label {
+  font-family: 'Geomini', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #94A3B8);
+  text-transform: uppercase;
+}
+
+.datum-value {
+  font-family: var(--font-serif, 'Montserrat', sans-serif);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary, #0F172A);
+  letter-spacing: -0.01em;
+}
+
+.datum-value.highlight {
+  color: var(--solar, #C2410C);
+}
+
+.datum-value small {
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary, #64748B);
+  letter-spacing: normal;
+}
