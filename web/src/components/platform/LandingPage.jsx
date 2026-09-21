@@ -46,7 +46,7 @@ export default function LandingPage() {
           </nav>
 
           <div className="nav-actions">
-            <Link to="/dashboard" className="nav-cta-btn">
+            <Link to="/sites/site_siachen_base/design" className="nav-cta-btn">
               <span>Enter Platform</span>
               <ArrowRight size={14} />
             </Link>
@@ -77,24 +77,24 @@ export default function LandingPage() {
 
           <div className="hero-cta-bar">
             <Link
-              to="/dashboard"
+              to="/sites/site_siachen_base/design"
               className="btn-pill-primary"
               id="hero-enter-platform"
               onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
             >
-              <span>Explore Platform</span>
+              <span>Explore 3D Shelter Studio</span>
               <div className="play-circle">
                 <Play size={11} fill="currentColor" />
               </div>
             </Link>
 
             <Link
-              to="/sites/site_siachen_base/design"
+              to="/dashboard"
               className="btn-pill-secondary"
               id="hero-launch-studio"
               onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
             >
-              <span>3D Shelter Studio</span>
+              <span>Estate Dashboard</span>
               <ArrowRight size={15} />
             </Link>
           </div>

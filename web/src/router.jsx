@@ -53,6 +53,10 @@ export const router = createBrowserRouter([
         element: <PlatformLayout />,
         children: [
       {
+        path: '/platform',
+        element: <Navigate to="/sites/site_siachen_base/design" replace />,
+      },
+      {
         path: '/dashboard',
         element: <DashboardPage />,
       },

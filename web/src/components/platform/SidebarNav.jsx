@@ -29,6 +29,7 @@ export default function SidebarNav({
     {
       title: 'PLATFORM',
       items: [
+        { to: '/sites/site_siachen_base/design', label: '3D Shelter Studio', icon: Sparkles },
         { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/sites', label: 'Site Registry & Map', icon: MapPin },
         { to: '/programme', label: 'Programme Planner', icon: TrendingUp },
