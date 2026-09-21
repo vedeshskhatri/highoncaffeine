@@ -1,16 +1,25 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ShieldAlert, AlertTriangle, ShieldCheck, RefreshCw, MapPin, Calendar, ThermometerSnowflake, Compass } from 'lucide-react';
+import {
+  ShieldAlert,
+  AlertTriangle,
+  ShieldCheck,
+  RefreshCw,
+  MapPin,
+  Calendar,
+  Compass,
+  Clock,
+  ArrowUpRight,
+  TrendingDown,
+  Layers
+} from 'lucide-react';
+import './WatchView.css';
 
 /**
  * WatchView.jsx — Multi-post forward early warning watch view per SIH 2026 PS 26051.
  * Simulates transient thermal performance across military/observation border posts
  * against multi-day Open-Meteo forward weather forecasts.
  *
- * Strictly tokenized styling (tokens.css):
- *   - Red (Danger / Severe breach): var(--danger)
- *   - Amber (Warning / Moderate breach): var(--estimate)
- *   - Green (Compliant / Comfort): var(--comfort)
- *   - Numbers: JetBrains Mono (var(--font-mono))
+ * Clean, decluttered architectural UI conforming strictly to tokens.css.
  */
 
 const DEFAULT_POSTS = [
@@ -148,422 +157,224 @@ export default function WatchView({ design }) {
   };
 
   return (
-    <div style={{
-      width: '100%',
-      maxWidth: 1040,
-      margin: '0 auto',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 'var(--space-3)',
-      paddingBottom: 'var(--space-4)',
-    }}>
-      {/* 1. Header with Refresh Button */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-        padding: '14px 18px',
-        background: 'var(--surface-1)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-md, 8px)',
-        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-      }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '18px',
-              fontWeight: 800,
-              color: 'var(--text-primary)',
-              margin: 0,
-              letterSpacing: '-0.02em',
-            }}>
-              Forward Early-Warning Radar
-            </h2>
-            <span
-              className="mono"
-              style={{
-                fontSize: '10.5px',
-                fontWeight: 700,
-                color: '#059669',
-                background: 'rgba(16, 185, 129, 0.1)',
-                border: '1px solid rgba(16, 185, 129, 0.25)',
-                borderRadius: '4px',
-                padding: '2px 7px',
-              }}
-            >
-              Live Forecast Horizon (4 Days)
-            </span>
+    <div className="watch-view-container">
+      {/* ── 1. Top Radar Header Bar ────────────────────────────────────────── */}
+      <header className="watch-radar-header">
+        <div className="watch-header-main">
+          <div className="watch-title-row">
+            <h2 className="watch-radar-title">Forward Early-Warning Radar</h2>
+            <div className="watch-live-pill">
+              <span className="watch-live-dot" />
+              <span>Live 4-Day Horizon</span>
+            </div>
           </div>
-          <p style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '12px',
-            color: 'var(--text-muted)',
-            margin: '3px 0 0',
-          }}>
-            Multi-post transient simulation tracking impending indoor comfort breaches against WHO 18 °C guidance
+          <p className="watch-radar-subtitle">
+            Transient numerical simulation tracking impending indoor comfort breaches against WHO 18 °C guidance
           </p>
         </div>
 
         <button
+          type="button"
+          className="watch-refresh-btn"
           onClick={fetchWatchData}
           disabled={loading}
-          style={{
-            background: 'var(--surface-2)',
-            border: '1px solid var(--border)',
-            borderRadius: '6px',
-            padding: '7px 14px',
-            fontFamily: 'var(--font-heading)',
-            fontSize: '12px',
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            if (!loading) {
-              e.currentTarget.style.borderColor = 'var(--accent)';
-              e.currentTarget.style.color = 'var(--accent)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!loading) {
-              e.currentTarget.style.borderColor = 'var(--border)';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }
-          }}
+          title="Query live weather and re-run multi-post thermal forecast"
         >
           <RefreshCw size={13} className={loading ? 'spin-anim' : ''} />
-          <span>{loading ? 'Refreshing...' : 'Refresh Forecast'}</span>
+          <span>{loading ? 'Simulating...' : 'Refresh Forecast'}</span>
         </button>
-      </div>
+      </header>
 
-      {/* 2. Headline Outpost Health Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-        gap: 'var(--space-3, 12px)',
-      }}>
-        {/* Total Monitored Outposts */}
-        <div style={{
-          background: 'var(--surface-1)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md, 8px)',
-          padding: '12px 14px',
-          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Monitored Outposts
-            </span>
-            <Compass size={14} color="var(--text-muted)" />
+      {/* ── 2. KPI Cards (Clean, Balanced & Soft Accents) ───────────────────── */}
+      <section className="watch-kpi-grid" aria-label="Forecast Overview Metrics">
+        {/* Monitored Outposts */}
+        <div className="watch-kpi-card">
+          <div className="watch-kpi-header">
+            <span className="watch-kpi-label">Monitored Outposts</span>
+            <div className="watch-kpi-icon-wrap icon-neutral">
+              <Compass size={14} />
+            </div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
-            {summaryCounts.total}
+          <div className="watch-kpi-value-row">
+            <span className="watch-kpi-value val-neutral">{summaryCounts.total}</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Distributed frontier sectors
-          </span>
+          <span className="watch-kpi-hint">Distributed frontier sectors</span>
         </div>
 
-        {/* Severe Cold Danger */}
-        <div style={{
-          background: 'var(--surface-1)',
-          border: summaryCounts.redCount > 0 ? '1.5px solid var(--danger)' : '1px solid var(--border)',
-          borderRadius: 'var(--radius-md, 8px)',
-          padding: '12px 14px',
-          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', fontWeight: 700, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Severe Cold Risk
-            </span>
-            <ShieldAlert size={14} color="var(--danger)" />
+        {/* Severe Cold Risk */}
+        <div className="watch-kpi-card">
+          <div className="watch-kpi-header">
+            <span className="watch-kpi-label">Severe Cold Risk</span>
+            <div className="watch-kpi-icon-wrap icon-danger">
+              <ShieldAlert size={14} />
+            </div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 700, color: 'var(--danger)', lineHeight: 1.1 }}>
-            {summaryCounts.redCount}
+          <div className="watch-kpi-value-row">
+            <span className="watch-kpi-value val-danger">{summaryCounts.redCount}</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            T_in &lt; 12 °C impending
-          </span>
+          <span className="watch-kpi-hint">Impending T_in &lt; 12 °C (Hypothermia)</span>
         </div>
 
         {/* Comfort Breach Alerts */}
-        <div style={{
-          background: 'var(--surface-1)',
-          border: summaryCounts.amberCount > 0 ? '1.5px solid var(--estimate, #f59e0b)' : '1px solid var(--border)',
-          borderRadius: 'var(--radius-md, 8px)',
-          padding: '12px 14px',
-          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Comfort Breach Alert
-            </span>
-            <AlertTriangle size={14} color="#f59e0b" />
+        <div className="watch-kpi-card">
+          <div className="watch-kpi-header">
+            <span className="watch-kpi-label">Comfort Breaches</span>
+            <div className="watch-kpi-icon-wrap icon-warning">
+              <AlertTriangle size={14} />
+            </div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 700, color: '#b45309', lineHeight: 1.1 }}>
-            {summaryCounts.amberCount}
+          <div className="watch-kpi-value-row">
+            <span className="watch-kpi-value val-warning">{summaryCounts.amberCount}</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            12 °C ≤ T_in &lt; 18 °C
-          </span>
+          <span className="watch-kpi-hint">12 °C ≤ T_in &lt; 18 °C sub-optimal</span>
         </div>
 
-        {/* Comfort Compliant */}
-        <div style={{
-          background: 'var(--surface-1)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md, 8px)',
-          padding: '12px 14px',
-          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', fontWeight: 700, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Passively Stable
-            </span>
-            <ShieldCheck size={14} color="#10b981" />
+        {/* Passively Stable */}
+        <div className="watch-kpi-card">
+          <div className="watch-kpi-header">
+            <span className="watch-kpi-label">Passively Stable</span>
+            <div className="watch-kpi-icon-wrap icon-stable">
+              <ShieldCheck size={14} />
+            </div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 700, color: '#059669', lineHeight: 1.1 }}>
-            {summaryCounts.greenCount}
+          <div className="watch-kpi-value-row">
+            <span className="watch-kpi-value val-stable">{summaryCounts.greenCount}</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Maintains ≥ 18 °C target
-          </span>
+          <span className="watch-kpi-hint">Maintains ≥ 18 °C without active fuel</span>
         </div>
-      </div>
+      </section>
 
-      {/* 3. Filter Segment Tabs */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '4px',
-        background: 'var(--surface-2)',
-        borderRadius: '8px',
-        border: '1px solid var(--border)',
-      }}>
+      {/* ── 3. Refined Filter Segmented Bar ─────────────────────────────────── */}
+      <nav className="watch-filter-bar" aria-label="Risk Severity Filter">
         {[
-          { id: 'all', label: `All Sectors (${summaryCounts.total})` },
-          { id: 'red', label: `Severe Danger (${summaryCounts.redCount})` },
-          { id: 'amber', label: `Breach Alerts (${summaryCounts.amberCount})` },
-          { id: 'green', label: `Stable (${summaryCounts.greenCount})` },
+          { id: 'all', label: 'All Sectors', count: summaryCounts.total },
+          { id: 'red', label: 'Severe Danger', count: summaryCounts.redCount },
+          { id: 'amber', label: 'Breach Alerts', count: summaryCounts.amberCount },
+          { id: 'green', label: 'Stable', count: summaryCounts.greenCount },
         ].map((tab) => {
           const isActive = filterStatus === tab.id;
           return (
             <button
               key={tab.id}
+              type="button"
+              className={`watch-filter-btn ${isActive ? 'active' : ''}`}
               onClick={() => setFilterStatus(tab.id)}
-              style={{
-                flex: 1,
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: 'none',
-                background: isActive ? '#0F172A' : 'transparent',
-                color: isActive ? '#FFFFFF' : 'var(--text-secondary)',
-                fontFamily: 'var(--font-heading)',
-                fontSize: '11.5px',
-                fontWeight: isActive ? 700 : 500,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
             >
-              {tab.label}
+              <span>{tab.label}</span>
+              <span className="filter-badge-pill">{tab.count}</span>
             </button>
           );
         })}
-      </div>
+      </nav>
 
-      {/* 4. Outpost Cards List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3, 14px)' }}>
+      {/* ── 4. Outpost Cards List ───────────────────────────────────────────── */}
+      <main className="watch-posts-list">
         {displayPosts.map((post, idx) => {
           const isDanger = post.worstStatus === 'red';
           const isWarning = post.worstStatus === 'amber';
-          const badgeBg = isDanger ? 'rgba(239, 68, 68, 0.1)' : isWarning ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)';
-          const badgeColor = isDanger ? '#dc2626' : isWarning ? '#b45309' : '#059669';
-          const badgeBorder = isDanger ? 'rgba(239, 68, 68, 0.3)' : isWarning ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)';
+          const pillClass = isDanger ? 'status-pill-red' : isWarning ? 'status-pill-amber' : 'status-pill-green';
           const badgeText = isDanger ? 'Severe Cold Risk' : isWarning ? 'Impending Breach' : 'Comfort Compliant';
 
           return (
-            <div
-              key={post.post_id}
-              style={{
-                background: 'var(--surface-1)',
-                border: '1px solid var(--border)',
-                borderLeft: `4px solid ${badgeColor}`,
-                borderRadius: 'var(--radius-md, 8px)',
-                padding: '14px 16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-              }}
-            >
-              {/* Card Header: Name, Location Meta, Risk Badge */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span
-                      className="mono"
-                      style={{
-                        fontSize: '10.5px',
-                        fontWeight: 700,
-                        color: 'var(--text-secondary)',
-                        background: 'var(--surface-2)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '4px',
-                        padding: '1px 6px',
-                      }}
-                    >
-                      SECTOR 0{idx + 1}
-                    </span>
-                    <h3 style={{
-                      fontFamily: 'var(--font-heading)',
-                      fontSize: '15px',
-                      fontWeight: 700,
-                      color: 'var(--text-primary)',
-                      margin: 0,
-                    }}>
-                      {post.post_name}
-                    </h3>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '11.5px',
-                    color: 'var(--text-muted)',
-                    marginTop: '3px',
-                  }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                      <MapPin size={11} />
-                      {post.sector}
-                    </span>
-                    <span>·</span>
-                    <span className="mono">{post.altitude_m}m ASL</span>
-                    <span>·</span>
-                    <span>Lowest Predicted: <strong style={{ color: badgeColor }}>{post.minPredicted.toFixed(1)} °C</strong></span>
+            <article key={post.post_id} className="watch-post-card">
+              {/* Card Header */}
+              <div className="watch-post-header">
+                <div className="watch-post-identity">
+                  <span className="watch-sector-tag">
+                    SEC 0{idx + 1}
+                  </span>
+                  <div className="watch-post-title-group">
+                    <h3 className="watch-post-name">{post.post_name}</h3>
+                    <div className="watch-post-meta">
+                      <span>{post.sector}</span>
+                      <span className="meta-bullet">·</span>
+                      <span className="mono">{post.altitude_m}m ASL</span>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: badgeColor,
-                  background: badgeBg,
-                  border: `1px solid ${badgeBorder}`,
-                  borderRadius: '6px',
-                  padding: '4px 10px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}>
-                  {badgeText}
+                <div className="watch-post-status-group">
+                  <div className="watch-min-stat-chip">
+                    <span>Lowest:</span>
+                    <strong
+                      className="mono"
+                      style={{
+                        color: isDanger ? '#dc2626' : isWarning ? '#b45309' : '#15803d',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {post.minPredicted.toFixed(1)} °C
+                    </strong>
+                  </div>
+
+                  <span className={`watch-status-pill ${pillClass}`}>
+                    {badgeText}
+                  </span>
                 </div>
               </div>
 
-              {/* 4-Day Forecast Grid */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-                gap: '10px',
-              }}>
+              {/* 4-Day Horizontal Forecast Strip */}
+              <div className="watch-forecast-strip">
                 {post.days.map((day, dIdx) => {
                   const dayDanger = day.status === 'red';
                   const dayWarning = day.status === 'amber';
-                  const dayStatusColor = dayDanger ? '#dc2626' : dayWarning ? '#b45309' : '#059669';
+                  const tempClass = dayDanger ? 'temp-red' : dayWarning ? 'temp-amber' : 'temp-green';
+                  const barClass = dayDanger ? 'bar-red' : dayWarning ? 'bar-amber' : 'bar-green';
+                  const noticeClass = dayDanger ? 'notice-red' : dayWarning ? 'notice-amber' : 'notice-green';
+
+                  // Thermal progress percent relative to 18°C baseline (0°C = 0%, 20°C = 100%)
+                  const progressPct = Math.min(100, Math.max(10, ((day.predicted_t_in_min_c + 5) / 25) * 100));
+                  const thermalBuffer = (day.predicted_t_in_min_c - day.t_out_min_c).toFixed(1);
 
                   return (
                     <div
                       key={day.date}
-                      style={{
-                        background: 'var(--surface-2)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '6px',
-                        padding: '10px 12px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: '6px',
-                      }}
+                      className={`watch-day-cell ${dayDanger ? 'day-critical' : ''}`}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{
-                          fontFamily: 'var(--font-heading)',
-                          fontSize: '11.5px',
-                          fontWeight: 700,
-                          color: 'var(--text-secondary)',
-                        }}>
-                          {formatDateLabel(day.date, dIdx)}
-                        </span>
-                        <span className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                          {day.date.slice(5)}
-                        </span>
+                      {/* Day Label & Date */}
+                      <div className="watch-day-header">
+                        <span className="watch-day-name">{formatDateLabel(day.date, dIdx)}</span>
+                        <span className="watch-day-date">{day.date.slice(5)}</span>
                       </div>
 
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                          <span style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '18px',
-                            fontWeight: 700,
-                            color: dayStatusColor,
-                          }}>
-                            {day.predicted_t_in_min_c.toFixed(1)} °C
+                      {/* Indoor Predicted Min & Outdoor Comparison */}
+                      <div className="watch-day-temps">
+                        <div className="watch-indoor-temp-row">
+                          <span className={`watch-temp-value ${tempClass}`}>
+                            {day.predicted_t_in_min_c.toFixed(1)}°
                           </span>
-                          <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
-                            Interior Min
-                          </span>
+                          <span className="watch-temp-caption">Indoor Min</span>
                         </div>
 
-                        <div style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10.5px',
-                          color: 'var(--text-muted)',
-                          marginTop: '2px',
-                        }}>
-                          Ambient: {day.t_out_min_c} °C
+                        {/* Ambient & Buffer Pill */}
+                        <div className="watch-ambient-row">
+                          <span>Ext {day.t_out_min_c}°C</span>
+                          <span className="watch-buffer-badge">
+                            +{thermalBuffer}° buffer
+                          </span>
                         </div>
                       </div>
 
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        borderTop: '1px solid var(--border)',
-                        paddingTop: '6px',
-                        marginTop: '2px',
-                      }}>
-                        <span style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          color: dayStatusColor,
-                        }}>
-                          {dayDanger ? 'Extreme Danger' : dayWarning ? 'Cold Breach' : 'Comfortable'}
+                      {/* Mini Thermal Comfort Gauge */}
+                      <div className="watch-thermal-track" title={`Predicted: ${day.predicted_t_in_min_c}°C (Comfort target: 18°C)`}>
+                        <div
+                          className={`watch-thermal-bar ${barClass}`}
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
+
+                      {/* Breach Notice & Time */}
+                      <div className="watch-day-footer">
+                        <span className={`watch-breach-notice ${noticeClass}`}>
+                          {dayDanger ? 'Danger' : dayWarning ? 'Cold Breach' : 'Comfortable'}
                         </span>
-                        {day.breach_hour != null && (
-                          <span className="mono" style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}>
+                        {day.breach_hour != null ? (
+                          <span className="watch-breach-time">
                             at {String(day.breach_hour).padStart(2, '0')}:00
+                          </span>
+                        ) : (
+                          <span className="watch-breach-time">
+                            Safe 24h
                           </span>
                         )}
                       </div>
@@ -571,10 +382,10 @@ export default function WatchView({ design }) {
                   );
                 })}
               </div>
-            </div>
+            </article>
           );
         })}
-      </div>
+      </main>
     </div>
   );
 }

@@ -1,0 +1,593 @@
+/*
+ * WatchView.css — High-End Clean Architectural Forecast Radar
+ * Minimal, decluttered, editorial typography and crisp data hierarchy.
+ */
+
+.watch-view-container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 20px);
+  padding: var(--space-2, 8px) 0 var(--space-5, 32px) 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1. RADAR HEADER
+   ───────────────────────────────────────────────────────────────────────────── */
+.watch-radar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.watch-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.watch-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.watch-radar-title {
+  font-family: var(--font-heading, 'Montserrat', sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+
+.watch-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 9999px;
+  padding: 2px 9px;
+  letter-spacing: 0.02em;
+}
+
+.watch-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  animation: watchPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes watchPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.watch-radar-subtitle {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12.5px;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.watch-refresh-btn {
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-family: var(--font-heading, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+}
+
+.watch-refresh-btn:hover:not(:disabled) {
+  background: var(--surface-2, #f8fafc);
+  border-color: var(--border-strong, #cbd5e1);
+  color: var(--text-primary, #0f172a);
+}
+
+.watch-refresh-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.spin-anim {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2. KPI CARDS ROW (Decluttered & Balanced)
+   ───────────────────────────────────────────────────────────────────────────── */
+.watch-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .watch-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .watch-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.watch-kpi-card {
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.watch-kpi-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.watch-kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.watch-kpi-label {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #64748b);
+}
+
+.watch-kpi-icon-wrap {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-neutral {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.icon-danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.icon-warning {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.icon-stable {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.watch-kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.watch-kpi-value {
+  font-family: var(--font-mono, monospace);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.val-neutral { color: var(--text-primary, #0f172a); }
+.val-danger { color: #dc2626; }
+.val-warning { color: #b45309; }
+.val-stable { color: #15803d; }
+
+.watch-kpi-hint {
+  font-family: var(--font-body, sans-serif);
+  font-size: 11.5px;
+  color: var(--text-muted, #94a3b8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3. REFINED FILTER SEGMENTED BAR
+   ───────────────────────────────────────────────────────────────────────────── */
+.watch-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  background: var(--surface-2, #f1f5f9);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+}
+
+.watch-filter-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #64748b);
+  font-family: var(--font-heading, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.watch-filter-btn:hover:not(.active) {
+  color: var(--text-primary, #0f172a);
+}
+
+.watch-filter-btn.active {
+  background: #ffffff;
+  color: var(--text-primary, #0f172a);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.filter-badge-pill {
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: inherit;
+}
+
+.watch-filter-btn.active .filter-badge-pill {
+  background: var(--surface-2, #f1f5f9);
+  color: var(--text-primary, #0f172a);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   4. OUTPOST RADAR CARDS (Decluttered & Editorial)
+   ───────────────────────────────────────────────────────────────────────────── */
+.watch-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.watch-post-card {
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.watch-post-card:hover {
+  border-color: var(--border-strong, #cbd5e1);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+/* Post Card Header */
+.watch-post-header {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.watch-post-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.watch-sector-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 2px 7px;
+  letter-spacing: 0.03em;
+}
+
+.watch-post-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.watch-post-name {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.watch-post-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+}
+
+.meta-bullet {
+  color: #cbd5e1;
+}
+
+.watch-post-status-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.watch-min-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 11.5px;
+  color: var(--text-secondary, #475569);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 3px 9px;
+}
+
+.watch-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.status-pill-red {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.status-pill-amber {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid rgba(180, 83, 9, 0.2);
+}
+
+.status-pill-green {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid rgba(21, 128, 61, 0.2);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   5. 4-DAY HORIZONTAL FORECAST STRIP
+   ───────────────────────────────────────────────────────────────────────────── */
+.watch-forecast-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: #ffffff;
+}
+
+@media (max-width: 800px) {
+  .watch-forecast-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .watch-forecast-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.watch-day-cell {
+  padding: 14px 18px;
+  border-right: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.watch-day-cell:last-child {
+  border-right: none;
+}
+
+.watch-day-cell:hover {
+  background: #fafafa;
+}
+
+.watch-day-cell.day-critical {
+  background: rgba(254, 242, 242, 0.35);
+}
+
+.watch-day-cell.day-critical:hover {
+  background: rgba(254, 242, 242, 0.55);
+}
+
+/* Day Header */
+.watch-day-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.watch-day-name {
+  font-family: var(--font-heading, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary, #334155);
+}
+
+.watch-day-date {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+}
+
+/* Day Temperature Metrics */
+.watch-day-temps {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.watch-indoor-temp-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.watch-temp-value {
+  font-family: var(--font-mono, monospace);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.temp-red { color: #dc2626; }
+.temp-amber { color: #d97706; }
+.temp-green { color: #16a34a; }
+
+.watch-temp-caption {
+  font-family: var(--font-body, sans-serif);
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.watch-ambient-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.watch-buffer-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #0284c7;
+  background: #f0f9ff;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* Thermal Comfort Mini Progress Track */
+.watch-thermal-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  overflow: hidden;
+  position: relative;
+  margin: 3px 0;
+}
+
+.watch-thermal-bar {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.bar-red {
+  background: #ef4444;
+}
+
+.bar-amber {
+  background: #f59e0b;
+}
+
+.bar-green {
+  background: #10b981;
+}
+
+/* Day Footer: Breach Notice */
+.watch-day-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  padding-top: 4px;
+}
+
+.watch-breach-notice {
+  font-weight: 600;
+}
+
+.notice-red { color: #dc2626; }
+.notice-amber { color: #b45309; }
+.notice-green { color: #16a34a; }
+
+.watch-breach-time {
+  color: var(--text-muted, #94a3b8);
+  font-size: 10px;
+}
